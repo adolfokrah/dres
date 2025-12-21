@@ -27,6 +27,28 @@ import {
 
 export const ProductsCollection: CollectionOverride = ({ defaultCollection }) => ({
   ...defaultCollection,
+  hooks: {
+    ...defaultCollection?.hooks,
+    // Ensure variantTypes is always an array to prevent plugin validation errors
+    beforeChange: [
+      ...(defaultCollection?.hooks?.beforeChange || []),
+      async ({ data }) => {
+        if (data && !data.variantTypes) {
+          data.variantTypes = []
+        }
+        return data
+      },
+    ],
+    beforeRead: [
+      ...(defaultCollection?.hooks?.beforeRead || []),
+      async ({ doc }) => {
+        if (doc && !doc.variantTypes) {
+          doc.variantTypes = []
+        }
+        return doc
+      },
+    ],
+  },
   admin: {
     ...defaultCollection?.admin,
     defaultColumns: ['title', 'enableVariants', '_status', 'variants.variants'],
@@ -170,12 +192,21 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
                   },
                 }
               }
-              // Add filterOptions to variantTypes field
+              // Add filterOptions and auto-populate hook to variantTypes field
               if ('name' in field && field.name === 'variantTypes') {
                 return {
                   ...field,
                   admin: {
                     ...('admin' in field ? field.admin : {}),
+                  },
+                  hooks: {
+                    ...('hooks' in field ? field.hooks : {}),
+                    beforeChange: [
+                      ...('hooks' in field && field.hooks?.beforeChange
+                        ? field.hooks.beforeChange
+                        : []),
+                      setVariantTypesFromMainCategory,
+                    ],
                   },
                   filterOptions: async ({
                     data,

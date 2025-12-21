@@ -11,12 +11,12 @@ export const setVariantTypesFromMainCategory: FieldHook = async ({
 }) => {
   // Only check on create or update
   if (operation !== 'create' && operation !== 'update') {
-    return value
+    return value ?? []
   }
 
-  // If no category selected, return existing value or undefined
+  // If no category selected, return empty array to prevent validation errors
   if (!data?.categories) {
-    return value || undefined
+    return value ?? []
   }
 
   try {
@@ -30,7 +30,7 @@ export const setVariantTypesFromMainCategory: FieldHook = async ({
     })
 
     if (!categoryDoc) {
-      return value || undefined
+      return value ?? []
     }
 
     // Collect all allowed variant types from the category's main categories
@@ -53,11 +53,11 @@ export const setVariantTypesFromMainCategory: FieldHook = async ({
       })
     }
 
-    // Return the collected variant types, or undefined if none found
-    return allowedVariantTypeIds.size > 0 ? Array.from(allowedVariantTypeIds) : undefined
+    // Return the collected variant types, or existing value/empty array if none found
+    return allowedVariantTypeIds.size > 0 ? Array.from(allowedVariantTypeIds) : (value ?? [])
   } catch (error) {
     console.error('Error setting variant types from main category:', error)
-    return value || undefined
+    return value ?? []
   }
 }
 
