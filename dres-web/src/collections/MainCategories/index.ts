@@ -17,6 +17,15 @@ export const MainCategories: CollectionConfig = {
       type: 'text',
       required: true,
     },
+    {
+      name: 'allowedVariants',
+      type: 'relationship',
+      relationTo: 'variantTypes',
+      hasMany: true,
+      admin: {
+        description: 'Select which variant types (e.g., Size, Color) are allowed for products in this main category',
+      },
+    },
     slugField({
       position: undefined,
     }),

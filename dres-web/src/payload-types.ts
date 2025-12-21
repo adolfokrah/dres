@@ -629,6 +629,10 @@ export interface MainCategory {
   id: number;
   title: string;
   /**
+   * Select which variant types (e.g., Size, Color) are allowed for products in this main category
+   */
+  allowedVariants?: (number | VariantType)[] | null;
+  /**
    * When enabled, the slug will auto-generate from the title field on save and autosave.
    */
   generateSlug?: boolean | null;
@@ -1414,6 +1418,7 @@ export interface CategoriesSelect<T extends boolean = true> {
  */
 export interface MainCategoriesSelect<T extends boolean = true> {
   title?: T;
+  allowedVariants?: T;
   generateSlug?: T;
   slug?: T;
   updatedAt?: T;
