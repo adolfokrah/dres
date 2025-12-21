@@ -2,6 +2,10 @@ import { CollectionOverride } from '@payloadcms/plugin-ecommerce/types'
 
 export const VariantOptionsCollection: CollectionOverride = ({ defaultCollection }) => ({
   ...defaultCollection,
+  admin: {
+    ...defaultCollection.admin,
+    group: 'Products',
+  },
   fields: [
     ...(defaultCollection.fields || []),
     {
