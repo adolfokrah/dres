@@ -310,7 +310,7 @@ export interface Product {
     description?: string | null;
   };
   seller: number | User;
-  categories?: (number | Category)[] | null;
+  categories?: (number | null) | Category;
   /**
    * When enabled, the slug will auto-generate from the title field on save and autosave.
    */

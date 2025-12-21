@@ -19,7 +19,9 @@
     "stripe-webhooks": "stripe listen --forward-to localhost:3000/api/stripe/webhooks",
     "test": "pnpm run test:int && pnpm run test:e2e",
     "test:e2e": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test",
-    "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts"
+    "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts",
+    "ci": "payload migrate && pnpm build",
+    "migrate:create": "pnpm payload migrate:create"
   },
   "dependencies": {
     "@payloadcms/admin-bar": "3.69.0",
