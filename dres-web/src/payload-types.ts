@@ -368,6 +368,10 @@ export interface VariantOption {
    * should be defaulted or dynamic based on label
    */
   value: string;
+  /**
+   * Select which main categories this option applies to (e.g., W12 L42 for Bottoms only)
+   */
+  mainCategories?: (number | MainCategory)[] | null;
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
@@ -388,6 +392,25 @@ export interface VariantType {
   updatedAt: string;
   createdAt: string;
   deletedAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "mainCategories".
+ */
+export interface MainCategory {
+  id: number;
+  title: string;
+  /**
+   * Select which variant types (e.g., Size, Color) are allowed for products in this main category
+   */
+  allowedVariants?: (number | VariantType)[] | null;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -618,25 +641,6 @@ export interface Category {
 export interface Department {
   id: number;
   name: string;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "mainCategories".
- */
-export interface MainCategory {
-  id: number;
-  title: string;
-  /**
-   * Select which variant types (e.g., Size, Color) are allowed for products in this main category
-   */
-  allowedVariants?: (number | VariantType)[] | null;
-  /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
-   */
-  generateSlug?: boolean | null;
-  slug: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -1658,6 +1662,7 @@ export interface VariantOptionsSelect<T extends boolean = true> {
   variantType?: T;
   label?: T;
   value?: T;
+  mainCategories?: T;
   updatedAt?: T;
   createdAt?: T;
   deletedAt?: T;

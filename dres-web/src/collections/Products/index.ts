@@ -125,7 +125,7 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
                       return data?.enableVariants === true && data?.variantTypes?.length > 0
                     },
                   },
-                  filterOptions: ({ data }) => {
+                  filterOptions: async ({ data, req }) => {
                     if (data?.enableVariants && data?.variantTypes?.length) {
                       const variantTypeIDs = data.variantTypes.map(
                         (item: DefaultDocumentIDType | { id: DefaultDocumentIDType }) => {
@@ -143,10 +143,56 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
                           },
                         }
 
+                      // Get the product's category's main categories
+                      let mainCategoryIds: (string | number)[] = []
+                      if (data?.categories) {
+                        try {
+                          const categoryId =
+                            typeof data.categories === 'object' && data.categories !== null
+                              ? (data.categories as { id: string | number }).id
+                              : (data.categories as string | number)
+
+                          const categoryDoc = await req.payload.findByID({
+                            collection: 'categories',
+                            id: categoryId,
+                            depth: 1,
+                          })
+
+                          if (categoryDoc?.mainCategories) {
+                            mainCategoryIds = (categoryDoc.mainCategories as Array<{ id: string | number } | string | number>).map(
+                              (mc) => (typeof mc === 'object' ? mc.id : mc)
+                            )
+                          }
+                        } catch (error) {
+                          console.error('Error fetching category:', error)
+                        }
+                      }
+
+                      // Filter by variant type and main categories
                       const query: Where = {
-                        variantType: {
-                          in: variantTypeIDs,
-                        },
+                        and: [
+                          {
+                            variantType: {
+                              in: variantTypeIDs,
+                            },
+                          },
+                          mainCategoryIds.length > 0
+                            ? {
+                                or: [
+                                  {
+                                    mainCategories: {
+                                      in: mainCategoryIds,
+                                    },
+                                  },
+                                  {
+                                    mainCategories: {
+                                      exists: false,
+                                    },
+                                  },
+                                ],
+                              }
+                            : {},
+                        ],
                       }
 
                       return query
