@@ -1,23 +1,21 @@
-import { slugField } from 'payload'
 import type { CollectionConfig } from 'payload'
 
-export const Categories: CollectionConfig = {
-  slug: 'categories',
+export const Departments: CollectionConfig = {
+  slug: 'departments',
   access: {
     read: () => true,
   },
   admin: {
-    useAsTitle: 'title',
     group: 'Ecommerce',
+    useAsTitle: 'name',
+    defaultColumns: ['name', 'updatedAt'],
   },
   fields: [
     {
-      name: 'title',
+      name: 'name',
       type: 'text',
       required: true,
+      unique: true,
     },
-    slugField({
-      position: undefined,
-    }),
   ],
 }
