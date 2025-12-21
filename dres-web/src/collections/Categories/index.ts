@@ -24,6 +24,16 @@ export const Categories: CollectionConfig = {
       required: true,
     },
     {
+      name: 'collections',
+      type: 'relationship',
+      relationTo: 'collections',
+      hasMany: true,
+      admin: {
+        description: 'Select which collections this falls under (e.g., Dresses, Bottoms, Shoes)',
+      },
+    },
+
+    {
       name: 'departments',
       type: 'relationship',
       relationTo: 'departments',
@@ -33,12 +43,12 @@ export const Categories: CollectionConfig = {
       },
     },
     {
-      name: 'collections',
+      name: 'brands',
       type: 'relationship',
-      relationTo: 'collections',
+      relationTo: 'brands',
       hasMany: true,
       admin: {
-        description: 'Select which collections this falls under (e.g., Dresses, Bottoms, Shoes)',
+        description: 'Select which brands are available in this category',
       },
     },
   ],

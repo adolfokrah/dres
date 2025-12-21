@@ -4,6 +4,7 @@ import path from 'path'
 import { buildConfig, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
 
+import { Brands } from './collections/Brands'
 import { Categories } from './collections/Categories'
 import { Collections } from './collections/Collections'
 import { Departments } from './collections/Departments'
@@ -67,7 +68,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URL || '',
     },
   }),
-  collections: [Pages, Posts, PostCategories, Media, Categories, Collections, Departments, VariantTypes, VariantOptions, Users],
+  collections: [Pages, Posts, PostCategories, Media, Brands, Categories, Collections, Departments, VariantTypes, VariantOptions, Users],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins,

@@ -71,6 +71,7 @@ export interface Config {
     posts: Post;
     postCategories: PostCategory;
     media: Media;
+    brands: Brand;
     categories: Category;
     collections: Collection;
     departments: Department;
@@ -107,6 +108,7 @@ export interface Config {
     posts: PostsSelect<false> | PostsSelect<true>;
     postCategories: PostCategoriesSelect<false> | PostCategoriesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    brands: BrandsSelect<false> | BrandsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     collections: CollectionsSelect<false> | CollectionsSelect<true>;
     departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
@@ -598,13 +600,35 @@ export interface Category {
   id: number;
   title: string;
   /**
+   * Select which collections this falls under (e.g., Dresses, Bottoms, Shoes)
+   */
+  collections?: (number | Collection)[] | null;
+  /**
    * Select which departments this category belongs to
    */
   departments?: (number | Department)[] | null;
   /**
-   * Select which collections this falls under (e.g., Dresses, Bottoms, Shoes)
+   * Select which brands are available in this category
    */
-  collections?: (number | Collection)[] | null;
+  brands?: (number | Brand)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "collections".
+ */
+export interface Collection {
+  id: number;
+  name: string;
+  /**
+   * Categories in this collection
+   */
+  categories?: {
+    docs?: (number | Category)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -628,19 +652,16 @@ export interface Department {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "collections".
+ * via the `definition` "brands".
  */
-export interface Collection {
+export interface Brand {
   id: number;
   name: string;
   /**
-   * Categories in this collection
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
    */
-  categories?: {
-    docs?: (number | Category)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
+  generateSlug?: boolean | null;
+  slug: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -1089,6 +1110,10 @@ export interface PayloadLockedDocument {
         value: number | Media;
       } | null)
     | ({
+        relationTo: 'brands';
+        value: number | Brand;
+      } | null)
+    | ({
         relationTo: 'categories';
         value: number | Category;
       } | null)
@@ -1447,12 +1472,24 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brands_select".
+ */
+export interface BrandsSelect<T extends boolean = true> {
+  name?: T;
+  generateSlug?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "categories_select".
  */
 export interface CategoriesSelect<T extends boolean = true> {
   title?: T;
-  departments?: T;
   collections?: T;
+  departments?: T;
+  brands?: T;
   updatedAt?: T;
   createdAt?: T;
 }
