@@ -74,6 +74,8 @@ export interface Config {
     categories: Category;
     collections: Collection;
     departments: Department;
+    variantTypes: VariantType;
+    variantOptions: VariantOption;
     users: User;
     redirects: Redirect;
     forms: Form;
@@ -87,6 +89,9 @@ export interface Config {
     'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {
+    variantTypes: {
+      options: 'variantOptions';
+    };
     'payload-folders': {
       documentsAndFolders: 'payload-folders' | 'media';
     };
@@ -99,6 +104,8 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     collections: CollectionsSelect<false> | CollectionsSelect<true>;
     departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
+    variantTypes: VariantTypesSelect<false> | VariantTypesSelect<true>;
+    variantOptions: VariantOptionsSelect<false> | VariantOptionsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
@@ -826,6 +833,44 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variantTypes".
+ */
+export interface VariantType {
+  id: number;
+  name: string;
+  /**
+   * Options for this variant type
+   */
+  options?: {
+    docs?: (number | VariantOption)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variantOptions".
+ */
+export interface VariantOption {
+  id: number;
+  variantType: number | VariantType;
+  label: string;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  /**
+   * Select which categories this option applies to (e.g., W12 L42 for Bottoms only)
+   */
+  categories?: (number | Category)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -1041,6 +1086,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'departments';
         value: number | Department;
+      } | null)
+    | ({
+        relationTo: 'variantTypes';
+        value: number | VariantType;
+      } | null)
+    | ({
+        relationTo: 'variantOptions';
+        value: number | VariantOption;
       } | null)
     | ({
         relationTo: 'users';
@@ -1414,6 +1467,29 @@ export interface CollectionsSelect<T extends boolean = true> {
  */
 export interface DepartmentsSelect<T extends boolean = true> {
   name?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variantTypes_select".
+ */
+export interface VariantTypesSelect<T extends boolean = true> {
+  name?: T;
+  options?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variantOptions_select".
+ */
+export interface VariantOptionsSelect<T extends boolean = true> {
+  variantType?: T;
+  label?: T;
+  generateSlug?: T;
+  slug?: T;
+  categories?: T;
   updatedAt?: T;
   createdAt?: T;
 }

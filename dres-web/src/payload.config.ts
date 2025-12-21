@@ -12,6 +12,8 @@ import { Pages } from './collections/Pages'
 import { PostCategories } from './collections/PostCategories'
 import { Posts } from './collections/Posts'
 import { Users } from './collections/Users'
+import { VariantOptions } from './collections/VariantOptions'
+import { VariantTypes } from './collections/VariantTypes'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
 import { plugins } from './plugins'
@@ -65,7 +67,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URL || '',
     },
   }),
-  collections: [Pages, Posts, PostCategories, Media, Categories, Collections, Departments, Users],
+  collections: [Pages, Posts, PostCategories, Media, Categories, Collections, Departments, VariantTypes, VariantOptions, Users],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins,
