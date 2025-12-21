@@ -4,7 +4,6 @@ import { MediaBlock } from '@/blocks/MediaBlock/config'
 import { slugField } from 'payload'
 import { generatePreviewPath } from '@/utilities/generatePreviewPath'
 import { CollectionOverride } from '@payloadcms/plugin-ecommerce/types'
-import type { PayloadRequest } from 'payload'
 import {
   MetaDescriptionField,
   MetaImageField,
@@ -238,12 +237,13 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
                   },
                 }
               }
-              // Add filterOptions and auto-populate hook to variantTypes field
+              // Auto-populate variantTypes from main category (read-only)
               if ('name' in field && field.name === 'variantTypes') {
                 return {
                   ...field,
                   admin: {
                     ...('admin' in field ? field.admin : {}),
+                    readOnly: true,
                   },
                   hooks: {
                     ...('hooks' in field ? field.hooks : {}),
@@ -253,78 +253,6 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
                         : []),
                       setVariantTypesFromMainCategory,
                     ],
-                  },
-                  filterOptions: async ({
-                    data,
-                    req,
-                  }: {
-                    data: Record<string, unknown>
-                    req: PayloadRequest
-                  }) => {
-                    // If no category selected, show no options
-                    if (!data?.categories) {
-                      return {
-                        id: {
-                          in: [],
-                        },
-                      }
-                    }
-
-                    try {
-                      const categoryId =
-                        typeof data.categories === 'object' && data.categories !== null
-                          ? (data.categories as { id: string | number }).id
-                          : (data.categories as string | number)
-
-                      // Fetch the category with its main categories
-                      const categoryDoc = await req.payload.findByID({
-                        collection: 'categories',
-                        id: categoryId,
-                        depth: 3,
-                      })
-
-                      if (!categoryDoc) {
-                        return {
-                          id: {
-                            in: [],
-                          },
-                        }
-                      }
-
-                      // Collect allowed variant type IDs
-                      const allowedVariantTypeIds: (string | number)[] = []
-                      const mainCategories = categoryDoc.mainCategories
-
-                      if (mainCategories && Array.isArray(mainCategories)) {
-                        mainCategories.forEach((mainCat) => {
-                          if (typeof mainCat === 'object' && 'allowedVariants' in mainCat) {
-                            const allowedVariants = mainCat.allowedVariants
-                            if (Array.isArray(allowedVariants)) {
-                              allowedVariants.forEach((variant) => {
-                                const variantId =
-                                  typeof variant === 'object' ? variant.id : variant
-                                if (variantId) {
-                                  allowedVariantTypeIds.push(variantId)
-                                }
-                              })
-                            }
-                          }
-                        })
-                      }
-
-                      return {
-                        id: {
-                          in: allowedVariantTypeIds.length > 0 ? allowedVariantTypeIds : [],
-                        },
-                      }
-                    } catch (error) {
-                      console.error('Error filtering variant types:', error)
-                      return {
-                        id: {
-                          in: [],
-                        },
-                      }
-                    }
                   },
                 }
               }
