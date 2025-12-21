@@ -9,7 +9,7 @@ export const MainCategories: CollectionConfig = {
   admin: {
     group: 'Ecommerce',
     useAsTitle: 'title',
-    defaultColumns: ['title', 'updatedAt'],
+    defaultColumns: ['title', 'allowedVariants', 'updatedAt'],
   },
   fields: [
     {
