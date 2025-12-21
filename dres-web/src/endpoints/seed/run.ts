@@ -21,8 +21,8 @@ const runSeed = async () => {
     await seedDepartments(payload)
     await seedCollections(payload)
     await seedBrands(payload)
-    await seedCategories(payload) // Categories need departments, collections, and brands
-    await seedVariantTypes(payload) // Variant types first
+    await seedVariantTypes(payload) // Variant types before categories
+    await seedCategories(payload) // Categories need departments, collections, brands, and variant types
     await seedVariantOptions(payload) // Variant options need variant types and categories
   } else if (args.includes('brands')) {
     await seedBrands(payload)

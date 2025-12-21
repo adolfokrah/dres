@@ -50,5 +50,14 @@ export const Categories: CollectionConfig = {
         description: 'Select which brands are available in this category',
       },
     },
+    {
+      name: 'variantTypes',
+      type: 'relationship',
+      relationTo: 'variantTypes',
+      hasMany: true,
+      admin: {
+        description: 'The variant types for products in this category (e.g., Size, Color)',
+      },
+    },
   ],
 }

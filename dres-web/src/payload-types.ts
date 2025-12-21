@@ -652,6 +652,10 @@ export interface Category {
    * Select which brands are available in this category
    */
   brands?: (number | Brand)[] | null;
+  /**
+   * The variant types for products in this category (e.g., Size, Color)
+   */
+  variantTypes?: (number | VariantType)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -703,6 +707,44 @@ export interface Brand {
    */
   generateSlug?: boolean | null;
   slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variantTypes".
+ */
+export interface VariantType {
+  id: number;
+  name: string;
+  /**
+   * Options for this variant type
+   */
+  options?: {
+    docs?: (number | VariantOption)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variantOptions".
+ */
+export interface VariantOption {
+  id: number;
+  variantType: number | VariantType;
+  label: string;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  /**
+   * Select which categories this option applies to (e.g., W12 L42 for Bottoms only)
+   */
+  categories?: (number | Category)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -908,44 +950,6 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variantTypes".
- */
-export interface VariantType {
-  id: number;
-  name: string;
-  /**
-   * Options for this variant type
-   */
-  options?: {
-    docs?: (number | VariantOption)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variantOptions".
- */
-export interface VariantOption {
-  id: number;
-  variantType: number | VariantType;
-  label: string;
-  /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
-   */
-  generateSlug?: boolean | null;
-  slug: string;
-  /**
-   * Select which categories this option applies to (e.g., W12 L42 for Bottoms only)
-   */
-  categories?: (number | Category)[] | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products".
  */
 export interface Product {
@@ -970,12 +974,43 @@ export interface Product {
    * Product images (first image is the main image)
    */
   images: (number | Media)[];
-  brand: number | Brand;
   category: number | Category;
+  /**
+   * Select a category first to filter available brands
+   */
+  brand?: (number | null) | Brand;
   /**
    * The user selling this product
    */
   seller: number | User;
+  /**
+   * Product variations with different options, prices, and images
+   */
+  variations?:
+    | {
+        /**
+         * Select options for each variant type
+         */
+        options?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        /**
+         * Override price for this variation (optional)
+         */
+        price?: number | null;
+        /**
+         * Specific images for this variation (optional)
+         */
+        images?: (number | Media)[] | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1579,6 +1614,7 @@ export interface CategoriesSelect<T extends boolean = true> {
   collections?: T;
   departments?: T;
   brands?: T;
+  variantTypes?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1664,9 +1700,17 @@ export interface ProductsSelect<T extends boolean = true> {
   title?: T;
   description?: T;
   images?: T;
-  brand?: T;
   category?: T;
+  brand?: T;
   seller?: T;
+  variations?:
+    | T
+    | {
+        options?: T;
+        price?: T;
+        images?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
