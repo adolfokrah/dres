@@ -47,7 +47,10 @@ export const plugins: Plugin[] = [
       },
     },
   }),
-  // nestedDocsPlugin removed - PostCategories uses custom parents field with hasMany
+  nestedDocsPlugin({
+    collections: ['postCategories'],
+    generateURL: (docs) => docs.reduce((url, doc) => `${url}/${doc.slug}`, ''),
+  }),
   seoPlugin({
     generateTitle,
     generateURL,

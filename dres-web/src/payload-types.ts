@@ -421,6 +421,15 @@ export interface PostCategory {
    */
   generateSlug?: boolean | null;
   slug: string;
+  parent?: (number | null) | PostCategory;
+  breadcrumbs?:
+    | {
+        doc?: (number | null) | PostCategory;
+        url?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1373,6 +1382,15 @@ export interface PostCategoriesSelect<T extends boolean = true> {
   title?: T;
   generateSlug?: T;
   slug?: T;
+  parent?: T;
+  breadcrumbs?:
+    | T
+    | {
+        doc?: T;
+        url?: T;
+        label?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
