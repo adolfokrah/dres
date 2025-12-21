@@ -83,6 +83,7 @@ export const VariantsCollection: CollectionOverride = ({ defaultCollection }) =>
               }
 
               // Build query: filter by variant types and main categories
+              // Only show options that belong to the product's main categories
               const query: Where = {
                 and: [
                   {
@@ -92,18 +93,9 @@ export const VariantsCollection: CollectionOverride = ({ defaultCollection }) =>
                   },
                   mainCategoryIds.length > 0
                     ? {
-                        or: [
-                          {
-                            mainCategories: {
-                              in: mainCategoryIds,
-                            },
-                          },
-                          {
-                            mainCategories: {
-                              exists: false,
-                            },
-                          },
-                        ],
+                        mainCategories: {
+                          in: mainCategoryIds,
+                        },
                       }
                     : {},
                 ],
