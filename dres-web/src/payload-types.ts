@@ -89,6 +89,12 @@ export interface Config {
     'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {
+    collections: {
+      categories: 'categories';
+    };
+    departments: {
+      categories: 'categories';
+    };
     variantTypes: {
       options: 'variantOptions';
     };
@@ -413,15 +419,6 @@ export interface PostCategory {
    */
   generateSlug?: boolean | null;
   slug: string;
-  parent?: (number | null) | PostCategory;
-  breadcrumbs?:
-    | {
-        doc?: (number | null) | PostCategory;
-        url?: string | null;
-        label?: string | null;
-        id?: string | null;
-      }[]
-    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -618,6 +615,14 @@ export interface Category {
 export interface Department {
   id: number;
   name: string;
+  /**
+   * Categories in this department
+   */
+  categories?: {
+    docs?: (number | Category)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -628,6 +633,14 @@ export interface Department {
 export interface Collection {
   id: number;
   name: string;
+  /**
+   * Categories in this collection
+   */
+  categories?: {
+    docs?: (number | Category)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -1335,15 +1348,6 @@ export interface PostCategoriesSelect<T extends boolean = true> {
   title?: T;
   generateSlug?: T;
   slug?: T;
-  parent?: T;
-  breadcrumbs?:
-    | T
-    | {
-        doc?: T;
-        url?: T;
-        label?: T;
-        id?: T;
-      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1458,6 +1462,7 @@ export interface CategoriesSelect<T extends boolean = true> {
  */
 export interface CollectionsSelect<T extends boolean = true> {
   name?: T;
+  categories?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1467,6 +1472,7 @@ export interface CollectionsSelect<T extends boolean = true> {
  */
 export interface DepartmentsSelect<T extends boolean = true> {
   name?: T;
+  categories?: T;
   updatedAt?: T;
   createdAt?: T;
 }

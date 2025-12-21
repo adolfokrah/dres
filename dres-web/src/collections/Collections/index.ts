@@ -15,5 +15,14 @@ export const Collections: CollectionConfig = {
       type: 'text',
       required: true,
     },
+    {
+      name: 'categories',
+      type: 'join',
+      collection: 'categories',
+      on: 'collections',
+      admin: {
+        description: 'Categories in this collection',
+      },
+    },
   ],
 }

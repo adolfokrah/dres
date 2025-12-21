@@ -16,5 +16,15 @@ export const Departments: CollectionConfig = {
       required: true,
       unique: true,
     },
+    {
+      name: 'categories',
+      type: 'join',
+      collection: 'categories',
+      on: 'departments',
+      admin: {
+        description: 'Categories in this department',
+        defaultColumns: ['collections', 'title'],
+      },
+    },
   ],
 }
