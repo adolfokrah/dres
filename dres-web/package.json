@@ -21,7 +21,9 @@
     "test:e2e": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test --config=playwright.config.ts",
     "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts",
     "ci": "payload migrate && pnpm build",
-    "migrate:create": "pnpm payload migrate:create"
+    "migrate:create": "pnpm payload migrate:create",
+    "seed": "tsx src/endpoints/seed/run.ts",
+    "seed:brands": "tsx src/endpoints/seed/run.ts brands"
   },
   "dependencies": {
     "@payloadcms/admin-bar": "3.69.0",
@@ -79,6 +81,7 @@
     "prettier": "^3.4.2",
     "supabase": "^2.67.3",
     "tailwindcss": "^3.4.3",
+    "tsx": "^4.21.0",
     "typescript": "5.7.3",
     "vite-tsconfig-paths": "5.1.4",
     "vitest": "3.2.3"
