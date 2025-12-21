@@ -186,7 +186,7 @@ export interface UserAuthOperations {
 export interface User {
   id: number;
   name?: string | null;
-  roles?: ('admin' | 'customer')[] | null;
+  roles?: ('admin' | 'user')[] | null;
   orders?: {
     docs?: (number | Order)[];
     hasNextPage?: boolean;

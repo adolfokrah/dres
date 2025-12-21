@@ -58,7 +58,7 @@ export const Users: CollectionConfig = {
       name: 'orders',
       type: 'join',
       collection: 'orders',
-      on: 'user',
+      on: 'customer',
       admin: {
         allowCreate: false,
         defaultColumns: ['id', 'createdAt', 'total', 'currency', 'items'],
@@ -68,7 +68,7 @@ export const Users: CollectionConfig = {
       name: 'cart',
       type: 'join',
       collection: 'carts',
-      on: 'user',
+      on: 'customer',
       admin: {
         allowCreate: false,
         defaultColumns: ['id', 'createdAt', 'total', 'currency', 'items'],
@@ -78,7 +78,7 @@ export const Users: CollectionConfig = {
       name: 'addresses',
       type: 'join',
       collection: 'addresses',
-      on: 'user',
+      on: 'customer',
       admin: {
         allowCreate: false,
         defaultColumns: ['id'],
