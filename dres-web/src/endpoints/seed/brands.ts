@@ -22,7 +22,55 @@ const fashionBrands = [
   { name: 'Celine', description: 'French luxury fashion house' },
   { name: 'Alexander McQueen', description: 'British luxury fashion house' },
   { name: 'Off-White', description: 'Italian luxury fashion label' },
-  
+  { name: 'Max Mara', description: 'Italian fashion house' },
+  { name: 'Miu Miu', description: 'Italian fashion house owned by Prada' },
+  { name: 'Tom Ford', description: 'American luxury fashion brand' },
+  { name: 'Gianvito Rossi', description: 'Italian luxury footwear brand' },
+  { name: 'Ganni', description: 'Danish fashion brand' },
+  { name: 'The Row', description: 'American luxury fashion brand' },
+  { name: 'By Far', description: 'Bulgarian luxury accessories brand' },
+  { name: 'Malone Souliers', description: 'British luxury footwear brand' },
+  { name: 'Salvatore Ferragamo', description: 'Italian luxury fashion house' },
+  { name: 'Missoni', description: 'Italian luxury fashion house' },
+  { name: 'Brunello Cucinelli', description: 'Italian luxury fashion brand' },
+  { name: 'Loro Piana', description: 'Italian luxury fashion brand' },
+  { name: 'Goyard', description: 'French luxury trunk and leather goods maker' },
+  { name: 'Longchamp', description: 'French luxury leather goods company' },
+  { name: 'Judith Leiber', description: 'American luxury handbag brand' },
+  { name: 'Herschel', description: 'Canadian bag and accessories brand' },
+  { name: 'Rimowa', description: 'German luxury luggage brand' },
+  { name: 'Tumi', description: 'American luxury luggage brand' },
+  { name: 'Mulberry', description: 'British luxury fashion company' },
+  { name: 'Dents', description: 'British glove manufacturer' },
+  { name: 'Maison Michel', description: 'French millinery house' },
+  { name: 'Lack of Color', description: 'Australian hat brand' },
+  { name: 'New Era', description: 'American headwear company' },
+  { name: 'Alexandre de Paris', description: 'French hair accessories brand' },
+  { name: 'Jennifer Behr', description: 'American hair accessories brand' },
+  { name: 'Brioni', description: 'Italian luxury menswear brand' },
+  { name: 'Turnbull & Asser', description: 'British luxury shirtmaker' },
+  { name: 'Charvet', description: 'French luxury shirtmaker' },
+  { name: 'Dunhill', description: 'British luxury goods brand' },
+  { name: 'Montblanc', description: 'German luxury goods company' },
+
+  // Jewelry & Watches
+  { name: 'Cartier', description: 'French luxury jewelry and watch brand' },
+  { name: 'Tiffany & Co.', description: 'American luxury jewelry brand' },
+  { name: 'Van Cleef & Arpels', description: 'French luxury jewelry brand' },
+  { name: 'Bulgari', description: 'Italian luxury jewelry brand' },
+  { name: 'Harry Winston', description: 'American luxury jeweler' },
+  { name: 'Pomellato', description: 'Italian luxury jewelry brand' },
+  { name: 'David Yurman', description: 'American luxury jewelry brand' },
+  { name: 'Rolex', description: 'Swiss luxury watch brand' },
+  { name: 'Patek Philippe', description: 'Swiss luxury watch brand' },
+  { name: 'Audemars Piguet', description: 'Swiss luxury watch brand' },
+  { name: 'Omega', description: 'Swiss luxury watch brand' },
+  { name: 'IWC', description: 'Swiss luxury watch brand' },
+  { name: 'TAG Heuer', description: 'Swiss luxury watch brand' },
+  { name: 'Breitling', description: 'Swiss luxury watch brand' },
+  { name: 'Tudor', description: 'Swiss watch brand' },
+  { name: 'Longines', description: 'Swiss watch brand' },
+
   // Fast Fashion & Retail
   { name: 'Zara', description: 'Spanish fast fashion retailer' },
   { name: 'H&M', description: 'Swedish multinational clothing company' },
@@ -39,7 +87,7 @@ const fashionBrands = [
   { name: 'Pull & Bear', description: 'Spanish clothing and accessories retailer' },
   { name: 'Bershka', description: 'Spanish clothing retailer' },
   { name: 'Stradivarius', description: 'Spanish fashion brand' },
-  
+
   // Premium & Designer
   { name: 'Calvin Klein', description: 'American fashion house' },
   { name: 'Tommy Hilfiger', description: 'American premium clothing brand' },
@@ -68,7 +116,9 @@ const fashionBrands = [
   { name: 'Maje', description: 'French fashion brand' },
   { name: 'Zadig & Voltaire', description: 'French fashion brand' },
   { name: 'Isabel Marant', description: 'French fashion designer brand' },
-  
+  { name: 'Equipment', description: 'American fashion brand' },
+  { name: 'Jacquemus', description: 'French fashion brand' },
+
   // Sportswear & Athletic
   { name: 'Puma', description: 'German multinational sportswear company' },
   { name: 'Reebok', description: 'American fitness footwear and apparel company' },
@@ -86,7 +136,8 @@ const fashionBrands = [
   { name: 'Alo Yoga', description: 'American yoga-inspired clothing brand' },
   { name: 'Athleta', description: 'American athletic apparel brand' },
   { name: 'Outdoor Voices', description: 'American activewear brand' },
-  
+  { name: 'Speedo', description: 'Australian swimwear brand' },
+
   // Outdoor & Lifestyle
   { name: 'The North Face', description: 'American outdoor recreation products company' },
   { name: 'Patagonia', description: 'American outdoor clothing company' },
@@ -94,13 +145,13 @@ const fashionBrands = [
   { name: 'Moncler', description: 'Italian luxury fashion brand' },
   { name: 'Canada Goose', description: 'Canadian outdoor clothing company' },
   { name: 'Stone Island', description: 'Italian luxury menswear brand' },
-  { name: 'Arc\'teryx', description: 'Canadian outdoor clothing company' },
+  { name: "Arc'teryx", description: 'Canadian outdoor clothing company' },
   { name: 'Fjällräven', description: 'Swedish outdoor equipment company' },
   { name: 'Helly Hansen', description: 'Norwegian outdoor clothing brand' },
   { name: 'Timberland', description: 'American outdoor footwear and apparel brand' },
   { name: 'Carhartt', description: 'American apparel company known for workwear' },
   { name: 'Dickies', description: 'American workwear brand' },
-  
+
   // Contemporary & Streetwear
   { name: 'Acne Studios', description: 'Swedish luxury fashion house' },
   { name: 'A.P.C.', description: 'French ready-to-wear brand' },
@@ -125,7 +176,7 @@ const fashionBrands = [
   { name: 'Banana Republic', description: 'American clothing and accessories retailer' },
   { name: 'Everlane', description: 'American clothing retailer focused on ethical fashion' },
   { name: 'Reformation', description: 'American sustainable fashion brand' },
-  
+
   // Footwear Specialists
   { name: 'Jimmy Choo', description: 'British luxury fashion house specializing in shoes' },
   { name: 'Manolo Blahnik', description: 'Spanish footwear brand' },
@@ -139,7 +190,15 @@ const fashionBrands = [
   { name: 'UGG', description: 'American footwear company' },
   { name: 'Crocs', description: 'American footwear company' },
   { name: 'TOMS', description: 'American footwear and accessories company' },
-  
+  { name: "Tod's", description: 'Italian luxury footwear brand' },
+  { name: "Church's", description: 'British luxury footwear brand' },
+  { name: 'G.H. Bass', description: 'American footwear brand' },
+  { name: 'Repetto', description: 'French footwear and dance brand' },
+  { name: "Rothy's", description: 'American sustainable footwear brand' },
+  { name: 'Castañer', description: 'Spanish espadrille brand' },
+  { name: 'Soludos', description: 'American espadrille brand' },
+  { name: 'Ancient Greek Sandals', description: 'Greek sandal brand' },
+
   // Denim & Casual
   { name: 'Wrangler', description: 'American jeans brand' },
   { name: 'Lee', description: 'American denim brand' },
@@ -151,9 +210,45 @@ const fashionBrands = [
   { name: 'AG Jeans', description: 'American premium denim brand' },
   { name: 'Frame', description: 'American denim brand' },
   { name: 'Mother Denim', description: 'American denim brand' },
+
+  // Eyewear
+  { name: 'Ray-Ban', description: 'American-Italian eyewear brand' },
+  { name: 'Oakley', description: 'American sports eyewear brand' },
+
+  // Lingerie & Swimwear
+  { name: 'Agent Provocateur', description: 'British lingerie brand' },
+  { name: 'La Perla', description: 'Italian luxury lingerie brand' },
+  { name: "Victoria's Secret", description: 'American lingerie brand' },
+  { name: 'Fleur du Mal', description: 'American luxury lingerie brand' },
+  { name: 'Chantelle', description: 'French lingerie brand' },
+  { name: 'Eres', description: 'French luxury swimwear brand' },
+  { name: 'Zimmermann', description: 'Australian fashion brand' },
+  { name: 'Solid & Striped', description: 'American swimwear brand' },
+  { name: 'Vilebrequin', description: 'French swimwear brand' },
+  { name: 'Orlebar Brown', description: 'British swimwear brand' },
+
+  // Accessories
+  { name: "Drake's", description: 'British accessories brand' },
+  { name: 'Aquascutum', description: 'British luxury fashion brand' },
 ]
 
 export const seedBrands = async (payload: Payload): Promise<void> => {
+  payload.logger.info('Clearing brands...')
+
+  // Delete all existing brands
+  const existingBrands = await payload.find({
+    collection: 'brands',
+    limit: 1000,
+  })
+
+  for (const doc of existingBrands.docs) {
+    await payload.delete({
+      collection: 'brands',
+      id: doc.id,
+    })
+  }
+
+  payload.logger.info(`Deleted ${existingBrands.docs.length} brands`)
   payload.logger.info('Seeding brands...')
 
   for (const brand of fashionBrands) {
@@ -163,29 +258,15 @@ export const seedBrands = async (payload: Payload): Promise<void> => {
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9-]/g, '')
 
-    // Check if brand already exists
-    const existing = await payload.find({
+    await payload.create({
       collection: 'brands',
-      where: {
-        slug: {
-          equals: slug,
-        },
+      data: {
+        name: brand.name,
+        slug,
       },
     })
-
-    if (existing.docs.length === 0) {
-      await payload.create({
-        collection: 'brands',
-        data: {
-          name: brand.name,
-          slug,
-        },
-      })
-      payload.logger.info(`Created brand: ${brand.name}`)
-    } else {
-      payload.logger.info(`Brand already exists: ${brand.name}`)
-    }
+    payload.logger.info(`Created brand: ${brand.name}`)
   }
 
-  payload.logger.info('Brands seeding complete!')
+  payload.logger.info(`Brands seeding complete! (${fashionBrands.length} brands)`)
 }

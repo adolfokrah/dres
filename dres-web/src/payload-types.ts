@@ -439,8 +439,38 @@ export interface PostCategory {
  */
 export interface User {
   id: number;
-  name?: string | null;
+  firstName: string;
+  lastName: string;
+  /**
+   * Your shop or business name
+   */
+  shopName?: string | null;
+  photo?: (number | null) | Media;
+  language?: ('en' | 'fr' | 'de' | 'es' | 'it' | 'pt' | 'nl' | 'ja' | 'zh' | 'ko') | null;
+  currency?: ('USD' | 'EUR' | 'GBP' | 'JPY' | 'CAD' | 'AUD' | 'CHF' | 'CNY' | 'INR' | 'GHS' | 'NGN') | null;
+  country?:
+    | (
+        | 'US'
+        | 'GB'
+        | 'CA'
+        | 'AU'
+        | 'DE'
+        | 'FR'
+        | 'IT'
+        | 'ES'
+        | 'NL'
+        | 'JP'
+        | 'CN'
+        | 'IN'
+        | 'GH'
+        | 'NG'
+        | 'ZA'
+        | 'BR'
+        | 'MX'
+      )
+    | null;
   role: 'admin' | 'user';
+  accountStatus: 'active' | 'banned' | 'deleted';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -1559,8 +1589,15 @@ export interface VariantOptionsSelect<T extends boolean = true> {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  name?: T;
+  firstName?: T;
+  lastName?: T;
+  shopName?: T;
+  photo?: T;
+  language?: T;
+  currency?: T;
+  country?: T;
   role?: T;
+  accountStatus?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
