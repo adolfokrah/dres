@@ -4,12 +4,12 @@ import { checkRole } from '@/access/utilities'
 
 /**
  * Atomic access checker that verifies if the user owns the document being accessed.
- * Returns a Where query to filter documents by the customer field.
+ * Returns a Where query to filter documents by the user field.
  *
- * Admins have full access, authenticated users get filtered by customer field,
+ * Admins have full access, authenticated users get filtered by user field,
  * and unauthenticated users are denied access.
  *
- * @returns true for admins, Where query for customers, false for guests
+ * @returns true for admins, Where query for users, false for guests
  */
 export const isDocumentOwner: Access = ({ req }) => {
   // Admin has full access
@@ -17,10 +17,10 @@ export const isDocumentOwner: Access = ({ req }) => {
     return true
   }
 
-  // Authenticated user - return Where query to filter by customer
+  // Authenticated user - return Where query to filter by user
   if (req.user?.id) {
     return {
-      customer: {
+      user: {
         equals: req.user.id,
       },
     }

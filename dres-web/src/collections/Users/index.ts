@@ -38,19 +38,19 @@ export const Users: CollectionConfig = {
         read: adminOnlyFieldAccess,
         update: adminOnlyFieldAccess,
       },
-      defaultValue: ['customer'],
+      defaultValue: ['user'],
       hasMany: true,
       hooks: {
         beforeChange: [ensureFirstUserIsAdmin],
       },
       options: [
         {
-          label: 'admin',
+          label: 'Admin',
           value: 'admin',
         },
         {
-          label: 'customer',
-          value: 'customer',
+          label: 'User',
+          value: 'user',
         },
       ],
     },
@@ -58,7 +58,7 @@ export const Users: CollectionConfig = {
       name: 'orders',
       type: 'join',
       collection: 'orders',
-      on: 'customer',
+      on: 'user',
       admin: {
         allowCreate: false,
         defaultColumns: ['id', 'createdAt', 'total', 'currency', 'items'],
@@ -68,7 +68,7 @@ export const Users: CollectionConfig = {
       name: 'cart',
       type: 'join',
       collection: 'carts',
-      on: 'customer',
+      on: 'user',
       admin: {
         allowCreate: false,
         defaultColumns: ['id', 'createdAt', 'total', 'currency', 'items'],
@@ -78,7 +78,7 @@ export const Users: CollectionConfig = {
       name: 'addresses',
       type: 'join',
       collection: 'addresses',
-      on: 'customer',
+      on: 'user',
       admin: {
         allowCreate: false,
         defaultColumns: ['id'],

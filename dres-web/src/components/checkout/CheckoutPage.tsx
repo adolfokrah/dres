@@ -81,7 +81,7 @@ export const CheckoutPage: React.FC = () => {
       try {
         const paymentData = (await initiatePayment(paymentID, {
           additionalData: {
-            ...(email ? { customerEmail: email } : {}),
+            ...(email ? { userEmail: email } : {}),
             billingAddress,
             shippingAddress: billingAddressSameAsShipping ? billingAddress : shippingAddress,
           },
@@ -333,7 +333,7 @@ export const CheckoutPage: React.FC = () => {
               >
                 <div className="flex flex-col gap-8">
                   <CheckoutForm
-                    customerEmail={email}
+                    userEmail={email}
                     billingAddress={billingAddress}
                     setProcessingPayment={setProcessingPayment}
                   />

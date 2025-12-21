@@ -32,7 +32,7 @@ export default async function AccountPage() {
       overrideAccess: false,
       pagination: false,
       where: {
-        customer: {
+        user: {
           equals: user?.id,
         },
       },

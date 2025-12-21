@@ -1,0 +1,9 @@
+import type { FieldAccess } from 'payload'
+
+import { checkRole } from '@/access/utilities'
+
+export const userOnlyFieldAccess: FieldAccess = ({ req: { user } }) => {
+  if (user) return checkRole(['user'], user)
+
+  return false
+}

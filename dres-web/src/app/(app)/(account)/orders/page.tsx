@@ -28,7 +28,7 @@ export default async function Orders() {
       user,
       overrideAccess: false,
       where: {
-        customer: {
+        user: {
           equals: user?.id,
         },
       },

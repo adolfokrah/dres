@@ -50,7 +50,7 @@ export default async function Order({ params, searchParams }: PageProps) {
           ...(user
             ? [
                 {
-                  customer: {
+                  user: {
                     equals: user.id,
                   },
                 },
@@ -59,7 +59,7 @@ export default async function Order({ params, searchParams }: PageProps) {
           ...(email
             ? [
                 {
-                  customerEmail: {
+                  userEmail: {
                     equals: email,
                   },
                 },
@@ -71,8 +71,8 @@ export default async function Order({ params, searchParams }: PageProps) {
         amount: true,
         currency: true,
         items: true,
-        customerEmail: true,
-        customer: true,
+        userEmail: true,
+        user: true,
         status: true,
         createdAt: true,
         updatedAt: true,
@@ -84,15 +84,15 @@ export default async function Order({ params, searchParams }: PageProps) {
       !user &&
       email &&
       orderResult &&
-      orderResult.customerEmail &&
-      orderResult.customerEmail === email
+      orderResult.userEmail &&
+      orderResult.userEmail === email
     const canAccessAsUser =
       user &&
       orderResult &&
-      orderResult.customer &&
-      (typeof orderResult.customer === 'object'
-        ? orderResult.customer.id
-        : orderResult.customer) === user.id
+      orderResult.user &&
+      (typeof orderResult.user === 'object'
+        ? orderResult.user.id
+        : orderResult.user) === user.id
 
     if (orderResult && (canAccessAsGuest || canAccessAsUser)) {
       order = orderResult
