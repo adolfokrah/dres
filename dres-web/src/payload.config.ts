@@ -12,6 +12,7 @@ import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { PostCategories } from './collections/PostCategories'
 import { Posts } from './collections/Posts'
+import { Products } from './collections/Products'
 import { Users } from './collections/Users'
 import { VariantOptions } from './collections/VariantOptions'
 import { VariantTypes } from './collections/VariantTypes'
@@ -68,7 +69,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URL || '',
     },
   }),
-  collections: [Pages, Posts, PostCategories, Media, Brands, Categories, Collections, Departments, VariantTypes, VariantOptions, Users],
+  collections: [Pages, Posts, PostCategories, Media, Brands, Categories, Collections, Departments, VariantTypes, VariantOptions, Users, Products],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins,
