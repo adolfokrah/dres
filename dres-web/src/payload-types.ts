@@ -75,6 +75,8 @@ export interface Config {
     users: User;
     pages: Page;
     categories: Category;
+    mainCategories: MainCategory;
+    departments: Department;
     media: Media;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -108,6 +110,8 @@ export interface Config {
     users: UsersSelect<false> | UsersSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    mainCategories: MainCategoriesSelect<false> | MainCategoriesSelect<true>;
+    departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -305,6 +309,7 @@ export interface Product {
     image?: (number | null) | Media;
     description?: string | null;
   };
+  seller: number | User;
   categories?: (number | Category)[] | null;
   /**
    * When enabled, the slug will auto-generate from the title field on save and autosave.
@@ -594,6 +599,33 @@ export interface ArchiveBlock {
  * via the `definition` "categories".
  */
 export interface Category {
+  id: number;
+  title: string;
+  departments?: (number | Department)[] | null;
+  mainCategories?: (number | MainCategory)[] | null;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "departments".
+ */
+export interface Department {
+  id: number;
+  name: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "mainCategories".
+ */
+export interface MainCategory {
   id: number;
   title: string;
   /**
@@ -1071,6 +1103,14 @@ export interface PayloadLockedDocument {
         value: number | Category;
       } | null)
     | ({
+        relationTo: 'mainCategories';
+        value: number | MainCategory;
+      } | null)
+    | ({
+        relationTo: 'departments';
+        value: number | Department;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -1361,8 +1401,30 @@ export interface FormBlockSelect<T extends boolean = true> {
  */
 export interface CategoriesSelect<T extends boolean = true> {
   title?: T;
+  departments?: T;
+  mainCategories?: T;
   generateSlug?: T;
   slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "mainCategories_select".
+ */
+export interface MainCategoriesSelect<T extends boolean = true> {
+  title?: T;
+  generateSlug?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "departments_select".
+ */
+export interface DepartmentsSelect<T extends boolean = true> {
+  name?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1630,6 +1692,7 @@ export interface ProductsSelect<T extends boolean = true> {
         image?: T;
         description?: T;
       };
+  seller?: T;
   categories?: T;
   generateSlug?: T;
   slug?: T;
