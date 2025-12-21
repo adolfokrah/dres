@@ -12,7 +12,7 @@ import { getServerSideURL } from '@/utilities/getURL'
 import { ProductsCollection } from '@/collections/Products'
 import { adminOrPublishedStatus } from '@/access/adminOrPublishedStatus'
 import { adminOnlyFieldAccess } from '@/access/adminOnlyFieldAccess'
-import { userOnlyFieldAccess } from '@/access/userOnlyFieldAccess'
+import { customerOnlyFieldAccess } from '@/access/customerOnlyFieldAccess'
 import { isAdmin } from '@/access/isAdmin'
 import { isDocumentOwner } from '@/access/isDocumentOwner'
 
@@ -69,7 +69,7 @@ export const plugins: Plugin[] = [
     access: {
       adminOnlyFieldAccess,
       adminOrPublishedStatus,
-      customerOnlyFieldAccess: userOnlyFieldAccess,
+      customerOnlyFieldAccess,
       isAdmin,
       isDocumentOwner,
     },
