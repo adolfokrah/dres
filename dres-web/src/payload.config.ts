@@ -8,6 +8,7 @@ import { Brands } from './collections/Brands'
 import { Categories } from './collections/Categories'
 import { Collections } from './collections/Collections'
 import { Departments } from './collections/Departments'
+import { Materials } from './collections/Materials'
 import { Media } from './collections/Media'
 import { Pages } from './collections/Pages'
 import { PostCategories } from './collections/PostCategories'
@@ -69,7 +70,7 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URL || '',
     },
   }),
-  collections: [Pages, Posts, PostCategories, Media, Brands, Categories, Collections, Departments, VariantTypes, VariantOptions, Users, Products],
+  collections: [Pages, Posts, PostCategories, Media, Brands, Categories, Collections, Departments, Materials, VariantTypes, VariantOptions, Users, Products],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins,

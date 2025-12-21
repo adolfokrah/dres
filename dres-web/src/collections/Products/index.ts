@@ -113,11 +113,49 @@ export const Products: CollectionConfig = {
       },
     },
     {
+      name: 'condition',
+      type: 'select',
+      required: true,
+      options: [
+        { label: 'New with tags', value: 'new_with_tags' },
+        { label: 'New without tags', value: 'new_without_tags' },
+        { label: 'Like new', value: 'like_new' },
+        { label: 'Good', value: 'good' },
+        { label: 'Fair', value: 'fair' },
+      ],
+      admin: {
+        description: 'The condition of the product',
+      },
+    },
+    {
+      name: 'material',
+      type: 'relationship',
+      relationTo: 'materials',
+      filterOptions: ({ data }) => {
+        const category = data?.category as string | { id: string } | undefined
+        if (category) {
+          return {
+            categories: {
+              contains: typeof category === 'object' ? category.id : category,
+            },
+          }
+        }
+        return true
+      },
+      admin: {
+        description: 'Main material of the product',
+        condition: (data) => Boolean(data?.category),
+      },
+    },
+    {
       name: 'variations',
       type: 'array',
       admin: {
         description: 'Product variations with different options, prices, and images',
         condition: (data) => Boolean(data?.category),
+        components: {
+          RowLabel: '@/collections/Products/VariationRowLabel#VariationRowLabel',
+        },
       },
       fields: [
         {

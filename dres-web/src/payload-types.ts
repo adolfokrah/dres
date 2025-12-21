@@ -75,6 +75,7 @@ export interface Config {
     categories: Category;
     collections: Collection;
     departments: Department;
+    materials: Material;
     variantTypes: VariantType;
     variantOptions: VariantOption;
     users: User;
@@ -113,6 +114,7 @@ export interface Config {
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
     collections: CollectionsSelect<false> | CollectionsSelect<true>;
     departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
+    materials: MaterialsSelect<false> | MaterialsSelect<true>;
     variantTypes: VariantTypesSelect<false> | VariantTypesSelect<true>;
     variantOptions: VariantOptionsSelect<false> | VariantOptionsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -950,6 +952,20 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "materials".
+ */
+export interface Material {
+  id: number;
+  name: string;
+  /**
+   * Categories that use this material
+   */
+  categories?: (number | Category)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products".
  */
 export interface Product {
@@ -983,6 +999,14 @@ export interface Product {
    * The user selling this product
    */
   seller: number | User;
+  /**
+   * The condition of the product
+   */
+  condition: 'new_with_tags' | 'new_without_tags' | 'like_new' | 'good' | 'fair';
+  /**
+   * Main material of the product
+   */
+  material?: (number | null) | Material;
   /**
    * Product variations with different options, prices, and images
    */
@@ -1235,6 +1259,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'departments';
         value: number | Department;
+      } | null)
+    | ({
+        relationTo: 'materials';
+        value: number | Material;
       } | null)
     | ({
         relationTo: 'variantTypes';
@@ -1640,6 +1668,16 @@ export interface DepartmentsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "materials_select".
+ */
+export interface MaterialsSelect<T extends boolean = true> {
+  name?: T;
+  categories?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "variantTypes_select".
  */
 export interface VariantTypesSelect<T extends boolean = true> {
@@ -1703,6 +1741,8 @@ export interface ProductsSelect<T extends boolean = true> {
   category?: T;
   brand?: T;
   seller?: T;
+  condition?: T;
+  material?: T;
   variations?:
     | T
     | {

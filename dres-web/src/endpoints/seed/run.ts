@@ -5,6 +5,7 @@ import { seedBrands } from './brands'
 import { seedCategories } from './categories'
 import { seedCollections } from './collections'
 import { seedDepartments } from './departments'
+import { seedMaterials } from './materials'
 import { seedUsers } from './users'
 import { seedVariantOptions } from './variantOptions'
 import { seedVariantTypes } from './variantTypes'
@@ -24,6 +25,7 @@ const runSeed = async () => {
     await seedVariantTypes(payload) // Variant types before categories
     await seedCategories(payload) // Categories need departments, collections, brands, and variant types
     await seedVariantOptions(payload) // Variant options need variant types and categories
+    await seedMaterials(payload) // Materials need categories
   } else if (args.includes('brands')) {
     await seedBrands(payload)
   } else if (args.includes('users')) {
@@ -38,6 +40,8 @@ const runSeed = async () => {
     await seedVariantTypes(payload)
   } else if (args.includes('variantOptions')) {
     await seedVariantOptions(payload)
+  } else if (args.includes('materials')) {
+    await seedMaterials(payload)
   }
 
   console.log('✅ Seed complete!')
