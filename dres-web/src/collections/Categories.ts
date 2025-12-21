@@ -16,6 +16,24 @@ export const Categories: CollectionConfig = {
       type: 'text',
       required: true,
     },
+    {
+      name: 'departments',
+      type: 'relationship',
+      relationTo: 'departments',
+      hasMany: true,
+      admin: {
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'mainCategories',
+      type: 'relationship',
+      relationTo: 'mainCategories',
+      hasMany: true,
+      admin: {
+        position: 'sidebar',
+      },
+    },
     slugField({
       position: undefined,
     }),
