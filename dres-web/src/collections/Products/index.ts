@@ -52,6 +52,7 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
     priceInUSD: true,
     inventory: true,
     meta: true,
+    seller: true,
   },
   fields: [
     { name: 'title', type: 'text', required: true },
@@ -196,6 +197,27 @@ export const ProductsCollection: CollectionOverride = ({ defaultCollection }) =>
           ],
         },
       ],
+    },
+    {
+      name: 'seller',
+      type: 'relationship',
+      relationTo: 'users',
+      required: true,
+      admin: {
+        position: 'sidebar',
+      },
+      defaultValue: ({ user }) => user?.id,
+      hooks: {
+        beforeChange: [
+          ({ req, value }) => {
+            // If no seller is set, default to the current user
+            if (!value && req.user) {
+              return req.user.id
+            }
+            return value
+          },
+        ],
+      },
     },
     {
       name: 'categories',
