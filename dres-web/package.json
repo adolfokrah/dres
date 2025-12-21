@@ -19,7 +19,9 @@
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
     "test": "pnpm run test:int && pnpm run test:e2e",
     "test:e2e": "cross-env NODE_OPTIONS=\"--no-deprecation --no-experimental-strip-types\" pnpm exec playwright test --config=playwright.config.ts",
-    "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts"
+    "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts",
+    "ci": "payload migrate && pnpm build",
+    "migrate:create": "pnpm payload migrate:create"
   },
   "dependencies": {
     "@payloadcms/admin-bar": "3.69.0",
@@ -32,6 +34,7 @@
     "@payloadcms/plugin-search": "3.69.0",
     "@payloadcms/plugin-seo": "3.69.0",
     "@payloadcms/richtext-lexical": "3.69.0",
+    "@payloadcms/storage-s3": "^3.69.0",
     "@payloadcms/ui": "3.69.0",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-label": "^2.0.2",

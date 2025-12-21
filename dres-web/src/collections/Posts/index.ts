@@ -127,7 +127,7 @@ export const Posts: CollectionConfig<'posts'> = {
                 position: 'sidebar',
               },
               hasMany: true,
-              relationTo: 'categories',
+              relationTo: 'postCategories',
             },
           ],
           label: 'Meta',
