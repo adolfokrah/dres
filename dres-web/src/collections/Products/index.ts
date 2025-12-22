@@ -28,6 +28,38 @@ export const Products: CollectionConfig = {
     update: authenticated,
   },
   hooks: {
+    beforeChange: [
+      async ({ data, req, operation }) => {
+        // Auto-set country from seller on create
+        if (operation === 'create' && data?.seller && !data?.country) {
+          const seller = await req.payload.findByID({
+            collection: 'users',
+            id: typeof data.seller === 'object' ? data.seller.id : data.seller,
+            depth: 0,
+          })
+          if (seller?.country) {
+            data.country = typeof seller.country === 'object' ? seller.country.id : seller.country
+          }
+        }
+        
+        // Auto-calculate selling price for product level (price + 10%)
+        if (data?.price !== undefined && data?.price !== null) {
+          data.sellingPrice = Math.round(data.price * 1.10 * 100) / 100
+        }
+        
+        // Auto-calculate selling price for each variation (price + 10%)
+        if (data?.variations && Array.isArray(data.variations)) {
+          data.variations = data.variations.map((variation: { price?: number; sellingPrice?: number }) => {
+            if (variation.price !== undefined && variation.price !== null) {
+              variation.sellingPrice = Math.round(variation.price * 1.10 * 100) / 100 // Add 10% and round to 2 decimal places
+            }
+            return variation
+          })
+        }
+        
+        return data
+      },
+    ],
     beforeValidate: [
       ({ data }) => {
         const variations = data?.variations as Array<{ options?: Record<string, number | null> }> | undefined
@@ -113,6 +145,16 @@ export const Products: CollectionConfig = {
       },
     },
     {
+      name: 'country',
+      type: 'relationship',
+      relationTo: 'countries',
+      required: true,
+      admin: {
+        description: 'Country where product is sold (auto-set from seller)',
+        readOnly: true,
+      },
+    },
+    {
       name: 'condition',
       type: 'select',
       required: true,
@@ -128,23 +170,19 @@ export const Products: CollectionConfig = {
       },
     },
     {
-      name: 'material',
-      type: 'relationship',
-      relationTo: 'materials',
-      filterOptions: ({ data }) => {
-        const category = data?.category as string | { id: string } | undefined
-        if (category) {
-          return {
-            categories: {
-              contains: typeof category === 'object' ? category.id : category,
-            },
-          }
-        }
-        return true
-      },
+      name: 'price',
+      type: 'number',
+      required: true,
       admin: {
-        description: 'Main material of the product',
-        condition: (data) => Boolean(data?.category),
+        description: 'Base price for this product (used when variation has no price)',
+      },
+    },
+    {
+      name: 'sellingPrice',
+      type: 'number',
+      admin: {
+        description: 'Final selling price (auto-calculated: price + 10% platform fee)',
+        readOnly: true,
       },
     },
     {
@@ -171,8 +209,17 @@ export const Products: CollectionConfig = {
         {
           name: 'price',
           type: 'number',
+          required: true,
           admin: {
-            description: 'Override price for this variation (optional)',
+            description: 'Your price for this variation',
+          },
+        },
+        {
+          name: 'sellingPrice',
+          type: 'number',
+          admin: {
+            description: 'Final selling price (auto-calculated: price + 10% platform fee)',
+            readOnly: true,
           },
         },
         {
@@ -180,8 +227,28 @@ export const Products: CollectionConfig = {
           type: 'relationship',
           relationTo: 'media',
           hasMany: true,
+          filterOptions: ({ siblingData, data }) => {
+            // Get the product's images
+            const productImages = data?.images as string[] | { id: string }[] | undefined
+            if (productImages && Array.isArray(productImages) && productImages.length > 0) {
+              const imageIds = productImages.map((img) => 
+                typeof img === 'object' ? img.id : img
+              )
+              return {
+                id: {
+                  in: imageIds,
+                },
+              }
+            }
+            // If no product images, return empty filter (no options)
+            return {
+              id: {
+                equals: 'no-images-available',
+              },
+            }
+          },
           admin: {
-            description: 'Specific images for this variation (optional)',
+            description: 'Select images from the product gallery for this variation',
           },
         },
       ],

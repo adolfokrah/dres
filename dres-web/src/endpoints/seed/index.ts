@@ -1,4 +1,6 @@
 import type { Payload } from 'payload'
+import { seedAttributes } from './attributes'
+import { seedAttributeOptions } from './attributeOptions'
 import { seedBrands } from './brands'
 import { seedUsers } from './users'
 
@@ -14,6 +16,10 @@ export const seed = async ({
 
   // Seed brands
   await seedBrands(payload)
+
+  // Seed attributes and their options
+  await seedAttributes(payload)
+  await seedAttributeOptions(payload)
 
   payload.logger.info('Seed complete!')
 }

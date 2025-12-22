@@ -1,11 +1,17 @@
-import { postgresAdapter } from '@payloadcms/db-postgres'
+import { mongooseAdapter } from '@payloadcms/db-mongodb'
 import sharp from 'sharp'
 import path from 'path'
 import { buildConfig, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
 
+import { Attributes } from './collections/Attributes'
+import { AttributeOptions } from './collections/AttributeOptions'
 import { Brands } from './collections/Brands'
+import { Carts } from './collections/Carts'
 import { Categories } from './collections/Categories'
+import { Cities } from './collections/Cities'
+import { Countries } from './collections/Countries'
+import { Currencies } from './collections/Currencies'
 import { Collections } from './collections/Collections'
 import { Departments } from './collections/Departments'
 import { Materials } from './collections/Materials'
@@ -14,9 +20,9 @@ import { Pages } from './collections/Pages'
 import { PostCategories } from './collections/PostCategories'
 import { Posts } from './collections/Posts'
 import { Products } from './collections/Products'
+import { Regions } from './collections/Regions'
+import { ShippingRates } from './collections/ShippingRates'
 import { Users } from './collections/Users'
-import { VariantOptions } from './collections/VariantOptions'
-import { VariantTypes } from './collections/VariantTypes'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
 import { plugins } from './plugins'
@@ -65,12 +71,10 @@ export default buildConfig({
   },
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
-  db: postgresAdapter({
-    pool: {
-      connectionString: process.env.DATABASE_URL || '',
-    },
+  db: mongooseAdapter({
+    url: process.env.MONGODB_URI || '',
   }),
-  collections: [Pages, Posts, PostCategories, Media, Brands, Categories, Collections, Departments, Materials, VariantTypes, VariantOptions, Users, Products],
+  collections: [Pages, Posts, PostCategories, Media, Attributes, AttributeOptions, Brands, Carts, Categories, Cities, Collections, Countries, Currencies, Departments, Materials, Regions, ShippingRates, Users, Products],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins,

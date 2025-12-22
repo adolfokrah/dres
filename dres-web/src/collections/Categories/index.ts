@@ -51,12 +51,21 @@ export const Categories: CollectionConfig = {
       },
     },
     {
-      name: 'variantTypes',
+      name: 'attributes',
       type: 'relationship',
-      relationTo: 'variantTypes',
+      relationTo: 'attributes',
       hasMany: true,
       admin: {
-        description: 'The variant types for products in this category (e.g., Size, Color)',
+        description: 'Attributes available for products in this category (e.g., Fit, Material, Style)',
+      },
+    },
+    {
+      name: 'variantAttributes',
+      type: 'relationship',
+      relationTo: 'attributes',
+      hasMany: true,
+      admin: {
+        description: 'Attributes used as variation types (e.g., Size, Color) - must be a subset of attributes above',
       },
     },
   ],

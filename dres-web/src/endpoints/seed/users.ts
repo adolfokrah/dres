@@ -1,9 +1,19 @@
 import type { Payload } from 'payload'
-import type { User } from '@/payload-types'
+import { getCountryIdByCode } from './countries'
 
-type UserSeed = Omit<User, 'id' | 'createdAt' | 'updatedAt'> & { password: string }
+type UserSeedData = {
+  email: string
+  password: string
+  firstName: string
+  lastName: string
+  shopName?: string
+  role: 'admin' | 'user'
+  accountStatus: 'active' | 'banned' | 'deleted'
+  language: 'de' | 'en' | 'es' | 'fr' | 'it' | 'ja' | 'ko' | 'nl' | 'pt' | 'zh'
+  countryCode: string
+}
 
-const sampleUsers: UserSeed[] = [
+const sampleUsers: UserSeedData[] = [
   {
     email: 'admin@dres.com',
     password: 'admin123',
@@ -12,32 +22,7 @@ const sampleUsers: UserSeed[] = [
     role: 'admin',
     accountStatus: 'active',
     language: 'en',
-    currency: 'USD',
-    country: 'US',
-  },
-  {
-    email: 'john.doe@example.com',
-    password: 'password123',
-    firstName: 'John',
-    lastName: 'Doe',
-    shopName: 'John\'s Fashion',
-    role: 'user',
-    accountStatus: 'active',
-    language: 'en',
-    currency: 'USD',
-    country: 'US',
-  },
-  {
-    email: 'jane.smith@example.com',
-    password: 'password123',
-    firstName: 'Jane',
-    lastName: 'Smith',
-    shopName: 'Smith Boutique',
-    role: 'user',
-    accountStatus: 'active',
-    language: 'en',
-    currency: 'GBP',
-    country: 'GB',
+    countryCode: 'GH',
   },
   {
     email: 'kwame.asante@example.com',
@@ -48,20 +33,18 @@ const sampleUsers: UserSeed[] = [
     role: 'user',
     accountStatus: 'active',
     language: 'en',
-    currency: 'GHS',
-    country: 'GH',
+    countryCode: 'GH',
   },
   {
-    email: 'marie.dupont@example.com',
+    email: 'ama.mensah@example.com',
     password: 'password123',
-    firstName: 'Marie',
-    lastName: 'Dupont',
-    shopName: 'Maison Marie',
+    firstName: 'Ama',
+    lastName: 'Mensah',
+    shopName: 'Mensah Fashion House',
     role: 'user',
     accountStatus: 'active',
-    language: 'fr',
-    currency: 'EUR',
-    country: 'FR',
+    language: 'en',
+    countryCode: 'GH',
   },
   {
     email: 'chidi.okonkwo@example.com',
@@ -72,32 +55,62 @@ const sampleUsers: UserSeed[] = [
     role: 'user',
     accountStatus: 'active',
     language: 'en',
-    currency: 'NGN',
-    country: 'NG',
+    countryCode: 'NG',
   },
   {
-    email: 'yuki.tanaka@example.com',
+    email: 'ngozi.adichie@example.com',
     password: 'password123',
-    firstName: 'Yuki',
-    lastName: 'Tanaka',
-    shopName: 'Tanaka Collection',
+    firstName: 'Ngozi',
+    lastName: 'Adichie',
+    shopName: 'Adichie Couture',
     role: 'user',
     accountStatus: 'active',
-    language: 'ja',
-    currency: 'JPY',
-    country: 'JP',
+    language: 'en',
+    countryCode: 'NG',
   },
   {
-    email: 'hans.mueller@example.com',
+    email: 'wanjiku.kamau@example.com',
     password: 'password123',
-    firstName: 'Hans',
-    lastName: 'Mueller',
-    shopName: 'Mueller Mode',
+    firstName: 'Wanjiku',
+    lastName: 'Kamau',
+    shopName: 'Kamau Designs',
     role: 'user',
     accountStatus: 'active',
-    language: 'de',
-    currency: 'EUR',
-    country: 'DE',
+    language: 'en',
+    countryCode: 'KE',
+  },
+  {
+    email: 'thabo.mokoena@example.com',
+    password: 'password123',
+    firstName: 'Thabo',
+    lastName: 'Mokoena',
+    shopName: 'Mokoena Style',
+    role: 'user',
+    accountStatus: 'active',
+    language: 'en',
+    countryCode: 'ZA',
+  },
+  {
+    email: 'fatou.diallo@example.com',
+    password: 'password123',
+    firstName: 'Fatou',
+    lastName: 'Diallo',
+    shopName: 'Diallo Mode',
+    role: 'user',
+    accountStatus: 'active',
+    language: 'fr',
+    countryCode: 'SN',
+  },
+  {
+    email: 'amina.hassan@example.com',
+    password: 'password123',
+    firstName: 'Amina',
+    lastName: 'Hassan',
+    shopName: 'Hassan Textiles',
+    role: 'user',
+    accountStatus: 'active',
+    language: 'en',
+    countryCode: 'TZ',
   },
   {
     email: 'banned.user@example.com',
@@ -107,20 +120,7 @@ const sampleUsers: UserSeed[] = [
     role: 'user',
     accountStatus: 'banned',
     language: 'en',
-    currency: 'USD',
-    country: 'US',
-  },
-  {
-    email: 'sofia.garcia@example.com',
-    password: 'password123',
-    firstName: 'Sofia',
-    lastName: 'Garcia',
-    shopName: 'Garcia Moda',
-    role: 'user',
-    accountStatus: 'active',
-    language: 'es',
-    currency: 'EUR',
-    country: 'ES',
+    countryCode: 'GH',
   },
 ]
 
@@ -128,7 +128,7 @@ export const seedUsers = async (payload: Payload): Promise<void> => {
   payload.logger.info('Seeding users...')
 
   for (const user of sampleUsers) {
-    // Check if user already exists
+    // Check if user already exists by email only
     const existing = await payload.find({
       collection: 'users',
       where: {
@@ -136,12 +136,26 @@ export const seedUsers = async (payload: Payload): Promise<void> => {
           equals: user.email,
         },
       },
+      depth: 0,
     })
 
     if (existing.docs.length === 0) {
+      // Get country ID
+      const countryId = await getCountryIdByCode(payload, user.countryCode)
+      
+      if (!countryId) {
+        payload.logger.warn(`Country ${user.countryCode} not found for ${user.email}, skipping...`)
+        continue
+      }
+      
+      const { countryCode, ...userData } = user
+      
       await payload.create({
         collection: 'users',
-        data: user,
+        data: {
+          ...userData,
+          country: countryId,
+        },
       })
       payload.logger.info(`Created user: ${user.email}`)
     } else {

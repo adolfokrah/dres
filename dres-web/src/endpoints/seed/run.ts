@@ -1,14 +1,16 @@
 import 'dotenv/config'
 import { getPayload } from 'payload'
 import config from '../../payload.config'
+import { seedAttributes } from './attributes'
+import { seedAttributeOptions } from './attributeOptions'
 import { seedBrands } from './brands'
 import { seedCategories } from './categories'
 import { seedCollections } from './collections'
+import { seedCountries } from './countries'
+import { seedCurrencies } from './currencies'
 import { seedDepartments } from './departments'
-import { seedMaterials } from './materials'
+import { seedRegionsAndCities } from './locations'
 import { seedUsers } from './users'
-import { seedVariantOptions } from './variantOptions'
-import { seedVariantTypes } from './variantTypes'
 
 const runSeed = async () => {
   const payload = await getPayload({ config })
@@ -18,17 +20,28 @@ const runSeed = async () => {
 
   if (args.length === 0) {
     // Run all seeds in correct order (dependencies first)
-    await seedUsers(payload)
+    await seedCurrencies(payload) // Currencies first
+    await seedCountries(payload) // Countries need currencies
+    await seedRegionsAndCities(payload) // Regions and cities
+    await seedUsers(payload) // Users need countries
     await seedDepartments(payload)
     await seedCollections(payload)
     await seedBrands(payload)
-    await seedVariantTypes(payload) // Variant types before categories
-    await seedCategories(payload) // Categories need departments, collections, brands, and variant types
-    await seedVariantOptions(payload) // Variant options need variant types and categories
-    await seedMaterials(payload) // Materials need categories
+    await seedAttributes(payload) // Attributes before categories and options
+    await seedAttributeOptions(payload) // Attribute options need attributes
+    await seedCategories(payload) // Categories need departments, collections, brands, and attributes
+  } else if (args.includes('currencies')) {
+    await seedCurrencies(payload)
+  } else if (args.includes('countries')) {
+    await seedCurrencies(payload) // Ensure currencies exist
+    await seedCountries(payload)
+  } else if (args.includes('locations')) {
+    await seedRegionsAndCities(payload)
   } else if (args.includes('brands')) {
     await seedBrands(payload)
   } else if (args.includes('users')) {
+    await seedCurrencies(payload) // Ensure currencies exist
+    await seedCountries(payload) // Ensure countries exist
     await seedUsers(payload)
   } else if (args.includes('departments')) {
     await seedDepartments(payload)
@@ -36,12 +49,10 @@ const runSeed = async () => {
     await seedCollections(payload)
   } else if (args.includes('categories')) {
     await seedCategories(payload)
-  } else if (args.includes('variantTypes')) {
-    await seedVariantTypes(payload)
-  } else if (args.includes('variantOptions')) {
-    await seedVariantOptions(payload)
-  } else if (args.includes('materials')) {
-    await seedMaterials(payload)
+  } else if (args.includes('attributes')) {
+    await seedAttributes(payload)
+  } else if (args.includes('attributeOptions')) {
+    await seedAttributeOptions(payload)
   }
 
   console.log('✅ Seed complete!')
