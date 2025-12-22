@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
+import { createOrderFromCart } from './hooks/createOrderFromCart'
 
 export const Carts: CollectionConfig = {
   slug: 'carts',
@@ -16,7 +17,7 @@ export const Carts: CollectionConfig = {
       if (!user) return false
       if (user.role === 'admin') return true
       return {
-        user: {
+        customer: {
           equals: user.id,
         },
       }
@@ -28,7 +29,7 @@ export const Carts: CollectionConfig = {
       if (!user) return false
       if (user.role === 'admin') return true
       return {
-        user: {
+        customer: {
           equals: user.id,
         },
       }
@@ -40,9 +41,9 @@ export const Carts: CollectionConfig = {
     },
   },
   hooks: {
-    // Calculate item count and total amount before save
+    // Calculate item count, total amount, and set currency before save
     beforeChange: [
-      ({ data }) => {
+      async ({ data, req }) => {
         if (data?.items && Array.isArray(data.items)) {
           // Calculate item count
           data.itemCount = data.items.reduce((total: number, item: { quantity?: number }) => {
@@ -56,20 +57,40 @@ export const Carts: CollectionConfig = {
             return total + (quantity * price)
           }, 0)
         }
+        
+        // Auto-set currency from customer's country
+        if (data?.customer && !data?.currency) {
+          const customerId = typeof data.customer === 'object' ? data.customer.id : data.customer
+          const customer = await req.payload.findByID({
+            collection: 'users',
+            id: customerId,
+            depth: 1,
+          })
+          
+          if (customer?.country) {
+            const country = customer.country
+            if (typeof country === 'object' && country.currency) {
+              data.currency = typeof country.currency === 'object' ? country.currency.id : country.currency
+            }
+          }
+        }
+        
         return data
       },
     ],
+    // Create order when cart status changes to 'converted'
+    afterChange: [createOrderFromCart],
   },
   fields: [
     {
-      name: 'user',
+      name: 'customer',
       type: 'relationship',
       relationTo: 'users',
       required: true,
       // Each user can only have one active cart
       unique: false, // We'll handle this with status
       admin: {
-        description: 'The user who owns this cart',
+        description: 'The customer who owns this cart',
       },
     },
     {
@@ -186,6 +207,15 @@ export const Carts: CollectionConfig = {
         readOnly: true,
       },
       defaultValue: 0,
+    },
+    {
+      name: 'currency',
+      type: 'relationship',
+      relationTo: 'currencies',
+      admin: {
+        description: 'Currency (auto-set from customer country)',
+        readOnly: true,
+      },
     },
     {
       name: 'purchasedAt',

@@ -82,8 +82,10 @@ export interface Config {
     currencies: Currency;
     departments: Department;
     materials: Material;
+    orders: Order;
     regions: Region;
     shippingRates: ShippingRate;
+    transactions: Transaction;
     users: User;
     products: Product;
     redirects: Redirect;
@@ -107,6 +109,9 @@ export interface Config {
     };
     departments: {
       categories: 'categories';
+    };
+    orders: {
+      transactions: 'transactions';
     };
     regions: {
       cities: 'cities';
@@ -134,8 +139,10 @@ export interface Config {
     currencies: CurrenciesSelect<false> | CurrenciesSelect<true>;
     departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
     materials: MaterialsSelect<false> | MaterialsSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
     regions: RegionsSelect<false> | RegionsSelect<true>;
     shippingRates: ShippingRatesSelect<false> | ShippingRatesSelect<true>;
+    transactions: TransactionsSelect<false> | TransactionsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -1148,9 +1155,9 @@ export interface Form {
 export interface Cart {
   id: string;
   /**
-   * The user who owns this cart
+   * The customer who owns this cart
    */
-  user: string | User;
+  customer: string | User;
   /**
    * Cart status
    */
@@ -1189,6 +1196,10 @@ export interface Cart {
    * Total amount of cart (auto-calculated)
    */
   totalAmount?: number | null;
+  /**
+   * Currency (auto-set from customer country)
+   */
+  currency?: (string | null) | Currency;
   /**
    * When the cart was converted to an order
    */
@@ -1301,6 +1312,167 @@ export interface Material {
    * Categories that use this material
    */
   categories?: (string | Category)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Customer orders
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: string;
+  /**
+   * Unique order identifier (auto-generated)
+   */
+  orderId: string;
+  /**
+   * Overall order status
+   */
+  status: 'placed' | 'in_progress' | 'completed' | 'cancelled';
+  /**
+   * The customer who placed this order
+   */
+  customer: string | User;
+  /**
+   * Order items with individual shipping status
+   */
+  items:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Total number of items (auto-calculated)
+   */
+  totalItems: number;
+  /**
+   * Total order amount (auto-calculated)
+   */
+  totalAmount: number;
+  /**
+   * Currency (from customer country)
+   */
+  currency?: (string | null) | Currency;
+  shippingDetails?: {
+    /**
+     * Recipient full name
+     */
+    fullName?: string | null;
+    /**
+     * Contact phone number
+     */
+    phone?: string | null;
+    /**
+     * Street address
+     */
+    address?: string | null;
+    city?: string | null;
+    /**
+     * State/Region/Province
+     */
+    region?: string | null;
+    /**
+     * ZIP/Postal code
+     */
+    postalCode?: string | null;
+    country?: (string | null) | Country;
+    /**
+     * Special delivery instructions
+     */
+    deliveryNotes?: string | null;
+  };
+  billingDetails?: {
+    /**
+     * Account holder name
+     */
+    accountName?: string | null;
+    /**
+     * Account number (e.g., 0243530213)
+     */
+    accountNumber?: string | null;
+    /**
+     * Bank or payment provider (e.g., MTN Mobile Money)
+     */
+    bank?: string | null;
+  };
+  /**
+   * When the order was placed
+   */
+  placedAt?: string | null;
+  /**
+   * When the order was completed
+   */
+  completedAt?: string | null;
+  /**
+   * Internal notes about the order
+   */
+  notes?: string | null;
+  /**
+   * Transactions associated with this order
+   */
+  transactions?: {
+    docs?: (string | Transaction)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Payment transactions
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "transactions".
+ */
+export interface Transaction {
+  id: string;
+  /**
+   * Unique transaction identifier (auto-generated)
+   */
+  transactionId: string;
+  /**
+   * Transaction status
+   */
+  status: 'pending' | 'completed' | 'cancelled';
+  /**
+   * The user for this transaction
+   */
+  user: string | User;
+  /**
+   * The order this transaction belongs to
+   */
+  order: string | Order;
+  /**
+   * Whether this transaction is the main transaction for the order
+   */
+  isMain?: boolean | null;
+  /**
+   * Transaction amount
+   */
+  amount: number;
+  /**
+   * Payment account information
+   */
+  billingDetails?: {
+    /**
+     * Account holder name
+     */
+    accountName?: string | null;
+    /**
+     * Account number
+     */
+    accountNumber?: string | null;
+    /**
+     * Bank or payment provider (e.g., MTN Mobile Money)
+     */
+    bank?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -1555,12 +1727,20 @@ export interface PayloadLockedDocument {
         value: string | Material;
       } | null)
     | ({
+        relationTo: 'orders';
+        value: string | Order;
+      } | null)
+    | ({
         relationTo: 'regions';
         value: string | Region;
       } | null)
     | ({
         relationTo: 'shippingRates';
         value: string | ShippingRate;
+      } | null)
+    | ({
+        relationTo: 'transactions';
+        value: string | Transaction;
       } | null)
     | ({
         relationTo: 'users';
@@ -1951,7 +2131,7 @@ export interface BrandsSelect<T extends boolean = true> {
  * via the `definition` "carts_select".
  */
 export interface CartsSelect<T extends boolean = true> {
-  user?: T;
+  customer?: T;
   status?: T;
   items?:
     | T
@@ -1965,6 +2145,7 @@ export interface CartsSelect<T extends boolean = true> {
       };
   itemCount?: T;
   totalAmount?: T;
+  currency?: T;
   purchasedAt?: T;
   notes?: T;
   updatedAt?: T;
@@ -2051,6 +2232,44 @@ export interface MaterialsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders_select".
+ */
+export interface OrdersSelect<T extends boolean = true> {
+  orderId?: T;
+  status?: T;
+  customer?: T;
+  items?: T;
+  totalItems?: T;
+  totalAmount?: T;
+  currency?: T;
+  shippingDetails?:
+    | T
+    | {
+        fullName?: T;
+        phone?: T;
+        address?: T;
+        city?: T;
+        region?: T;
+        postalCode?: T;
+        country?: T;
+        deliveryNotes?: T;
+      };
+  billingDetails?:
+    | T
+    | {
+        accountName?: T;
+        accountNumber?: T;
+        bank?: T;
+      };
+  placedAt?: T;
+  completedAt?: T;
+  notes?: T;
+  transactions?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "regions_select".
  */
 export interface RegionsSelect<T extends boolean = true> {
@@ -2077,6 +2296,27 @@ export interface ShippingRatesSelect<T extends boolean = true> {
         max?: T;
       };
   isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "transactions_select".
+ */
+export interface TransactionsSelect<T extends boolean = true> {
+  transactionId?: T;
+  status?: T;
+  user?: T;
+  order?: T;
+  isMain?: T;
+  amount?: T;
+  billingDetails?:
+    | T
+    | {
+        accountName?: T;
+        accountNumber?: T;
+        bank?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
