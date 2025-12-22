@@ -12,13 +12,13 @@ export const Categories: CollectionConfig = {
     update: authenticated,
   },
   admin: {
-    useAsTitle: 'title',
+    useAsTitle: 'category',
     group: 'Ecommerce',
-    defaultColumns: ['title', 'departments', 'collections'],
+    defaultColumns: ['category', 'departments', 'collections'],
   },
   fields: [
     {
-      name: 'title',
+      name: 'category',
       type: 'text',
       required: true,
     },
@@ -64,8 +64,28 @@ export const Categories: CollectionConfig = {
       type: 'relationship',
       relationTo: 'attributes',
       hasMany: true,
+      filterOptions: ({ data }) => {
+        // Only show attributes that are selected in the attributes field above
+        const selectedAttributes = data?.attributes as string[] | { id: string }[] | undefined
+        if (selectedAttributes && Array.isArray(selectedAttributes) && selectedAttributes.length > 0) {
+          const attributeIds = selectedAttributes.map((attr) =>
+            typeof attr === 'object' ? attr.id : attr
+          )
+          return {
+            id: {
+              in: attributeIds,
+            },
+          }
+        }
+        // If no attributes selected, show nothing
+        return {
+          id: {
+            equals: 'no-attributes-selected',
+          },
+        }
+      },
       admin: {
-        description: 'Attributes used as variation types (e.g., Size, Color) - must be a subset of attributes above',
+        description: 'Attributes used as variation types (e.g., Size, Color) - select from attributes above',
       },
     },
   ],

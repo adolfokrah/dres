@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 
 export const VariationRowLabel = () => {
   const { data, rowNumber } = useRowLabel<{
-    options?: Record<string, number | null>
+    options?: Record<string, string | null>
   }>()
   const [label, setLabel] = useState<string>(`Variation ${(rowNumber ?? 0) + 1}`)
 
@@ -18,9 +18,9 @@ export const VariationRowLabel = () => {
         return
       }
 
-      // Get option IDs that have values
+      // Get option IDs that have values (they are strings now)
       const optionIds = Object.values(options).filter(
-        (value): value is number => value !== null && value !== undefined
+        (value): value is string => value !== null && value !== undefined && value !== ''
       )
 
       if (optionIds.length === 0) {
@@ -29,14 +29,13 @@ export const VariationRowLabel = () => {
       }
 
       try {
-        // Fetch option labels from API
-        const params = optionIds.map((id) => `where[id][in]=${id}`).join('&')
-        const response = await fetch(`/api/variantOptions?${params}&limit=100`)
-        const data = await response.json()
+        // Fetch option labels from API - using attributeOptions collection
+        const response = await fetch(`/api/attributeOptions?where[id][in]=${optionIds.join(',')}&limit=100`)
+        const result = await response.json()
 
-        if (data.docs && data.docs.length > 0) {
-          const labels = data.docs.map((opt: { label: string }) => opt.label)
-          setLabel(labels.join(' - '))
+        if (result.docs && result.docs.length > 0) {
+          const labels = result.docs.map((opt: { name: string }) => opt.name)
+          setLabel(labels.join(' / '))
         } else {
           setLabel(`Variation ${(rowNumber ?? 0) + 1}`)
         }

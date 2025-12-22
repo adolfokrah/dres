@@ -19,6 +19,7 @@ interface AttributeOption {
 
 interface Category {
   id: string
+  attributes?: (Attribute | string)[]
   variantAttributes?: (Attribute | string)[]
 }
 
@@ -32,7 +33,7 @@ type Props = {
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
-export const VariationOptionsField: React.FC<Props> = ({ path }) => {
+export const ProductAttributesField: React.FC<Props> = ({ path }) => {
   const { value, setValue } = useField<Record<string, string | null>>({ path })
   const { getData } = useForm()
   const formData = getData()
@@ -40,24 +41,33 @@ export const VariationOptionsField: React.FC<Props> = ({ path }) => {
   const categoryId = formData?.category as string | { id: string } | undefined
   const categoryIdValue = typeof categoryId === 'object' ? categoryId?.id : categoryId
 
-  // Fetch category with variant attributes
+  // Fetch category with attributes
   const { data: category, isLoading: categoryLoading } = useSWR<Category>(
     categoryIdValue ? `/api/categories/${categoryIdValue}?depth=1` : null,
     fetcher
   )
 
-  // Get variant attributes
-  const variantAttributes = useMemo(() => {
+  // Get variant attribute IDs to exclude them
+  const variantAttributeIds = useMemo(() => {
     if (!category?.variantAttributes) return []
-    return category.variantAttributes.filter(
-      (attr): attr is Attribute => typeof attr === 'object'
+    return category.variantAttributes.map((attr) =>
+      typeof attr === 'object' ? attr.id : attr
     )
   }, [category?.variantAttributes])
 
-  // Fetch options for all variant attributes (with depth to get categories)
-  const attributeIds = variantAttributes.map((attr) => attr.id).join(',')
+  // Get non-variant attributes only
+  const attributes = useMemo(() => {
+    if (!category?.attributes) return []
+    const allAttrs = category.attributes.filter(
+      (attr): attr is Attribute => typeof attr === 'object'
+    )
+    return allAttrs.filter((attr) => !variantAttributeIds.includes(attr.id))
+  }, [category?.attributes, variantAttributeIds])
+
+  // Fetch options for all attributes (with depth to get categories)
+  const attributeIds = attributes.map((attr) => attr.id).join(',')
   const { data: optionsData } = useSWR(
-    variantAttributes.length > 0
+    attributes.length > 0
       ? `/api/attributeOptions?where[attribute][in]=${attributeIds}&depth=1&limit=500`
       : null,
     fetcher
@@ -103,7 +113,7 @@ export const VariationOptionsField: React.FC<Props> = ({ path }) => {
   if (!categoryIdValue) {
     return (
       <div style={{ color: '#888', padding: '12px 0', fontSize: '14px' }}>
-        Select a category first to see variation options
+        Select a category first to see product attributes
       </div>
     )
   }
@@ -111,15 +121,15 @@ export const VariationOptionsField: React.FC<Props> = ({ path }) => {
   if (categoryLoading) {
     return (
       <div style={{ color: '#888', padding: '12px 0', fontSize: '14px' }}>
-        Loading variation attributes...
+        Loading attributes...
       </div>
     )
   }
 
-  if (variantAttributes.length === 0) {
+  if (attributes.length === 0) {
     return (
       <div style={{ color: '#888', padding: '12px 0', fontSize: '14px' }}>
-        No variation attributes found for this category
+        No attributes for this category
       </div>
     )
   }
@@ -128,7 +138,7 @@ export const VariationOptionsField: React.FC<Props> = ({ path }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      {variantAttributes.map((attr) => {
+      {attributes.map((attr) => {
         const options = optionsByAttribute[attr.id] || []
         const selectedValue = currentValue[attr.name] || ''
 
@@ -138,7 +148,6 @@ export const VariationOptionsField: React.FC<Props> = ({ path }) => {
             path={`${path}.${attr.name}`}
             name={attr.name}
             label={attr.name}
-            required
             options={[
               { label: `Select ${attr.name}`, value: '' },
               ...options.map((opt) => ({
@@ -158,4 +167,4 @@ export const VariationOptionsField: React.FC<Props> = ({ path }) => {
   )
 }
 
-export default VariationOptionsField
+export default ProductAttributesField

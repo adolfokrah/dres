@@ -28,8 +28,8 @@ const runSeed = async () => {
     await seedCollections(payload)
     await seedBrands(payload)
     await seedAttributes(payload) // Attributes before categories and options
-    await seedAttributeOptions(payload) // Attribute options need attributes
     await seedCategories(payload) // Categories need departments, collections, brands, and attributes
+    await seedAttributeOptions(payload) // Attribute options need attributes AND categories
   } else if (args.includes('currencies')) {
     await seedCurrencies(payload)
   } else if (args.includes('countries')) {

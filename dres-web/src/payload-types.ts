@@ -484,6 +484,10 @@ export interface User {
   };
   role: 'admin' | 'user';
   accountStatus: 'active' | 'banned' | 'deleted';
+  /**
+   * When enabled, your products will be hidden from buyers
+   */
+  vacationMode?: boolean | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -802,7 +806,7 @@ export interface ArchiveBlock {
  */
 export interface Category {
   id: string;
-  title: string;
+  category: string;
   /**
    * Select which collections this falls under (e.g., Dresses, Bottoms, Shoes)
    */
@@ -820,7 +824,7 @@ export interface Category {
    */
   attributes?: (string | Attribute)[] | null;
   /**
-   * Attributes used as variation types (e.g., Size, Color) - must be a subset of attributes above
+   * Attributes used as variation types (e.g., Size, Color) - select from attributes above
    */
   variantAttributes?: (string | Attribute)[] | null;
   updatedAt: string;
@@ -928,6 +932,10 @@ export interface AttributeOption {
    * The attribute this option belongs to
    */
   attribute: string | Attribute;
+  /**
+   * Categories that can use this option (leave empty for all categories with this attribute)
+   */
+  categories?: (string | Category)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1151,6 +1159,9 @@ export interface Cart {
    * Items in the cart
    */
   items: {
+    /**
+     * Products available from sellers in your country
+     */
     product: string | Product;
     /**
      * Select a variation from the product
@@ -1178,10 +1189,6 @@ export interface Cart {
    * Total amount of cart (auto-calculated)
    */
   totalAmount?: number | null;
-  /**
-   * Currency for this cart
-   */
-  currency: string | Currency;
   /**
    * When the cart was converted to an order
    */
@@ -1229,14 +1236,6 @@ export interface Product {
    */
   seller: string | User;
   /**
-   * Country where product is sold (auto-set from seller)
-   */
-  country: string | Country;
-  /**
-   * The condition of the product
-   */
-  condition: 'new_with_tags' | 'new_without_tags' | 'like_new' | 'good' | 'fair';
-  /**
    * Base price for this product (used when variation has no price)
    */
   price: number;
@@ -1244,6 +1243,18 @@ export interface Product {
    * Final selling price (auto-calculated: price + 10% platform fee)
    */
   sellingPrice?: number | null;
+  /**
+   * Select attributes that apply to this product (all optional)
+   */
+  attributes?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   /**
    * Product variations with different options, prices, and images
    */
@@ -1920,6 +1931,7 @@ export interface AttributeOptionsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   attribute?: T;
+  categories?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1953,7 +1965,6 @@ export interface CartsSelect<T extends boolean = true> {
       };
   itemCount?: T;
   totalAmount?: T;
-  currency?: T;
   purchasedAt?: T;
   notes?: T;
   updatedAt?: T;
@@ -1964,7 +1975,7 @@ export interface CartsSelect<T extends boolean = true> {
  * via the `definition` "categories_select".
  */
 export interface CategoriesSelect<T extends boolean = true> {
-  title?: T;
+  category?: T;
   collections?: T;
   departments?: T;
   brands?: T;
@@ -2083,6 +2094,7 @@ export interface UsersSelect<T extends boolean = true> {
   shippingRates?: T;
   role?: T;
   accountStatus?: T;
+  vacationMode?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -2111,10 +2123,9 @@ export interface ProductsSelect<T extends boolean = true> {
   category?: T;
   brand?: T;
   seller?: T;
-  country?: T;
-  condition?: T;
   price?: T;
   sellingPrice?: T;
+  attributes?: T;
   variations?:
     | T
     | {

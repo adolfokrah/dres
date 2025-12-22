@@ -93,6 +93,9 @@ export const Carts: CollectionConfig = {
       minRows: 0,
       admin: {
         description: 'Items in the cart',
+        components: {
+          RowLabel: '@/collections/Carts/CartItemRowLabel#CartItemRowLabel',
+        },
       },
       fields: [
         {
@@ -100,6 +103,27 @@ export const Carts: CollectionConfig = {
           type: 'relationship',
           relationTo: 'products',
           required: true,
+          // Filter products to only show those where seller is from the same country as the cart user
+          filterOptions: ({ user }) => {
+            // Get the logged-in user's country
+            const userCountry = user?.country
+            
+            // If we have the user's country, filter products by seller's country
+            if (userCountry) {
+              const countryId = typeof userCountry === 'object' ? userCountry.id : userCountry
+              return {
+                'seller.country': {
+                  equals: countryId,
+                },
+              }
+            }
+            
+            // Fallback: show all products if country not available
+            return true
+          },
+          admin: {
+            description: 'Products available from sellers in your country',
+          },
         },
         {
           name: 'variation',
@@ -162,15 +186,6 @@ export const Carts: CollectionConfig = {
         readOnly: true,
       },
       defaultValue: 0,
-    },
-    {
-      name: 'currency',
-      type: 'relationship',
-      relationTo: 'currencies',
-      required: true,
-      admin: {
-        description: 'Currency for this cart',
-      },
     },
     {
       name: 'purchasedAt',

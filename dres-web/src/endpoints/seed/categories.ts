@@ -15,7 +15,7 @@ const categoriesData = [
   { title: 'Sweaters', collections: ['Clothing'], departments: ['Women', 'Men', 'Kids'], brands: ['Loro Piana', 'Brunello Cucinelli', 'Acne Studios', 'COS', 'Ralph Lauren', 'Uniqlo'], attributes: ['Size', 'Color', 'Material'], variantAttributes: ['Size', 'Color'] },
   { title: 'Cardigans', collections: ['Clothing'], departments: ['Women', 'Men', 'Kids'], brands: ['Chanel', 'Prada', 'COS', 'Uniqlo', 'J.Crew', 'Everlane'], attributes: ['Size', 'Color', 'Material'], variantAttributes: ['Size', 'Color'] },
   { title: 'Pants', collections: ['Clothing'], departments: ['Women', 'Men', 'Kids'], brands: ['Zara', 'H&M', 'Uniqlo', 'Theory', 'Hugo Boss', 'Massimo Dutti'], attributes: ['Size', 'Color', 'Fit', 'Material'], variantAttributes: ['Size', 'Color'] },
-  { title: 'Jeans', collections: ['Clothing'], departments: ['Women', 'Men', 'Kids'], brands: ["Levi's", 'Diesel', 'G-Star Raw', 'Citizens of Humanity', 'AG Jeans', 'Frame', 'Mother Denim'], attributes: ['Size', 'Color', 'Fit'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Jeans', collections: ['Clothing'], departments: ['Women', 'Men', 'Kids'], brands: ["Levi's", 'Diesel', 'G-Star Raw', 'Citizens of Humanity', 'AG Jeans', 'Frame', 'Mother Denim'], attributes: ['Size', 'Color', 'Fit', 'Material'], variantAttributes: ['Size', 'Color'] },
   { title: 'Shorts', collections: ['Clothing'], departments: ['Women', 'Men', 'Kids'], brands: ['Nike', 'Adidas', "Levi's", 'H&M', 'Zara', 'Gap'], attributes: ['Size', 'Color', 'Material'], variantAttributes: ['Size', 'Color'] },
   { title: 'Skirts', collections: ['Clothing'], departments: ['Women', 'Kids'], brands: ['Prada', 'Miu Miu', 'Zara', 'H&M', 'Reformation', 'Sandro'], attributes: ['Size', 'Color', 'Length', 'Material'], variantAttributes: ['Size', 'Color'] },
   { title: 'Suits', collections: ['Clothing'], departments: ['Women', 'Men'], brands: ['Hugo Boss', 'Armani', 'Tom Ford', 'Ralph Lauren', 'Thom Browne', 'Zara'], attributes: ['Size', 'Color', 'Fit', 'Material'], variantAttributes: ['Size', 'Color'] },
@@ -176,7 +176,7 @@ export const seedCategories = async (payload: Payload): Promise<void> => {
     await payload.create({
       collection: 'categories',
       data: {
-        title: category.title,
+        category: category.title,
         departments: departmentIds,
         collections: collectionIds,
         brands: brandIds,

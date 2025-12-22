@@ -43,6 +43,15 @@ export const AttributeOptions: CollectionConfig = {
         description: 'The attribute this option belongs to',
       },
     },
+    {
+      name: 'categories',
+      type: 'relationship',
+      relationTo: 'categories',
+      hasMany: true,
+      admin: {
+        description: 'Categories that can use this option (leave empty for all categories with this attribute)',
+      },
+    },
   ],
   timestamps: true,
 }

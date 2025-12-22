@@ -29,19 +29,7 @@ export const Products: CollectionConfig = {
   },
   hooks: {
     beforeChange: [
-      async ({ data, req, operation }) => {
-        // Auto-set country from seller on create
-        if (operation === 'create' && data?.seller && !data?.country) {
-          const seller = await req.payload.findByID({
-            collection: 'users',
-            id: typeof data.seller === 'object' ? data.seller.id : data.seller,
-            depth: 0,
-          })
-          if (seller?.country) {
-            data.country = typeof seller.country === 'object' ? seller.country.id : seller.country
-          }
-        }
-        
+      async ({ data }) => {
         // Auto-calculate selling price for product level (price + 10%)
         if (data?.price !== undefined && data?.price !== null) {
           data.sellingPrice = Math.round(data.price * 1.10 * 100) / 100
@@ -145,31 +133,6 @@ export const Products: CollectionConfig = {
       },
     },
     {
-      name: 'country',
-      type: 'relationship',
-      relationTo: 'countries',
-      required: true,
-      admin: {
-        description: 'Country where product is sold (auto-set from seller)',
-        readOnly: true,
-      },
-    },
-    {
-      name: 'condition',
-      type: 'select',
-      required: true,
-      options: [
-        { label: 'New with tags', value: 'new_with_tags' },
-        { label: 'New without tags', value: 'new_without_tags' },
-        { label: 'Like new', value: 'like_new' },
-        { label: 'Good', value: 'good' },
-        { label: 'Fair', value: 'fair' },
-      ],
-      admin: {
-        description: 'The condition of the product',
-      },
-    },
-    {
       name: 'price',
       type: 'number',
       required: true,
@@ -184,6 +147,27 @@ export const Products: CollectionConfig = {
         description: 'Final selling price (auto-calculated: price + 10% platform fee)',
         readOnly: true,
       },
+    },
+    {
+      type: 'collapsible',
+      label: 'Product Attributes',
+      admin: {
+        initCollapsed: false,
+        condition: (data) => Boolean(data?.category),
+        description: 'Additional product details like Material, Fit, etc.',
+      },
+      fields: [
+        {
+          name: 'attributes',
+          type: 'json',
+          admin: {
+            description: 'Select attributes that apply to this product (all optional)',
+            components: {
+              Field: '@/components/ProductAttributes#ProductAttributesField',
+            },
+          },
+        },
+      ],
     },
     {
       name: 'variations',

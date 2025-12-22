@@ -5,13 +5,13 @@ import { SelectInput, useField, useFormFields, FieldLabel } from '@payloadcms/ui
 import useSWR from 'swr'
 
 type VariantOption = {
-  id: number
-  label: string
+  id: string
+  name: string
   slug?: string
 }
 
 type Variation = {
-  options?: Record<string, number | null>
+  options?: Record<string, string | null>
   price?: number
 }
 
@@ -74,11 +74,11 @@ export const VariationSelectField: React.FC<{
   const optionIds = useMemo(() => {
     if (!product?.variations) return []
     
-    const ids: number[] = []
+    const ids: string[] = []
     product.variations.forEach((variation) => {
       if (variation.options) {
         Object.values(variation.options).forEach((optId) => {
-          if (optId !== null && typeof optId === 'number' && !ids.includes(optId)) {
+          if (optId !== null && optId !== undefined && optId !== '' && !ids.includes(optId)) {
             ids.push(optId)
           }
         })
@@ -87,20 +87,20 @@ export const VariationSelectField: React.FC<{
     return ids
   }, [product?.variations])
 
-  // Fetch variant options
+  // Fetch variant options from attributeOptions
   const { data: variantOptionsData, isLoading: optionsLoading } = useSWR(
     optionIds.length > 0 
-      ? `/api/variantOptions?where[id][in]=${optionIds.join(',')}&limit=100&depth=0`
+      ? `/api/attributeOptions?where[id][in]=${optionIds.join(',')}&limit=100&depth=0`
       : null,
     fetcher
   )
 
   // Build option names map
   const optionNames = useMemo(() => {
-    const map = new Map<number, string>()
+    const map = new Map<string, string>()
     if (variantOptionsData?.docs) {
       (variantOptionsData.docs as VariantOption[]).forEach((opt) => {
-        map.set(opt.id, opt.label)
+        map.set(opt.id, opt.name)
       })
     }
     return map
@@ -133,7 +133,7 @@ export const VariationSelectField: React.FC<{
         
         if (variation.options && Object.keys(variation.options).length > 0) {
           const optionLabels = Object.values(variation.options)
-            .filter((optId): optId is number => optId !== null)
+            .filter((optId): optId is string => optId !== null && optId !== undefined && optId !== '')
             .map((optId) => optionNames.get(optId) || `Option ${optId}`)
           
           if (optionLabels.length > 0) {

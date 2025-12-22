@@ -127,6 +127,15 @@ export const Users: CollectionConfig = {
         position: 'sidebar',
       },
     },
+    {
+      name: 'vacationMode',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'When enabled, your products will be hidden from buyers',
+      },
+    },
   ],
   timestamps: true,
 }
