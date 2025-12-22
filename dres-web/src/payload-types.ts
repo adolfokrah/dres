@@ -108,6 +108,9 @@ export interface Config {
     departments: {
       categories: 'categories';
     };
+    regions: {
+      cities: 'cities';
+    };
     users: {
       shippingRates: 'shippingRates';
     };
@@ -625,7 +628,7 @@ export interface City {
   createdAt: string;
 }
 /**
- * Regions/States in Ghana
+ * Regions/States within countries
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "regions".
@@ -637,9 +640,17 @@ export interface Region {
    */
   name: string;
   /**
+   * Country this region belongs to
+   */
+  country: string | Country;
+  /**
    * Cities in this region
    */
-  cities?: (string | City)[] | null;
+  cities?: {
+    docs?: (string | City)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -2033,6 +2044,7 @@ export interface MaterialsSelect<T extends boolean = true> {
  */
 export interface RegionsSelect<T extends boolean = true> {
   name?: T;
+  country?: T;
   cities?: T;
   updatedAt?: T;
   createdAt?: T;

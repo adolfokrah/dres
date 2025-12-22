@@ -8,8 +8,8 @@ export const Regions: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     group: 'Locations',
-    defaultColumns: ['name', 'cities', 'updatedAt'],
-    description: 'Regions/States in Ghana',
+    defaultColumns: ['name', 'country', 'updatedAt'],
+    description: 'Regions/States within countries',
   },
   access: {
     read: anyone,
@@ -22,16 +22,24 @@ export const Regions: CollectionConfig = {
       name: 'name',
       type: 'text',
       required: true,
-      unique: true,
       admin: {
         description: 'Region name (e.g., "Greater Accra")',
       },
     },
     {
-      name: 'cities',
+      name: 'country',
       type: 'relationship',
-      relationTo: 'cities',
-      hasMany: true,
+      relationTo: 'countries',
+      required: true,
+      admin: {
+        description: 'Country this region belongs to',
+      },
+    },
+    {
+      name: 'cities',
+      type: 'join',
+      collection: 'cities',
+      on: 'region',
       admin: {
         description: 'Cities in this region',
       },

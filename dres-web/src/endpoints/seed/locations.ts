@@ -71,6 +71,24 @@ const ghanaRegionsAndCities = [
 export const seedRegionsAndCities = async (payload: Payload): Promise<void> => {
   payload.logger.info('Seeding Ghana regions and cities...')
 
+  // Get Ghana country ID
+  const ghanaResult = await payload.find({
+    collection: 'countries',
+    where: {
+      name: {
+        equals: 'Ghana',
+      },
+    },
+    limit: 1,
+  })
+
+  if (ghanaResult.docs.length === 0) {
+    payload.logger.error('Ghana country not found! Please seed countries first.')
+    return
+  }
+
+  const ghanaId = ghanaResult.docs[0].id
+
   for (const regionData of ghanaRegionsAndCities) {
     // Check if region already exists
     const existingRegion = await payload.find({
@@ -88,8 +106,17 @@ export const seedRegionsAndCities = async (payload: Payload): Promise<void> => {
       continue
     }
 
-    // Create cities first
-    const cityIds: string[] = []
+    // Create region first
+    const createdRegion = await payload.create({
+      collection: 'regions',
+      data: {
+        name: regionData.name,
+        country: ghanaId,
+      },
+    })
+    payload.logger.info(`Created region: ${regionData.name}`)
+
+    // Create cities with country and region references
     for (const cityName of regionData.cities) {
       // Check if city already exists
       const existingCity = await payload.find({
@@ -102,29 +129,18 @@ export const seedRegionsAndCities = async (payload: Payload): Promise<void> => {
         limit: 1,
       })
 
-      if (existingCity.docs.length > 0) {
-        cityIds.push(existingCity.docs[0].id)
-      } else {
-        const createdCity = await payload.create({
+      if (existingCity.docs.length === 0) {
+        await payload.create({
           collection: 'cities',
           data: {
             name: cityName,
+            country: ghanaId,
+            region: createdRegion.id,
           },
         })
-        cityIds.push(createdCity.id)
         payload.logger.info(`  Created city: ${cityName}`)
       }
     }
-
-    // Create region with cities
-    await payload.create({
-      collection: 'regions',
-      data: {
-        name: regionData.name,
-        cities: cityIds,
-      },
-    })
-    payload.logger.info(`Created region: ${regionData.name} (${cityIds.length} cities)`)
   }
 
   payload.logger.info('Ghana regions and cities seeding complete!')
