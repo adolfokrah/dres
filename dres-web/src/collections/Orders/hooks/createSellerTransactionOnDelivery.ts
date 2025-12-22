@@ -79,8 +79,6 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
           depth: 0,
         })
 
-        const itemTotal = currentItem.price * currentItem.quantity
-
         // Get seller's withdrawal account details
         const withdrawalAccount = seller?.withdrawalAccount as {
           accountName?: string
