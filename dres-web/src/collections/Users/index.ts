@@ -98,6 +98,48 @@ export const Users: CollectionConfig = {
             },
           ],
         },
+        {
+          label: 'Withdrawal Account',
+          fields: [
+            {
+              type: 'group',
+              name: 'withdrawalAccount',
+              admin: {
+                description: 'Bank account details for receiving payments from sold items',
+              },
+              fields: [
+                {
+                  name: 'accountName',
+                  type: 'text',
+                  admin: {
+                    description: 'Account holder name',
+                  },
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'accountNumber',
+                      type: 'text',
+                      admin: {
+                        description: 'Account number',
+                        width: '50%',
+                      },
+                    },
+                    {
+                      name: 'bank',
+                      type: 'text',
+                      admin: {
+                        description: 'Bank or payment provider (e.g., MTN Mobile Money)',
+                        width: '50%',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
       ],
     },
     {

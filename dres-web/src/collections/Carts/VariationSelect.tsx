@@ -13,11 +13,14 @@ type VariantOption = {
 type Variation = {
   options?: Record<string, string | null>
   price?: number
+  sellingPrice?: number
 }
 
 type Product = {
   id: string
   title: string
+  price?: number
+  sellingPrice?: number
   variations?: Variation[]
 }
 
@@ -141,7 +144,9 @@ export const VariationSelectField: React.FC<{
           }
         }
         
-        const priceLabel = variation.price ? ` - $${variation.price}` : ''
+        // Show selling price (with platform fee) in the label
+        const displayPrice = variation.sellingPrice || variation.price
+        const priceLabel = displayPrice ? ` - $${displayPrice}` : ''
         
         return {
           label: `${label}${priceLabel}`,
@@ -151,15 +156,28 @@ export const VariationSelectField: React.FC<{
       .filter((opt): opt is { label: string; value: string } => opt !== null)
   }, [product?.variations, optionNames, selectedVariations])
 
-  // Update price when variation changes
+  // Update price when variation changes - use sellingPrice (with platform fee)
   useEffect(() => {
     if (value !== null && value !== undefined && product?.variations?.[value]) {
       const variation = product.variations[value]
-      if (variation.price !== undefined && variation.price !== null) {
-        priceField.setValue(variation.price)
+      // Use sellingPrice (price + platform fee), fallback to price if sellingPrice not set
+      const priceToSet = variation.sellingPrice ?? variation.price
+      if (priceToSet !== undefined && priceToSet !== null) {
+        priceField.setValue(priceToSet)
       }
     }
   }, [value, product?.variations, priceField])
+
+  // Set base product price when product has no variations
+  useEffect(() => {
+    if (product && (!product.variations || product.variations.length === 0)) {
+      // Use sellingPrice (price + platform fee), fallback to price
+      const priceToSet = product.sellingPrice ?? product.price
+      if (priceToSet !== undefined && priceToSet !== null) {
+        priceField.setValue(priceToSet)
+      }
+    }
+  }, [product, priceField])
 
   const isLoading = productLoading || optionsLoading
 

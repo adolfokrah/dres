@@ -41,20 +41,43 @@ export const Carts: CollectionConfig = {
     },
   },
   hooks: {
-    // Calculate item count, total amount, and set currency before save
+    // Calculate item count, total amount, buyer protection fees, and set currency before save
     beforeChange: [
       async ({ data, req }) => {
         if (data?.items && Array.isArray(data.items)) {
+          // Calculate buyer protection fee for each item (80% of shipping fee if enabled)
+          data.items = data.items.map((item: { 
+            buyerProtection?: boolean
+            shippingFee?: number
+            buyerProtectionFee?: number
+            quantity?: number
+            price?: number
+          }) => {
+            if (item.buyerProtection && item.shippingFee) {
+              item.buyerProtectionFee = Math.round(item.shippingFee * 0.80 * 100) / 100
+            } else {
+              item.buyerProtectionFee = 0
+            }
+            return item
+          })
+
           // Calculate item count
           data.itemCount = data.items.reduce((total: number, item: { quantity?: number }) => {
             return total + (item.quantity || 0)
           }, 0)
           
-          // Calculate total amount
-          data.totalAmount = data.items.reduce((total: number, item: { quantity?: number; price?: number }) => {
+          // Calculate total amount (price * qty + shipping + buyer protection)
+          data.totalAmount = data.items.reduce((total: number, item: { 
+            quantity?: number
+            price?: number
+            shippingFee?: number
+            buyerProtectionFee?: number
+          }) => {
             const quantity = item.quantity || 0
             const price = item.price || 0
-            return total + (quantity * price)
+            const shippingFee = item.shippingFee || 0
+            const buyerProtectionFee = item.buyerProtectionFee || 0
+            return total + (quantity * price) + shippingFee + buyerProtectionFee
           }, 0)
         }
         
@@ -175,6 +198,33 @@ export const Carts: CollectionConfig = {
           defaultValue: 1,
           admin: {
             description: 'Quantity of this item',
+          },
+        },
+        {
+          name: 'shippingFee',
+          type: 'number',
+          min: 0,
+          defaultValue: 0,
+          admin: {
+            description: 'Shipping fee for this item',
+          },
+        },
+        {
+          name: 'buyerProtection',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: {
+            description: 'Add buyer protection (80% of shipping fee)',
+          },
+        },
+        {
+          name: 'buyerProtectionFee',
+          type: 'number',
+          min: 0,
+          defaultValue: 0,
+          admin: {
+            description: 'Buyer protection fee (auto-calculated: 80% of shipping fee)',
+            readOnly: true,
           },
         },
         {

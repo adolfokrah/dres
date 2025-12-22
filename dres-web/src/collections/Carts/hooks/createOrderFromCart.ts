@@ -9,6 +9,27 @@ const generateOrderId = (): string => {
   return `ORD-${dateStr}-${timestamp}-${random}`
 }
 
+interface StatusLog {
+  status: string
+  timestamp: string
+}
+
+interface OrderItem {
+  productTitle: string
+  productImage: string
+  variationOptions: Record<string, string> | null
+  sellerId: string
+  sellerName: string
+  price: number
+  originalPrice: number
+  quantity: number
+  shippingFee: number
+  buyerProtection: boolean
+  buyerProtectionFee: number
+  shippingStatus: string
+  statusLogs: StatusLog[]
+}
+
 export const createOrderFromCart: CollectionAfterChangeHook = async ({
   doc,
   previousDoc,
@@ -30,16 +51,7 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
     })
 
     // Process cart items - exclude sellers on vacation
-    const orderItems: Array<{
-      productTitle: string
-      productImage: string
-      variationOptions: Record<string, string> | null
-      sellerId: string
-      sellerName: string
-      price: number
-      quantity: number
-      shippingStatus: string
-    }> = []
+    const orderItems: OrderItem[] = []
 
     for (const item of doc.items || []) {
       const productId = typeof item.product === 'object' ? item.product.id : item.product
@@ -102,6 +114,15 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         }
       }
 
+      // Get original price (base price without platform fees)
+      let originalPrice = product.price || 0
+      if (item.variation !== null && item.variation !== undefined && product.variations?.[item.variation]) {
+        const variation = product.variations[item.variation]
+        if (variation.price) {
+          originalPrice = variation.price
+        }
+      }
+
       orderItems.push({
         productTitle: product.title || 'Unknown Product',
         productImage,
@@ -109,8 +130,18 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         sellerId,
         sellerName,
         price: item.price || 0,
+        originalPrice,
         quantity: item.quantity || 1,
+        shippingFee: item.shippingFee || 0,
+        buyerProtection: item.buyerProtection || false,
+        buyerProtectionFee: item.buyerProtectionFee || 0,
         shippingStatus: 'placed',
+        statusLogs: [
+          {
+            status: 'placed',
+            timestamp: new Date().toISOString(),
+          },
+        ],
       })
     }
 
@@ -132,6 +163,13 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         : customerCountry.currency
     }
 
+    // Calculate totals
+    const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0)
+    const totalAmount = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    const totalShipping = orderItems.reduce((sum, item) => sum + (item.shippingFee || 0), 0)
+    const totalBuyerProtection = orderItems.reduce((sum, item) => sum + (item.buyerProtectionFee || 0), 0)
+    const grandTotal = totalAmount + totalShipping + totalBuyerProtection
+
     // Create the order
     await payload.create({
       collection: 'orders',
@@ -140,8 +178,9 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         customer: typeof doc.customer === 'object' ? doc.customer.id : doc.customer,
         status: 'placed',
         items: orderItems,
-        totalItems: orderItems.reduce((sum, item) => sum + item.quantity, 0),
-        totalAmount: orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+        totalItems,
+        totalAmount,
+        grandTotal,
         currency: currencyId || undefined,
         shippingDetails: {
           fullName: `${cartCustomer?.firstName || ''} ${cartCustomer?.lastName || ''}`.trim() || '',
@@ -162,7 +201,7 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
       },
     })
 
-    payload.logger.info(`Order created from cart ${doc.id} with ${orderItems.length} items`)
+    payload.logger.info(`Order created from cart ${doc.id} with ${orderItems.length} items - Grand Total: ${grandTotal}`)
   } catch (error) {
     payload.logger.error(`Error creating order from cart: ${error}`)
   }

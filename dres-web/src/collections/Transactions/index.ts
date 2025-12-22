@@ -69,7 +69,22 @@ export const Transactions: CollectionConfig = {
           admin: {
             description: 'Unique transaction identifier (auto-generated)',
             readOnly: true,
-            width: '50%',
+            width: '33%',
+          },
+        },
+        {
+          name: 'type',
+          type: 'select',
+          required: true,
+          defaultValue: 'transfer',
+          options: [
+            { label: 'Transfer (Seller Payout)', value: 'transfer' },
+            { label: 'Deposit (Customer Payment)', value: 'deposit' },
+            { label: 'Refund', value: 'refund' },
+          ],
+          admin: {
+            description: 'Type of transaction',
+            width: '33%',
           },
         },
         {
@@ -84,7 +99,7 @@ export const Transactions: CollectionConfig = {
           ],
           admin: {
             description: 'Transaction status',
-            width: '50%',
+            width: '33%',
           },
         },
       ],
@@ -108,21 +123,56 @@ export const Transactions: CollectionConfig = {
       },
     },
     {
-        name: 'isMain',
-        type: 'checkbox',
-        defaultValue: false,
-        admin: {
-          description: 'Whether this transaction is the main transaction for the order',
+      type: 'row',
+      fields: [
+        {
+          name: 'amount',
+          type: 'number',
+          required: true,
+          min: 0,
+          admin: {
+            description: 'Transaction amount (seller payout)',
+            width: '50%',
+          },
         },
+        {
+          name: 'fees',
+          type: 'number',
+          min: 0,
+          defaultValue: 0,
+          label: 'Fees (selling price - original price) × qty',
+          admin: {
+            width: '50%',
+          },
+        },
+      ],
     },
     {
-      name: 'amount',
-      type: 'number',
-      required: true,
-      min: 0,
-      admin: {
-        description: 'Transaction amount',
-      },
+      type: 'row',
+      fields: [
+        {
+          name: 'paystackFees',
+          type: 'number',
+          min: 0,
+          defaultValue: 0,
+          label: 'Paystack Fees (1.95% of selling price) + 1 cedi transfer fee',
+          admin: {
+            description: 'Calculated: 1.95% × selling price',
+            width: '50%',
+          },
+        },
+        {
+          name: 'commissionFees',
+          type: 'number',
+          min: 0,
+          defaultValue: 0,
+          label: 'Commission Fees (fees - paystack fees)',
+          admin: {
+            description: 'Calculated: fees - paystackFees',
+            width: '50%',
+          },
+        },
+      ],
     },
     {
       type: 'group',

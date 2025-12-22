@@ -489,6 +489,23 @@ export interface User {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  /**
+   * Bank account details for receiving payments from sold items
+   */
+  withdrawalAccount?: {
+    /**
+     * Account holder name
+     */
+    accountName?: string | null;
+    /**
+     * Account number
+     */
+    accountNumber?: string | null;
+    /**
+     * Bank or payment provider (e.g., MTN Mobile Money)
+     */
+    bank?: string | null;
+  };
   role: 'admin' | 'user';
   accountStatus: 'active' | 'banned' | 'deleted';
   /**
@@ -1183,6 +1200,18 @@ export interface Cart {
      */
     quantity: number;
     /**
+     * Shipping fee for this item
+     */
+    shippingFee?: number | null;
+    /**
+     * Add buyer protection (80% of shipping fee)
+     */
+    buyerProtection?: boolean | null;
+    /**
+     * Buyer protection fee (auto-calculated: 80% of shipping fee)
+     */
+    buyerProtectionFee?: number | null;
+    /**
      * When this item was added to the cart
      */
     addedAt?: string | null;
@@ -1328,7 +1357,7 @@ export interface Order {
    */
   orderId: string;
   /**
-   * Overall order status
+   * Auto-calculated: Placed (all placed), In Progress (items in transit), Completed (all delivered/returned), Cancelled (all returned)
    */
   status: 'placed' | 'in_progress' | 'completed' | 'cancelled';
   /**
@@ -1352,9 +1381,13 @@ export interface Order {
    */
   totalItems: number;
   /**
-   * Total order amount (auto-calculated)
+   * Total order amount (products only)
    */
   totalAmount: number;
+  /**
+   * Grand total (products + shipping + buyer protection)
+   */
+  grandTotal: number;
   /**
    * Currency (from customer country)
    */
@@ -1406,10 +1439,6 @@ export interface Order {
    */
   placedAt?: string | null;
   /**
-   * When the order was completed
-   */
-  completedAt?: string | null;
-  /**
    * Internal notes about the order
    */
   notes?: string | null;
@@ -1437,6 +1466,10 @@ export interface Transaction {
    */
   transactionId: string;
   /**
+   * Type of transaction
+   */
+  type: 'transfer' | 'deposit' | 'refund';
+  /**
    * Transaction status
    */
   status: 'pending' | 'completed' | 'cancelled';
@@ -1449,13 +1482,18 @@ export interface Transaction {
    */
   order: string | Order;
   /**
-   * Whether this transaction is the main transaction for the order
-   */
-  isMain?: boolean | null;
-  /**
-   * Transaction amount
+   * Transaction amount (seller payout)
    */
   amount: number;
+  fees?: number | null;
+  /**
+   * Calculated: 1.95% × selling price
+   */
+  paystackFees?: number | null;
+  /**
+   * Calculated: fees - paystackFees
+   */
+  commissionFees?: number | null;
   /**
    * Payment account information
    */
@@ -2140,6 +2178,9 @@ export interface CartsSelect<T extends boolean = true> {
         variation?: T;
         price?: T;
         quantity?: T;
+        shippingFee?: T;
+        buyerProtection?: T;
+        buyerProtectionFee?: T;
         addedAt?: T;
         id?: T;
       };
@@ -2241,6 +2282,7 @@ export interface OrdersSelect<T extends boolean = true> {
   items?: T;
   totalItems?: T;
   totalAmount?: T;
+  grandTotal?: T;
   currency?: T;
   shippingDetails?:
     | T
@@ -2262,7 +2304,6 @@ export interface OrdersSelect<T extends boolean = true> {
         bank?: T;
       };
   placedAt?: T;
-  completedAt?: T;
   notes?: T;
   transactions?: T;
   updatedAt?: T;
@@ -2305,11 +2346,14 @@ export interface ShippingRatesSelect<T extends boolean = true> {
  */
 export interface TransactionsSelect<T extends boolean = true> {
   transactionId?: T;
+  type?: T;
   status?: T;
   user?: T;
   order?: T;
-  isMain?: T;
   amount?: T;
+  fees?: T;
+  paystackFees?: T;
+  commissionFees?: T;
   billingDetails?:
     | T
     | {
@@ -2332,6 +2376,13 @@ export interface UsersSelect<T extends boolean = true> {
   country?: T;
   language?: T;
   shippingRates?: T;
+  withdrawalAccount?:
+    | T
+    | {
+        accountName?: T;
+        accountNumber?: T;
+        bank?: T;
+      };
   role?: T;
   accountStatus?: T;
   vacationMode?: T;
