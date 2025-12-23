@@ -5,6 +5,8 @@ import { createSellerTransactionOnDelivery } from './hooks/createSellerTransacti
 import { createRefundTransaction } from './hooks/createRefundTransaction'
 import { calculateOrderTotalsAndStatus } from './hooks/calculateOrderTotalsAndStatus'
 import { updateSalesStats } from './hooks/updateSalesStats'
+import { reduceStockOnOrder } from './hooks/reduceStockOnOrder'
+import { restoreStockOnReturn } from './hooks/restoreStockOnReturn'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -45,8 +47,8 @@ export const Orders: CollectionConfig = {
   },
   hooks: {
     beforeChange: [calculateOrderTotalsAndStatus],
-    // Create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats
-    afterChange: [createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats],
+    // Reduce stock on order creation, restore stock on return, create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats
+    afterChange: [reduceStockOnOrder, restoreStockOnReturn, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats],
   },
   fields: [
     {

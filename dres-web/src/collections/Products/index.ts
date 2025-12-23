@@ -4,6 +4,7 @@ import { anyone } from '../../access/anyone'
 import { authenticated } from '../../access/authenticated'
 import { calculateSellingPrices } from './hooks/calculateSellingPrices'
 import { validateUniqueVariations } from './hooks/validateUniqueVariations'
+import { validateRequiredVariations } from './hooks/validateRequiredVariations'
 
 export const Products: CollectionConfig = {
   slug: 'products',
@@ -20,7 +21,7 @@ export const Products: CollectionConfig = {
   },
   hooks: {
     beforeChange: [calculateSellingPrices],
-    beforeValidate: [validateUniqueVariations],
+    beforeValidate: [validateUniqueVariations, validateRequiredVariations],
   },
   fields: [
     {
@@ -116,6 +117,17 @@ export const Products: CollectionConfig = {
       },
     },
     {
+      name: 'stock',
+      type: 'number',
+      min: 0,
+      admin: {
+        description: 'Available quantity (0 = sold out). Leave empty for unlimited stock.',
+        components: {
+          Field: '@/collections/Products/ProductStockField#ProductStockField',
+        },
+      },
+    },
+    {
       type: 'collapsible',
       label: 'Product Attributes',
       admin: {
@@ -171,6 +183,14 @@ export const Products: CollectionConfig = {
           admin: {
             description: 'Final selling price (auto-calculated: price + 10% platform fee)',
             readOnly: true,
+          },
+        },
+        {
+          name: 'stock',
+          type: 'number',
+          min: 0,
+          admin: {
+            description: 'Available quantity for this variation (0 = sold out). Leave empty for unlimited.',
           },
         },
         {

@@ -863,6 +863,10 @@ export interface Product {
    */
   sellingPrice?: number | null;
   /**
+   * Available quantity (0 = sold out). Leave empty for unlimited stock.
+   */
+  stock?: number | null;
+  /**
    * Select attributes that apply to this product (all optional)
    */
   attributes?:
@@ -899,6 +903,10 @@ export interface Product {
          * Final selling price (auto-calculated: price + 10% platform fee)
          */
         sellingPrice?: number | null;
+        /**
+         * Available quantity for this variation (0 = sold out). Leave empty for unlimited.
+         */
+        stock?: number | null;
         /**
          * Select images from the product gallery for this variation
          */
@@ -2953,6 +2961,7 @@ export interface ProductsSelect<T extends boolean = true> {
   seller?: T;
   price?: T;
   sellingPrice?: T;
+  stock?: T;
   attributes?: T;
   variations?:
     | T
@@ -2960,6 +2969,7 @@ export interface ProductsSelect<T extends boolean = true> {
         options?: T;
         price?: T;
         sellingPrice?: T;
+        stock?: T;
         images?: T;
         id?: T;
       };
