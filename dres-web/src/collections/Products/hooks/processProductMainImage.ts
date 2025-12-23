@@ -55,9 +55,9 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
     : null
 
   // Skip if first image hasn't changed (unless it's a new product)
-  if (operation === 'update' && firstImageId === previousFirstImageId) {
-    return doc
-  }
+//   if (operation === 'update' && firstImageId === previousFirstImageId) {
+//     return doc
+//   }
 
   try {
     // Fetch the first image media document
@@ -126,16 +126,11 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
       return doc
     }
 
-    // Generate new filename
-    const ext = mediaDoc.filename.includes('.') ? mediaDoc.filename.split('.').pop() : ''
-    const baseName = ext ? mediaDoc.filename.slice(0, -(ext.length + 1)) : mediaDoc.filename
-    const newFilename = `${baseName}_nobg.png`
-
-    // Upload processed image to S3/Supabase
+    // Upload processed image to S3/Supabase (overwrite original)
     try {
       const putCommand = new PutObjectCommand({
         Bucket: bucket,
-        Key: newFilename,
+        Key: mediaDoc.filename,
         Body: result.buffer,
         ContentType: 'image/png',
       })
@@ -146,18 +141,16 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
       return doc
     }
 
-    // Update the media document with new file info and mark as processed
+    // Mark the media as processed
     await req.payload.update({
       collection: 'media',
       id: mediaDoc.id,
       data: {
-        filename: newFilename,
-        mimeType: 'image/png',
         backgroundRemoved: true,
-      } as Partial<MediaDoc>,
+      },
     })
 
-    req.payload.logger.info(`Background removed for product ${doc.id} main image: ${mediaDoc.filename} -> ${newFilename}`)
+    req.payload.logger.info(`Background removed for product ${doc.id} main image: ${mediaDoc.filename}`)
   } catch (error) {
     req.payload.logger.error(`Error processing product main image: ${error}`)
   }
