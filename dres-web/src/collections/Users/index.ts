@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Where } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
 
@@ -99,6 +99,51 @@ export const Users: CollectionConfig = {
           ],
         },
         {
+          label: 'Products',
+          fields: [
+            {
+              name: 'products',
+              type: 'join',
+              collection: 'products',
+              on: 'seller',
+              admin: {
+                description: 'Products listed by this seller',
+                defaultColumns: ['title', 'price', 'category', 'status', 'createdAt'],
+              },
+            },
+          ],
+        },
+        {
+          label: 'Orders',
+          fields: [
+            {
+              name: 'orders',
+              type: 'join',
+              collection: 'orders',
+              on: 'customer',
+              admin: {
+                description: 'Orders placed by this user',
+                defaultColumns: ['orderId', 'status', 'totalAmount', 'createdAt'],
+              },
+            },
+          ],
+        },
+        {
+          label: 'Transactions',
+          fields: [
+            {
+              name: 'transactions',
+              type: 'join',
+              collection: 'transactions',
+              on: 'user',
+              admin: {
+                description: 'Transaction history for this user',
+                defaultColumns: ['type', 'amount', 'status', 'createdAt'],
+              },
+            },
+          ],
+        },
+        {
           label: 'Withdrawal Account',
           fields: [
             {
@@ -135,6 +180,143 @@ export const Users: CollectionConfig = {
                       },
                     },
                   ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          label: 'Shipping Addresses',
+          fields: [
+            {
+              name: 'addresses',
+              type: 'array',
+              admin: {
+                description: 'Saved addresses for shipping',
+              },
+              fields: [
+                {
+                  name: 'label',
+                  type: 'text',
+                  required: true,
+                  admin: {
+                    description: 'Address label (e.g., Home, Work, etc.)',
+                  },
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'fullName',
+                      type: 'text',
+                      required: true,
+                      admin: {
+                        description: 'Recipient full name',
+                        width: '50%',
+                      },
+                    },
+                    {
+                      name: 'phone',
+                      type: 'text',
+                      required: true,
+                      admin: {
+                        description: 'Contact phone number',
+                        width: '50%',
+                      },
+                    },
+                  ],
+                },
+                {
+                  name: 'address',
+                  type: 'textarea',
+                  required: true,
+                  admin: {
+                    description: 'Street address',
+                  },
+                },
+                {
+                  name: 'country',
+                  type: 'relationship',
+                  relationTo: 'countries',
+                  required: true,
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'region',
+                      type: 'relationship',
+                      relationTo: 'regions',
+                      filterOptions: ({ siblingData }) => {
+                        const data = siblingData as Record<string, unknown>
+                        const countryId = data?.country
+                        if (!countryId) return true
+                        return {
+                          country: {
+                            equals: typeof countryId === 'object' && countryId !== null ? (countryId as { id: string }).id : countryId,
+                          },
+                        }
+                      },
+                      admin: {
+                        description: 'Select country first',
+                        condition: (data, siblingData) => Boolean(siblingData?.country),
+                        width: '50%',
+                      },
+                    },
+                    {
+                      name: 'city',
+                      type: 'relationship',
+                      relationTo: 'cities',
+                      required: true,
+                      filterOptions: ({ siblingData }): Where | boolean => {
+                        const data = siblingData as Record<string, unknown>
+                        const countryId = data?.country
+                        const regionId = data?.region
+                        if (regionId) {
+                          return {
+                            region: {
+                              equals: typeof regionId === 'object' && regionId !== null ? (regionId as { id: string }).id : regionId,
+                            },
+                          }
+                        }
+                        if (countryId) {
+                          return {
+                            country: {
+                              equals: typeof countryId === 'object' && countryId !== null ? (countryId as { id: string }).id : countryId,
+                            },
+                          }
+                        }
+                        return true
+                      },
+                      admin: {
+                        description: 'Select country first',
+                        condition: (data, siblingData) => Boolean(siblingData?.country),
+                        width: '50%',
+                      },
+                    },
+                  ],
+                },
+                {
+                  name: 'postalCode',
+                  type: 'text',
+                  admin: {
+                    description: 'ZIP/Postal code',
+                  },
+                },
+                {
+                  name: 'deliveryNotes',
+                  type: 'textarea',
+                  admin: {
+                    description: 'Special delivery instructions',
+                  },
+                },
+                {
+                  name: 'isDefault',
+                  type: 'checkbox',
+                  defaultValue: false,
+                  admin: {
+                    description: 'Set as default shipping address',
+                  },
                 },
               ],
             },

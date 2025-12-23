@@ -243,8 +243,7 @@ export const Orders: CollectionConfig = {
                 },
                 {
                   name: 'country',
-                  type: 'relationship',
-                  relationTo: 'countries',
+                  type: 'text',
                 },
                 {
                   name: 'deliveryNotes',

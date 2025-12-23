@@ -124,6 +124,9 @@ export interface Config {
     };
     users: {
       shippingRates: 'shippingRates';
+      products: 'products';
+      orders: 'orders';
+      transactions: 'transactions';
     };
     products: {
       boosts: 'product-boosts';
@@ -504,6 +507,30 @@ export interface User {
     totalDocs?: number;
   };
   /**
+   * Products listed by this seller
+   */
+  products?: {
+    docs?: (string | Product)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Orders placed by this user
+   */
+  orders?: {
+    docs?: (string | Order)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Transaction history for this user
+   */
+  transactions?: {
+    docs?: (string | Transaction)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
    * Bank account details for receiving payments from sold items
    */
   withdrawalAccount?: {
@@ -520,6 +547,51 @@ export interface User {
      */
     bank?: string | null;
   };
+  /**
+   * Saved addresses for shipping
+   */
+  addresses?:
+    | {
+        /**
+         * Address label (e.g., Home, Work, etc.)
+         */
+        label: string;
+        /**
+         * Recipient full name
+         */
+        fullName: string;
+        /**
+         * Contact phone number
+         */
+        phone: string;
+        /**
+         * Street address
+         */
+        address: string;
+        country: string | Country;
+        /**
+         * Select country first
+         */
+        region?: (string | null) | Region;
+        /**
+         * Select country first
+         */
+        city?: (string | null) | City;
+        /**
+         * ZIP/Postal code
+         */
+        postalCode?: string | null;
+        /**
+         * Special delivery instructions
+         */
+        deliveryNotes?: string | null;
+        /**
+         * Set as default shipping address
+         */
+        isDefault?: boolean | null;
+        id?: string | null;
+      }[]
+    | null;
   role: 'admin' | 'user';
   accountStatus: 'active' | 'banned' | 'deleted';
   /**
@@ -698,10 +770,12 @@ export interface Region {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "CallToActionBlock".
+ * via the `definition` "products".
  */
-export interface CallToActionBlock {
-  richText?: {
+export interface Product {
+  id: string;
+  title: string;
+  description?: {
     root: {
       type: string;
       children: {
@@ -716,127 +790,126 @@ export interface CallToActionBlock {
     };
     [k: string]: unknown;
   } | null;
-  links?:
+  /**
+   * Whether this product is a resell from a returned item (e.g., from a thrift store)
+   */
+  isResell?: boolean | null;
+  /**
+   * Product images (first image is the main image)
+   */
+  images: (string | Media)[];
+  /**
+   * Select a department first to filter available categories
+   */
+  department: string | Department;
+  /**
+   * Select a department first to filter available categories
+   */
+  category?: (string | null) | Category;
+  /**
+   * Select a category first to filter available brands
+   */
+  brand?: (string | null) | Brand;
+  /**
+   * The user selling this product
+   */
+  seller: string | User;
+  /**
+   * Base price for this product (used when variation has no price)
+   */
+  price: number;
+  /**
+   * Final selling price (auto-calculated: price + 10% platform fee)
+   */
+  sellingPrice?: number | null;
+  /**
+   * Select attributes that apply to this product (all optional)
+   */
+  attributes?:
     | {
-        link: {
-          type?: ('reference' | 'custom') | null;
-          newTab?: boolean | null;
-          reference?:
-            | ({
-                relationTo: 'pages';
-                value: string | Page;
-              } | null)
-            | ({
-                relationTo: 'posts';
-                value: string | Post;
-              } | null);
-          url?: string | null;
-          label: string;
-          /**
-           * Choose how the link should be rendered.
-           */
-          appearance?: ('default' | 'outline') | null;
-        };
-        id?: string | null;
-      }[]
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
     | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'cta';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ContentBlock".
- */
-export interface ContentBlock {
-  columns?:
+  /**
+   * Product variations with different options, prices, and images
+   */
+  variations?:
     | {
-        size?: ('oneThird' | 'half' | 'twoThirds' | 'full') | null;
-        richText?: {
-          root: {
-            type: string;
-            children: {
-              type: any;
-              version: number;
+        /**
+         * Select options for each variant type
+         */
+        options?:
+          | {
               [k: string]: unknown;
-            }[];
-            direction: ('ltr' | 'rtl') | null;
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-            indent: number;
-            version: number;
-          };
-          [k: string]: unknown;
-        } | null;
-        enableLink?: boolean | null;
-        link?: {
-          type?: ('reference' | 'custom') | null;
-          newTab?: boolean | null;
-          reference?:
-            | ({
-                relationTo: 'pages';
-                value: string | Page;
-              } | null)
-            | ({
-                relationTo: 'posts';
-                value: string | Post;
-              } | null);
-          url?: string | null;
-          label: string;
-          /**
-           * Choose how the link should be rendered.
-           */
-          appearance?: ('default' | 'outline') | null;
-        };
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        /**
+         * Your price for this variation
+         */
+        price: number;
+        /**
+         * Final selling price (auto-calculated: price + 10% platform fee)
+         */
+        sellingPrice?: number | null;
+        /**
+         * Select images from the product gallery for this variation
+         */
+        images?: (string | Media)[] | null;
         id?: string | null;
       }[]
     | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'content';
+  /**
+   * Boost history for this product
+   */
+  boosts?: {
+    docs?: (string | ProductBoost)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Sales statistics for this product
+   */
+  stats?: {
+    docs?: (string | ProductStat)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Customer reviews for this product
+   */
+  reviews?: {
+    docs?: (string | Review)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "MediaBlock".
+ * via the `definition` "departments".
  */
-export interface MediaBlock {
-  media: string | Media;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'mediaBlock';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ArchiveBlock".
- */
-export interface ArchiveBlock {
-  introContent?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  populateBy?: ('collection' | 'selection') | null;
-  relationTo?: 'posts' | null;
-  categories?: (string | Category)[] | null;
-  limit?: number | null;
-  selectedDocs?:
-    | {
-        relationTo: 'posts';
-        value: string | Post;
-      }[]
-    | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'archive';
+export interface Department {
+  id: string;
+  name: string;
+  /**
+   * Categories in this department
+   */
+  categories?: {
+    docs?: (string | Category)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -885,24 +958,6 @@ export interface Collection {
   name: string;
   /**
    * Categories in this collection
-   */
-  categories?: {
-    docs?: (string | Category)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "departments".
- */
-export interface Department {
-  id: string;
-  name: string;
-  /**
-   * Categories in this department
    */
   categories?: {
     docs?: (string | Category)[];
@@ -1030,131 +1085,6 @@ export interface ProductStat {
    * When the last sale was made
    */
   lastSaleAt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "products".
- */
-export interface Product {
-  id: string;
-  title: string;
-  description?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * Whether this product is a resell from a returned item (e.g., from a thrift store)
-   */
-  isResell?: boolean | null;
-  /**
-   * Product images (first image is the main image)
-   */
-  images: (string | Media)[];
-  /**
-   * Select a department first to filter available categories
-   */
-  department: string | Department;
-  /**
-   * Select a department first to filter available categories
-   */
-  category?: (string | null) | Category;
-  /**
-   * Select a category first to filter available brands
-   */
-  brand?: (string | null) | Brand;
-  /**
-   * The user selling this product
-   */
-  seller: string | User;
-  /**
-   * Base price for this product (used when variation has no price)
-   */
-  price: number;
-  /**
-   * Final selling price (auto-calculated: price + 10% platform fee)
-   */
-  sellingPrice?: number | null;
-  /**
-   * Select attributes that apply to this product (all optional)
-   */
-  attributes?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  /**
-   * Product variations with different options, prices, and images
-   */
-  variations?:
-    | {
-        /**
-         * Select options for each variant type
-         */
-        options?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        /**
-         * Your price for this variation
-         */
-        price: number;
-        /**
-         * Final selling price (auto-calculated: price + 10% platform fee)
-         */
-        sellingPrice?: number | null;
-        /**
-         * Select images from the product gallery for this variation
-         */
-        images?: (string | Media)[] | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Boost history for this product
-   */
-  boosts?: {
-    docs?: (string | ProductBoost)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  /**
-   * Sales statistics for this product
-   */
-  stats?: {
-    docs?: (string | ProductStat)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  /**
-   * Customer reviews for this product
-   */
-  reviews?: {
-    docs?: (string | Review)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
   updatedAt: string;
   createdAt: string;
 }
@@ -1336,7 +1266,7 @@ export interface Order {
      * ZIP/Postal code
      */
     postalCode?: string | null;
-    country?: (string | null) | Country;
+    country?: string | null;
     /**
      * Special delivery instructions
      */
@@ -1399,6 +1329,148 @@ export interface Review {
   images?: (string | Media)[] | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CallToActionBlock".
+ */
+export interface CallToActionBlock {
+  richText?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  links?:
+    | {
+        link: {
+          type?: ('reference' | 'custom') | null;
+          newTab?: boolean | null;
+          reference?:
+            | ({
+                relationTo: 'pages';
+                value: string | Page;
+              } | null)
+            | ({
+                relationTo: 'posts';
+                value: string | Post;
+              } | null);
+          url?: string | null;
+          label: string;
+          /**
+           * Choose how the link should be rendered.
+           */
+          appearance?: ('default' | 'outline') | null;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'cta';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ContentBlock".
+ */
+export interface ContentBlock {
+  columns?:
+    | {
+        size?: ('oneThird' | 'half' | 'twoThirds' | 'full') | null;
+        richText?: {
+          root: {
+            type: string;
+            children: {
+              type: any;
+              version: number;
+              [k: string]: unknown;
+            }[];
+            direction: ('ltr' | 'rtl') | null;
+            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+            indent: number;
+            version: number;
+          };
+          [k: string]: unknown;
+        } | null;
+        enableLink?: boolean | null;
+        link?: {
+          type?: ('reference' | 'custom') | null;
+          newTab?: boolean | null;
+          reference?:
+            | ({
+                relationTo: 'pages';
+                value: string | Page;
+              } | null)
+            | ({
+                relationTo: 'posts';
+                value: string | Post;
+              } | null);
+          url?: string | null;
+          label: string;
+          /**
+           * Choose how the link should be rendered.
+           */
+          appearance?: ('default' | 'outline') | null;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'content';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "MediaBlock".
+ */
+export interface MediaBlock {
+  media: string | Media;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'mediaBlock';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ArchiveBlock".
+ */
+export interface ArchiveBlock {
+  introContent?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  populateBy?: ('collection' | 'selection') | null;
+  relationTo?: 'posts' | null;
+  categories?: (string | Category)[] | null;
+  limit?: number | null;
+  selectedDocs?:
+    | {
+        relationTo: 'posts';
+        value: string | Post;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'archive';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2614,12 +2686,30 @@ export interface UsersSelect<T extends boolean = true> {
   country?: T;
   language?: T;
   shippingRates?: T;
+  products?: T;
+  orders?: T;
+  transactions?: T;
   withdrawalAccount?:
     | T
     | {
         accountName?: T;
         accountNumber?: T;
         bank?: T;
+      };
+  addresses?:
+    | T
+    | {
+        label?: T;
+        fullName?: T;
+        phone?: T;
+        address?: T;
+        country?: T;
+        region?: T;
+        city?: T;
+        postalCode?: T;
+        deliveryNotes?: T;
+        isDefault?: T;
+        id?: T;
       };
   role?: T;
   accountStatus?: T;
