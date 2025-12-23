@@ -1359,9 +1359,9 @@ export interface Order {
    */
   totalItems: number;
   /**
-   * Total order amount (products only)
+   * Subtotal (products only)
    */
-  totalAmount: number;
+  subtotal: number;
   /**
    * Grand total (products + shipping + buyer protection - discount)
    */
@@ -1997,9 +1997,9 @@ export interface Cart {
    */
   subtotal?: number | null;
   /**
-   * Total amount (subtotal + shipping + buyer protection)
+   * Grand total (subtotal + shipping + buyer protection - discount)
    */
-  totalAmount?: number | null;
+  grandTotal?: number | null;
   /**
    * Applied discount code (discount applies to subtotal)
    */
@@ -2783,7 +2783,7 @@ export interface CartsSelect<T extends boolean = true> {
       };
   itemCount?: T;
   subtotal?: T;
-  totalAmount?: T;
+  grandTotal?: T;
   discountCode?: T;
   discountAmount?: T;
   currency?: T;
@@ -2975,7 +2975,7 @@ export interface OrdersSelect<T extends boolean = true> {
         id?: T;
       };
   totalItems?: T;
-  totalAmount?: T;
+  subtotal?: T;
   grandTotal?: T;
   currency?: T;
   discountCode?: T;

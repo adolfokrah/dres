@@ -237,10 +237,10 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
 
     // Calculate totals
     const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0)
-    const totalAmount = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
     const totalShipping = orderItems.reduce((sum, item) => sum + (item.shippingFee || 0), 0)
     const totalBuyerProtection = orderItems.reduce((sum, item) => sum + (item.buyerProtectionFee || 0), 0)
-    const grandTotal = totalAmount + totalShipping + totalBuyerProtection - discountAmount
+    const grandTotal = Math.max(0, subtotal + totalShipping + totalBuyerProtection - discountAmount)
 
     // Create the order
     const order = await payload.create({
@@ -252,7 +252,7 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         status: 'placed',
         items: orderItems,
         totalItems,
-        totalAmount,
+        subtotal,
         grandTotal,
         discountCode: discountCodeId || undefined,
         discountCodeUsed,

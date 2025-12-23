@@ -330,12 +330,12 @@ export const Orders: CollectionConfig = {
                   },
                 },
                 {
-                  name: 'totalAmount',
+                  name: 'subtotal',
                   type: 'number',
                   required: true,
                   defaultValue: 0,
                   admin: {
-                    description: 'Total order amount (products only)',
+                    description: 'Subtotal (products only)',
                     readOnly: true,
                     width: '25%',
                   },

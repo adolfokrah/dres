@@ -91,8 +91,9 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
         // Calculate seller payout and platform fees
         // originalPrice is the seller's base price, price is what customer paid (with platform markup)
         const originalPrice = currentItem.originalPrice ?? currentItem.price
+        const shippingFee = currentItem.shippingFee || 0
         const sellingPrice = currentItem.price * currentItem.quantity
-        const sellerPayout = originalPrice * currentItem.quantity
+        const sellerPayout = (originalPrice * currentItem.quantity) + shippingFee
         const fees = (currentItem.price - originalPrice) * currentItem.quantity
 
         // Calculate paystack fees (1.95% of selling price) + 1 cedi transfer fee
@@ -101,7 +102,7 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
         const commissionFees = fees - paystackFeesAmount
 
         // Create transaction for this seller's delivered item
-        // Amount is what the seller receives (original price), fees is the platform cut
+        // Amount is what the seller receives (original price + shipping fee), fees is the platform cut
         await payload.create({
           collection: 'transactions',
           data: {
@@ -127,12 +128,12 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
               accountNumber: withdrawalAccount?.accountNumber || '',
               bank: withdrawalAccount?.bank || '',
             },
-            notes: `Seller payout for "${currentItem.productTitle}" (Qty: ${currentItem.quantity}). Original price: ${originalPrice}, Selling price: ${currentItem.price}, Total payout: ${sellerPayout}`,
+            notes: `Seller payout for "${currentItem.productTitle}" (Qty: ${currentItem.quantity}). Original price: ${originalPrice}, Shipping: ${shippingFee}, Total payout: ${sellerPayout}`,
           },
         })
 
         payload.logger.info(
-          `Created seller transaction for delivered item: ${currentItem.productTitle} - Seller: ${currentItem.sellerName}, Payout: ${sellerPayout}, Fees: ${fees}, Commission: ${commissionFees}`,
+          `Created seller transaction for delivered item: ${currentItem.productTitle} - Seller: ${currentItem.sellerName}, Payout: ${sellerPayout} (includes shipping: ${shippingFee}), Fees: ${fees}, Commission: ${commissionFees}`,
         )
       }
     }

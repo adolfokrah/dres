@@ -81,8 +81,8 @@ export const Carts: CollectionConfig = {
             return total + (quantity * price)
           }, 0)
           
-          // Calculate total amount (subtotal + shipping + buyer protection)
-          data.totalAmount = data.items.reduce((total: number, item: { 
+          // Calculate grand total (subtotal + shipping + buyer protection - discount)
+          const totalBeforeDiscount = data.items.reduce((total: number, item: { 
             quantity?: number
             price?: number
             shippingFee?: number
@@ -94,6 +94,9 @@ export const Carts: CollectionConfig = {
             const buyerProtectionFee = item.buyerProtectionFee || 0
             return total + (quantity * price) + shippingFee + buyerProtectionFee
           }, 0)
+          
+          const discountAmount = data.discountAmount || 0
+          data.grandTotal = Math.max(0, totalBeforeDiscount - discountAmount)
         }
         
         // Auto-set currency from customer's country
@@ -274,10 +277,10 @@ export const Carts: CollectionConfig = {
       defaultValue: 0,
     },
     {
-      name: 'totalAmount',
+      name: 'grandTotal',
       type: 'number',
       admin: {
-        description: 'Total amount (subtotal + shipping + buyer protection)',
+        description: 'Grand total (subtotal + shipping + buyer protection - discount)',
         readOnly: true,
       },
       defaultValue: 0,
