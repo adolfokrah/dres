@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
 import { createSellerTransactionOnDelivery } from './hooks/createSellerTransactionOnDelivery'
+import { createRefundOnReturn } from './hooks/createRefundOnReturn'
 
 // Generate unique order ID: ORD-YYYYMMDD-XXXXXX-XXXX
 const generateOrderId = (): string => {
@@ -101,8 +102,8 @@ export const Orders: CollectionConfig = {
         return data
       },
     ],
-    // Create seller transaction when item is marked as delivered
-    afterChange: [createSellerTransactionOnDelivery],
+    // Create seller transaction when item is delivered, create refund when item is returned
+    afterChange: [createSellerTransactionOnDelivery, createRefundOnReturn],
   },
   fields: [
     {

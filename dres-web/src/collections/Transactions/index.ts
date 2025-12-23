@@ -123,6 +123,13 @@ export const Transactions: CollectionConfig = {
       },
     },
     {
+      name: 'itemId',
+      type: 'text',
+      admin: {
+        description: 'The order item ID this transaction is for (used to prevent duplicates)',
+      },
+    },
+    {
       type: 'row',
       fields: [
         {
@@ -211,6 +218,13 @@ export const Transactions: CollectionConfig = {
           ],
         },
       ],
+    },
+    {
+      name: 'notes',
+      type: 'textarea',
+      admin: {
+        description: 'Additional notes about this transaction',
+      },
     },
   ],
   timestamps: true,

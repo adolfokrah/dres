@@ -1,15 +1,8 @@
 import type { CollectionAfterChangeHook } from 'payload'
-
-// Generate unique transaction ID: TXN-YYYYMMDD-XXXXXX-XXXX
-const generateTransactionId = (): string => {
-  const date = new Date()
-  const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '')
-  const timestamp = Date.now().toString(36).toUpperCase()
-  const random = crypto.randomUUID().split('-')[0].toUpperCase()
-  return `TXN-${dateStr}-${timestamp}-${random}`
-}
+import { generateTransactionId } from '@/utilities/generateTransactionId'
 
 interface OrderItem {
+  id: string
   productTitle: string
   productImage: string
   variationOptions: Record<string, string> | null
@@ -50,15 +43,14 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
         previousItem?.shippingStatus !== 'delivered' &&
         currentItem.sellerId
       ) {
-        // Check if a transaction already exists for this seller + order + product
+        // Check if a transaction already exists for this order item
         const existingTransaction = await payload.find({
           collection: 'transactions',
           where: {
             and: [
               { order: { equals: doc.id } },
-              { user: { equals: currentItem.sellerId } },
-              // We'll use amount to identify the specific product transaction
-              { amount: { equals: currentItem.price * currentItem.quantity } },
+              { type: { equals: 'transfer' } },
+              { itemId: { equals: currentItem.id } },
             ],
           },
           limit: 1,
@@ -80,11 +72,13 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
         })
 
         // Get seller's withdrawal account details
-        const withdrawalAccount = seller?.withdrawalAccount as {
-          accountName?: string
-          accountNumber?: string
-          bank?: string
-        } | undefined
+        const withdrawalAccount = seller?.withdrawalAccount as
+          | {
+              accountName?: string
+              accountNumber?: string
+              bank?: string
+            }
+          | undefined
 
         // Calculate seller payout and platform fees
         // originalPrice is the seller's base price, price is what customer paid (with platform markup)
@@ -94,7 +88,7 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
         const fees = (currentItem.price - originalPrice) * currentItem.quantity
 
         // Calculate paystack fees (1.95% of selling price) + 1 cedi transfer fee
-        const paystackFeesAmount = ((1.95 / 100) * sellingPrice) + 1
+        const paystackFeesAmount = (1.95 / 100) * sellingPrice + 1
         // Commission fees = platform fees - paystack fees
         const commissionFees = fees - paystackFeesAmount
 
@@ -108,10 +102,14 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
             status: 'pending',
             user: currentItem.sellerId,
             order: doc.id,
+            itemId: currentItem.id,
             amount: sellerPayout,
             fees: fees > 0 ? fees : 0,
             paystackFees: Math.round(paystackFeesAmount * 100) / 100,
-            commissionFees: Math.round(commissionFees * 100) / 100 > 0 ? Math.round(commissionFees * 100) / 100 : 0,
+            commissionFees:
+              Math.round(commissionFees * 100) / 100 > 0
+                ? Math.round(commissionFees * 100) / 100
+                : 0,
             billingDetails: {
               accountName:
                 withdrawalAccount?.accountName ||
@@ -121,6 +119,7 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
               accountNumber: withdrawalAccount?.accountNumber || '',
               bank: withdrawalAccount?.bank || '',
             },
+            notes: `Seller payout for "${currentItem.productTitle}" (Qty: ${currentItem.quantity}). Original price: ${originalPrice}, Selling price: ${currentItem.price}, Total payout: ${sellerPayout}`,
           },
         })
 
@@ -128,87 +127,9 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
           `Created seller transaction for delivered item: ${currentItem.productTitle} - Seller: ${currentItem.sellerName}, Payout: ${sellerPayout}, Fees: ${fees}, Commission: ${commissionFees}`,
         )
       }
-
-      // Check if this item just changed to 'returned' - create refund transaction for customer
-      if (
-        currentItem.shippingStatus === 'returned' &&
-        previousItem?.shippingStatus !== 'returned'
-      ) {
-        // Refund total = selling price (price × qty) + shipping fee + buyer protection fee
-        const sellingPriceTotal = currentItem.price * currentItem.quantity
-        const shippingFee = currentItem.shippingFee || 0
-        const buyerProtectionFee = currentItem.buyerProtectionFee || 0
-        const refundTotal = sellingPriceTotal + shippingFee + buyerProtectionFee
-
-        // Check if a refund transaction already exists for this order + product
-        const existingRefund = await payload.find({
-          collection: 'transactions',
-          where: {
-            and: [
-              { order: { equals: doc.id } },
-              { type: { equals: 'refund' } },
-              { amount: { equals: refundTotal } },
-            ],
-          },
-          limit: 1,
-        })
-
-        // Skip if refund already exists
-        if (existingRefund.docs.length > 0) {
-          payload.logger.info(
-            `Refund transaction already exists for ${currentItem.productTitle} - skipping`,
-          )
-          continue
-        }
-
-        // Get the customer ID from the order
-        const customerId = typeof doc.customer === 'object' ? doc.customer.id : doc.customer
-
-        // Find the customer's deposit transaction to get billing details
-        const depositTransaction = await payload.find({
-          collection: 'transactions',
-          where: {
-            and: [
-              { order: { equals: doc.id } },
-              { type: { equals: 'deposit' } },
-              { user: { equals: customerId } },
-            ],
-          },
-          limit: 1,
-        })
-
-        // Get billing details from the deposit transaction
-        const depositBillingDetails = depositTransaction.docs[0]?.billingDetails as {
-          accountName?: string
-          accountNumber?: string
-          bank?: string
-        } | undefined
-
-        // Create refund transaction for customer
-        await payload.create({
-          collection: 'transactions',
-          data: {
-            transactionId: generateTransactionId(),
-            type: 'refund',
-            status: 'pending',
-            user: customerId,
-            order: doc.id,
-            amount: refundTotal,
-            billingDetails: {
-              accountName: depositBillingDetails?.accountName || '',
-              accountNumber: depositBillingDetails?.accountNumber || '',
-              bank: depositBillingDetails?.bank || '',
-            },
-          },
-        })
-
-        payload.logger.info(
-          `Created refund transaction for returned item: ${currentItem.productTitle} - Amount: ${refundTotal} (Product: ${sellingPriceTotal}, Shipping: ${shippingFee}, Protection: ${buyerProtectionFee})`,
-        )
-      }
     }
   } catch (error) {
-    payload.logger.error(`Error creating transaction: ${error}`)
+    payload.logger.error(`Error creating seller transaction: ${error}`)
   }
 
   return doc

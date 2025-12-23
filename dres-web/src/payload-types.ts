@@ -1482,6 +1482,10 @@ export interface Transaction {
    */
   order: string | Order;
   /**
+   * The order item ID this transaction is for (used to prevent duplicates)
+   */
+  itemId?: string | null;
+  /**
    * Transaction amount (seller payout)
    */
   amount: number;
@@ -1511,6 +1515,10 @@ export interface Transaction {
      */
     bank?: string | null;
   };
+  /**
+   * Additional notes about this transaction
+   */
+  notes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2350,6 +2358,7 @@ export interface TransactionsSelect<T extends boolean = true> {
   status?: T;
   user?: T;
   order?: T;
+  itemId?: T;
   amount?: T;
   fees?: T;
   paystackFees?: T;
@@ -2361,6 +2370,7 @@ export interface TransactionsSelect<T extends boolean = true> {
         accountNumber?: T;
         bank?: T;
       };
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
 }

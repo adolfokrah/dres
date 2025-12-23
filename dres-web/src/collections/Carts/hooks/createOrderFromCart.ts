@@ -15,6 +15,7 @@ interface StatusLog {
 }
 
 interface OrderItem {
+  id: string
   productTitle: string
   productImage: string
   variationOptions: Record<string, string> | null
@@ -124,6 +125,7 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
       }
 
       orderItems.push({
+        id: crypto.randomUUID(),
         productTitle: product.title || 'Unknown Product',
         productImage,
         variationOptions,
