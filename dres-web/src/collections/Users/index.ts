@@ -144,6 +144,21 @@ export const Users: CollectionConfig = {
           ],
         },
         {
+          label: 'Favorites',
+          fields: [
+            {
+              name: 'favorites',
+              type: 'join',
+              collection: 'favorites',
+              on: 'user',
+              admin: {
+                description: 'Products favorited by this user',
+                defaultColumns: ['product', 'createdAt'],
+              },
+            },
+          ],
+        },
+        {
           label: 'Following',
           fields: [
             {

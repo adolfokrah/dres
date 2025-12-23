@@ -1,0 +1,69 @@
+import type { CollectionConfig } from 'payload'
+
+import { authenticated } from '../../access/authenticated'
+
+export const Favorites: CollectionConfig = {
+  slug: 'favorites',
+  admin: {
+    group: 'Ecommerce',
+    defaultColumns: ['user', 'product', 'createdAt'],
+    description: 'User favorite products',
+  },
+  access: {
+    read: ({ req: { user } }) => {
+      if (!user) return false
+      if (user.role === 'admin') return true
+      return {
+        user: {
+          equals: user.id,
+        },
+      }
+    },
+    create: authenticated,
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      if (user.role === 'admin') return true
+      return {
+        user: {
+          equals: user.id,
+        },
+      }
+    },
+    delete: ({ req: { user } }) => {
+      if (!user) return false
+      if (user.role === 'admin') return true
+      return {
+        user: {
+          equals: user.id,
+        },
+      }
+    },
+  },
+  indexes: [
+    {
+      fields: ['user', 'product'],
+      unique: true,
+    },
+  ],
+  fields: [
+    {
+      name: 'user',
+      type: 'relationship',
+      relationTo: 'users',
+      required: true,
+      admin: {
+        description: 'The user who favorited the product',
+      },
+    },
+    {
+      name: 'product',
+      type: 'relationship',
+      relationTo: 'products',
+      required: true,
+      admin: {
+        description: 'The favorited product',
+      },
+    },
+  ],
+  timestamps: true,
+}

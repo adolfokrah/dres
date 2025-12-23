@@ -82,6 +82,7 @@ export interface Config {
     countries: Country;
     currencies: Currency;
     departments: Department;
+    favorites: Favorite;
     follows: Follow;
     materials: Material;
     orders: Order;
@@ -128,6 +129,7 @@ export interface Config {
       products: 'products';
       purchases: 'orders';
       sales: 'orders';
+      favorites: 'favorites';
       following: 'follows';
       followers: 'follows';
       transactions: 'transactions';
@@ -157,6 +159,7 @@ export interface Config {
     countries: CountriesSelect<false> | CountriesSelect<true>;
     currencies: CurrenciesSelect<false> | CurrenciesSelect<true>;
     departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
+    favorites: FavoritesSelect<false> | FavoritesSelect<true>;
     follows: FollowsSelect<false> | FollowsSelect<true>;
     materials: MaterialsSelect<false> | MaterialsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
@@ -532,6 +535,14 @@ export interface User {
    */
   sales?: {
     docs?: (string | Order)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Products favorited by this user
+   */
+  favorites?: {
+    docs?: (string | Favorite)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
@@ -1430,6 +1441,25 @@ export interface Review {
   createdAt: string;
 }
 /**
+ * User favorite products
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "favorites".
+ */
+export interface Favorite {
+  id: string;
+  /**
+   * The user who favorited the product
+   */
+  user: string | User;
+  /**
+   * The favorited product
+   */
+  product: string | Product;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * User follow relationships
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2132,6 +2162,10 @@ export interface PayloadLockedDocument {
         value: string | Department;
       } | null)
     | ({
+        relationTo: 'favorites';
+        value: string | Favorite;
+      } | null)
+    | ({
         relationTo: 'follows';
         value: string | Follow;
       } | null)
@@ -2662,6 +2696,16 @@ export interface DepartmentsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "favorites_select".
+ */
+export interface FavoritesSelect<T extends boolean = true> {
+  user?: T;
+  product?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "follows_select".
  */
 export interface FollowsSelect<T extends boolean = true> {
@@ -2848,6 +2892,7 @@ export interface UsersSelect<T extends boolean = true> {
   products?: T;
   purchases?: T;
   sales?: T;
+  favorites?: T;
   following?: T;
   followers?: T;
   transactions?: T;
