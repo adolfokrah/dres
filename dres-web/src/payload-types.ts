@@ -823,6 +823,11 @@ export interface Region {
 export interface Product {
   id: string;
   title: string;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
   description?: {
     root: {
       type: string;
@@ -3179,6 +3184,8 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface ProductsSelect<T extends boolean = true> {
   title?: T;
+  generateSlug?: T;
+  slug?: T;
   description?: T;
   isResell?: T;
   images?: T;
