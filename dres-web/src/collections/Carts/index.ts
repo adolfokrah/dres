@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
 import { createOrderFromCart } from './hooks/createOrderFromCart'
+import { validateCartStock } from './hooks/validateCartStock'
 
 export const Carts: CollectionConfig = {
   slug: 'carts',
@@ -41,6 +42,8 @@ export const Carts: CollectionConfig = {
     },
   },
   hooks: {
+    // Validate stock before allowing items in cart
+    beforeValidate: [validateCartStock],
     // Calculate item count, total amount, buyer protection fees, and set currency before save
     beforeChange: [
       async ({ data, req }) => {

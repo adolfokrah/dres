@@ -6,7 +6,14 @@ interface OrderItem {
   seller: string | { id: string }
   productTitle: string
   variationOptions: Record<string, string> | null
+  variationId: string | null
   quantity: number
+}
+
+interface Variation {
+  id?: string
+  options: Record<string, string>
+  stock?: number | null
 }
 
 export const reduceStockOnOrder: CollectionAfterChangeHook = async ({
@@ -37,47 +44,22 @@ export const reduceStockOnOrder: CollectionAfterChangeHook = async ({
       if (!product) continue
 
       // Check if product has variations
-      const variations = product.variations as Array<{
-        options: Record<string, string>
-        stock?: number
-      }> | undefined
-      
+      const variations = product.variations as Variation[] | undefined
       const hasVariations = variations && variations.length > 0
+      const variationId = item.variationId
 
-      // If product has variations, reduce variation stock; otherwise reduce product stock
-      if (hasVariations && item.variationOptions && Object.keys(item.variationOptions).length > 0) {
-        // Find the matching variation and reduce its stock
-        let variationIndex = -1
+      // If product has variations and item has a variation ID, reduce variation stock
+      if (hasVariations && variationId) {
+        // Find the variation by ID
+        const variationIndex = variations.findIndex((v) => v.id === variationId)
         
-        // Find the variation that matches the order item's options
-        for (let i = 0; i < variations.length; i++) {
-          const variation = variations[i]
-          if (!variation.options) continue
-          
-          // Check if all option values match
-          const itemOptions = item.variationOptions
-          let matches = true
-          
-          for (const [key, value] of Object.entries(itemOptions)) {
-            if (variation.options[key] !== value) {
-              matches = false
-              break
-            }
-          }
-          
-          if (matches) {
-            variationIndex = i
-            break
-          }
-        }
-
         if (variationIndex >= 0) {
           const currentStock = variations[variationIndex].stock
           
           // Skip if stock is null/undefined (unlimited stock)
           if (currentStock === null || currentStock === undefined) {
             payload.logger.info(
-              `Skipping stock reduction for product ${productId} variation ${variationIndex} - unlimited stock`,
+              `Skipping stock reduction for product ${productId} variation ${variationId} - unlimited stock`,
             )
             continue
           }
@@ -96,12 +78,12 @@ export const reduceStockOnOrder: CollectionAfterChangeHook = async ({
           })
           
           payload.logger.info(
-            `Reduced stock for product ${productId} variation ${variationIndex}: ${currentStock} -> ${newStock}`,
+            `Reduced stock for product ${productId} variation ${variationId}: ${currentStock} -> ${newStock}`,
           )
         }
       } else if (!hasVariations) {
         // No variations - reduce product-level stock
-        const currentStock = product.stock
+        const currentStock = product.stock as number | null | undefined
         
         // Skip if stock is null/undefined (unlimited stock)
         if (currentStock === null || currentStock === undefined) {

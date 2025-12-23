@@ -1305,6 +1305,10 @@ export interface Order {
       | boolean
       | null;
     /**
+     * ID of the selected variation (for stock management)
+     */
+    variationId?: string | null;
+    /**
      * Selling price (what customer paid)
      */
     price: number;
@@ -2750,6 +2754,7 @@ export interface OrdersSelect<T extends boolean = true> {
         sellerName?: T;
         productImage?: T;
         variationOptions?: T;
+        variationId?: T;
         price?: T;
         originalPrice?: T;
         quantity?: T;

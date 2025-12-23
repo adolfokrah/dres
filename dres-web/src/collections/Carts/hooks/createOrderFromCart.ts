@@ -22,6 +22,7 @@ interface OrderItem {
   productTitle: string
   productImage: string
   variationOptions: Record<string, string> | null
+  variationId: string | null
   sellerName: string
   price: number
   originalPrice: number
@@ -76,10 +77,15 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         continue
       }
 
-      // Get variation options if exists and resolve IDs to names
+      // Get variation options and ID if exists
       let variationOptions: Record<string, string> | null = null
+      let variationId: string | null = null
+      
       if (item.variation !== null && item.variation !== undefined && product.variations?.[item.variation]) {
-        const opts = product.variations[item.variation].options
+        const variation = product.variations[item.variation]
+        variationId = variation.id || null
+        
+        const opts = variation.options
         if (opts && typeof opts === 'object' && !Array.isArray(opts)) {
           // Resolve option IDs to their names
           const resolvedOptions: Record<string, string> = {}
@@ -167,6 +173,7 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         productTitle: product.title || 'Unknown Product',
         productImage,
         variationOptions,
+        variationId,
         sellerName,
         price: item.price || 0,
         originalPrice,

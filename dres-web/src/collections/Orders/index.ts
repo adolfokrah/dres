@@ -179,6 +179,13 @@ export const Orders: CollectionConfig = {
                   },
                 },
                 {
+                  name: 'variationId',
+                  type: 'text',
+                  admin: {
+                    description: 'ID of the selected variation (for stock management)',
+                  },
+                },
+                {
                   type: 'row',
                   fields: [
                     {
