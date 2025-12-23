@@ -1382,6 +1382,10 @@ export interface Order {
    * Discount amount applied
    */
   discountAmount?: number | null;
+  /**
+   * Total platform commission (buyer protection + commission fees - returned shipping - discount)
+   */
+  totalCommission?: number | null;
   shippingDetails?: {
     /**
      * Recipient full name
@@ -2981,6 +2985,7 @@ export interface OrdersSelect<T extends boolean = true> {
   discountCode?: T;
   discountCodeUsed?: T;
   discountAmount?: T;
+  totalCommission?: T;
   shippingDetails?:
     | T
     | {

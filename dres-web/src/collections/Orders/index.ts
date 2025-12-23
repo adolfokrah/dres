@@ -4,6 +4,7 @@ import { authenticated } from '../../access/authenticated'
 import { createSellerTransactionOnDelivery } from './hooks/createSellerTransactionOnDelivery'
 import { createRefundTransaction } from './hooks/createRefundTransaction'
 import { calculateOrderTotalsAndStatus } from './hooks/calculateOrderTotalsAndStatus'
+import { calculateTotalCommission } from './hooks/calculateTotalCommission'
 import { updateSalesStats } from './hooks/updateSalesStats'
 import { reduceStockOnOrder } from './hooks/reduceStockOnOrder'
 import { restoreStockOnReturn } from './hooks/restoreStockOnReturn'
@@ -46,7 +47,7 @@ export const Orders: CollectionConfig = {
     },
   },
   hooks: {
-    beforeChange: [calculateOrderTotalsAndStatus],
+    beforeChange: [calculateOrderTotalsAndStatus, calculateTotalCommission],
     // Reduce stock on order creation, restore stock on return, create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats
     afterChange: [reduceStockOnOrder, restoreStockOnReturn, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats],
   },
@@ -395,6 +396,15 @@ export const Orders: CollectionConfig = {
                   },
                 },
               ],
+            },
+            {
+              name: 'totalCommission',
+              type: 'number',
+              defaultValue: 0,
+              admin: {
+                description: 'Total platform commission (buyer protection + commission fees - returned shipping - discount)',
+                readOnly: true,
+              },
             },
           ],
         },
