@@ -82,6 +82,7 @@ export interface Config {
     countries: Country;
     currencies: Currency;
     departments: Department;
+    follows: Follow;
     materials: Material;
     orders: Order;
     regions: Region;
@@ -125,8 +126,10 @@ export interface Config {
     users: {
       shippingRates: 'shippingRates';
       products: 'products';
-      orders: 'orders';
+      purchases: 'orders';
       sales: 'orders';
+      following: 'follows';
+      followers: 'follows';
       transactions: 'transactions';
     };
     products: {
@@ -154,6 +157,7 @@ export interface Config {
     countries: CountriesSelect<false> | CountriesSelect<true>;
     currencies: CurrenciesSelect<false> | CurrenciesSelect<true>;
     departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
+    follows: FollowsSelect<false> | FollowsSelect<true>;
     materials: MaterialsSelect<false> | MaterialsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     regions: RegionsSelect<false> | RegionsSelect<true>;
@@ -518,7 +522,7 @@ export interface User {
   /**
    * Orders placed by this user
    */
-  orders?: {
+  purchases?: {
     docs?: (string | Order)[];
     hasNextPage?: boolean;
     totalDocs?: number;
@@ -528,6 +532,22 @@ export interface User {
    */
   sales?: {
     docs?: (string | Order)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Users this person is following
+   */
+  following?: {
+    docs?: (string | Follow)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Users following this person
+   */
+  followers?: {
+    docs?: (string | Follow)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
@@ -1402,6 +1422,25 @@ export interface Review {
   createdAt: string;
 }
 /**
+ * User follow relationships
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "follows".
+ */
+export interface Follow {
+  id: string;
+  /**
+   * The user who is following
+   */
+  follower: string | User;
+  /**
+   * The user being followed
+   */
+  following: string | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "CallToActionBlock".
  */
@@ -2085,6 +2124,10 @@ export interface PayloadLockedDocument {
         value: string | Department;
       } | null)
     | ({
+        relationTo: 'follows';
+        value: string | Follow;
+      } | null)
+    | ({
         relationTo: 'materials';
         value: string | Material;
       } | null)
@@ -2611,6 +2654,16 @@ export interface DepartmentsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "follows_select".
+ */
+export interface FollowsSelect<T extends boolean = true> {
+  follower?: T;
+  following?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "materials_select".
  */
 export interface MaterialsSelect<T extends boolean = true> {
@@ -2783,8 +2836,10 @@ export interface UsersSelect<T extends boolean = true> {
   language?: T;
   shippingRates?: T;
   products?: T;
-  orders?: T;
+  purchases?: T;
   sales?: T;
+  following?: T;
+  followers?: T;
   transactions?: T;
   withdrawalAccount?:
     | T

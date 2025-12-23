@@ -114,10 +114,10 @@ export const Users: CollectionConfig = {
           ],
         },
         {
-          label: 'Orders',
+          label: 'Purchases',
           fields: [
             {
-              name: 'orders',
+              name: 'purchases',
               type: 'join',
               collection: 'orders',
               on: 'customer',
@@ -138,7 +138,37 @@ export const Users: CollectionConfig = {
               on: 'sellers',
               admin: {
                 description: 'Orders containing items sold by this user',
-                defaultColumns: ['orderId', 'status', 'totalAmount', 'createdAt'],
+                defaultColumns: ['orderId', 'status', 'createdAt'],
+              },
+            },
+          ],
+        },
+        {
+          label: 'Following',
+          fields: [
+            {
+              name: 'following',
+              type: 'join',
+              collection: 'follows',
+              on: 'follower',
+              admin: {
+                description: 'Users this person is following',
+                defaultColumns: ['following', 'createdAt'],
+              },
+            },
+          ],
+        },
+        {
+          label: 'Followers',
+          fields: [
+            {
+              name: 'followers',
+              type: 'join',
+              collection: 'follows',
+              on: 'following',
+              admin: {
+                description: 'Users following this person',
+                defaultColumns: ['follower', 'createdAt'],
               },
             },
           ],
