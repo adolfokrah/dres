@@ -277,6 +277,33 @@ export const Orders: CollectionConfig = {
                     },
                   ],
                 },
+                {
+                  name: 'returnReason',
+                  type: 'select',
+                  options: [
+                    { label: 'Wrong item sent', value: 'wrong_item' },
+                    { label: 'Fake / Not Authentic', value: 'fake_item' },
+                    { label: 'Item arrived damaged', value: 'damaged' },
+                    { label: 'Item not as described', value: 'not_as_described' },
+                  ],
+                  admin: {
+                    description: 'Reason for return (required when returning)',
+                    condition: (data, siblingData) =>
+                      siblingData?.shippingStatus === 'return_in_progress' ||
+                      siblingData?.shippingStatus === 'returned',
+                  },
+                },
+                {
+                  name: 'returnImage',
+                  type: 'upload',
+                  relationTo: 'media',
+                  admin: {
+                    description: 'Photo evidence for return',
+                    condition: (data, siblingData) =>
+                      siblingData?.shippingStatus === 'return_in_progress' ||
+                      siblingData?.shippingStatus === 'returned',
+                  },
+                },
               ],
             },
             {

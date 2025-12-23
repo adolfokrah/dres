@@ -1317,6 +1317,14 @@ export interface Order {
           id?: string | null;
         }[]
       | null;
+    /**
+     * Reason for return (required when returning)
+     */
+    returnReason?: ('wrong_item' | 'fake_item' | 'damaged' | 'not_as_described') | null;
+    /**
+     * Photo evidence for return
+     */
+    returnImage?: (string | null) | Media;
     id?: string | null;
   }[];
   /**
@@ -2704,6 +2712,8 @@ export interface OrdersSelect<T extends boolean = true> {
               timestamp?: T;
               id?: T;
             };
+        returnReason?: T;
+        returnImage?: T;
         id?: T;
       };
   totalItems?: T;
