@@ -5,6 +5,7 @@ import { authenticated } from '../../access/authenticated'
 import { calculateSellingPrices } from './hooks/calculateSellingPrices'
 import { validateUniqueVariations } from './hooks/validateUniqueVariations'
 import { validateRequiredVariations } from './hooks/validateRequiredVariations'
+import { processProductMainImage } from './hooks/processProductMainImage'
 
 export const Products: CollectionConfig = {
   slug: 'products',
@@ -22,6 +23,7 @@ export const Products: CollectionConfig = {
   hooks: {
     beforeChange: [calculateSellingPrices],
     beforeValidate: [validateUniqueVariations, validateRequiredVariations],
+    afterChange: [processProductMainImage],
   },
   fields: [
     {

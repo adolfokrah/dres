@@ -371,6 +371,10 @@ export interface Media {
     };
     [k: string]: unknown;
   } | null;
+  /**
+   * Whether background has been removed from this image
+   */
+  backgroundRemoved?: boolean | null;
   folder?: (string | null) | FolderInterface;
   updatedAt: string;
   createdAt: string;
@@ -2637,6 +2641,7 @@ export interface PostCategoriesSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
+  backgroundRemoved?: T;
   folder?: T;
   updatedAt?: T;
   createdAt?: T;
