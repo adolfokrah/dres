@@ -129,6 +129,21 @@ export const Users: CollectionConfig = {
           ],
         },
         {
+          label: 'Sales',
+          fields: [
+            {
+              name: 'sales',
+              type: 'join',
+              collection: 'orders',
+              on: 'sellers',
+              admin: {
+                description: 'Orders containing items sold by this user',
+                defaultColumns: ['orderId', 'status', 'totalAmount', 'createdAt'],
+              },
+            },
+          ],
+        },
+        {
           label: 'Transactions',
           fields: [
             {

@@ -1,17 +1,13 @@
 import type { CollectionAfterChangeHook } from 'payload'
 
 interface OrderItem {
-  id: string
-  productId: string
+  id?: string
+  product: string | { id: string }
+  seller: string | { id: string }
   productTitle: string
   productImage: string
   variationOptions: Record<string, string> | null
-  sellerId: string
   sellerName: string
-  departmentId: string
-  collectionId: string
-  categoryId: string
-  brandId: string
   price: number
   originalPrice: number
   quantity: number
@@ -41,21 +37,68 @@ export const updateSalesStats: CollectionAfterChangeHook = async ({
       const currentItem = currentItems[i]
       const previousItem = previousItems[i]
 
+      // Get product ID
+      const productId =
+        typeof currentItem.product === 'object' ? currentItem.product.id : currentItem.product
+
       // Check if this item just changed to 'delivered'
       if (
         currentItem.shippingStatus === 'delivered' &&
         previousItem?.shippingStatus !== 'delivered' &&
-        currentItem.productId
+        productId
       ) {
         const saleAmount = currentItem.price * currentItem.quantity
         const itemsSold = currentItem.quantity
         const now = new Date().toISOString()
 
+        // Get seller ID
+        const sellerId =
+          typeof currentItem.seller === 'object' ? currentItem.seller.id : currentItem.seller
+
+        // Fetch product to get department, category, collection, brand
+        const product = await payload.findByID({
+          collection: 'products',
+          id: productId,
+          depth: 2,
+        })
+
+        // Get IDs from product
+        const departmentId = product?.department
+          ? typeof product.department === 'object'
+            ? product.department.id
+            : product.department
+          : null
+        const categoryId = product?.category
+          ? typeof product.category === 'object'
+            ? product.category.id
+            : product.category
+          : null
+        const brandId = product?.brand
+          ? typeof product.brand === 'object'
+            ? product.brand.id
+            : product.brand
+          : null
+
+        // Get collection from category
+        let collectionId = null
+        const category = product?.category
+        if (
+          category &&
+          typeof category === 'object' &&
+          category.collections &&
+          Array.isArray(category.collections) &&
+          category.collections.length > 0
+        ) {
+          const firstCollection = category.collections[0]
+          collectionId =
+            typeof firstCollection === 'object' ? firstCollection.id : firstCollection
+        }
+
         // Find existing stats record for this product
         const existingStats = await payload.find({
           collection: 'product-stats',
           where: {
-            product: { equals: currentItem.productId },
+            product: { equals: productId },
           },
           limit: 1,
         })
@@ -74,16 +117,16 @@ export const updateSalesStats: CollectionAfterChangeHook = async ({
             },
           })
         } else {
-          // Create new stats record with seller, department, collection, category, brand from order item
+          // Create new stats record
           await payload.create({
             collection: 'product-stats',
             data: {
-              product: currentItem.productId,
-              seller: currentItem.sellerId || null,
-              department: currentItem.departmentId || null,
-              collection: currentItem.collectionId || null,
-              category: currentItem.categoryId || null,
-              brand: currentItem.brandId || null,
+              product: productId,
+              seller: sellerId || null,
+              department: departmentId,
+              collection: collectionId,
+              category: categoryId,
+              brand: brandId,
               totalSales: saleAmount,
               totalOrders: 1,
               totalItemsSold: itemsSold,

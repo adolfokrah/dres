@@ -126,6 +126,7 @@ export interface Config {
       shippingRates: 'shippingRates';
       products: 'products';
       orders: 'orders';
+      sales: 'orders';
       transactions: 'transactions';
     };
     products: {
@@ -518,6 +519,14 @@ export interface User {
    * Orders placed by this user
    */
   orders?: {
+    docs?: (string | Order)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Orders containing items sold by this user
+   */
+  sales?: {
     docs?: (string | Order)[];
     hasNextPage?: boolean;
     totalDocs?: number;
@@ -1217,17 +1226,79 @@ export interface Order {
    */
   customer: string | User;
   /**
+   * All sellers involved in this order (auto-populated)
+   */
+  sellers?: (string | User)[] | null;
+  /**
    * Order items with individual shipping status
    */
-  items:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+  items: {
+    /**
+     * Reference to the product
+     */
+    product?: (string | null) | Product;
+    /**
+     * The seller of this item
+     */
+    seller?: (string | null) | User;
+    /**
+     * Product title at time of purchase
+     */
+    productTitle: string;
+    /**
+     * Seller name at time of purchase
+     */
+    sellerName?: string | null;
+    /**
+     * URL to product image at time of purchase
+     */
+    productImage?: string | null;
+    /**
+     * Selected variation options (e.g., {"Size": "M", "Color": "Blue"})
+     */
+    variationOptions?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    /**
+     * Selling price (what customer paid)
+     */
+    price: number;
+    /**
+     * Original price before commission
+     */
+    originalPrice?: number | null;
+    quantity: number;
+    shippingFee?: number | null;
+    /**
+     * Buyer protection enabled
+     */
+    buyerProtection?: boolean | null;
+    /**
+     * 80% of shipping fee if enabled
+     */
+    buyerProtectionFee?: number | null;
+    /**
+     * Shipping status for this item
+     */
+    shippingStatus: 'placed' | 'out_for_delivery' | 'delivered' | 'return_in_progress' | 'returned' | 'not_available';
+    /**
+     * History of status changes
+     */
+    statusLogs?:
+      | {
+          status: string;
+          timestamp: string;
+          id?: string | null;
+        }[]
+      | null;
+    id?: string | null;
+  }[];
   /**
    * Total number of items (auto-calculated)
    */
@@ -2556,7 +2627,32 @@ export interface OrdersSelect<T extends boolean = true> {
   orderId?: T;
   status?: T;
   customer?: T;
-  items?: T;
+  sellers?: T;
+  items?:
+    | T
+    | {
+        product?: T;
+        seller?: T;
+        productTitle?: T;
+        sellerName?: T;
+        productImage?: T;
+        variationOptions?: T;
+        price?: T;
+        originalPrice?: T;
+        quantity?: T;
+        shippingFee?: T;
+        buyerProtection?: T;
+        buyerProtectionFee?: T;
+        shippingStatus?: T;
+        statusLogs?:
+          | T
+          | {
+              status?: T;
+              timestamp?: T;
+              id?: T;
+            };
+        id?: T;
+      };
   totalItems?: T;
   totalAmount?: T;
   grandTotal?: T;
@@ -2688,6 +2784,7 @@ export interface UsersSelect<T extends boolean = true> {
   shippingRates?: T;
   products?: T;
   orders?: T;
+  sales?: T;
   transactions?: T;
   withdrawalAccount?:
     | T

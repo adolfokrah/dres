@@ -2,17 +2,13 @@ import type { CollectionAfterChangeHook } from 'payload'
 import { generateTransactionId } from '@/utilities/generateTransactionId'
 
 interface OrderItem {
-  id: string
-  productId: string
+  id?: string
+  product: string | { id: string }
+  seller: string | { id: string }
   productTitle: string
   productImage: string
   variationOptions: Record<string, string> | null
-  sellerId: string
   sellerName: string
-  departmentId: string
-  collectionId: string
-  categoryId: string
-  brandId: string
   price: number
   originalPrice: number
   quantity: number
@@ -42,6 +38,9 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
       const currentItem = currentItems[i]
       const previousItem = previousItems[i]
 
+      // Get item ID for tracking
+      const itemId = currentItem.id || `${doc.id}-${i}`
+
       const isNowRefundable =
         currentItem.shippingStatus === 'returned' || currentItem.shippingStatus === 'not_available'
       const wasRefundable =
@@ -64,7 +63,7 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
             and: [
               { order: { equals: doc.id } },
               { type: { equals: 'refund' } },
-              { itemId: { equals: currentItem.id } },
+              { itemId: { equals: itemId } },
             ],
           },
           limit: 1,
@@ -117,7 +116,7 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
             status: 'pending',
             user: customerId,
             order: doc.id,
-            itemId: currentItem.id,
+            itemId: itemId,
             amount: refundTotal,
             billingDetails: {
               accountName: depositBillingDetails?.accountName || '',

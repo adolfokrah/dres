@@ -2,17 +2,13 @@ import type { CollectionAfterChangeHook } from 'payload'
 import { generateTransactionId } from '@/utilities/generateTransactionId'
 
 interface OrderItem {
-  id: string
-  productId: string
+  id?: string
+  product: string | { id: string }
+  seller: string | { id: string }
   productTitle: string
   productImage: string
   variationOptions: Record<string, string> | null
-  sellerId: string
   sellerName: string
-  departmentId: string
-  collectionId: string
-  categoryId: string
-  brandId: string
   price: number
   originalPrice: number
   quantity: number
@@ -42,11 +38,18 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
       const currentItem = currentItems[i]
       const previousItem = previousItems[i]
 
+      // Get seller ID and product ID
+      const sellerId =
+        typeof currentItem.seller === 'object' ? currentItem.seller.id : currentItem.seller
+      const productId =
+        typeof currentItem.product === 'object' ? currentItem.product.id : currentItem.product
+      const itemId = currentItem.id || `${doc.id}-${i}`
+
       // Check if this item just changed to 'delivered'
       if (
         currentItem.shippingStatus === 'delivered' &&
         previousItem?.shippingStatus !== 'delivered' &&
-        currentItem.sellerId
+        sellerId
       ) {
         // Check if a transaction already exists for this order item
         const existingTransaction = await payload.find({
@@ -55,7 +58,7 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
             and: [
               { order: { equals: doc.id } },
               { type: { equals: 'transfer' } },
-              { itemId: { equals: currentItem.id } },
+              { itemId: { equals: itemId } },
             ],
           },
           limit: 1,
@@ -72,7 +75,7 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
         // Fetch seller details for payment info
         const seller = await payload.findByID({
           collection: 'users',
-          id: currentItem.sellerId,
+          id: sellerId,
           depth: 0,
         })
 
@@ -105,9 +108,9 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
             transactionId: generateTransactionId(),
             type: 'transfer',
             status: 'pending',
-            user: currentItem.sellerId,
+            user: sellerId,
             order: doc.id,
-            itemId: currentItem.id,
+            itemId: itemId,
             amount: sellerPayout,
             fees: fees > 0 ? fees : 0,
             paystackFees: Math.round(paystackFeesAmount * 100) / 100,

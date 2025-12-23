@@ -22,7 +22,6 @@ import { FolderField as FolderField_ab83ff7e88da8d3530831f296ec4756a } from '@pa
 import { VariationSelectField as VariationSelectField_26e040dfba10314d6a62ee6387f5a45a } from '@/collections/Carts/VariationSelect'
 import { CartItemRowLabel as CartItemRowLabel_f37846a404dfa3b1fda913cfd9c158c7 } from '@/collections/Carts/CartItemRowLabel'
 import { OrderStatusCell as OrderStatusCell_3cf9bc711e5a4728b25e52d197ce9223 } from '@/collections/Orders/OrderStatusCell'
-import { OrderItemsField as OrderItemsField_bb134951267818ee6a487a1eee83596e } from '@/collections/Orders/OrderItemsField'
 import { ProductAttributesField as ProductAttributesField_c087223d383d55964346b9bcab65a988 } from '@/components/ProductAttributes'
 import { VariationOptionsField as VariationOptionsField_2545b44d319ec4f357b31cee8af1a93d } from '@/components/VariationOptions'
 import { VariationRowLabel as VariationRowLabel_77c7ebe64adea5c9bb298abe6870dd46 } from '@/collections/Products/VariationRowLabel'
@@ -61,7 +60,6 @@ export const importMap = {
   "@/collections/Carts/VariationSelect#VariationSelectField": VariationSelectField_26e040dfba10314d6a62ee6387f5a45a,
   "@/collections/Carts/CartItemRowLabel#CartItemRowLabel": CartItemRowLabel_f37846a404dfa3b1fda913cfd9c158c7,
   "@/collections/Orders/OrderStatusCell#OrderStatusCell": OrderStatusCell_3cf9bc711e5a4728b25e52d197ce9223,
-  "@/collections/Orders/OrderItemsField#OrderItemsField": OrderItemsField_bb134951267818ee6a487a1eee83596e,
   "@/components/ProductAttributes#ProductAttributesField": ProductAttributesField_c087223d383d55964346b9bcab65a988,
   "@/components/VariationOptions#VariationOptionsField": VariationOptionsField_2545b44d319ec4f357b31cee8af1a93d,
   "@/collections/Products/VariationRowLabel#VariationRowLabel": VariationRowLabel_77c7ebe64adea5c9bb298abe6870dd46,

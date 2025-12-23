@@ -14,25 +14,22 @@ interface StatusLog {
   timestamp: string
 }
 
+type ShippingStatus = 'placed' | 'out_for_delivery' | 'delivered' | 'return_in_progress' | 'returned' | 'not_available'
+
 interface OrderItem {
-  id: string
-  productId: string
+  product: string
+  seller: string
   productTitle: string
   productImage: string
   variationOptions: Record<string, string> | null
-  sellerId: string
   sellerName: string
-  departmentId: string
-  collectionId: string
-  categoryId: string
-  brandId: string
   price: number
   originalPrice: number
   quantity: number
   shippingFee: number
   buyerProtection: boolean
   buyerProtectionFee: number
-  shippingStatus: string
+  shippingStatus: ShippingStatus
   statusLogs: StatusLog[]
 }
 
@@ -165,17 +162,12 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         : ''
 
       orderItems.push({
-        id: crypto.randomUUID(),
-        productId,
+        product: productId,
+        seller: sellerId,
         productTitle: product.title || 'Unknown Product',
         productImage,
         variationOptions,
-        sellerId,
         sellerName,
-        departmentId: departmentId || '',
-        collectionId: collectionId || '',
-        categoryId: categoryId || '',
-        brandId: brandId || '',
         price: item.price || 0,
         originalPrice,
         quantity: item.quantity || 1,
@@ -197,6 +189,9 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
       payload.logger.warn('No items available for order - all sellers may be on vacation')
       return doc
     }
+
+    // Get unique seller IDs for the sellers field
+    const uniqueSellerIds = [...new Set(orderItems.map((item) => item.seller).filter(Boolean))]
 
     // Get customer's country and currency for shipping
     const customerCountry = cartCustomer?.country
@@ -223,6 +218,7 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
       data: {
         orderId: generateOrderId(),
         customer: typeof doc.customer === 'object' ? doc.customer.id : doc.customer,
+        sellers: uniqueSellerIds,
         status: 'placed',
         items: orderItems,
         totalItems,

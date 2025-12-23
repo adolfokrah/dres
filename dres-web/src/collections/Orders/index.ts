@@ -94,6 +94,16 @@ export const Orders: CollectionConfig = {
       },
     },
     {
+      name: 'sellers',
+      type: 'relationship',
+      relationTo: 'users',
+      hasMany: true,
+      admin: {
+        description: 'All sellers involved in this order (auto-populated)',
+        readOnly: true,
+      },
+    },
+    {
       type: 'tabs',
       tabs: [
         {
@@ -101,32 +111,173 @@ export const Orders: CollectionConfig = {
           fields: [
             {
               name: 'items',
-              type: 'json',
+              type: 'array',
               required: true,
               admin: {
                 description: 'Order items with individual shipping status',
-                components: {
-                  Field: '@/collections/Orders/OrderItemsField#OrderItemsField',
-                },
               },
-              // JSON schema for items:
-              // [
-              //   {
-              //     productTitle: string,
-              //     productImage: string, // URL to product image
-              //     variationOptions: Record<string, string> | null, // e.g. { "Size": "W32 L34", "Color": "Blue" }
-              //     sellerId: string, // Keep ID for seller reference
-              //     sellerName: string,
-              //     price: number, // Selling price (what customer paid)
-              //     originalPrice: number, // Original price (seller's price before commission)
-              //     quantity: number,
-              //     shippingFee: number, // Shipping fee for this item
-              //     buyerProtection: boolean, // Whether buyer protection is enabled
-              //     buyerProtectionFee: number, // 80% of shipping fee if enabled
-              //     shippingStatus: 'placed' | 'out_for_delivery' | 'delivered' | 'return_in_progress' | 'returned' | 'not_available',
-              //     statusLogs: Array<{ status: string, timestamp: string }> // Journey log of status changes
-              //   }
-              // ]
+              fields: [
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'product',
+                      type: 'relationship',
+                      relationTo: 'products',
+                      admin: {
+                        description: 'Reference to the product',
+                        width: '50%',
+                      },
+                    },
+                    {
+                      name: 'seller',
+                      type: 'relationship',
+                      relationTo: 'users',
+                      admin: {
+                        description: 'The seller of this item',
+                        width: '50%',
+                      },
+                    },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'productTitle',
+                      type: 'text',
+                      required: true,
+                      admin: {
+                        description: 'Product title at time of purchase',
+                        width: '50%',
+                      },
+                    },
+                    {
+                      name: 'sellerName',
+                      type: 'text',
+                      admin: {
+                        description: 'Seller name at time of purchase',
+                        width: '50%',
+                      },
+                    },
+                  ],
+                },
+                {
+                  name: 'productImage',
+                  type: 'text',
+                  admin: {
+                    description: 'URL to product image at time of purchase',
+                  },
+                },
+                {
+                  name: 'variationOptions',
+                  type: 'json',
+                  admin: {
+                    description: 'Selected variation options (e.g., {"Size": "M", "Color": "Blue"})',
+                  },
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'price',
+                      type: 'number',
+                      required: true,
+                      admin: {
+                        description: 'Selling price (what customer paid)',
+                        width: '25%',
+                      },
+                    },
+                    {
+                      name: 'originalPrice',
+                      type: 'number',
+                      admin: {
+                        description: 'Original price before commission',
+                        width: '25%',
+                      },
+                    },
+                    {
+                      name: 'quantity',
+                      type: 'number',
+                      required: true,
+                      defaultValue: 1,
+                      admin: {
+                        width: '25%',
+                      },
+                    },
+                    {
+                      name: 'shippingFee',
+                      type: 'number',
+                      defaultValue: 0,
+                      admin: {
+                        width: '25%',
+                      },
+                    },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'buyerProtection',
+                      type: 'checkbox',
+                      defaultValue: false,
+                      admin: {
+                        description: 'Buyer protection enabled',
+                        width: '50%',
+                      },
+                    },
+                    {
+                      name: 'buyerProtectionFee',
+                      type: 'number',
+                      defaultValue: 0,
+                      admin: {
+                        description: '80% of shipping fee if enabled',
+                        width: '50%',
+                      },
+                    },
+                  ],
+                },
+                {
+                  name: 'shippingStatus',
+                  type: 'select',
+                  required: true,
+                  defaultValue: 'placed',
+                  options: [
+                    { label: 'Placed', value: 'placed' },
+                    { label: 'Out for Delivery', value: 'out_for_delivery' },
+                    { label: 'Delivered', value: 'delivered' },
+                    { label: 'Return in Progress', value: 'return_in_progress' },
+                    { label: 'Returned', value: 'returned' },
+                    { label: 'Not Available', value: 'not_available' },
+                  ],
+                  admin: {
+                    description: 'Shipping status for this item',
+                  },
+                },
+                {
+                  name: 'statusLogs',
+                  type: 'array',
+                  admin: {
+                    description: 'History of status changes',
+                  },
+                  fields: [
+                    {
+                      name: 'status',
+                      type: 'text',
+                      required: true,
+                    },
+                    {
+                      name: 'timestamp',
+                      type: 'date',
+                      required: true,
+                      admin: {
+                        date: { pickerAppearance: 'dayAndTime' },
+                      },
+                    },
+                  ],
+                },
+              ],
             },
             {
               type: 'row',
