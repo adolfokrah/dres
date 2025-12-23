@@ -51,10 +51,34 @@ export const Products: CollectionConfig = {
       },
     },
     {
+      name: 'department',
+      type: 'relationship',
+      relationTo: 'departments',
+      required: true,
+      admin: {
+        description: 'Select a department first to filter available categories',
+      },
+    },
+    {
       name: 'category',
       type: 'relationship',
       relationTo: 'categories',
       required: true,
+      filterOptions: ({ data }) => {
+        const departmentId = data?.department
+        if (departmentId) {
+          return {
+            departments: {
+              contains: typeof departmentId === 'object' ? departmentId.id : departmentId,
+            },
+          }
+        }
+        return true
+      },
+      admin: {
+        description: 'Select a department first to filter available categories',
+        condition: (data) => Boolean(data?.department),
+      },
     },
     {
       name: 'brand',
@@ -179,6 +203,36 @@ export const Products: CollectionConfig = {
           },
         },
       ],
+    },
+    {
+      name: 'boosts',
+      type: 'join',
+      collection: 'product-boosts',
+      on: 'product',
+      admin: {
+        description: 'Boost history for this product',
+        defaultColumns: ['tier', 'status', 'startDate', 'endDate', 'createdAt'],
+      },
+    },
+    {
+      name: 'stats',
+      type: 'join',
+      collection: 'product-stats',
+      on: 'product',
+      admin: {
+        description: 'Sales statistics for this product',
+        defaultColumns: ['totalSales', 'totalOrders', 'totalItemsSold', 'lastSaleAt'],
+      },
+    },
+    {
+      name: 'reviews',
+      type: 'join',
+      collection: 'reviews',
+      on: 'product',
+      admin: {
+        description: 'Customer reviews for this product',
+        defaultColumns: ['user', 'review', 'rating', 'createdAt'],
+      },
     },
   ],
 }

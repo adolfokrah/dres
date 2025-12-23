@@ -88,5 +88,14 @@ export const Categories: CollectionConfig = {
         description: 'Attributes used as variation types (e.g., Size, Color) - select from attributes above',
       },
     },
+    {
+      name: 'productStats',
+      type: 'join',
+      collection: 'product-stats',
+      on: 'category',
+      admin: {
+        description: 'Product stats for this category (for top products, sellers, brands)',
+      },
+    },
   ],
 }

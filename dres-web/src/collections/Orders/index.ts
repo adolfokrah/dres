@@ -4,6 +4,7 @@ import { authenticated } from '../../access/authenticated'
 import { createSellerTransactionOnDelivery } from './hooks/createSellerTransactionOnDelivery'
 import { createRefundTransaction } from './hooks/createRefundTransaction'
 import { calculateOrderTotalsAndStatus } from './hooks/calculateOrderTotalsAndStatus'
+import { updateSalesStats } from './hooks/updateSalesStats'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -44,8 +45,8 @@ export const Orders: CollectionConfig = {
   },
   hooks: {
     beforeChange: [calculateOrderTotalsAndStatus],
-    // Create seller transaction when item is delivered, create refund when item is returned or not available
-    afterChange: [createSellerTransactionOnDelivery, createRefundTransaction],
+    // Create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats
+    afterChange: [createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats],
   },
   fields: [
     {

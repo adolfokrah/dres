@@ -16,11 +16,16 @@ interface StatusLog {
 
 interface OrderItem {
   id: string
+  productId: string
   productTitle: string
   productImage: string
   variationOptions: Record<string, string> | null
   sellerId: string
   sellerName: string
+  departmentId: string
+  collectionId: string
+  categoryId: string
+  brandId: string
   price: number
   originalPrice: number
   quantity: number
@@ -57,11 +62,11 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
     for (const item of doc.items || []) {
       const productId = typeof item.product === 'object' ? item.product.id : item.product
 
-      // Fetch product with seller
+      // Fetch product with seller and category (for collections)
       const product = await payload.findByID({
         collection: 'products',
         id: productId,
-        depth: 1,
+        depth: 2,
       })
 
       if (!product) continue
@@ -124,13 +129,53 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         }
       }
 
+      // Get department ID from product
+      const departmentId = product.department
+        ? typeof product.department === 'object'
+          ? product.department.id
+          : product.department
+        : ''
+
+      // Get category ID from product
+      const category = product.category
+      const categoryId = category
+        ? typeof category === 'object'
+          ? category.id
+          : category
+        : ''
+
+      // Get collection ID from category (first collection if multiple)
+      let collectionId = ''
+      if (
+        category &&
+        typeof category === 'object' &&
+        category.collections &&
+        Array.isArray(category.collections) &&
+        category.collections.length > 0
+      ) {
+        const firstCollection = category.collections[0]
+        collectionId = typeof firstCollection === 'object' ? firstCollection.id : firstCollection
+      }
+
+      // Get brand ID from product
+      const brandId = product.brand
+        ? typeof product.brand === 'object'
+          ? product.brand.id
+          : product.brand
+        : ''
+
       orderItems.push({
         id: crypto.randomUUID(),
+        productId,
         productTitle: product.title || 'Unknown Product',
         productImage,
         variationOptions,
         sellerId,
         sellerName,
+        departmentId: departmentId || '',
+        collectionId: collectionId || '',
+        categoryId: categoryId || '',
+        brandId: brandId || '',
         price: item.price || 0,
         originalPrice,
         quantity: item.quantity || 1,

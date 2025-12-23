@@ -73,6 +73,7 @@ export interface Config {
     media: Media;
     attributes: Attribute;
     attributeOptions: AttributeOption;
+    'product-boosts': ProductBoost;
     brands: Brand;
     carts: Cart;
     categories: Category;
@@ -84,6 +85,8 @@ export interface Config {
     materials: Material;
     orders: Order;
     regions: Region;
+    'product-stats': ProductStat;
+    reviews: Review;
     shippingRates: ShippingRate;
     transactions: Transaction;
     users: User;
@@ -104,6 +107,9 @@ export interface Config {
       categories: 'categories';
       options: 'attributeOptions';
     };
+    categories: {
+      productStats: 'product-stats';
+    };
     collections: {
       categories: 'categories';
     };
@@ -119,6 +125,11 @@ export interface Config {
     users: {
       shippingRates: 'shippingRates';
     };
+    products: {
+      boosts: 'product-boosts';
+      stats: 'product-stats';
+      reviews: 'reviews';
+    };
     'payload-folders': {
       documentsAndFolders: 'payload-folders' | 'media';
     };
@@ -130,6 +141,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     attributes: AttributesSelect<false> | AttributesSelect<true>;
     attributeOptions: AttributeOptionsSelect<false> | AttributeOptionsSelect<true>;
+    'product-boosts': ProductBoostsSelect<false> | ProductBoostsSelect<true>;
     brands: BrandsSelect<false> | BrandsSelect<true>;
     carts: CartsSelect<false> | CartsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
@@ -141,6 +153,8 @@ export interface Config {
     materials: MaterialsSelect<false> | MaterialsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     regions: RegionsSelect<false> | RegionsSelect<true>;
+    'product-stats': ProductStatsSelect<false> | ProductStatsSelect<true>;
+    reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     shippingRates: ShippingRatesSelect<false> | ShippingRatesSelect<true>;
     transactions: TransactionsSelect<false> | TransactionsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -851,6 +865,14 @@ export interface Category {
    * Attributes used as variation types (e.g., Size, Color) - select from attributes above
    */
   variantAttributes?: (string | Attribute)[] | null;
+  /**
+   * Product stats for this category (for top products, sellers, brands)
+   */
+  productStats?: {
+    docs?: (string | ProductStat)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -960,6 +982,421 @@ export interface AttributeOption {
    * Categories that can use this option (leave empty for all categories with this attribute)
    */
   categories?: (string | Category)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Tracks product performance - use for top products, sellers, brands per category
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-stats".
+ */
+export interface ProductStat {
+  id: string;
+  product: string | Product;
+  /**
+   * Auto-populated from product
+   */
+  seller?: (string | null) | User;
+  /**
+   * Auto-populated from product category
+   */
+  department?: (string | null) | Department;
+  /**
+   * Auto-populated from product category
+   */
+  collection?: (string | null) | Collection;
+  /**
+   * Auto-populated from product
+   */
+  category?: (string | null) | Category;
+  /**
+   * Auto-populated from product
+   */
+  brand?: (string | null) | Brand;
+  /**
+   * Total revenue from sales of this product
+   */
+  totalSales: number;
+  /**
+   * Number of completed orders for this product
+   */
+  totalOrders: number;
+  /**
+   * Total quantity of this product sold
+   */
+  totalItemsSold: number;
+  /**
+   * When the last sale was made
+   */
+  lastSaleAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: string;
+  title: string;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Whether this product is a resell from a returned item (e.g., from a thrift store)
+   */
+  isResell?: boolean | null;
+  /**
+   * Product images (first image is the main image)
+   */
+  images: (string | Media)[];
+  /**
+   * Select a department first to filter available categories
+   */
+  department: string | Department;
+  /**
+   * Select a department first to filter available categories
+   */
+  category?: (string | null) | Category;
+  /**
+   * Select a category first to filter available brands
+   */
+  brand?: (string | null) | Brand;
+  /**
+   * The user selling this product
+   */
+  seller: string | User;
+  /**
+   * Base price for this product (used when variation has no price)
+   */
+  price: number;
+  /**
+   * Final selling price (auto-calculated: price + 10% platform fee)
+   */
+  sellingPrice?: number | null;
+  /**
+   * Select attributes that apply to this product (all optional)
+   */
+  attributes?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Product variations with different options, prices, and images
+   */
+  variations?:
+    | {
+        /**
+         * Select options for each variant type
+         */
+        options?:
+          | {
+              [k: string]: unknown;
+            }
+          | unknown[]
+          | string
+          | number
+          | boolean
+          | null;
+        /**
+         * Your price for this variation
+         */
+        price: number;
+        /**
+         * Final selling price (auto-calculated: price + 10% platform fee)
+         */
+        sellingPrice?: number | null;
+        /**
+         * Select images from the product gallery for this variation
+         */
+        images?: (string | Media)[] | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Boost history for this product
+   */
+  boosts?: {
+    docs?: (string | ProductBoost)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Sales statistics for this product
+   */
+  stats?: {
+    docs?: (string | ProductStat)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Customer reviews for this product
+   */
+  reviews?: {
+    docs?: (string | Review)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Product boost/featuring for increased visibility
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-boosts".
+ */
+export interface ProductBoost {
+  id: string;
+  /**
+   * The product to boost
+   */
+  product: string | Product;
+  /**
+   * Boost tier determines visibility priority and duration
+   */
+  tier: 'basic' | 'standard' | 'premium';
+  /**
+   * Auto-calculated based on dates
+   */
+  status: 'scheduled' | 'active' | 'expired' | 'cancelled';
+  /**
+   * When the boost starts
+   */
+  startDate: string;
+  /**
+   * When the boost ends
+   */
+  endDate: string;
+  /**
+   * The payment transaction for this boost (optional)
+   */
+  transaction?: (string | null) | Transaction;
+  /**
+   * Additional notes about this boost
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Payment transactions
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "transactions".
+ */
+export interface Transaction {
+  id: string;
+  /**
+   * Unique transaction identifier (auto-generated)
+   */
+  transactionId: string;
+  /**
+   * Type of transaction
+   */
+  type: 'transfer' | 'deposit' | 'refund';
+  /**
+   * Transaction status
+   */
+  status: 'pending' | 'completed' | 'cancelled';
+  /**
+   * The user for this transaction
+   */
+  user: string | User;
+  /**
+   * The order this transaction belongs to
+   */
+  order: string | Order;
+  /**
+   * The order item ID this transaction is for (used to prevent duplicates)
+   */
+  itemId?: string | null;
+  /**
+   * Transaction amount (seller payout)
+   */
+  amount: number;
+  fees?: number | null;
+  /**
+   * Calculated: 1.95% × selling price
+   */
+  paystackFees?: number | null;
+  /**
+   * Calculated: fees - paystackFees
+   */
+  commissionFees?: number | null;
+  /**
+   * Payment account information
+   */
+  billingDetails?: {
+    /**
+     * Account holder name
+     */
+    accountName?: string | null;
+    /**
+     * Account number
+     */
+    accountNumber?: string | null;
+    /**
+     * Bank or payment provider (e.g., MTN Mobile Money)
+     */
+    bank?: string | null;
+  };
+  /**
+   * Additional notes about this transaction
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Customer orders
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: string;
+  /**
+   * Unique order identifier (auto-generated)
+   */
+  orderId: string;
+  /**
+   * Auto-calculated: Placed (all placed), In Progress (items in transit), Completed (all delivered/returned), Cancelled (all returned)
+   */
+  status: 'placed' | 'in_progress' | 'completed' | 'cancelled';
+  /**
+   * The customer who placed this order
+   */
+  customer: string | User;
+  /**
+   * Order items with individual shipping status
+   */
+  items:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Total number of items (auto-calculated)
+   */
+  totalItems: number;
+  /**
+   * Total order amount (products only)
+   */
+  totalAmount: number;
+  /**
+   * Grand total (products + shipping + buyer protection)
+   */
+  grandTotal: number;
+  /**
+   * Currency (from customer country)
+   */
+  currency?: (string | null) | Currency;
+  shippingDetails?: {
+    /**
+     * Recipient full name
+     */
+    fullName?: string | null;
+    /**
+     * Contact phone number
+     */
+    phone?: string | null;
+    /**
+     * Street address
+     */
+    address?: string | null;
+    city?: string | null;
+    /**
+     * State/Region/Province
+     */
+    region?: string | null;
+    /**
+     * ZIP/Postal code
+     */
+    postalCode?: string | null;
+    country?: (string | null) | Country;
+    /**
+     * Special delivery instructions
+     */
+    deliveryNotes?: string | null;
+  };
+  billingDetails?: {
+    /**
+     * Account holder name
+     */
+    accountName?: string | null;
+    /**
+     * Account number (e.g., 0243530213)
+     */
+    accountNumber?: string | null;
+    /**
+     * Bank or payment provider (e.g., MTN Mobile Money)
+     */
+    bank?: string | null;
+  };
+  /**
+   * When the order was placed
+   */
+  placedAt?: string | null;
+  /**
+   * Internal notes about the order
+   */
+  notes?: string | null;
+  /**
+   * Transactions associated with this order
+   */
+  transactions?: {
+    docs?: (string | Transaction)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Product reviews from customers
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews".
+ */
+export interface Review {
+  id: string;
+  user: string | User;
+  product: string | Product;
+  /**
+   * Rating from 1 to 5 stars
+   */
+  rating: number;
+  /**
+   * Review text
+   */
+  review?: string | null;
+  /**
+   * Review images
+   */
+  images?: (string | Media)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1242,100 +1679,6 @@ export interface Cart {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "products".
- */
-export interface Product {
-  id: string;
-  title: string;
-  description?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * Whether this product is a resell from a returned item (e.g., from a thrift store)
-   */
-  isResell?: boolean | null;
-  /**
-   * Product images (first image is the main image)
-   */
-  images: (string | Media)[];
-  category: string | Category;
-  /**
-   * Select a category first to filter available brands
-   */
-  brand?: (string | null) | Brand;
-  /**
-   * The user selling this product
-   */
-  seller: string | User;
-  /**
-   * Base price for this product (used when variation has no price)
-   */
-  price: number;
-  /**
-   * Final selling price (auto-calculated: price + 10% platform fee)
-   */
-  sellingPrice?: number | null;
-  /**
-   * Select attributes that apply to this product (all optional)
-   */
-  attributes?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  /**
-   * Product variations with different options, prices, and images
-   */
-  variations?:
-    | {
-        /**
-         * Select options for each variant type
-         */
-        options?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        /**
-         * Your price for this variation
-         */
-        price: number;
-        /**
-         * Final selling price (auto-calculated: price + 10% platform fee)
-         */
-        sellingPrice?: number | null;
-        /**
-         * Select images from the product gallery for this variation
-         */
-        images?: (string | Media)[] | null;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "materials".
  */
 export interface Material {
@@ -1345,184 +1688,6 @@ export interface Material {
    * Categories that use this material
    */
   categories?: (string | Category)[] | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Customer orders
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "orders".
- */
-export interface Order {
-  id: string;
-  /**
-   * Unique order identifier (auto-generated)
-   */
-  orderId: string;
-  /**
-   * Auto-calculated: Placed (all placed), In Progress (items in transit), Completed (all delivered/returned), Cancelled (all returned)
-   */
-  status: 'placed' | 'in_progress' | 'completed' | 'cancelled';
-  /**
-   * The customer who placed this order
-   */
-  customer: string | User;
-  /**
-   * Order items with individual shipping status
-   */
-  items:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  /**
-   * Total number of items (auto-calculated)
-   */
-  totalItems: number;
-  /**
-   * Total order amount (products only)
-   */
-  totalAmount: number;
-  /**
-   * Grand total (products + shipping + buyer protection)
-   */
-  grandTotal: number;
-  /**
-   * Currency (from customer country)
-   */
-  currency?: (string | null) | Currency;
-  shippingDetails?: {
-    /**
-     * Recipient full name
-     */
-    fullName?: string | null;
-    /**
-     * Contact phone number
-     */
-    phone?: string | null;
-    /**
-     * Street address
-     */
-    address?: string | null;
-    city?: string | null;
-    /**
-     * State/Region/Province
-     */
-    region?: string | null;
-    /**
-     * ZIP/Postal code
-     */
-    postalCode?: string | null;
-    country?: (string | null) | Country;
-    /**
-     * Special delivery instructions
-     */
-    deliveryNotes?: string | null;
-  };
-  billingDetails?: {
-    /**
-     * Account holder name
-     */
-    accountName?: string | null;
-    /**
-     * Account number (e.g., 0243530213)
-     */
-    accountNumber?: string | null;
-    /**
-     * Bank or payment provider (e.g., MTN Mobile Money)
-     */
-    bank?: string | null;
-  };
-  /**
-   * When the order was placed
-   */
-  placedAt?: string | null;
-  /**
-   * Internal notes about the order
-   */
-  notes?: string | null;
-  /**
-   * Transactions associated with this order
-   */
-  transactions?: {
-    docs?: (string | Transaction)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Payment transactions
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "transactions".
- */
-export interface Transaction {
-  id: string;
-  /**
-   * Unique transaction identifier (auto-generated)
-   */
-  transactionId: string;
-  /**
-   * Type of transaction
-   */
-  type: 'transfer' | 'deposit' | 'refund';
-  /**
-   * Transaction status
-   */
-  status: 'pending' | 'completed' | 'cancelled';
-  /**
-   * The user for this transaction
-   */
-  user: string | User;
-  /**
-   * The order this transaction belongs to
-   */
-  order: string | Order;
-  /**
-   * The order item ID this transaction is for (used to prevent duplicates)
-   */
-  itemId?: string | null;
-  /**
-   * Transaction amount (seller payout)
-   */
-  amount: number;
-  fees?: number | null;
-  /**
-   * Calculated: 1.95% × selling price
-   */
-  paystackFees?: number | null;
-  /**
-   * Calculated: fees - paystackFees
-   */
-  commissionFees?: number | null;
-  /**
-   * Payment account information
-   */
-  billingDetails?: {
-    /**
-     * Account holder name
-     */
-    accountName?: string | null;
-    /**
-     * Account number
-     */
-    accountNumber?: string | null;
-    /**
-     * Bank or payment provider (e.g., MTN Mobile Money)
-     */
-    bank?: string | null;
-  };
-  /**
-   * Additional notes about this transaction
-   */
-  notes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1741,6 +1906,10 @@ export interface PayloadLockedDocument {
         value: string | AttributeOption;
       } | null)
     | ({
+        relationTo: 'product-boosts';
+        value: string | ProductBoost;
+      } | null)
+    | ({
         relationTo: 'brands';
         value: string | Brand;
       } | null)
@@ -1783,6 +1952,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'regions';
         value: string | Region;
+      } | null)
+    | ({
+        relationTo: 'product-stats';
+        value: string | ProductStat;
+      } | null)
+    | ({
+        relationTo: 'reviews';
+        value: string | Review;
       } | null)
     | ({
         relationTo: 'shippingRates';
@@ -2167,6 +2344,21 @@ export interface AttributeOptionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-boosts_select".
+ */
+export interface ProductBoostsSelect<T extends boolean = true> {
+  product?: T;
+  tier?: T;
+  status?: T;
+  startDate?: T;
+  endDate?: T;
+  transaction?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "brands_select".
  */
 export interface BrandsSelect<T extends boolean = true> {
@@ -2215,6 +2407,7 @@ export interface CategoriesSelect<T extends boolean = true> {
   brands?: T;
   attributes?: T;
   variantAttributes?: T;
+  productStats?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2334,6 +2527,37 @@ export interface RegionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-stats_select".
+ */
+export interface ProductStatsSelect<T extends boolean = true> {
+  product?: T;
+  seller?: T;
+  department?: T;
+  collection?: T;
+  category?: T;
+  brand?: T;
+  totalSales?: T;
+  totalOrders?: T;
+  totalItemsSold?: T;
+  lastSaleAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews_select".
+ */
+export interface ReviewsSelect<T extends boolean = true> {
+  user?: T;
+  product?: T;
+  rating?: T;
+  review?: T;
+  images?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "shippingRates_select".
  */
 export interface ShippingRatesSelect<T extends boolean = true> {
@@ -2426,6 +2650,7 @@ export interface ProductsSelect<T extends boolean = true> {
   description?: T;
   isResell?: T;
   images?: T;
+  department?: T;
   category?: T;
   brand?: T;
   seller?: T;
@@ -2441,6 +2666,9 @@ export interface ProductsSelect<T extends boolean = true> {
         images?: T;
         id?: T;
       };
+  boosts?: T;
+  stats?: T;
+  reviews?: T;
   updatedAt?: T;
   createdAt?: T;
 }

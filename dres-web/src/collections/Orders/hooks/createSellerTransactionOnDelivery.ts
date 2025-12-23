@@ -3,11 +3,16 @@ import { generateTransactionId } from '@/utilities/generateTransactionId'
 
 interface OrderItem {
   id: string
+  productId: string
   productTitle: string
   productImage: string
   variationOptions: Record<string, string> | null
   sellerId: string
   sellerName: string
+  departmentId: string
+  collectionId: string
+  categoryId: string
+  brandId: string
   price: number
   originalPrice: number
   quantity: number
