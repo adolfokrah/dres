@@ -346,7 +346,7 @@ export const Orders: CollectionConfig = {
                   required: true,
                   defaultValue: 0,
                   admin: {
-                    description: 'Grand total (products + shipping + buyer protection)',
+                    description: 'Grand total (products + shipping + buyer protection - discount)',
                     readOnly: true,
                     width: '25%',
                   },
@@ -359,6 +359,39 @@ export const Orders: CollectionConfig = {
                     description: 'Currency (from customer country)',
                     readOnly: true,
                     width: '25%',
+                  },
+                },
+              ],
+            },
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'discountCode',
+                  type: 'relationship',
+                  relationTo: 'discount-codes',
+                  admin: {
+                    description: 'Applied discount code (reference)',
+                    width: '33%',
+                  },
+                },
+                {
+                  name: 'discountCodeUsed',
+                  type: 'text',
+                  admin: {
+                    description: 'Discount code that was applied (e.g., SAVE20)',
+                    readOnly: true,
+                    width: '33%',
+                  },
+                },
+                {
+                  name: 'discountAmount',
+                  type: 'number',
+                  defaultValue: 0,
+                  admin: {
+                    description: 'Discount amount applied',
+                    readOnly: true,
+                    width: '33%',
                   },
                 },
               ],

@@ -212,15 +212,38 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         : customerCountry.currency
     }
 
+    // Get discount info from cart
+    const discountCodeId = doc.discountCode
+      ? typeof doc.discountCode === 'object'
+        ? doc.discountCode.id
+        : doc.discountCode
+      : null
+    const discountAmount = doc.discountAmount || 0
+    
+    // Get discount code string if applied
+    let discountCodeUsed: string | undefined
+    if (discountCodeId) {
+      try {
+        const discountCodeDoc = await payload.findByID({
+          collection: 'discount-codes',
+          id: discountCodeId,
+          depth: 0,
+        })
+        discountCodeUsed = discountCodeDoc?.code || undefined
+      } catch {
+        // Ignore error, code string is optional
+      }
+    }
+
     // Calculate totals
     const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0)
     const totalAmount = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
     const totalShipping = orderItems.reduce((sum, item) => sum + (item.shippingFee || 0), 0)
     const totalBuyerProtection = orderItems.reduce((sum, item) => sum + (item.buyerProtectionFee || 0), 0)
-    const grandTotal = totalAmount + totalShipping + totalBuyerProtection
+    const grandTotal = totalAmount + totalShipping + totalBuyerProtection - discountAmount
 
     // Create the order
-    await payload.create({
+    const order = await payload.create({
       collection: 'orders',
       data: {
         orderId: generateOrderId(),
@@ -231,6 +254,9 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         totalItems,
         totalAmount,
         grandTotal,
+        discountCode: discountCodeId || undefined,
+        discountCodeUsed,
+        discountAmount,
         currency: currencyId || undefined,
         shippingDetails: {
           fullName: `${cartCustomer?.firstName || ''} ${cartCustomer?.lastName || ''}`.trim() || '',
@@ -251,7 +277,45 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
       },
     })
 
-    payload.logger.info(`Order created from cart ${doc.id} with ${orderItems.length} items - Grand Total: ${grandTotal}`)
+    // Update discount code usage if one was applied
+    if (discountCodeId) {
+      try {
+        const discountCode = await payload.findByID({
+          collection: 'discount-codes',
+          id: discountCodeId,
+          depth: 0,
+        })
+
+        if (discountCode) {
+          const customerId = typeof doc.customer === 'object' ? doc.customer.id : doc.customer
+          const usedBy = (discountCode.usedBy || []) as Array<{
+            user: string
+            usedAt: string
+            order?: string
+          }>
+
+          await payload.update({
+            collection: 'discount-codes',
+            id: discountCodeId,
+            data: {
+              usageCount: (discountCode.usageCount || 0) + 1,
+              usedBy: [
+                ...usedBy,
+                {
+                  user: customerId,
+                  usedAt: new Date().toISOString(),
+                  order: order.id,
+                },
+              ],
+            },
+          })
+        }
+      } catch (error) {
+        payload.logger.error(`Error updating discount code usage: ${error}`)
+      }
+    }
+
+    payload.logger.info(`Order created from cart ${doc.id} with ${orderItems.length} items - Grand Total: ${grandTotal} (Discount: ${discountAmount})`)
   } catch (error) {
     payload.logger.error(`Error creating order from cart: ${error}`)
   }

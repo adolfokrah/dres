@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { authenticated } from '../../access/authenticated'
 import { createOrderFromCart } from './hooks/createOrderFromCart'
 import { validateCartStock } from './hooks/validateCartStock'
+import { applyDiscountCode } from './hooks/applyDiscountCode'
 
 export const Carts: CollectionConfig = {
   slug: 'carts',
@@ -44,8 +45,9 @@ export const Carts: CollectionConfig = {
   hooks: {
     // Validate stock before allowing items in cart
     beforeValidate: [validateCartStock],
-    // Calculate item count, total amount, buyer protection fees, and set currency before save
+    // Calculate item count, total amount, buyer protection fees, apply discounts, and set currency before save
     beforeChange: [
+      applyDiscountCode,
       async ({ data, req }) => {
         if (data?.items && Array.isArray(data.items)) {
           // Calculate buyer protection fee for each item (80% of shipping fee if enabled)
@@ -69,7 +71,17 @@ export const Carts: CollectionConfig = {
             return total + (item.quantity || 0)
           }, 0)
           
-          // Calculate total amount (price * qty + shipping + buyer protection)
+          // Calculate subtotal (products only - used for discount calculation)
+          data.subtotal = data.items.reduce((total: number, item: { 
+            quantity?: number
+            price?: number
+          }) => {
+            const quantity = item.quantity || 0
+            const price = item.price || 0
+            return total + (quantity * price)
+          }, 0)
+          
+          // Calculate total amount (subtotal + shipping + buyer protection)
           data.totalAmount = data.items.reduce((total: number, item: { 
             quantity?: number
             price?: number
@@ -253,10 +265,36 @@ export const Carts: CollectionConfig = {
       defaultValue: 0,
     },
     {
+      name: 'subtotal',
+      type: 'number',
+      admin: {
+        description: 'Subtotal (products only, before shipping/fees - used for discount calculation)',
+        readOnly: true,
+      },
+      defaultValue: 0,
+    },
+    {
       name: 'totalAmount',
       type: 'number',
       admin: {
-        description: 'Total amount of cart (auto-calculated)',
+        description: 'Total amount (subtotal + shipping + buyer protection)',
+        readOnly: true,
+      },
+      defaultValue: 0,
+    },
+    {
+      name: 'discountCode',
+      type: 'relationship',
+      relationTo: 'discount-codes',
+      admin: {
+        description: 'Applied discount code (discount applies to subtotal)',
+      },
+    },
+    {
+      name: 'discountAmount',
+      type: 'number',
+      admin: {
+        description: 'Discount amount applied (percentage of subtotal)',
         readOnly: true,
       },
       defaultValue: 0,

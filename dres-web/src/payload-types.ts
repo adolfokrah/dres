@@ -82,9 +82,11 @@ export interface Config {
     countries: Country;
     currencies: Currency;
     departments: Department;
+    'discount-codes': DiscountCode;
     favorites: Favorite;
     follows: Follow;
     materials: Material;
+    notifications: Notification;
     orders: Order;
     regions: Region;
     'product-stats': ProductStat;
@@ -159,9 +161,11 @@ export interface Config {
     countries: CountriesSelect<false> | CountriesSelect<true>;
     currencies: CurrenciesSelect<false> | CurrenciesSelect<true>;
     departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
+    'discount-codes': DiscountCodesSelect<false> | DiscountCodesSelect<true>;
     favorites: FavoritesSelect<false> | FavoritesSelect<true>;
     follows: FollowsSelect<false> | FollowsSelect<true>;
     materials: MaterialsSelect<false> | MaterialsSelect<true>;
+    notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     regions: RegionsSelect<false> | RegionsSelect<true>;
     'product-stats': ProductStatsSelect<false> | ProductStatsSelect<true>;
@@ -1359,13 +1363,25 @@ export interface Order {
    */
   totalAmount: number;
   /**
-   * Grand total (products + shipping + buyer protection)
+   * Grand total (products + shipping + buyer protection - discount)
    */
   grandTotal: number;
   /**
    * Currency (from customer country)
    */
   currency?: (string | null) | Currency;
+  /**
+   * Applied discount code (reference)
+   */
+  discountCode?: (string | null) | DiscountCode;
+  /**
+   * Discount code that was applied (e.g., SAVE20)
+   */
+  discountCodeUsed?: string | null;
+  /**
+   * Discount amount applied
+   */
+  discountAmount?: number | null;
   shippingDetails?: {
     /**
      * Recipient full name
@@ -1424,6 +1440,92 @@ export interface Order {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Discount codes for orders
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "discount-codes".
+ */
+export interface DiscountCode {
+  id: string;
+  /**
+   * The discount code (e.g., SAVE10, FREESHIP)
+   */
+  code: string;
+  /**
+   * Description of the discount (shown to customers)
+   */
+  description?: string | null;
+  /**
+   * Type of discount
+   */
+  type: 'percentage' | 'fixed' | 'free_shipping';
+  /**
+   * Discount value (percentage or fixed amount)
+   */
+  value?: number | null;
+  /**
+   * Minimum order amount required to use this code
+   */
+  minOrderAmount?: number | null;
+  /**
+   * Maximum discount amount (for percentage discounts)
+   */
+  maxDiscountAmount?: number | null;
+  /**
+   * Number of times this code has been used
+   */
+  usageCount?: number | null;
+  /**
+   * Maximum number of times this code can be used (leave empty for unlimited)
+   */
+  maxUses?: number | null;
+  /**
+   * Max uses per user
+   */
+  maxUsesPerUser?: number | null;
+  /**
+   * When the code becomes active
+   */
+  startsAt?: string | null;
+  /**
+   * When the code expires
+   */
+  expiresAt?: string | null;
+  /**
+   * Whether this discount code is active
+   */
+  active?: boolean | null;
+  /**
+   * What this discount applies to
+   */
+  applicableTo?: ('all' | 'categories' | 'products' | 'sellers') | null;
+  /**
+   * Categories this discount applies to
+   */
+  categories?: (string | Category)[] | null;
+  /**
+   * Products this discount applies to
+   */
+  products?: (string | Product)[] | null;
+  /**
+   * Sellers whose products this discount applies to
+   */
+  sellers?: (string | User)[] | null;
+  /**
+   * Users who have used this code
+   */
+  usedBy?:
+    | {
+        user?: (string | null) | User;
+        usedAt?: string | null;
+        order?: (string | null) | Order;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1891,9 +1993,21 @@ export interface Cart {
    */
   itemCount?: number | null;
   /**
-   * Total amount of cart (auto-calculated)
+   * Subtotal (products only, before shipping/fees - used for discount calculation)
+   */
+  subtotal?: number | null;
+  /**
+   * Total amount (subtotal + shipping + buyer protection)
    */
   totalAmount?: number | null;
+  /**
+   * Applied discount code (discount applies to subtotal)
+   */
+  discountCode?: (string | null) | DiscountCode;
+  /**
+   * Discount amount applied (percentage of subtotal)
+   */
+  discountAmount?: number | null;
   /**
    * Currency (auto-set from customer country)
    */
@@ -1920,6 +2034,37 @@ export interface Material {
    * Categories that use this material
    */
   categories?: (string | Category)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * User notifications
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications".
+ */
+export interface Notification {
+  id: string;
+  /**
+   * The user who receives this notification
+   */
+  user: string | User;
+  /**
+   * URL to the notification image/icon
+   */
+  image?: string | null;
+  /**
+   * Notification message
+   */
+  message: string;
+  /**
+   * Path to navigate to when notification is clicked
+   */
+  path?: string | null;
+  /**
+   * Whether the notification has been read
+   */
+  read?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2174,6 +2319,10 @@ export interface PayloadLockedDocument {
         value: string | Department;
       } | null)
     | ({
+        relationTo: 'discount-codes';
+        value: string | DiscountCode;
+      } | null)
+    | ({
         relationTo: 'favorites';
         value: string | Favorite;
       } | null)
@@ -2184,6 +2333,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'materials';
         value: string | Material;
+      } | null)
+    | ({
+        relationTo: 'notifications';
+        value: string | Notification;
       } | null)
     | ({
         relationTo: 'orders';
@@ -2629,7 +2782,10 @@ export interface CartsSelect<T extends boolean = true> {
         id?: T;
       };
   itemCount?: T;
+  subtotal?: T;
   totalAmount?: T;
+  discountCode?: T;
+  discountAmount?: T;
   currency?: T;
   purchasedAt?: T;
   notes?: T;
@@ -2708,6 +2864,38 @@ export interface DepartmentsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "discount-codes_select".
+ */
+export interface DiscountCodesSelect<T extends boolean = true> {
+  code?: T;
+  description?: T;
+  type?: T;
+  value?: T;
+  minOrderAmount?: T;
+  maxDiscountAmount?: T;
+  usageCount?: T;
+  maxUses?: T;
+  maxUsesPerUser?: T;
+  startsAt?: T;
+  expiresAt?: T;
+  active?: T;
+  applicableTo?: T;
+  categories?: T;
+  products?: T;
+  sellers?: T;
+  usedBy?:
+    | T
+    | {
+        user?: T;
+        usedAt?: T;
+        order?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "favorites_select".
  */
 export interface FavoritesSelect<T extends boolean = true> {
@@ -2733,6 +2921,19 @@ export interface FollowsSelect<T extends boolean = true> {
 export interface MaterialsSelect<T extends boolean = true> {
   name?: T;
   categories?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications_select".
+ */
+export interface NotificationsSelect<T extends boolean = true> {
+  user?: T;
+  image?: T;
+  message?: T;
+  path?: T;
+  read?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2777,6 +2978,9 @@ export interface OrdersSelect<T extends boolean = true> {
   totalAmount?: T;
   grandTotal?: T;
   currency?: T;
+  discountCode?: T;
+  discountCodeUsed?: T;
+  discountAmount?: T;
   shippingDetails?:
     | T
     | {

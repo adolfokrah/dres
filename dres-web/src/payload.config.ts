@@ -15,10 +15,12 @@ import { Countries } from './collections/Countries'
 import { Currencies } from './collections/Currencies'
 import { Collections } from './collections/Collections'
 import { Departments } from './collections/Departments'
+import { DiscountCodes } from './collections/DiscountCodes'
 import { Favorites } from './collections/Favorites'
 import { Follows } from './collections/Follows'
 import { Materials } from './collections/Materials'
 import { Media } from './collections/Media'
+import { Notifications } from './collections/Notifications'
 import { Orders } from './collections/Orders'
 import { Pages } from './collections/Pages'
 import { PostCategories } from './collections/PostCategories'
@@ -80,7 +82,7 @@ export default buildConfig({
   db: mongooseAdapter({
     url: process.env.MONGODB_URI || '',
   }),
-  collections: [Pages, Posts, PostCategories, Media, Attributes, AttributeOptions, ProductBoosts, Brands, Carts, Categories, Cities, Collections, Countries, Currencies, Departments, Favorites, Follows, Materials, Orders, Regions, ProductStats, Reviews, ShippingRates, Transactions, Users, Products],
+  collections: [Pages, Posts, PostCategories, Media, Attributes, AttributeOptions, ProductBoosts, Brands, Carts, Categories, Cities, Collections, Countries, Currencies, Departments, DiscountCodes, Favorites, Follows, Materials, Notifications, Orders, Regions, ProductStats, Reviews, ShippingRates, Transactions, Users, Products],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins,
