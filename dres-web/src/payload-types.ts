@@ -859,9 +859,13 @@ export interface Product {
    */
   seller: string | User;
   /**
-   * Base price for this product (used when variation has no price)
+   * Current price for this product
    */
   price: number;
+  /**
+   * Original price before discount (shows as crossed out, e.g., "Was $500")
+   */
+  compareAtPrice?: number | null;
   /**
    * Final selling price (auto-calculated: price + 10% platform fee)
    */
@@ -900,9 +904,13 @@ export interface Product {
           | boolean
           | null;
         /**
-         * Your price for this variation
+         * Current price for this variation
          */
         price: number;
+        /**
+         * Original price before discount (shows as crossed out)
+         */
+        compareAtPrice?: number | null;
         /**
          * Final selling price (auto-calculated: price + 10% platform fee)
          */
@@ -3174,6 +3182,7 @@ export interface ProductsSelect<T extends boolean = true> {
   brand?: T;
   seller?: T;
   price?: T;
+  compareAtPrice?: T;
   sellingPrice?: T;
   stock?: T;
   attributes?: T;
@@ -3182,6 +3191,7 @@ export interface ProductsSelect<T extends boolean = true> {
     | {
         options?: T;
         price?: T;
+        compareAtPrice?: T;
         sellingPrice?: T;
         stock?: T;
         images?: T;

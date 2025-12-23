@@ -105,7 +105,14 @@ export const Products: CollectionConfig = {
       type: 'number',
       required: true,
       admin: {
-        description: 'Base price for this product (used when variation has no price)',
+        description: 'Current price for this product',
+      },
+    },
+    {
+      name: 'compareAtPrice',
+      type: 'number',
+      admin: {
+        description: 'Original price before discount (shows as crossed out, e.g., "Was $500")',
       },
     },
     {
@@ -174,7 +181,14 @@ export const Products: CollectionConfig = {
           type: 'number',
           required: true,
           admin: {
-            description: 'Your price for this variation',
+            description: 'Current price for this variation',
+          },
+        },
+        {
+          name: 'compareAtPrice',
+          type: 'number',
+          admin: {
+            description: 'Original price before discount (shows as crossed out)',
           },
         },
         {
