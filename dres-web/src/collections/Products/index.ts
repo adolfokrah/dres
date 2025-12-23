@@ -1,18 +1,9 @@
 import type { CollectionConfig } from 'payload'
-import { APIError } from 'payload'
 
 import { anyone } from '../../access/anyone'
 import { authenticated } from '../../access/authenticated'
-
-// Helper to create a unique key from variation options
-const getVariationKey = (options: Record<string, number | null> | null | undefined): string => {
-  if (!options || typeof options !== 'object') return ''
-  // Sort keys to ensure consistent comparison
-  const sortedEntries = Object.entries(options)
-    .filter(([, value]) => value !== null)
-    .sort(([a], [b]) => a.localeCompare(b))
-  return JSON.stringify(sortedEntries)
-}
+import { calculateSellingPrices } from './hooks/calculateSellingPrices'
+import { validateUniqueVariations } from './hooks/validateUniqueVariations'
 
 export const Products: CollectionConfig = {
   slug: 'products',
@@ -28,64 +19,8 @@ export const Products: CollectionConfig = {
     update: authenticated,
   },
   hooks: {
-    beforeChange: [
-      async ({ data }) => {
-        // Auto-calculate selling price for product level (price + 10%)
-        if (data?.price !== undefined && data?.price !== null) {
-          data.sellingPrice = Math.round(data.price * 1.10 * 100) / 100
-        }
-        
-        // Auto-calculate selling price for each variation (price + 10%)
-        if (data?.variations && Array.isArray(data.variations)) {
-          data.variations = data.variations.map((variation: { price?: number; sellingPrice?: number }) => {
-            if (variation.price !== undefined && variation.price !== null) {
-              variation.sellingPrice = Math.round(variation.price * 1.10 * 100) / 100 // Add 10% and round to 2 decimal places
-            }
-            return variation
-          })
-        }
-        
-        return data
-      },
-    ],
-    beforeValidate: [
-      ({ data }) => {
-        const variations = data?.variations as Array<{ options?: Record<string, number | null> }> | undefined
-        
-        if (!variations || !Array.isArray(variations) || variations.length <= 1) {
-          return data
-        }
-
-        const seenVariations = new Map<string, number>()
-
-        for (let i = 0; i < variations.length; i++) {
-          const variation = variations[i]
-          const options = variation?.options
-          const key = getVariationKey(options)
-
-          if (key) {
-            const existingIndex = seenVariations.get(key)
-            if (existingIndex !== undefined) {
-              // Build a readable description of the duplicate options
-              const optionsList = options
-                ? Object.entries(options)
-                    .filter(([, val]) => val !== null)
-                    .map(([name]) => name)
-                    .join(', ')
-                : 'unknown options'
-
-              throw new APIError(
-                `Duplicate variation found! Variation ${i + 1} has the same options as Variation ${existingIndex + 1} (${optionsList}). Please ensure each variation has a unique combination of options.`,
-                400
-              )
-            }
-            seenVariations.set(key, i)
-          }
-        }
-
-        return data
-      },
-    ],
+    beforeChange: [calculateSellingPrices],
+    beforeValidate: [validateUniqueVariations],
   },
   fields: [
     {
@@ -96,6 +31,14 @@ export const Products: CollectionConfig = {
     {
       name: 'description',
       type: 'richText',
+    },
+    {
+      name: 'isResell',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Whether this product is a resell from a returned item (e.g., from a thrift store)',
+      },
     },
     {
       name: 'images',

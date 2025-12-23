@@ -17,7 +17,7 @@ interface OrderItem {
   shippingStatus: string
 }
 
-export const createRefundOnReturn: CollectionAfterChangeHook = async ({
+export const createRefundTransaction: CollectionAfterChangeHook = async ({
   doc,
   previousDoc,
   req,
@@ -32,16 +32,18 @@ export const createRefundOnReturn: CollectionAfterChangeHook = async ({
     const currentItems = (doc.items || []) as OrderItem[]
     const previousItems = (previousDoc?.items || []) as OrderItem[]
 
-    // Find items that changed to 'returned'
+    // Find items that changed to 'returned' or 'not_available'
     for (let i = 0; i < currentItems.length; i++) {
       const currentItem = currentItems[i]
       const previousItem = previousItems[i]
 
-      // Check if this item just changed to 'returned' - create refund transaction for customer
-      if (
-        currentItem.shippingStatus === 'returned' &&
-        previousItem?.shippingStatus !== 'returned'
-      ) {
+      const isNowRefundable =
+        currentItem.shippingStatus === 'returned' || currentItem.shippingStatus === 'not_available'
+      const wasRefundable =
+        previousItem?.shippingStatus === 'returned' || previousItem?.shippingStatus === 'not_available'
+
+      // Check if this item just changed to 'returned' or 'not_available' - create refund transaction for customer
+      if (isNowRefundable && !wasRefundable) {
         // Refund total = selling price (price × qty)
         // If buyer protection is enabled, also refund shipping fee + buyer protection fee
         const sellingPriceTotal = currentItem.price * currentItem.quantity
@@ -98,7 +100,7 @@ export const createRefundOnReturn: CollectionAfterChangeHook = async ({
 
         // Build refund notes
         const refundNotes = hasBuyerProtection
-          ? `Refund for returned item "${currentItem.productTitle}" (Qty: ${currentItem.quantity}). Product: ${sellingPriceTotal}, Shipping: ${shippingFee}, Buyer Protection: ${buyerProtectionFee}. Total refund: ${refundTotal}`
+          ? `Refund for returned item "${currentItem.productTitle}" (Qty: ${currentItem.quantity}). Product: ${sellingPriceTotal}, Shipping: ${shippingFee}. Total refund: ${refundTotal}`
           : `Refund for returned item "${currentItem.productTitle}" (Qty: ${currentItem.quantity}). Product only: ${sellingPriceTotal} (No buyer protection - shipping not refunded)`
 
         // Create refund transaction for customer

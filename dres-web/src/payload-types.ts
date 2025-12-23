@@ -1263,6 +1263,10 @@ export interface Product {
     [k: string]: unknown;
   } | null;
   /**
+   * Whether this product is a resell from a returned item (e.g., from a thrift store)
+   */
+  isResell?: boolean | null;
+  /**
    * Product images (first image is the main image)
    */
   images: (string | Media)[];
@@ -2420,6 +2424,7 @@ export interface UsersSelect<T extends boolean = true> {
 export interface ProductsSelect<T extends boolean = true> {
   title?: T;
   description?: T;
+  isResell?: T;
   images?: T;
   category?: T;
   brand?: T;
