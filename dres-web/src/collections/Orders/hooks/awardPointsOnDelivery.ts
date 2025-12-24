@@ -46,7 +46,7 @@ export const awardPointsOnDelivery: CollectionAfterChangeHook = async ({
           depth: 0,
         })
         exchangeRateToGHS = currency?.exchangeRateToGHS || 1
-      } catch (error) {
+      } catch (_error) {
         payload.logger.warn(`Could not fetch currency for points calculation, using rate 1`)
       }
     }
@@ -77,7 +77,7 @@ export const awardPointsOnDelivery: CollectionAfterChangeHook = async ({
     if (totalPointsToAward === 0) return doc
 
     // Find or create user's points record
-    let userPoints = await payload.find({
+    const userPoints = await payload.find({
       collection: 'user-points',
       where: {
         user: { equals: customerId },

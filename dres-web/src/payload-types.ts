@@ -1405,7 +1405,7 @@ export interface Order {
    */
   subtotal: number;
   /**
-   * Grand total (products + shipping + buyer protection - discount)
+   * Grand total (products + shipping + buyer protection - discount - points)
    */
   grandTotal: number;
   /**

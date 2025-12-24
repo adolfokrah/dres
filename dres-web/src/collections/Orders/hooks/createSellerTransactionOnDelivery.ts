@@ -130,7 +130,7 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
       }
 
       // Check if a bulk transaction already exists for this seller on this order
-      const existingTransaction = await payload.find({
+      const existingTransactions = await payload.find({
         collection: 'transactions',
         where: {
           and: [
@@ -141,6 +141,14 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
         },
         limit: 1,
       })
+
+      // Skip if transaction already exists
+      if (existingTransactions.docs.length > 0) {
+        payload.logger.info(
+          `Bulk transaction already exists for seller ${sellerId} on order ${doc.id} - skipping`,
+        )
+        continue
+      }
 
       // Fetch seller details for payment info
       const seller = await payload.findByID({

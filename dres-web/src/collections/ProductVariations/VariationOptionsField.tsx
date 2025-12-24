@@ -182,7 +182,7 @@ export const VariationOptionsField: React.FC<{
       <div className="field-type">
         <FieldLabel label={field.label || 'Options'} required={field.required} />
         <p style={{ color: 'var(--theme-elevation-500)', marginTop: '0.5rem' }}>
-          No variant attributes configured for this product's category.
+          No variant attributes configured for this product&apos;s category.
         </p>
       </div>
     )

@@ -12,7 +12,7 @@ interface OrderItem {
 
 export const reduceStockOnOrder: CollectionAfterChangeHook = async ({
   doc,
-  previousDoc,
+  // previousDoc - not used but kept for hook signature
   req,
   operation,
 }) => {
