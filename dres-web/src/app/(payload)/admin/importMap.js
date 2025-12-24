@@ -19,13 +19,13 @@ import { HorizontalRuleFeatureClient as HorizontalRuleFeatureClient_e70f5e05f09f
 import { BlocksFeatureClient as BlocksFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { FolderTableCell as FolderTableCell_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
 import { FolderField as FolderField_ab83ff7e88da8d3530831f296ec4756a } from '@payloadcms/ui/rsc'
-import { VariationSelectField as VariationSelectField_26e040dfba10314d6a62ee6387f5a45a } from '@/collections/Carts/VariationSelect'
+import { VariationOptionsField as VariationOptionsField_23d19fed2130a395dcb4aa4af6a625bf } from '@/collections/ProductVariations/VariationOptionsField'
+import { ImageCell as ImageCell_3d19d9b2a004293c2ac5b0cbbae9b621 } from '@/components/ImageCell'
+import { VariationImagesField as VariationImagesField_6ac7415120094b02d05874a4f42738ef } from '@/collections/ProductVariations/VariationImagesField'
 import { CartItemRowLabel as CartItemRowLabel_f37846a404dfa3b1fda913cfd9c158c7 } from '@/collections/Carts/CartItemRowLabel'
 import { OrderStatusCell as OrderStatusCell_3cf9bc711e5a4728b25e52d197ce9223 } from '@/collections/Orders/OrderStatusCell'
 import { ProductStockField as ProductStockField_7acf5a891dee735ae7ce8b59033d2065 } from '@/collections/Products/ProductStockField'
 import { ProductAttributesField as ProductAttributesField_c087223d383d55964346b9bcab65a988 } from '@/components/ProductAttributes'
-import { VariationOptionsField as VariationOptionsField_2545b44d319ec4f357b31cee8af1a93d } from '@/components/VariationOptions'
-import { VariationRowLabel as VariationRowLabel_77c7ebe64adea5c9bb298abe6870dd46 } from '@/collections/Products/VariationRowLabel'
 import { LinkToDoc as LinkToDoc_aead06e4cbf6b2620c5c51c9ab283634 } from '@payloadcms/plugin-search/client'
 import { ReindexButton as ReindexButton_aead06e4cbf6b2620c5c51c9ab283634 } from '@payloadcms/plugin-search/client'
 import { FolderTypeField as FolderTypeField_3817bf644402e67bfe6577f60ef982de } from '@payloadcms/ui'
@@ -58,13 +58,13 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BlocksFeatureClient": BlocksFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/ui/rsc#FolderTableCell": FolderTableCell_ab83ff7e88da8d3530831f296ec4756a,
   "@payloadcms/ui/rsc#FolderField": FolderField_ab83ff7e88da8d3530831f296ec4756a,
-  "@/collections/Carts/VariationSelect#VariationSelectField": VariationSelectField_26e040dfba10314d6a62ee6387f5a45a,
+  "@/collections/ProductVariations/VariationOptionsField#VariationOptionsField": VariationOptionsField_23d19fed2130a395dcb4aa4af6a625bf,
+  "@/components/ImageCell#ImageCell": ImageCell_3d19d9b2a004293c2ac5b0cbbae9b621,
+  "@/collections/ProductVariations/VariationImagesField#VariationImagesField": VariationImagesField_6ac7415120094b02d05874a4f42738ef,
   "@/collections/Carts/CartItemRowLabel#CartItemRowLabel": CartItemRowLabel_f37846a404dfa3b1fda913cfd9c158c7,
   "@/collections/Orders/OrderStatusCell#OrderStatusCell": OrderStatusCell_3cf9bc711e5a4728b25e52d197ce9223,
   "@/collections/Products/ProductStockField#ProductStockField": ProductStockField_7acf5a891dee735ae7ce8b59033d2065,
   "@/components/ProductAttributes#ProductAttributesField": ProductAttributesField_c087223d383d55964346b9bcab65a988,
-  "@/components/VariationOptions#VariationOptionsField": VariationOptionsField_2545b44d319ec4f357b31cee8af1a93d,
-  "@/collections/Products/VariationRowLabel#VariationRowLabel": VariationRowLabel_77c7ebe64adea5c9bb298abe6870dd46,
   "@payloadcms/plugin-search/client#LinkToDoc": LinkToDoc_aead06e4cbf6b2620c5c51c9ab283634,
   "@payloadcms/plugin-search/client#ReindexButton": ReindexButton_aead06e4cbf6b2620c5c51c9ab283634,
   "@payloadcms/ui#FolderTypeField": FolderTypeField_3817bf644402e67bfe6577f60ef982de,

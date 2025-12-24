@@ -56,6 +56,52 @@ export const Transactions: CollectionConfig = {
         return data
       },
     ],
+    afterChange: [
+      async ({ doc, req }) => {
+        // Recalculate order commission when a transfer transaction is created/updated
+        if (doc.type === 'transfer' && doc.order) {
+          const orderId = typeof doc.order === 'object' ? doc.order.id : doc.order
+          try {
+            // Trigger order update to recalculate commission
+            await req.payload.update({
+              collection: 'orders',
+              id: orderId,
+              data: {
+                // Just touch the order to trigger commission recalculation
+                updatedAt: new Date().toISOString(),
+              },
+            })
+            req.payload.logger.info(`Triggered commission recalculation for order ${orderId}`)
+          } catch (error) {
+            req.payload.logger.error(`Error triggering commission recalculation: ${error}`)
+          }
+        }
+        return doc
+      },
+    ],
+    afterDelete: [
+      async ({ doc, req }) => {
+        // Recalculate order commission when a transfer transaction is deleted
+        if (doc.type === 'transfer' && doc.order) {
+          const orderId = typeof doc.order === 'object' ? doc.order.id : doc.order
+          try {
+            // Trigger order update to recalculate commission
+            await req.payload.update({
+              collection: 'orders',
+              id: orderId,
+              data: {
+                // Just touch the order to trigger commission recalculation
+                updatedAt: new Date().toISOString(),
+              },
+            })
+            req.payload.logger.info(`Triggered commission recalculation for order ${orderId} after transaction deletion`)
+          } catch (error) {
+            req.payload.logger.error(`Error triggering commission recalculation: ${error}`)
+          }
+        }
+        return doc
+      },
+    ],
   },
   fields: [
     {
@@ -94,6 +140,7 @@ export const Transactions: CollectionConfig = {
           defaultValue: 'pending',
           options: [
             { label: 'Pending', value: 'pending' },
+            { label: 'In Progress', value: 'in_progress' },
             { label: 'Completed', value: 'completed' },
             { label: 'Cancelled', value: 'cancelled' },
           ],

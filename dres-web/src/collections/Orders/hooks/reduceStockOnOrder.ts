@@ -10,12 +10,6 @@ interface OrderItem {
   quantity: number
 }
 
-interface Variation {
-  id?: string
-  options: Record<string, string>
-  stock?: number | null
-}
-
 export const reduceStockOnOrder: CollectionAfterChangeHook = async ({
   doc,
   previousDoc,
@@ -34,57 +28,58 @@ export const reduceStockOnOrder: CollectionAfterChangeHook = async ({
       const productId = typeof item.product === 'object' ? item.product.id : item.product
       if (!productId) continue
 
-      // Fetch the product
-      const product = await payload.findByID({
-        collection: 'products',
-        id: productId,
-        depth: 0,
-      })
-
-      if (!product) continue
-
-      // Check if product has variations
-      const variations = product.variations as Variation[] | undefined
-      const hasVariations = variations && variations.length > 0
       const variationId = item.variationId
 
-      // If product has variations and item has a variation ID, reduce variation stock
-      if (hasVariations && variationId) {
-        // Find the variation by ID
-        const variationIndex = variations.findIndex((v) => v.id === variationId)
-        
-        if (variationIndex >= 0) {
-          const currentStock = variations[variationIndex].stock
-          
-          // Skip if stock is null/undefined (unlimited stock)
-          if (currentStock === null || currentStock === undefined) {
-            payload.logger.info(
-              `Skipping stock reduction for product ${productId} variation ${variationId} - unlimited stock`,
-            )
-            continue
-          }
-          
-          const newStock = Math.max(0, currentStock - item.quantity)
-          
-          // Update the variation stock
-          variations[variationIndex].stock = newStock
-          
-          await payload.update({
-            collection: 'products',
-            id: productId,
-            data: {
-              variations: variations,
-            },
-          })
-          
-          payload.logger.info(
-            `Reduced stock for product ${productId} variation ${variationId}: ${currentStock} -> ${newStock}`,
-          )
+      // If item has a variation ID, reduce variation stock
+      if (variationId) {
+        // Fetch the variation from product-variations collection
+        const variation = await payload.findByID({
+          collection: 'product-variations',
+          id: variationId,
+          depth: 0,
+        })
+
+        if (!variation) {
+          payload.logger.warn(`Variation ${variationId} not found for stock reduction`)
+          continue
         }
-      } else if (!hasVariations) {
-        // No variations - reduce product-level stock
+
+        const currentStock = variation.stock
+
+        // Skip if stock is null/undefined (unlimited stock)
+        if (currentStock === null || currentStock === undefined) {
+          payload.logger.info(
+            `Skipping stock reduction for variation ${variationId} - unlimited stock`,
+          )
+          continue
+        }
+
+        const newStock = Math.max(0, currentStock - item.quantity)
+
+        // Update the variation stock directly in product-variations collection
+        await payload.update({
+          collection: 'product-variations',
+          id: variationId,
+          data: {
+            stock: newStock,
+          },
+        })
+
+        payload.logger.info(
+          `Reduced stock for variation ${variationId}: ${currentStock} -> ${newStock}`,
+        )
+      } else {
+        // No variation - reduce product-level stock
+        const product = await payload.findByID({
+          collection: 'products',
+          id: productId,
+          depth: 0,
+        })
+
+        if (!product) continue
+
         const currentStock = product.stock as number | null | undefined
-        
+
         // Skip if stock is null/undefined (unlimited stock)
         if (currentStock === null || currentStock === undefined) {
           payload.logger.info(
@@ -92,9 +87,9 @@ export const reduceStockOnOrder: CollectionAfterChangeHook = async ({
           )
           continue
         }
-        
+
         const newStock = Math.max(0, currentStock - item.quantity)
-        
+
         await payload.update({
           collection: 'products',
           id: productId,
@@ -102,7 +97,7 @@ export const reduceStockOnOrder: CollectionAfterChangeHook = async ({
             stock: newStock,
           },
         })
-        
+
         payload.logger.info(
           `Reduced stock for product ${productId}: ${currentStock} -> ${newStock}`,
         )

@@ -27,11 +27,13 @@ import { PostCategories } from './collections/PostCategories'
 import { Posts } from './collections/Posts'
 import { Products } from './collections/Products'
 import { ProductStats } from './collections/ProductStats'
+import { ProductVariations } from './collections/ProductVariations'
 import { Regions } from './collections/Regions'
 import { Reviews } from './collections/Reviews'
 import { ShippingRates } from './collections/ShippingRates'
 import { Transactions } from './collections/Transactions'
 import { Users } from './collections/Users'
+import { UserPoints } from './collections/UserPoints'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
 import { plugins } from './plugins'
@@ -82,7 +84,7 @@ export default buildConfig({
   db: mongooseAdapter({
     url: process.env.MONGODB_URI || '',
   }),
-  collections: [Pages, Posts, PostCategories, Media, Attributes, AttributeOptions, ProductBoosts, Brands, Carts, Categories, Cities, Collections, Countries, Currencies, Departments, DiscountCodes, Favorites, Follows, Materials, Notifications, Orders, Regions, ProductStats, Reviews, ShippingRates, Transactions, Users, Products],
+  collections: [Pages, Posts, PostCategories, Media, Attributes, AttributeOptions, ProductBoosts, ProductVariations, Brands, Carts, Categories, Cities, Collections, Countries, Currencies, Departments, DiscountCodes, Favorites, Follows, Materials, Notifications, Orders, Regions, ProductStats, Reviews, ShippingRates, Transactions, Users, UserPoints, Products],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins,

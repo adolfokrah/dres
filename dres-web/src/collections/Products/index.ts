@@ -13,7 +13,7 @@ export const Products: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     group: 'Ecommerce',
-    defaultColumns: ['title', 'brand', 'category', 'seller'],
+    defaultColumns: ['title', 'images',  'brand', 'category', 'seller'],
   },
   access: {
     create: authenticated,
@@ -53,6 +53,9 @@ export const Products: CollectionConfig = {
       required: true,
       admin: {
         description: 'Product images (first image is the main image)',
+        components: {
+          Cell: '@/components/ImageCell#ImageCell',
+        },
       },
     },
     {
@@ -161,86 +164,14 @@ export const Products: CollectionConfig = {
     },
     {
       name: 'variations',
-      type: 'array',
+      type: 'join',
+      collection: 'product-variations',
+      on: 'product',
       admin: {
-        description: 'Product variations with different options, prices, and images',
-        condition: (data) => Boolean(data?.category),
-        components: {
-          RowLabel: '@/collections/Products/VariationRowLabel#VariationRowLabel',
-        },
+        description: 'Product variations with different options, prices, and inventory',
+        allowCreate: true,
+        defaultColumns: ['images','options', 'price', 'sellingPrice', 'compareAtPrice',  'stock', 'updatedAt'],
       },
-      fields: [
-        {
-          name: 'options',
-          type: 'json',
-          admin: {
-            components: {
-              Field: '@/components/VariationOptions#VariationOptionsField',
-            },
-            description: 'Select options for each variant type',
-          },
-        },
-        {
-          name: 'price',
-          type: 'number',
-          required: true,
-          admin: {
-            description: 'Current price for this variation',
-          },
-        },
-        {
-          name: 'compareAtPrice',
-          type: 'number',
-          admin: {
-            description: 'Original price before discount (shows as crossed out)',
-          },
-        },
-        {
-          name: 'sellingPrice',
-          type: 'number',
-          admin: {
-            description: 'Final selling price (auto-calculated: price + 10% platform fee)',
-            readOnly: true,
-          },
-        },
-        {
-          name: 'stock',
-          type: 'number',
-          min: 0,
-          admin: {
-            description: 'Available quantity for this variation (0 = sold out). Leave empty for unlimited.',
-          },
-        },
-        {
-          name: 'images',
-          type: 'relationship',
-          relationTo: 'media',
-          hasMany: true,
-          filterOptions: ({ siblingData, data }) => {
-            // Get the product's images
-            const productImages = data?.images as string[] | { id: string }[] | undefined
-            if (productImages && Array.isArray(productImages) && productImages.length > 0) {
-              const imageIds = productImages.map((img) => 
-                typeof img === 'object' ? img.id : img
-              )
-              return {
-                id: {
-                  in: imageIds,
-                },
-              }
-            }
-            // If no product images, return empty filter (no options)
-            return {
-              id: {
-                equals: 'no-images-available',
-              },
-            }
-          },
-          admin: {
-            description: 'Select images from the product gallery for this variation',
-          },
-        },
-      ],
     },
     {
       name: 'boosts',

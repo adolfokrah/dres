@@ -74,6 +74,7 @@ export interface Config {
     attributes: Attribute;
     attributeOptions: AttributeOption;
     'product-boosts': ProductBoost;
+    'product-variations': ProductVariation;
     brands: Brand;
     carts: Cart;
     categories: Category;
@@ -94,6 +95,7 @@ export interface Config {
     shippingRates: ShippingRate;
     transactions: Transaction;
     users: User;
+    'user-points': UserPoint;
     products: Product;
     redirects: Redirect;
     forms: Form;
@@ -137,6 +139,7 @@ export interface Config {
       transactions: 'transactions';
     };
     products: {
+      variations: 'product-variations';
       boosts: 'product-boosts';
       stats: 'product-stats';
       reviews: 'reviews';
@@ -153,6 +156,7 @@ export interface Config {
     attributes: AttributesSelect<false> | AttributesSelect<true>;
     attributeOptions: AttributeOptionsSelect<false> | AttributeOptionsSelect<true>;
     'product-boosts': ProductBoostsSelect<false> | ProductBoostsSelect<true>;
+    'product-variations': ProductVariationsSelect<false> | ProductVariationsSelect<true>;
     brands: BrandsSelect<false> | BrandsSelect<true>;
     carts: CartsSelect<false> | CartsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
@@ -173,6 +177,7 @@ export interface Config {
     shippingRates: ShippingRatesSelect<false> | ShippingRatesSelect<true>;
     transactions: TransactionsSelect<false> | TransactionsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'user-points': UserPointsSelect<false> | UserPointsSelect<true>;
     products: ProductsSelect<false> | ProductsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
@@ -712,6 +717,14 @@ export interface Currency {
    */
   symbol: string;
   /**
+   * Exchange rate to GHS (base currency). E.g., 1 USD = 15 GHS → enter 15. For GHS, enter 1.
+   */
+  exchangeRateToGHS: number;
+  /**
+   * Is this the base currency (GHS)? Only one currency should be marked as base.
+   */
+  isBaseCurrency?: boolean | null;
+  /**
    * Whether this currency is available for use
    */
   isActive?: boolean | null;
@@ -896,45 +909,13 @@ export interface Product {
     | boolean
     | null;
   /**
-   * Product variations with different options, prices, and images
+   * Product variations with different options, prices, and inventory
    */
-  variations?:
-    | {
-        /**
-         * Select options for each variant type
-         */
-        options?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        /**
-         * Current price for this variation
-         */
-        price: number;
-        /**
-         * Original price before discount (shows as crossed out)
-         */
-        compareAtPrice?: number | null;
-        /**
-         * Final selling price (auto-calculated: price + 10% platform fee)
-         */
-        sellingPrice?: number | null;
-        /**
-         * Available quantity for this variation (0 = sold out). Leave empty for unlimited.
-         */
-        stock?: number | null;
-        /**
-         * Select images from the product gallery for this variation
-         */
-        images?: (string | Media)[] | null;
-        id?: string | null;
-      }[]
-    | null;
+  variations?: {
+    docs?: (string | ProductVariation)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   /**
    * Boost history for this product
    */
@@ -1158,6 +1139,50 @@ export interface ProductStat {
   createdAt: string;
 }
 /**
+ * Product variations with specific options, pricing, and inventory
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-variations".
+ */
+export interface ProductVariation {
+  id: string;
+  title?: string | null;
+  /**
+   * The product this variation belongs to
+   */
+  product: string | Product;
+  /**
+   * Select one option per variant type (e.g., Size: M, Color: Red)
+   */
+  options: (string | AttributeOption)[];
+  /**
+   * Base price for this variation
+   */
+  price: number;
+  /**
+   * Final selling price (auto-calculated: price + platform fee)
+   */
+  sellingPrice?: number | null;
+  /**
+   * Original price before discount (shows as crossed out)
+   */
+  compareAtPrice?: number | null;
+  /**
+   * Available quantity (0 = sold out, empty = unlimited)
+   */
+  stock?: number | null;
+  /**
+   * Select images from the product gallery for this variation
+   */
+  images?: (string | Media)[] | null;
+  /**
+   * Whether this variation is available for purchase
+   */
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Product boost/featuring for increased visibility
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1215,7 +1240,7 @@ export interface Transaction {
   /**
    * Transaction status
    */
-  status: 'pending' | 'completed' | 'cancelled';
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
   /**
    * The user for this transaction
    */
@@ -1400,7 +1425,15 @@ export interface Order {
    */
   discountAmount?: number | null;
   /**
-   * Total platform commission (buyer protection + commission fees - returned shipping - discount)
+   * Points redeemed for this order
+   */
+  pointsRedeemed?: number | null;
+  /**
+   * Discount from redeemed points
+   */
+  pointsDiscount?: number | null;
+  /**
+   * Grand Total - Seller Payout - Paystack Fee - Transfer Fees + Buyer Protection
    */
   totalCommission?: number | null;
   shippingDetails?: {
@@ -1980,13 +2013,13 @@ export interface Cart {
      */
     product: string | Product;
     /**
-     * Select a variation from the product
+     * Select a variation for this product
      */
-    variation?: number | null;
+    variation?: (string | null) | ProductVariation;
     /**
      * Price (auto-populated from selected variation)
      */
-    price: number;
+    price?: number | null;
     /**
      * Quantity of this item
      */
@@ -2029,6 +2062,14 @@ export interface Cart {
    * Discount amount applied (percentage of subtotal)
    */
   discountAmount?: number | null;
+  /**
+   * Points to redeem as discount (1 point = 1 currency unit)
+   */
+  pointsToRedeem?: number | null;
+  /**
+   * Discount from redeemed points (auto-calculated)
+   */
+  pointsDiscount?: number | null;
   /**
    * Currency (auto-set from customer country)
    */
@@ -2086,6 +2127,58 @@ export interface Notification {
    * Whether the notification has been read
    */
   read?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * User reward points for purchases
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-points".
+ */
+export interface UserPoint {
+  id: string;
+  /**
+   * The user who owns these points
+   */
+  user: string | User;
+  /**
+   * Current available points balance
+   */
+  balance: number;
+  /**
+   * Total points earned all-time
+   */
+  totalEarned: number;
+  /**
+   * Total points redeemed all-time
+   */
+  totalRedeemed: number;
+  /**
+   * Points transaction history
+   */
+  history?:
+    | {
+        type: 'earned' | 'redeemed' | 'expired' | 'adjusted';
+        /**
+         * Points amount (positive for earned, negative for redeemed)
+         */
+        points: number;
+        /**
+         * Description of the transaction
+         */
+        description?: string | null;
+        /**
+         * Related order (if applicable)
+         */
+        order?: (string | null) | Order;
+        /**
+         * When this transaction occurred
+         */
+        createdAt?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2308,6 +2401,10 @@ export interface PayloadLockedDocument {
         value: string | ProductBoost;
       } | null)
     | ({
+        relationTo: 'product-variations';
+        value: string | ProductVariation;
+      } | null)
+    | ({
         relationTo: 'brands';
         value: string | Brand;
       } | null)
@@ -2386,6 +2483,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: string | User;
+      } | null)
+    | ({
+        relationTo: 'user-points';
+        value: string | UserPoint;
       } | null)
     | ({
         relationTo: 'products';
@@ -2774,6 +2875,23 @@ export interface ProductBoostsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-variations_select".
+ */
+export interface ProductVariationsSelect<T extends boolean = true> {
+  title?: T;
+  product?: T;
+  options?: T;
+  price?: T;
+  sellingPrice?: T;
+  compareAtPrice?: T;
+  stock?: T;
+  images?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "brands_select".
  */
 export interface BrandsSelect<T extends boolean = true> {
@@ -2808,6 +2926,8 @@ export interface CartsSelect<T extends boolean = true> {
   grandTotal?: T;
   discountCode?: T;
   discountAmount?: T;
+  pointsToRedeem?: T;
+  pointsDiscount?: T;
   currency?: T;
   purchasedAt?: T;
   notes?: T;
@@ -2870,6 +2990,8 @@ export interface CurrenciesSelect<T extends boolean = true> {
   name?: T;
   code?: T;
   symbol?: T;
+  exchangeRateToGHS?: T;
+  isBaseCurrency?: T;
   isActive?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -3003,6 +3125,8 @@ export interface OrdersSelect<T extends boolean = true> {
   discountCode?: T;
   discountCodeUsed?: T;
   discountAmount?: T;
+  pointsRedeemed?: T;
+  pointsDiscount?: T;
   totalCommission?: T;
   shippingDetails?:
     | T
@@ -3180,6 +3304,28 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-points_select".
+ */
+export interface UserPointsSelect<T extends boolean = true> {
+  user?: T;
+  balance?: T;
+  totalEarned?: T;
+  totalRedeemed?: T;
+  history?:
+    | T
+    | {
+        type?: T;
+        points?: T;
+        description?: T;
+        order?: T;
+        createdAt?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products_select".
  */
 export interface ProductsSelect<T extends boolean = true> {
@@ -3198,17 +3344,7 @@ export interface ProductsSelect<T extends boolean = true> {
   sellingPrice?: T;
   stock?: T;
   attributes?: T;
-  variations?:
-    | T
-    | {
-        options?: T;
-        price?: T;
-        compareAtPrice?: T;
-        sellingPrice?: T;
-        stock?: T;
-        images?: T;
-        id?: T;
-      };
+  variations?: T;
   boosts?: T;
   stats?: T;
   reviews?: T;

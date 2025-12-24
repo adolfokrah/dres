@@ -1,9 +1,11 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Where } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
 import { createOrderFromCart } from './hooks/createOrderFromCart'
 import { validateCartStock } from './hooks/validateCartStock'
 import { applyDiscountCode } from './hooks/applyDiscountCode'
+import { applyPointsRedemption } from './hooks/applyPointsRedemption'
+import { calculateCartTotals } from './hooks/calculateCartTotals'
 
 export const Carts: CollectionConfig = {
   slug: 'carts',
@@ -45,80 +47,8 @@ export const Carts: CollectionConfig = {
   hooks: {
     // Validate stock before allowing items in cart
     beforeValidate: [validateCartStock],
-    // Calculate item count, total amount, buyer protection fees, apply discounts, and set currency before save
-    beforeChange: [
-      applyDiscountCode,
-      async ({ data, req }) => {
-        if (data?.items && Array.isArray(data.items)) {
-          // Calculate buyer protection fee for each item (80% of shipping fee if enabled)
-          data.items = data.items.map((item: { 
-            buyerProtection?: boolean
-            shippingFee?: number
-            buyerProtectionFee?: number
-            quantity?: number
-            price?: number
-          }) => {
-            if (item.buyerProtection && item.shippingFee) {
-              item.buyerProtectionFee = Math.round(item.shippingFee * 0.80 * 100) / 100
-            } else {
-              item.buyerProtectionFee = 0
-            }
-            return item
-          })
-
-          // Calculate item count
-          data.itemCount = data.items.reduce((total: number, item: { quantity?: number }) => {
-            return total + (item.quantity || 0)
-          }, 0)
-          
-          // Calculate subtotal (products only - used for discount calculation)
-          data.subtotal = data.items.reduce((total: number, item: { 
-            quantity?: number
-            price?: number
-          }) => {
-            const quantity = item.quantity || 0
-            const price = item.price || 0
-            return total + (quantity * price)
-          }, 0)
-          
-          // Calculate grand total (subtotal + shipping + buyer protection - discount)
-          const totalBeforeDiscount = data.items.reduce((total: number, item: { 
-            quantity?: number
-            price?: number
-            shippingFee?: number
-            buyerProtectionFee?: number
-          }) => {
-            const quantity = item.quantity || 0
-            const price = item.price || 0
-            const shippingFee = item.shippingFee || 0
-            const buyerProtectionFee = item.buyerProtectionFee || 0
-            return total + (quantity * price) + shippingFee + buyerProtectionFee
-          }, 0)
-          
-          const discountAmount = data.discountAmount || 0
-          data.grandTotal = Math.max(0, totalBeforeDiscount - discountAmount)
-        }
-        
-        // Auto-set currency from customer's country
-        if (data?.customer && !data?.currency) {
-          const customerId = typeof data.customer === 'object' ? data.customer.id : data.customer
-          const customer = await req.payload.findByID({
-            collection: 'users',
-            id: customerId,
-            depth: 1,
-          })
-          
-          if (customer?.country) {
-            const country = customer.country
-            if (typeof country === 'object' && country.currency) {
-              data.currency = typeof country.currency === 'object' ? country.currency.id : country.currency
-            }
-          }
-        }
-        
-        return data
-      },
-    ],
+    // Calculate item count, total amount, buyer protection fees, apply discounts/points, and set currency before save
+    beforeChange: [applyDiscountCode, applyPointsRedemption, calculateCartTotals],
     // Create order when cart status changes to 'converted'
     afterChange: [createOrderFromCart],
   },
@@ -189,19 +119,75 @@ export const Carts: CollectionConfig = {
         },
         {
           name: 'variation',
-          type: 'number',
+          type: 'relationship',
+          relationTo: 'product-variations',
           admin: {
-            description: 'Select a variation from the product',
+            description: 'Select a variation for this product',
             condition: (data, siblingData) => Boolean(siblingData?.product),
-            components: {
-              Field: '@/collections/Carts/VariationSelect#VariationSelectField',
-            },
+          },
+          // Filter variations to only show those for the selected product
+          // and exclude variations already selected in other cart items
+          filterOptions: ({ siblingData, data }): boolean | Where => {
+            const product = (siblingData as Record<string, unknown>)?.product as string | { id: string } | undefined
+            const productId = product
+              ? typeof product === 'object'
+                ? product.id
+                : product
+              : null
+
+            if (!productId) return false
+
+            // Get current variation ID (to not exclude itself when editing)
+            const currentVariation = (siblingData as Record<string, unknown>)?.variation as string | { id: string } | undefined
+            const currentVariationId = currentVariation
+              ? typeof currentVariation === 'object'
+                ? currentVariation.id
+                : currentVariation
+              : null
+
+            // Get all variation IDs already in the cart (except current item)
+            const items = (data as Record<string, unknown>)?.items as Array<{
+              product?: string | { id: string }
+              variation?: string | { id: string }
+            }> | undefined
+
+            const usedVariationIds: string[] = []
+            if (items && Array.isArray(items)) {
+              for (const item of items) {
+                const itemVariation = item?.variation
+                if (itemVariation) {
+                  const varId = typeof itemVariation === 'object' ? itemVariation.id : itemVariation
+                  // Don't exclude the current item's variation
+                  if (varId && varId !== currentVariationId) {
+                    usedVariationIds.push(varId)
+                  }
+                }
+              }
+            }
+
+            // Build filter
+            const filter: Where = {
+              product: {
+                equals: productId,
+              },
+              isActive: {
+                equals: true,
+              },
+            }
+
+            // Exclude already used variations
+            if (usedVariationIds.length > 0) {
+              filter.id = {
+                not_in: usedVariationIds,
+              }
+            }
+
+            return filter
           },
         },
         {
           name: 'price',
           type: 'number',
-          required: true,
           min: 0,
           admin: {
             description: 'Price (auto-populated from selected variation)',
@@ -298,6 +284,24 @@ export const Carts: CollectionConfig = {
       type: 'number',
       admin: {
         description: 'Discount amount applied (percentage of subtotal)',
+        readOnly: true,
+      },
+      defaultValue: 0,
+    },
+    {
+      name: 'pointsToRedeem',
+      type: 'number',
+      min: 0,
+      admin: {
+        description: 'Points to redeem as discount (1 point = 1 currency unit)',
+      },
+      defaultValue: 0,
+    },
+    {
+      name: 'pointsDiscount',
+      type: 'number',
+      admin: {
+        description: 'Discount from redeemed points (auto-calculated)',
         readOnly: true,
       },
       defaultValue: 0,

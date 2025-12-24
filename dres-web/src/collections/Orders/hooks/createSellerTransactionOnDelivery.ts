@@ -18,6 +18,11 @@ interface OrderItem {
   shippingStatus: string
 }
 
+// Final statuses - no more changes expected
+const FINAL_STATUSES = ['delivered', 'returned', 'not_available']
+// Pending statuses - still waiting for resolution
+const PENDING_STATUSES = ['placed', 'out_for_delivery', 'return_in_progress']
+
 export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = async ({
   doc,
   previousDoc,
@@ -33,109 +38,188 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
     const currentItems = (doc.items || []) as OrderItem[]
     const previousItems = (previousDoc?.items || []) as OrderItem[]
 
-    // Find items that changed to 'delivered'
+    // FIRST: Check if any item changed to 'return_in_progress' - delete seller's transaction
     for (let i = 0; i < currentItems.length; i++) {
       const currentItem = currentItems[i]
       const previousItem = previousItems[i]
 
-      // Get seller ID and product ID
-      const sellerId =
-        typeof currentItem.seller === 'object' ? currentItem.seller.id : currentItem.seller
-      const productId =
-        typeof currentItem.product === 'object' ? currentItem.product.id : currentItem.product
-      const itemId = currentItem.id || `${doc.id}-${i}`
-
-      // Check if this item just changed to 'delivered'
+      // Check if this item just changed to 'return_in_progress'
       if (
-        currentItem.shippingStatus === 'delivered' &&
-        previousItem?.shippingStatus !== 'delivered' &&
-        sellerId
+        currentItem.shippingStatus === 'return_in_progress' &&
+        previousItem?.shippingStatus !== 'return_in_progress'
       ) {
-        // Check if a transaction already exists for this order item
-        const existingTransaction = await payload.find({
-          collection: 'transactions',
-          where: {
-            and: [
-              { order: { equals: doc.id } },
-              { type: { equals: 'transfer' } },
-              { itemId: { equals: itemId } },
-            ],
-          },
-          limit: 1,
-        })
+        const sellerId = typeof currentItem.seller === 'object' 
+          ? currentItem.seller.id 
+          : currentItem.seller
 
-        // Skip if transaction already exists
-        if (existingTransaction.docs.length > 0) {
-          payload.logger.info(
-            `Transaction already exists for ${currentItem.productTitle} - skipping`,
-          )
-          continue
-        }
-
-        // Fetch seller details for payment info
-        const seller = await payload.findByID({
-          collection: 'users',
-          id: sellerId,
-          depth: 0,
-        })
-
-        // Get seller's withdrawal account details
-        const withdrawalAccount = seller?.withdrawalAccount as
-          | {
-              accountName?: string
-              accountNumber?: string
-              bank?: string
-            }
-          | undefined
-
-        // Calculate seller payout and platform fees
-        // originalPrice is the seller's base price, price is what customer paid (with platform markup)
-        const originalPrice = currentItem.originalPrice ?? currentItem.price
-        const shippingFee = currentItem.shippingFee || 0
-        const sellingPrice = currentItem.price * currentItem.quantity
-        const sellerPayout = (originalPrice * currentItem.quantity) + shippingFee
-        const fees = (currentItem.price - originalPrice) * currentItem.quantity
-
-        // Calculate paystack fees (1.95% of selling price) + 1 cedi transfer fee
-        const paystackFeesAmount = (1.95 / 100) * sellingPrice + 1
-        // Commission fees = platform fees - paystack fees
-        const commissionFees = fees - paystackFeesAmount
-
-        // Create transaction for this seller's delivered item
-        // Amount is what the seller receives (original price + shipping fee), fees is the platform cut
-        await payload.create({
-          collection: 'transactions',
-          data: {
-            transactionId: generateTransactionId(),
-            type: 'transfer',
-            status: 'pending',
-            user: sellerId,
-            order: doc.id,
-            itemId: itemId,
-            amount: sellerPayout,
-            fees: fees > 0 ? fees : 0,
-            paystackFees: Math.round(paystackFeesAmount * 100) / 100,
-            commissionFees:
-              Math.round(commissionFees * 100) / 100 > 0
-                ? Math.round(commissionFees * 100) / 100
-                : 0,
-            billingDetails: {
-              accountName:
-                withdrawalAccount?.accountName ||
-                seller?.shopName ||
-                `${seller?.firstName || ''} ${seller?.lastName || ''}`.trim() ||
-                '',
-              accountNumber: withdrawalAccount?.accountNumber || '',
-              bank: withdrawalAccount?.bank || '',
+        if (sellerId) {
+          // Find the seller's transaction for this order
+          const existingTransaction = await payload.find({
+            collection: 'transactions',
+            where: {
+              and: [
+                { order: { equals: doc.id } },
+                { type: { equals: 'transfer' } },
+                { user: { equals: sellerId } },
+                { status: { not_equals: 'completed' } }, // Only if not already completed
+              ],
             },
-            notes: `Seller payout for "${currentItem.productTitle}" (Qty: ${currentItem.quantity}). Original price: ${originalPrice}, Shipping: ${shippingFee}, Total payout: ${sellerPayout}`,
-          },
-        })
+            limit: 1,
+          })
 
-        payload.logger.info(
-          `Created seller transaction for delivered item: ${currentItem.productTitle} - Seller: ${currentItem.sellerName}, Payout: ${sellerPayout} (includes shipping: ${shippingFee}), Fees: ${fees}, Commission: ${commissionFees}`,
-        )
+          // Delete transaction if found (will be recreated when all items reach final status)
+          if (existingTransaction.docs.length > 0) {
+            const tx = existingTransaction.docs[0]
+            await payload.delete({
+              collection: 'transactions',
+              id: tx.id,
+            })
+
+            payload.logger.info(
+              `Transaction ${tx.id} deleted - item "${currentItem.productTitle}" return in progress. Will be recreated when all items reach final status.`,
+            )
+          }
+        }
       }
+    }
+
+    // Group items by seller
+    const itemsBySeller = new Map<string, OrderItem[]>()
+    for (const item of currentItems) {
+      const sellerId = typeof item.seller === 'object' ? item.seller.id : item.seller
+      if (!sellerId) continue
+      
+      if (!itemsBySeller.has(sellerId)) {
+        itemsBySeller.set(sellerId, [])
+      }
+      itemsBySeller.get(sellerId)!.push(item)
+    }
+
+    // Process each seller
+    for (const [sellerId, sellerItems] of itemsBySeller) {
+      // Check if ALL items for this seller have a FINAL status (delivered or returned)
+      const allFinal = sellerItems.every((item) => FINAL_STATUSES.includes(item.shippingStatus))
+      const anyPending = sellerItems.some((item) => PENDING_STATUSES.includes(item.shippingStatus))
+
+      // Skip if any items are still pending
+      if (!allFinal || anyPending) {
+        continue
+      }
+
+      // Get delivered items only (for payout calculation)
+      const deliveredItems = sellerItems.filter((item) => item.shippingStatus === 'delivered')
+
+      // Skip if no delivered items (all returned)
+      if (deliveredItems.length === 0) {
+        continue
+      }
+
+      // Check if we already have a status change to final for this seller
+      // by comparing with previous state
+      const previousSellerItems = previousItems.filter((item) => {
+        const prevSellerId = typeof item.seller === 'object' ? item.seller.id : item.seller
+        return prevSellerId === sellerId
+      })
+      
+      const previouslyAllFinal = previousSellerItems.length > 0 && 
+        previousSellerItems.every((item) => FINAL_STATUSES.includes(item.shippingStatus))
+
+      // Skip if seller items were already all final before this update
+      if (previouslyAllFinal) {
+        continue
+      }
+
+      // Check if a bulk transaction already exists for this seller on this order
+      const existingTransaction = await payload.find({
+        collection: 'transactions',
+        where: {
+          and: [
+            { order: { equals: doc.id } },
+            { type: { equals: 'transfer' } },
+            { user: { equals: sellerId } },
+          ],
+        },
+        limit: 1,
+      })
+
+      // Fetch seller details for payment info
+      const seller = await payload.findByID({
+        collection: 'users',
+        id: sellerId,
+        depth: 0,
+      })
+
+      // Get seller's withdrawal account details
+      const withdrawalAccount = seller?.withdrawalAccount as
+        | {
+            accountName?: string
+            accountNumber?: string
+            bank?: string
+          }
+        | undefined
+
+      // Calculate totals for delivered items
+      // Products: sum of (originalPrice × quantity) for all delivered items
+      // Shipping: ONE shipping fee (from first item)
+      let totalOriginalPrice = 0
+      let totalSellingPrice = 0
+      const itemIds: string[] = []
+      const productTitles: string[] = []
+
+      for (let i = 0; i < deliveredItems.length; i++) {
+        const item = deliveredItems[i]
+        const originalPrice = item.originalPrice ?? item.price
+        totalOriginalPrice += originalPrice * item.quantity
+        totalSellingPrice += item.price * item.quantity
+        itemIds.push(item.id || `${doc.id}-${currentItems.indexOf(item)}`)
+        productTitles.push(`${item.productTitle} (Qty: ${item.quantity})`)
+      }
+
+      // Only ONE shipping fee per seller (from first delivered item)
+      const shippingFee = deliveredItems[0]?.shippingFee || 0
+
+      // Seller payout = total original prices + ONE shipping fee
+      const sellerPayout = totalOriginalPrice + shippingFee
+
+      // Platform fees = selling price - original price (the 10% markup)
+      const platformFees = totalSellingPrice - totalOriginalPrice
+
+      // Paystack fees = 1.95% of selling price + 1 cedi transfer fee
+      const paystackFeesAmount = (0.0195 * totalSellingPrice) + 1
+
+      // Commission = platform fees - paystack fees
+      const commissionFees = platformFees - paystackFeesAmount
+
+      // Create ONE bulk transaction for this seller
+      await payload.create({
+        collection: 'transactions',
+        data: {
+          transactionId: generateTransactionId(),
+          type: 'transfer',
+          status: 'pending',
+          user: sellerId,
+          order: doc.id,
+          itemId: itemIds.join(','), // Store all item IDs
+          amount: Math.round(sellerPayout * 100) / 100,
+          fees: platformFees > 0 ? Math.round(platformFees * 100) / 100 : 0,
+          paystackFees: Math.round(paystackFeesAmount * 100) / 100,
+          commissionFees: commissionFees > 0 ? Math.round(commissionFees * 100) / 100 : 0,
+          billingDetails: {
+            accountName:
+              withdrawalAccount?.accountName ||
+              seller?.shopName ||
+              `${seller?.firstName || ''} ${seller?.lastName || ''}`.trim() ||
+              '',
+            accountNumber: withdrawalAccount?.accountNumber || '',
+            bank: withdrawalAccount?.bank || '',
+          },
+          notes: `Bulk seller payout for ${deliveredItems.length} item(s): ${productTitles.join(', ')}. Products: ${totalOriginalPrice}, Shipping: ${shippingFee}, Total: ${sellerPayout}`,
+        },
+      })
+
+      payload.logger.info(
+        `Created BULK seller transaction for ${deliveredItems.length} delivered items. Seller: ${seller?.shopName || sellerId}, Payout: ${sellerPayout} (Products: ${totalOriginalPrice}, Shipping: ${shippingFee}), Fees: ${platformFees}, Commission: ${commissionFees}`,
+      )
     }
   } catch (error) {
     payload.logger.error(`Error creating seller transaction: ${error}`)

@@ -53,15 +53,21 @@ export const applyDiscountCode: CollectionBeforeChangeHook = async ({
       : originalDoc.discountCode
     : null
 
-  // If no change in discount code, skip validation but still calculate
+  // If no change in discount code and no discount code, skip
   if (discountCodeId === previousDiscountCodeId && !discountCodeId) {
-    data.discountAmount = 0
+    // Only set discountAmount if it's not already 0
+    if (originalDoc?.discountAmount !== 0) {
+      data.discountAmount = 0
+    }
     return data
   }
 
   // If discount code is removed
   if (!discountCodeId) {
-    data.discountAmount = 0
+    // Only update if there was a previous discount
+    if (originalDoc?.discountAmount !== 0) {
+      data.discountAmount = 0
+    }
     return data
   }
 

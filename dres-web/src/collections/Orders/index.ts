@@ -8,6 +8,7 @@ import { calculateTotalCommission } from './hooks/calculateTotalCommission'
 import { updateSalesStats } from './hooks/updateSalesStats'
 import { reduceStockOnOrder } from './hooks/reduceStockOnOrder'
 import { restoreStockOnReturn } from './hooks/restoreStockOnReturn'
+import { awardPointsOnDelivery } from './hooks/awardPointsOnDelivery'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -47,9 +48,9 @@ export const Orders: CollectionConfig = {
     },
   },
   hooks: {
-    beforeChange: [calculateOrderTotalsAndStatus, calculateTotalCommission],
-    // Reduce stock on order creation, restore stock on return, create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats
-    afterChange: [reduceStockOnOrder, restoreStockOnReturn, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats],
+    beforeChange: [calculateOrderTotalsAndStatus],
+    // Reduce stock on order creation, restore stock on return, create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats, award points, then calculate commission
+    afterChange: [reduceStockOnOrder, restoreStockOnReturn, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats, awardPointsOnDelivery, calculateTotalCommission],
   },
   fields: [
     {
@@ -347,7 +348,7 @@ export const Orders: CollectionConfig = {
                   required: true,
                   defaultValue: 0,
                   admin: {
-                    description: 'Grand total (products + shipping + buyer protection - discount)',
+                    description: 'Grand total (products + shipping + buyer protection - discount - points)',
                     readOnly: true,
                     width: '25%',
                   },
@@ -398,11 +399,36 @@ export const Orders: CollectionConfig = {
               ],
             },
             {
+              type: 'row',
+              fields: [
+                {
+                  name: 'pointsRedeemed',
+                  type: 'number',
+                  defaultValue: 0,
+                  admin: {
+                    description: 'Points redeemed for this order',
+                    readOnly: true,
+                    width: '50%',
+                  },
+                },
+                {
+                  name: 'pointsDiscount',
+                  type: 'number',
+                  defaultValue: 0,
+                  admin: {
+                    description: 'Discount from redeemed points',
+                    readOnly: true,
+                    width: '50%',
+                  },
+                },
+              ],
+            },
+            {
               name: 'totalCommission',
               type: 'number',
               defaultValue: 0,
               admin: {
-                description: 'Total platform commission (buyer protection + commission fees - returned shipping - discount)',
+                description: 'Grand Total - Seller Payout - Paystack Fee - Transfer Fees + Buyer Protection',
                 readOnly: true,
               },
             },

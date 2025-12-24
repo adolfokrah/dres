@@ -44,6 +44,24 @@ export const Currencies: CollectionConfig = {
       },
     },
     {
+      name: 'exchangeRateToGHS',
+      type: 'number',
+      required: true,
+      defaultValue: 1,
+      min: 0,
+      admin: {
+        description: 'Exchange rate to GHS (base currency). E.g., 1 USD = 15 GHS → enter 15. For GHS, enter 1.',
+      },
+    },
+    {
+      name: 'isBaseCurrency',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Is this the base currency (GHS)? Only one currency should be marked as base.',
+      },
+    },
+    {
       name: 'isActive',
       type: 'checkbox',
       defaultValue: true,

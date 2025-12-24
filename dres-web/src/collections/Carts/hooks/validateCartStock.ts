@@ -3,9 +3,53 @@ import { APIError } from 'payload'
 
 interface CartItem {
   product: string | { id: string }
-  variation?: number | null
+  variation?: string | { id: string } | null
   quantity?: number
-  productTitle?: string
+}
+
+interface ProductVariation {
+  id: string
+  sku?: string
+  options?: Array<string | { id: string; name?: string }>
+  stock?: number | null
+  isActive?: boolean
+}
+
+/**
+ * Get variation label from its options
+ */
+async function getVariationLabel(
+  payload: any,
+  variation: ProductVariation,
+): Promise<string> {
+  if (!variation.options || variation.options.length === 0) {
+    return variation.sku || 'Variation'
+  }
+
+  const optionNames: string[] = []
+
+  for (const opt of variation.options) {
+    if (typeof opt === 'object' && opt.name) {
+      optionNames.push(opt.name)
+    } else {
+      // Fetch option name if only ID
+      const optionId = typeof opt === 'object' ? opt.id : opt
+      try {
+        const option = await payload.findByID({
+          collection: 'attributeOptions',
+          id: optionId,
+          depth: 0,
+        })
+        if (option?.name) {
+          optionNames.push(option.name)
+        }
+      } catch {
+        // Skip if can't fetch
+      }
+    }
+  }
+
+  return optionNames.length > 0 ? optionNames.join(' / ') : (variation.sku || 'Variation')
 }
 
 export const validateCartStock: CollectionBeforeValidateHook = async ({
@@ -34,36 +78,47 @@ export const validateCartStock: CollectionBeforeValidateHook = async ({
       const product = await payload.findByID({
         collection: 'products',
         id: productId,
-        depth: 0,
+        depth: 1, // Get variations join
       })
 
       if (!product) {
-        errors.push(`Product not found`)
+        errors.push('Product not found')
         continue
       }
 
-      const productTitle = product.title || item.productTitle || 'Unknown product'
+      const productTitle = product.title || 'This product'
 
-      // Check if product has variations
-      const variations = product.variations as Array<{
-        options: Record<string, string>
-        stock?: number | null
-      }> | undefined
-
+      // Check if product has variations (via join)
+      const variations = product.variations?.docs as ProductVariation[] | undefined
       const hasVariations = variations && variations.length > 0
 
       if (hasVariations) {
-        // Product has variations - check variation stock
-        const variationIndex = item.variation
+        // Product has variations - need to select one
+        const variationId = item.variation
+          ? typeof item.variation === 'object'
+            ? item.variation.id
+            : item.variation
+          : null
 
-        if (variationIndex === null || variationIndex === undefined) {
+        if (!variationId) {
           errors.push(`"${productTitle}" requires a variation to be selected`)
           continue
         }
 
-        const variation = variations[variationIndex]
+        // Fetch the specific variation
+        const variation = await payload.findByID({
+          collection: 'product-variations',
+          id: variationId,
+          depth: 1, // Get options
+        }) as ProductVariation | null
+
         if (!variation) {
           errors.push(`Invalid variation selected for "${productTitle}"`)
+          continue
+        }
+
+        if (!variation.isActive) {
+          errors.push(`Selected variation for "${productTitle}" is no longer available`)
           continue
         }
 
@@ -71,17 +126,12 @@ export const validateCartStock: CollectionBeforeValidateHook = async ({
 
         // Check if variation is sold out (stock = 0, not null/undefined which means unlimited)
         if (variationStock !== null && variationStock !== undefined) {
+          const variationLabel = await getVariationLabel(payload, variation)
+
           if (variationStock === 0) {
-            // Build variation description from options
-            const optionsDesc = variation.options 
-              ? Object.entries(variation.options).map(([k, v]) => `${k}: ${v}`).join(', ')
-              : `Variation ${variationIndex + 1}`
-            errors.push(`"${productTitle}" (${optionsDesc}) is sold out`)
+            errors.push(`"${productTitle}" (${variationLabel}) is sold out`)
           } else if (variationStock < quantity) {
-            const optionsDesc = variation.options 
-              ? Object.entries(variation.options).map(([k, v]) => `${k}: ${v}`).join(', ')
-              : `Variation ${variationIndex + 1}`
-            errors.push(`"${productTitle}" (${optionsDesc}) only has ${variationStock} in stock, but you requested ${quantity}`)
+            errors.push(`"${productTitle}" (${variationLabel}) only has ${variationStock} in stock`)
           }
         }
       } else {
@@ -93,7 +143,7 @@ export const validateCartStock: CollectionBeforeValidateHook = async ({
           if (productStock === 0) {
             errors.push(`"${productTitle}" is sold out`)
           } else if (productStock < quantity) {
-            errors.push(`"${productTitle}" only has ${productStock} in stock, but you requested ${quantity}`)
+            errors.push(`"${productTitle}" only has ${productStock} in stock`)
           }
         }
       }
@@ -103,7 +153,7 @@ export const validateCartStock: CollectionBeforeValidateHook = async ({
   }
 
   if (errors.length > 0) {
-    throw new APIError(errors.join('. '), 400)
+    throw new APIError(errors.join('\n'), 400)
   }
 
   return data

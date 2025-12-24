@@ -11,12 +11,6 @@ interface OrderItem {
   shippingStatus: string
 }
 
-interface Variation {
-  id?: string
-  options: Record<string, string>
-  stock?: number | null
-}
-
 export const restoreStockOnReturn: CollectionAfterChangeHook = async ({
   doc,
   previousDoc,
@@ -48,57 +42,58 @@ export const restoreStockOnReturn: CollectionAfterChangeHook = async ({
         
         if (!productId) continue
 
-        // Fetch the product
-        const product = await payload.findByID({
-          collection: 'products',
-          id: productId,
-          depth: 0,
-        })
-
-        if (!product) continue
-
-        // Check if product has variations
-        const variations = product.variations as Variation[] | undefined
-        const hasVariations = variations && variations.length > 0
         const variationId = currentItem.variationId
 
-        // If product has variations and item has a variation ID, restore variation stock
-        if (hasVariations && variationId) {
-          // Find the variation by ID
-          const variationIndex = variations.findIndex((v) => v.id === variationId)
-          
-          if (variationIndex >= 0) {
-            const currentStock = variations[variationIndex].stock
-            
-            // Skip if stock is null/undefined (unlimited stock)
-            if (currentStock === null || currentStock === undefined) {
-              payload.logger.info(
-                `Skipping stock restore for product ${productId} variation ${variationId} - unlimited stock`,
-              )
-              continue
-            }
-            
-            const newStock = currentStock + currentItem.quantity
-            
-            // Update the variation stock
-            variations[variationIndex].stock = newStock
-            
-            await payload.update({
-              collection: 'products',
-              id: productId,
-              data: {
-                variations: variations,
-              },
-            })
-            
-            payload.logger.info(
-              `Restored stock for product ${productId} variation ${variationId} on return: ${currentStock} -> ${newStock}`,
-            )
+        // If item has a variation ID, restore variation stock
+        if (variationId) {
+          // Fetch the variation from product-variations collection
+          const variation = await payload.findByID({
+            collection: 'product-variations',
+            id: variationId,
+            depth: 0,
+          })
+
+          if (!variation) {
+            payload.logger.warn(`Variation ${variationId} not found for stock restore`)
+            continue
           }
-        } else if (!hasVariations) {
-          // No variations - restore product-level stock
+
+          const currentStock = variation.stock
+
+          // Skip if stock is null/undefined (unlimited stock)
+          if (currentStock === null || currentStock === undefined) {
+            payload.logger.info(
+              `Skipping stock restore for variation ${variationId} - unlimited stock`,
+            )
+            continue
+          }
+
+          const newStock = currentStock + currentItem.quantity
+
+          // Update the variation stock directly in product-variations collection
+          await payload.update({
+            collection: 'product-variations',
+            id: variationId,
+            data: {
+              stock: newStock,
+            },
+          })
+
+          payload.logger.info(
+            `Restored stock for variation ${variationId} on return: ${currentStock} -> ${newStock}`,
+          )
+        } else {
+          // No variation - restore product-level stock
+          const product = await payload.findByID({
+            collection: 'products',
+            id: productId,
+            depth: 0,
+          })
+
+          if (!product) continue
+
           const currentStock = product.stock as number | null | undefined
-          
+
           // Skip if stock is null/undefined (unlimited stock)
           if (currentStock === null || currentStock === undefined) {
             payload.logger.info(
@@ -106,9 +101,9 @@ export const restoreStockOnReturn: CollectionAfterChangeHook = async ({
             )
             continue
           }
-          
+
           const newStock = currentStock + currentItem.quantity
-          
+
           await payload.update({
             collection: 'products',
             id: productId,
@@ -116,7 +111,7 @@ export const restoreStockOnReturn: CollectionAfterChangeHook = async ({
               stock: newStock,
             },
           })
-          
+
           payload.logger.info(
             `Restored stock for product ${productId} on return: ${currentStock} -> ${newStock}`,
           )

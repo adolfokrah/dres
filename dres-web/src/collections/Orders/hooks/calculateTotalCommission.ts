@@ -1,35 +1,46 @@
-import type { CollectionBeforeChangeHook } from 'payload'
+import type { CollectionAfterChangeHook } from 'payload'
 
 interface OrderItem {
   buyerProtectionFee?: number
-  shippingFee?: number
   shippingStatus?: string
 }
 
-export const calculateTotalCommission: CollectionBeforeChangeHook = async ({
-  data,
+/**
+ * Calculate platform commission using simple formula:
+ * Total Commission = Commission Fees (from transactions) + Buyer Protection Fees - Discount Amount - Points Discount
+ * 
+ * Where:
+ * - Commission Fees = Sum of commissionFees from all transfer transactions for this order
+ * - Buyer Protection Fees = Sum of buyer protection fees from delivered items
+ * - Discount Amount = Discount applied to the order
+ * - Points Discount = Points redeemed as discount
+ * 
+ * This runs AFTER order changes, so transactions are already created
+ */
+export const calculateTotalCommission: CollectionAfterChangeHook = async ({
+  doc,
   req,
-  operation,
-  originalDoc,
+  context,
 }) => {
+  // Skip if this update was triggered by commission calculation (prevent infinite loop)
+  if (context?.skipCommissionCalculation) {
+    return doc
+  }
+
   const payload = req.payload
 
   try {
-    const items = (data?.items || []) as OrderItem[]
-    const orderId = originalDoc?.id
-    const discountAmount = data?.discountAmount || 0
+    const items = (doc?.items || []) as OrderItem[]
+    const orderId = doc?.id
+    const discountAmount = doc?.discountAmount || 0
+    const pointsDiscount = doc?.pointsDiscount || 0
 
-    // Sum up buyer protection fees from all items
-    const totalBuyerProtection = items.reduce((sum, item) => {
+    // Get delivered items for buyer protection fees
+    const deliveredItems = items.filter((item) => item.shippingStatus === 'delivered')
+
+    // Calculate total buyer protection fees from delivered items
+    const totalBuyerProtectionFee = deliveredItems.reduce((sum, item) => {
       return sum + (item.buyerProtectionFee || 0)
-    }, 0)
-
-    // Sum up shipping fees for returned items (we lose this)
-    const returnedShippingFees = items.reduce((sum, item) => {
-      if (item.shippingStatus === 'returned') {
-        return sum + (item.shippingFee || 0)
-      }
-      return sum
     }, 0)
 
     // Get commission fees from transactions for this order
@@ -52,18 +63,32 @@ export const calculateTotalCommission: CollectionBeforeChangeHook = async ({
       }, 0)
     }
 
-    // Calculate total commission
-    // = Buyer Protection Fees + Commission Fees - Returned Shipping Fees - Discount Amount
-    const totalCommission = totalBuyerProtection + totalCommissionFees - returnedShippingFees - discountAmount
+    // Total Commission = Commission Fees + Buyer Protection Fees - Discount Amount - Points Discount
+    // Can be negative (for accounting purposes)
+    const totalCommission = totalCommissionFees + totalBuyerProtectionFee - discountAmount - pointsDiscount
+    const roundedCommission = Math.round(totalCommission * 100) / 100
 
-    data.totalCommission = Math.round(Math.max(0, totalCommission) * 100) / 100
+    // Only update if commission has changed
+    if (doc.totalCommission !== roundedCommission) {
+      await payload.update({
+        collection: 'orders',
+        id: orderId,
+        data: {
+          totalCommission: roundedCommission,
+        },
+        // Prevent infinite loop - don't trigger hooks
+        context: {
+          skipCommissionCalculation: true,
+        },
+      })
 
-    payload.logger.info(
-      `Order commission calculated: Buyer Protection: ${totalBuyerProtection}, Commission Fees: ${totalCommissionFees}, Returned Shipping: ${returnedShippingFees}, Discount: ${discountAmount}, Total: ${data.totalCommission}`,
-    )
+      payload.logger.info(
+        `Order commission updated: Commission Fees: ${totalCommissionFees}, Buyer Protection: ${totalBuyerProtectionFee}, Discount: ${discountAmount}, Points Discount: ${pointsDiscount}, Total: ${roundedCommission}`,
+      )
+    }
   } catch (error) {
     payload.logger.error(`Error calculating total commission: ${error}`)
   }
 
-  return data
+  return doc
 }

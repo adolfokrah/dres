@@ -81,29 +81,75 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
       let variationOptions: Record<string, string> | null = null
       let variationId: string | null = null
       
-      if (item.variation !== null && item.variation !== undefined && product.variations?.[item.variation]) {
-        const variation = product.variations[item.variation]
-        variationId = variation.id || null
+      // item.variation is now a relationship to product-variations collection
+      const variationRef = item.variation
+      if (variationRef) {
+        const varId = typeof variationRef === 'object' ? variationRef.id : variationRef
         
-        const opts = variation.options
-        if (opts && typeof opts === 'object' && !Array.isArray(opts)) {
-          // Resolve option IDs to their names
-          const resolvedOptions: Record<string, string> = {}
-          for (const [attrName, optionId] of Object.entries(opts)) {
-            if (optionId && typeof optionId === 'string') {
-              try {
-                const option = await payload.findByID({
-                  collection: 'attributeOptions',
-                  id: optionId,
-                  depth: 0,
-                })
-                resolvedOptions[attrName] = option?.name || optionId
-              } catch {
-                resolvedOptions[attrName] = String(optionId)
+        // Fetch the variation with depth 2 to get attribute names
+        const variation = await payload.findByID({
+          collection: 'product-variations',
+          id: varId,
+          depth: 2, // Get options AND their attributes
+        })
+        
+        if (variation) {
+          variationId = variation.id
+          
+          // variation.options is now an array of attributeOption relationships
+          const opts = variation.options
+          if (opts && Array.isArray(opts) && opts.length > 0) {
+            const resolvedOptions: Record<string, string> = {}
+            for (const opt of opts) {
+              if (typeof opt === 'object' && opt !== null) {
+                // Option is populated
+                const optionName = opt.name || 'Unknown'
+                
+                // Get attribute name
+                let attrName = 'Option'
+                if (opt.attribute) {
+                  if (typeof opt.attribute === 'object' && opt.attribute !== null) {
+                    attrName = opt.attribute.name || 'Option'
+                  } else if (typeof opt.attribute === 'string') {
+                    // Attribute is just an ID, fetch it
+                    try {
+                      const attr = await payload.findByID({
+                        collection: 'attributes',
+                        id: opt.attribute,
+                        depth: 0,
+                      })
+                      attrName = attr?.name || 'Option'
+                    } catch {
+                      // Use default
+                    }
+                  }
+                }
+                resolvedOptions[attrName] = optionName
+              } else if (typeof opt === 'string') {
+                // Option is just an ID, fetch it with attribute
+                try {
+                  const option = await payload.findByID({
+                    collection: 'attributeOptions',
+                    id: opt,
+                    depth: 1,
+                  })
+                  if (option) {
+                    const optionName = option.name || 'Unknown'
+                    let attrName = 'Option'
+                    if (option.attribute) {
+                      if (typeof option.attribute === 'object' && option.attribute !== null) {
+                        attrName = option.attribute.name || 'Option'
+                      }
+                    }
+                    resolvedOptions[attrName] = optionName
+                  }
+                } catch {
+                  // Skip if can't fetch
+                }
               }
             }
+            variationOptions = Object.keys(resolvedOptions).length > 0 ? resolvedOptions : null
           }
-          variationOptions = Object.keys(resolvedOptions).length > 0 ? resolvedOptions : null
         }
       }
 
@@ -125,10 +171,15 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
 
       // Get original price (base price without platform fees)
       let originalPrice = product.price || 0
-      if (item.variation !== null && item.variation !== undefined && product.variations?.[item.variation]) {
-        const variation = product.variations[item.variation]
-        if (variation.price) {
-          originalPrice = variation.price
+      if (variationId) {
+        // Variation price was already fetched above, let's fetch it again if needed
+        const variationForPrice = await payload.findByID({
+          collection: 'product-variations',
+          id: variationId,
+          depth: 0,
+        })
+        if (variationForPrice?.price) {
+          originalPrice = variationForPrice.price
         }
       }
 
@@ -240,7 +291,8 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
     const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
     const totalShipping = orderItems.reduce((sum, item) => sum + (item.shippingFee || 0), 0)
     const totalBuyerProtection = orderItems.reduce((sum, item) => sum + (item.buyerProtectionFee || 0), 0)
-    const grandTotal = Math.max(0, subtotal + totalShipping + totalBuyerProtection - discountAmount)
+    const pointsDiscount = doc.pointsDiscount || 0
+    const grandTotal = Math.max(0, subtotal + totalShipping + totalBuyerProtection - discountAmount - pointsDiscount)
 
     // Create the order
     const order = await payload.create({
@@ -257,6 +309,8 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         discountCode: discountCodeId || undefined,
         discountCodeUsed,
         discountAmount,
+        pointsRedeemed: doc.pointsToRedeem || 0,
+        pointsDiscount: doc.pointsDiscount || 0,
         currency: currencyId || undefined,
         shippingDetails: {
           fullName: `${cartCustomer?.firstName || ''} ${cartCustomer?.lastName || ''}`.trim() || '',
@@ -276,6 +330,56 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         placedAt: new Date().toISOString(),
       },
     })
+
+    // Deduct redeemed points from user balance
+    if (doc.pointsToRedeem && doc.pointsToRedeem > 0) {
+      try {
+        const customerId = typeof doc.customer === 'object' ? doc.customer.id : doc.customer
+        const userPoints = await payload.find({
+          collection: 'user-points',
+          where: {
+            user: { equals: customerId },
+          },
+          limit: 1,
+        })
+
+        if (userPoints.docs.length > 0) {
+          const existingPoints = userPoints.docs[0]
+          const currentHistory = (existingPoints.history || []) as Array<{
+            type: 'earned' | 'redeemed' | 'expired' | 'adjusted'
+            points: number
+            description?: string
+            order?: string
+            createdAt?: string
+          }>
+
+          await payload.update({
+            collection: 'user-points',
+            id: existingPoints.id,
+            data: {
+              balance: Math.max(0, (existingPoints.balance || 0) - doc.pointsToRedeem),
+              totalRedeemed: (existingPoints.totalRedeemed || 0) + doc.pointsToRedeem,
+              history: [
+                ...currentHistory,
+                {
+                  type: 'redeemed' as const,
+                  points: -doc.pointsToRedeem,
+                  description: `Redeemed for order ${order.orderId}`,
+                  order: order.id,
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+            },
+          })
+
+          payload.logger.info(
+            `Deducted ${doc.pointsToRedeem} points from user ${customerId} for order ${order.orderId}`,
+          )
+        }
+      } catch (error) {
+        payload.logger.error(`Error deducting points: ${error}`)
+      }
+    }
 
     // Update discount code usage if one was applied
     if (discountCodeId) {

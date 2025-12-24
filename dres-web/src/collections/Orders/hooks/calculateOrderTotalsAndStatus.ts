@@ -12,7 +12,10 @@ const generateOrderId = (): string => {
 interface OrderItem {
   quantity?: number
   price?: number
+  shippingFee?: number
+  buyerProtectionFee?: number
   shippingStatus?: string
+  seller?: string | { id: string }
 }
 
 export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = ({ data, operation }) => {
@@ -21,20 +24,62 @@ export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = ({ data
     data.orderId = generateOrderId()
   }
 
-  // Calculate totals from items
+  // Calculate totals from DELIVERED items only
   if (data?.items && Array.isArray(data.items)) {
-    data.totalItems = data.items.reduce((total: number, item: OrderItem) => {
+    const items = data.items as OrderItem[]
+    
+    // Filter to delivered items only for totals
+    const deliveredItems = items.filter((item) => item.shippingStatus === 'delivered')
+
+    // Group delivered items by seller (for shipping fee - one per seller)
+    const itemsBySeller = new Map<string, OrderItem[]>()
+    for (const item of deliveredItems) {
+      const sellerId = item.seller 
+        ? (typeof item.seller === 'object' ? item.seller.id : item.seller)
+        : 'unknown'
+      
+      if (!itemsBySeller.has(sellerId)) {
+        itemsBySeller.set(sellerId, [])
+      }
+      itemsBySeller.get(sellerId)!.push(item)
+    }
+
+    // Calculate totals from delivered items
+    // Total items = sum of quantities from delivered items
+    data.totalItems = deliveredItems.reduce((total: number, item: OrderItem) => {
       return total + (item.quantity || 0)
     }, 0)
 
-    data.totalAmount = data.items.reduce((total: number, item: OrderItem) => {
+    // Subtotal = sum of (price × quantity) from delivered items
+    const subtotal = deliveredItems.reduce((total: number, item: OrderItem) => {
       const quantity = item.quantity || 0
       const price = item.price || 0
       return total + quantity * price
     }, 0)
 
-    // Auto-update order status based on item statuses
-    const itemStatuses = data.items.map((item: OrderItem) => item.shippingStatus)
+    // Total shipping = ONE shipping fee per seller (from first item of each seller)
+    let totalShipping = 0
+    let totalBuyerProtection = 0
+    for (const [, sellerItems] of itemsBySeller) {
+      // One shipping fee per seller
+      totalShipping += sellerItems[0]?.shippingFee || 0
+      // Sum all buyer protection fees
+      for (const item of sellerItems) {
+        totalBuyerProtection += item.buyerProtectionFee || 0
+      }
+    }
+
+    // Grand total = subtotal + shipping + buyer protection - discounts
+    const discountAmount = data.discountAmount || 0
+    const pointsDiscount = data.pointsDiscount || 0
+    const grandTotal = subtotal + totalShipping + totalBuyerProtection - discountAmount - pointsDiscount
+
+    data.subtotal = Math.round(subtotal * 100) / 100
+    data.grandTotal = Math.round(Math.max(0, grandTotal) * 100) / 100
+    data.totalAmount = data.grandTotal // Keep totalAmount in sync
+
+    // Auto-update order status based on item statuses (all items, not just delivered)
+    const itemStatuses = items.map((item: OrderItem) => item.shippingStatus)
 
     if (itemStatuses.length > 0) {
       const allPlaced = itemStatuses.every((status) => status === 'placed')
