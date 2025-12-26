@@ -1,14 +1,16 @@
 import type { Payload } from 'payload'
 
 // Attributes used for product variations and filtering
+// level: 'variation' = used at Variation level (e.g., Color)
+// level: 'sku' = used at SKU level (e.g., Size)
 const attributesData = [
-  { name: 'Size' },
-  { name: 'Color' },
-  { name: 'Material' },
-  { name: 'Fit' },
-  { name: 'Length' },
-  { name: 'Condition' },
-  { name: 'Heel Height' },
+  { name: 'Size', level: 'sku' as const },
+  { name: 'Color', level: 'variation' as const },
+  { name: 'Material', level: 'variation' as const },
+  { name: 'Fit', level: 'variation' as const },
+  { name: 'Length', level: 'variation' as const },
+  { name: 'Condition', level: 'variation' as const },
+  { name: 'Heel Height', level: 'sku' as const },
 ]
 
 export const seedAttributes = async (payload: Payload): Promise<void> => {
@@ -27,9 +29,15 @@ export const seedAttributes = async (payload: Payload): Promise<void> => {
         collection: 'attributes',
         data: attribute,
       })
-      payload.logger.info(`Created attribute: ${attribute.name}`)
+      payload.logger.info(`Created attribute: ${attribute.name} (${attribute.level} level)`)
     } else {
-      payload.logger.info(`Attribute already exists: ${attribute.name}`)
+      // Update existing attribute with level if not set
+      await payload.update({
+        collection: 'attributes',
+        id: existing.docs[0].id,
+        data: { level: attribute.level },
+      })
+      payload.logger.info(`Updated attribute: ${attribute.name} (${attribute.level} level)`)
     }
   }
 }

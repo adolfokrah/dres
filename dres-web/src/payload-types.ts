@@ -112,8 +112,8 @@ export interface Config {
   };
   collectionsJoins: {
     attributes: {
-      categories: 'categories';
       options: 'attributeOptions';
+      categories: 'categories';
     };
     styles: {
       variations: 'variations';
@@ -1011,18 +1011,22 @@ export interface Attribute {
    */
   name: string;
   /**
-   * Categories that use this attribute
+   * Where this attribute should be used - Variation (e.g., Color) or SKU (e.g., Size)
    */
-  categories?: {
-    docs?: (string | Category)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
+  level: 'variation' | 'sku';
   /**
    * Options available for this attribute
    */
   options?: {
     docs?: (string | AttributeOption)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Categories that use this attribute
+   */
+  categories?: {
+    docs?: (string | Category)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
@@ -1117,12 +1121,12 @@ export interface Variation {
    */
   style: string | Style;
   /**
-   * Variant options (e.g., Color: Red, Size: Large)
+   * Variant options (e.g., Color: Red, Material: Leather)
    */
   variants?:
     | {
         /**
-         * Select the attribute type (e.g., Color, Size)
+         * Select the attribute type (e.g., Color, Material)
          */
         variant: string | Attribute;
         /**
@@ -1159,6 +1163,7 @@ export interface Variation {
  */
 export interface Skus {
   id: string;
+  title?: string | null;
   /**
    * Unique SKU code (auto-generated if empty)
    */
@@ -1167,6 +1172,22 @@ export interface Skus {
    * The variation this SKU belongs to
    */
   variation: string | Variation;
+  /**
+   * SKU options (e.g., Size: M)
+   */
+  skuOptions?:
+    | {
+        /**
+         * Select the attribute type (e.g., Size)
+         */
+        option: string | Attribute;
+        /**
+         * Select the value for this attribute
+         */
+        value?: (string | null) | AttributeOption;
+        id?: string | null;
+      }[]
+    | null;
   /**
    * Base price for this SKU
    */
@@ -3005,8 +3026,9 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface AttributesSelect<T extends boolean = true> {
   name?: T;
-  categories?: T;
+  level?: T;
   options?: T;
+  categories?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3078,8 +3100,16 @@ export interface VariationsSelect<T extends boolean = true> {
  * via the `definition` "skus_select".
  */
 export interface SkusSelect<T extends boolean = true> {
+  title?: T;
   sku?: T;
   variation?: T;
+  skuOptions?:
+    | T
+    | {
+        option?: T;
+        value?: T;
+        id?: T;
+      };
   price?: T;
   sellingPrice?: T;
   compareAtPrice?: T;

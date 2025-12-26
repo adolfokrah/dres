@@ -74,22 +74,22 @@ const categoriesData = [
 ]
 
 export const seedCategories = async (payload: Payload): Promise<void> => {
-  // Must delete products first due to foreign key constraint on category
-  payload.logger.info('Clearing products (required before categories)...')
+  // Must delete variations first due to foreign key constraint on category
+  payload.logger.info('Clearing variations (required before categories)...')
 
-  const existingProducts = await payload.find({
-    collection: 'products',
+  const existingVariations = await payload.find({
+    collection: 'variations',
     limit: 1000,
   })
 
-  for (const doc of existingProducts.docs) {
+  for (const doc of existingVariations.docs) {
     await payload.delete({
-      collection: 'products',
+      collection: 'variations',
       id: doc.id,
     })
   }
 
-  payload.logger.info(`Deleted ${existingProducts.docs.length} products`)
+  payload.logger.info(`Deleted ${existingVariations.docs.length} variations`)
 
   payload.logger.info('Clearing categories...')
 

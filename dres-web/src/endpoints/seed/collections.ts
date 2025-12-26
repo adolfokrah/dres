@@ -29,12 +29,31 @@ export const seedCollections = async (payload: Payload): Promise<void> => {
   payload.logger.info(`Deleted ${existingCollections.docs.length} collections`)
   payload.logger.info('Seeding collections...')
 
+  // Fetch all departments to get their IDs
+  const departmentsResult = await payload.find({
+    collection: 'departments',
+    limit: 100,
+  })
+  
+  const departmentMap = new Map<string, string>()
+  for (const dept of departmentsResult.docs) {
+    departmentMap.set(dept.name, dept.id)
+  }
+
   for (const collection of collectionsData) {
+    // Get department IDs for this collection
+    const departmentIds = collection.departments
+      .map(deptName => departmentMap.get(deptName))
+      .filter((id): id is string => id !== undefined)
+
     await payload.create({
       collection: 'collections',
-      data: { name: collection.name },
+      data: { 
+        name: collection.name,
+        departments: departmentIds,
+      },
     })
-    payload.logger.info(`Created collection: ${collection.name}`)
+    payload.logger.info(`Created collection: ${collection.name} (${departmentIds.length} departments)`)
   }
 
   payload.logger.info(`Collections seeding complete! (${collectionsData.length} collections)`)

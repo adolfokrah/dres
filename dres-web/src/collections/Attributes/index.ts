@@ -28,12 +28,16 @@ export const Attributes: CollectionConfig = {
       },
     },
     {
-      name: 'categories',
-      type: 'join',
-      collection: 'categories',
-      on: 'attributes',
+      name: 'level',
+      type: 'select',
+      required: true,
+      defaultValue: 'variation',
+      options: [
+        { label: 'Variation Level', value: 'variation' },
+        { label: 'SKU Level', value: 'sku' },
+      ],
       admin: {
-        description: 'Categories that use this attribute',
+        description: 'Where this attribute should be used - Variation (e.g., Color) or SKU (e.g., Size)',
       },
     },
     {
@@ -45,6 +49,16 @@ export const Attributes: CollectionConfig = {
         description: 'Options available for this attribute',
       },
     },
+    {
+      name: 'categories',
+      type: 'join',
+      collection: 'categories',
+      on: 'attributes',
+      admin: {
+        description: 'Categories that use this attribute',
+      },
+    },
+   
   ],
   timestamps: true,
 }

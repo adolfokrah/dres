@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Where } from 'payload'
 
 import { anyone } from '../../access/anyone'
 import { authenticated } from '../../access/authenticated'
@@ -6,12 +6,17 @@ import { generateVariationSlug } from './hooks/generateVariationSlug'
 import { trendingVariations } from './endpoints/trending'
 import { recordView } from './endpoints/recordView'
 
+interface VariantItem {
+  variant?: string | { id: string }
+  value?: string | { id: string }
+}
+
 export const Variations: CollectionConfig = {
   slug: 'variations',
   admin: {
     useAsTitle: 'slug',
     group: 'Ecommerce',
-    defaultColumns: ['style', 'images', 'variants', 'slug'],
+    defaultColumns: ['slug', 'style', 'images', 'variants'],
     description: 'Product variations - specific color/size combinations',
   },
   access: {
@@ -49,10 +54,25 @@ export const Variations: CollectionConfig = {
       name: 'variants',
       type: 'array',
       admin: {
-        description: 'Variant options (e.g., Color: Red, Size: Large)',
+        description: 'Variant options (e.g., Color: Red, Material: Leather)',
         components: {
           RowLabel: '@/collections/Variations/VariantRowLabel#VariantRowLabel',
         },
+      },
+      validate: (value) => {
+        // Validate no duplicate attributes
+        if (!value || !Array.isArray(value)) return true
+        const attributeIds = (value as VariantItem[])
+          .map((item) => {
+            if (!item?.variant) return null
+            return typeof item.variant === 'object' ? item.variant.id : item.variant
+          })
+          .filter(Boolean)
+        const uniqueIds = new Set(attributeIds)
+        if (uniqueIds.size !== attributeIds.length) {
+          return 'Each attribute can only be used once per variation'
+        }
+        return true
       },
       fields: [
         {
@@ -60,8 +80,34 @@ export const Variations: CollectionConfig = {
           type: 'relationship',
           relationTo: 'attributes',
           required: true,
+          filterOptions: ({ data, siblingData }): Where => {
+            // Get all already-selected attribute IDs from other items
+            const variants = ((data as { variants?: VariantItem[] })?.variants || []) as VariantItem[]
+            const currentVariant = (siblingData as VariantItem)?.variant
+            const currentVariantId = currentVariant 
+              ? (typeof currentVariant === 'object' ? currentVariant.id : currentVariant)
+              : null
+            
+            const usedAttributeIds = variants
+              .map((item) => {
+                if (!item?.variant) return null
+                return typeof item.variant === 'object' ? item.variant.id : item.variant
+              })
+              .filter((id): id is string => id !== null && id !== currentVariantId)
+            
+            // Only show attributes with level = 'variation' and not already used
+            const filter: Where = {
+              level: { equals: 'variation' },
+            }
+            
+            if (usedAttributeIds.length > 0) {
+              filter.id = { not_in: usedAttributeIds }
+            }
+            
+            return filter
+          },
           admin: {
-            description: 'Select the attribute type (e.g., Color, Size)',
+            description: 'Select the attribute type (e.g., Color, Material)',
           },
         },
         {
@@ -70,7 +116,7 @@ export const Variations: CollectionConfig = {
           relationTo: 'attributeOptions',
           required: true,
           filterOptions: ({ siblingData }) => {
-            const data = siblingData as { variant?: string | { id: string } }
+            const data = siblingData as VariantItem
             const variantId = data?.variant
             if (variantId) {
               return {
@@ -84,7 +130,7 @@ export const Variations: CollectionConfig = {
           admin: {
             description: 'Select the value for this attribute',
             condition: (_, siblingData) => {
-              const data = siblingData as { variant?: string }
+              const data = siblingData as VariantItem
               return Boolean(data?.variant)
             },
           },
