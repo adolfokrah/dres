@@ -4,6 +4,7 @@ import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/widgets/app_header.dart';
 import 'package:dres/core/widgets/promo_banner.dart';
+import 'package:dres/core/widgets/featured_grid.dart';
 import 'package:dres/features/home/logic/bloc/home_bloc.dart';
 import 'package:dres/features/home/logic/bloc/home_event.dart';
 import 'package:dres/features/home/logic/bloc/home_state.dart';
@@ -114,12 +115,36 @@ class _HomeScreenView extends StatelessWidget {
           title: promoBanner.title,
           description: promoBanner.description,
           actionText: promoBanner.actionText,
+          backgroundColor: promoBanner.backgroundColor ?? 'light',
           onActionTap: () {
             // TODO: Handle action link navigation
           },
         );
+      case 'featuredGrid':
+        final featuredGrid = block as FeaturedGridBlockModel;
+        return FeaturedGrid(
+          title: featuredGrid.title,
+          items: featuredGrid.items,
+          columns: int.tryParse(featuredGrid.columns ?? '3') ?? 3,
+          aspectRatio: _getAspectRatio(featuredGrid.aspectRatio),
+          onItemTap: (item) {
+            // TODO: Handle item tap navigation
+          },
+        );
       default:
         return const SizedBox.shrink();
+    }
+  }
+
+  double _getAspectRatio(String? ratio) {
+    switch (ratio) {
+      case 'portrait':
+        return 3 / 4;
+      case 'landscape':
+        return 4 / 3;
+      case 'square':
+      default:
+        return 1.0;
     }
   }
 }

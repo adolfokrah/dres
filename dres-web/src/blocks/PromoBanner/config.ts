@@ -52,7 +52,10 @@ export const PromoBanner: Block = {
       options: [
         { label: 'Light Gray', value: 'light' },
         { label: 'White', value: 'white' },
-        { label: 'Dark', value: 'dark' },
+        { label: 'Info (Blue)', value: 'info' },
+        { label: 'Success (Green)', value: 'success' },
+        { label: 'Warning (Yellow)', value: 'warning' },
+        { label: 'Error (Red)', value: 'error' },
       ],
     },
   ],

@@ -18,6 +18,8 @@ abstract class BlockModel {
     switch (blockType) {
       case 'promoBanner':
         return PromoBannerBlockModel.fromJson(json);
+      case 'featuredGrid':
+        return FeaturedGridBlockModel.fromJson(json);
       case 'cta':
         return CallToActionBlockModel.fromJson(json);
       case 'content':
@@ -155,31 +157,182 @@ class MediaBlockModel extends BlockModel {
 class MediaModel {
   final String id;
   final String? url;
+  final String? thumbnailUrl;
   final String? alt;
   final String? filename;
   final String? mimeType;
   final int? width;
   final int? height;
+  final MediaSizesModel? sizes;
 
   MediaModel({
     required this.id,
     this.url,
+    this.thumbnailUrl,
     this.alt,
     this.filename,
     this.mimeType,
     this.width,
     this.height,
+    this.sizes,
   });
 
   factory MediaModel.fromJson(Map<String, dynamic> json) {
     return MediaModel(
       id: json['id'] as String? ?? '',
       url: json['url'] as String?,
+      thumbnailUrl: json['thumbnailURL'] as String?,
       alt: json['alt'] as String?,
       filename: json['filename'] as String?,
       mimeType: json['mimeType'] as String?,
       width: json['width'] as int?,
       height: json['height'] as int?,
+      sizes: json['sizes'] != null
+          ? MediaSizesModel.fromJson(json['sizes'] as Map<String, dynamic>)
+          : null,
+    );
+  }
+
+  /// Get the best URL for a given size preference
+  String? getUrl({String size = 'medium'}) {
+    if (sizes != null) {
+      switch (size) {
+        case 'thumbnail':
+          return sizes!.thumbnail?.url ?? url;
+        case 'square':
+          return sizes!.square?.url ?? url;
+        case 'small':
+          return sizes!.small?.url ?? url;
+        case 'medium':
+          return sizes!.medium?.url ?? url;
+        case 'large':
+          return sizes!.large?.url ?? url;
+        default:
+          return url;
+      }
+    }
+    return url;
+  }
+}
+
+/// Media sizes model
+class MediaSizesModel {
+  final MediaSizeModel? thumbnail;
+  final MediaSizeModel? square;
+  final MediaSizeModel? small;
+  final MediaSizeModel? medium;
+  final MediaSizeModel? large;
+  final MediaSizeModel? xlarge;
+
+  MediaSizesModel({
+    this.thumbnail,
+    this.square,
+    this.small,
+    this.medium,
+    this.large,
+    this.xlarge,
+  });
+
+  factory MediaSizesModel.fromJson(Map<String, dynamic> json) {
+    return MediaSizesModel(
+      thumbnail: json['thumbnail'] != null
+          ? MediaSizeModel.fromJson(json['thumbnail'] as Map<String, dynamic>)
+          : null,
+      square: json['square'] != null
+          ? MediaSizeModel.fromJson(json['square'] as Map<String, dynamic>)
+          : null,
+      small: json['small'] != null
+          ? MediaSizeModel.fromJson(json['small'] as Map<String, dynamic>)
+          : null,
+      medium: json['medium'] != null
+          ? MediaSizeModel.fromJson(json['medium'] as Map<String, dynamic>)
+          : null,
+      large: json['large'] != null
+          ? MediaSizeModel.fromJson(json['large'] as Map<String, dynamic>)
+          : null,
+      xlarge: json['xlarge'] != null
+          ? MediaSizeModel.fromJson(json['xlarge'] as Map<String, dynamic>)
+          : null,
+    );
+  }
+}
+
+/// Single media size
+class MediaSizeModel {
+  final int? width;
+  final int? height;
+  final String? url;
+  final String? filename;
+
+  MediaSizeModel({
+    this.width,
+    this.height,
+    this.url,
+    this.filename,
+  });
+
+  factory MediaSizeModel.fromJson(Map<String, dynamic> json) {
+    return MediaSizeModel(
+      width: json['width'] as int?,
+      height: json['height'] as int?,
+      url: json['url'] as String?,
+      filename: json['filename'] as String?,
+    );
+  }
+}
+
+/// Featured Grid Block
+class FeaturedGridBlockModel extends BlockModel {
+  final String title;
+  final List<FeaturedGridItemModel> items;
+  final String? columns;
+  final String? aspectRatio;
+
+  FeaturedGridBlockModel({
+    super.id,
+    super.blockName,
+    required this.title,
+    this.items = const [],
+    this.columns,
+    this.aspectRatio,
+  }) : super(blockType: 'featuredGrid');
+
+  factory FeaturedGridBlockModel.fromJson(Map<String, dynamic> json) {
+    final itemsJson = json['items'] as List<dynamic>? ?? [];
+    return FeaturedGridBlockModel(
+      id: json['id'] as String?,
+      blockName: json['blockName'] as String?,
+      title: json['title'] as String? ?? '',
+      items: itemsJson
+          .map((e) => FeaturedGridItemModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      columns: json['columns'] as String? ?? '3',
+      aspectRatio: json['aspectRatio'] as String? ?? 'square',
+    );
+  }
+}
+
+/// Featured Grid Item
+class FeaturedGridItemModel {
+  final MediaModel? image;
+  final String label;
+  final String? link;
+
+  FeaturedGridItemModel({
+    this.image,
+    required this.label,
+    this.link,
+  });
+
+  factory FeaturedGridItemModel.fromJson(Map<String, dynamic> json) {
+    return FeaturedGridItemModel(
+      image: json['image'] != null
+          ? MediaModel.fromJson(json['image'] is String
+              ? {'id': json['image']}
+              : json['image'] as Map<String, dynamic>)
+          : null,
+      label: json['label'] as String? ?? '',
+      link: json['link'] as String?,
     );
   }
 }

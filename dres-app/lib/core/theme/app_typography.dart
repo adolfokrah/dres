@@ -22,10 +22,10 @@ class AppTypography {
     height: 1.2,
   );
 
-  /// Title L - 20/Auto
+  /// Title L - 24/Auto
   static const TextStyle titleL = TextStyle(
     fontFamily: fontFamilySerif,
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: FontWeight.w600,
     height: 1.2,
   );
@@ -38,10 +38,10 @@ class AppTypography {
     height: 1.2,
   );
 
-  /// Title L Medium - 20/Auto
+  /// Title L Medium - 24/Auto
   static const TextStyle titleLM = TextStyle(
     fontFamily: fontFamilySerif,
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: FontWeight.w500,
     height: 1.2,
   );

@@ -290,7 +290,15 @@ export interface Page {
       | null;
     media?: (string | null) | Media;
   };
-  layout: (CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock | PromoBannerBlock)[];
+  layout: (
+    | CallToActionBlock
+    | ContentBlock
+    | MediaBlock
+    | ArchiveBlock
+    | FormBlock
+    | PromoBannerBlock
+    | FeaturedGridBlock
+  )[];
   meta?: {
     title?: string | null;
     /**
@@ -2028,10 +2036,43 @@ export interface PromoBannerBlock {
     url?: string | null;
     label: string;
   };
-  backgroundColor?: ('light' | 'white' | 'dark') | null;
+  backgroundColor?: ('light' | 'white' | 'info' | 'success' | 'warning' | 'error') | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'promoBanner';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FeaturedGridBlock".
+ */
+export interface FeaturedGridBlock {
+  /**
+   * Section title, e.g. "Shop by Category"
+   */
+  title: string;
+  /**
+   * Grid items with image and label
+   */
+  items: {
+    image: string | Media;
+    /**
+     * Text shown below the image, e.g. "CLOTHING"
+     */
+    label: string;
+    /**
+     * URL to navigate to when clicked, e.g. "/categories/clothing"
+     */
+    link?: string | null;
+    id?: string | null;
+  }[];
+  /**
+   * Number of columns on desktop
+   */
+  columns?: ('2' | '3' | '4') | null;
+  aspectRatio?: ('square' | 'portrait' | 'landscape') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'featuredGrid';
 }
 /**
  * Shopping carts for users
@@ -2636,6 +2677,7 @@ export interface PagesSelect<T extends boolean = true> {
         archive?: T | ArchiveBlockSelect<T>;
         formBlock?: T | FormBlockSelect<T>;
         promoBanner?: T | PromoBannerBlockSelect<T>;
+        featuredGrid?: T | FeaturedGridBlockSelect<T>;
       };
   meta?:
     | T
@@ -2753,6 +2795,25 @@ export interface PromoBannerBlockSelect<T extends boolean = true> {
         label?: T;
       };
   backgroundColor?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FeaturedGridBlock_select".
+ */
+export interface FeaturedGridBlockSelect<T extends boolean = true> {
+  title?: T;
+  items?:
+    | T
+    | {
+        image?: T;
+        label?: T;
+        link?: T;
+        id?: T;
+      };
+  columns?: T;
+  aspectRatio?: T;
   id?: T;
   blockName?: T;
 }

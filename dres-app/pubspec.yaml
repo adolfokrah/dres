@@ -22,6 +22,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   phosphor_flutter: ^2.1.0
   equatable: ^2.0.7
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:

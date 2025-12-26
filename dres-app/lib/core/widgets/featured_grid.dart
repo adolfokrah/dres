@@ -1,0 +1,133 @@
+import 'package:flutter/material.dart';
+import 'package:dres/core/models/block_model.dart';
+import 'package:dres/core/theme/app_colors.dart';
+import 'package:dres/core/theme/app_typography.dart';
+import 'package:dres/core/utilities/media_utils.dart';
+
+class FeaturedGrid extends StatelessWidget {
+  const FeaturedGrid({
+    super.key,
+    required this.title,
+    required this.items,
+    this.columns = 3,
+    this.aspectRatio = 1.0,
+    this.onItemTap,
+  });
+
+  final String title;
+  final List<FeaturedGridItemModel> items;
+  final int columns;
+  final double aspectRatio;
+  final void Function(FeaturedGridItemModel item)? onItemTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Title
+        if (title.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+            child: Text(
+              title,
+              style: AppTypography.titleL.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ),
+
+        // Horizontal scroll
+        SizedBox(
+          height: 250, // Portrait image (150 * 4/3) + label + padding
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: items.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return _GridItem(
+                item: item,
+                imageUrl: MediaUtils.getSquareUrl(item.image),
+                width: 150,
+                aspectRatio: aspectRatio,
+                onTap: onItemTap != null ? () => onItemTap!(item) : null,
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+}
+
+class _GridItem extends StatelessWidget {
+  const _GridItem({
+    required this.item,
+    required this.imageUrl,
+    required this.width,
+    required this.aspectRatio,
+    this.onTap,
+  });
+
+  final FeaturedGridItemModel item;
+  final String? imageUrl;
+  final double width;
+  final double aspectRatio;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: width,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Image - Portrait ratio (3:4, height is longer)
+            AspectRatio(
+              aspectRatio: 3 / 4,
+              child: Container(
+                color: AppColors.secondary,
+                child: imageUrl != null
+                    ? Image.network(
+                        imageUrl!,
+                        fit: BoxFit.contain,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(color: AppColors.secondary);
+                        },
+                        errorBuilder: (_, __, ___) => Container(
+                          color: AppColors.secondary,
+                          child: Icon(
+                            Icons.image_not_supported_outlined,
+                            color: AppColors.textHint,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Label
+            Text(
+              item.label.toUpperCase(),
+              style: AppTypography.bodyM.copyWith(
+                color: AppColors.textPrimary,
+                letterSpacing: 0.5,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

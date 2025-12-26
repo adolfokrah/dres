@@ -9,6 +9,7 @@ class PromoBanner extends StatelessWidget {
     required this.title,
     required this.description,
     required this.actionText,
+    this.backgroundColor = 'light',
     this.onActionTap,
     this.onDismiss,
   });
@@ -16,8 +17,27 @@ class PromoBanner extends StatelessWidget {
   final String title;
   final String description;
   final String actionText;
+  final String backgroundColor;
   final VoidCallback? onActionTap;
   final VoidCallback? onDismiss;
+
+  Color _getBackgroundColor() {
+    switch (backgroundColor) {
+      case 'white':
+        return AppColors.background;
+      case 'info':
+        return AppColors.info;
+      case 'success':
+        return AppColors.success;
+      case 'warning':
+        return AppColors.warning;
+      case 'error':
+        return AppColors.error;
+      case 'light':
+      default:
+        return AppColors.secondary;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +45,7 @@ class PromoBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.secondary,
+        color: _getBackgroundColor(),
         borderRadius: BorderRadius.circular(0),
       ),
       child: Column(
@@ -46,7 +66,7 @@ class PromoBanner extends StatelessWidget {
             description,
             style: AppTypography.bodyL.copyWith(
               color: AppColors.textPrimary,
-              fontSize: 15,
+              fontSize: 17,
             ),
           ),
           const SizedBox(height: 12),
