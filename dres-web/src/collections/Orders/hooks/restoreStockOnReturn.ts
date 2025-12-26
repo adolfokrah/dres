@@ -2,10 +2,9 @@ import type { CollectionAfterChangeHook } from 'payload'
 
 interface OrderItem {
   id?: string
-  product: string | { id: string }
+  variation: string | { id: string }
   seller: string | { id: string }
   productTitle: string
-  variationOptions: Record<string, string> | null
   variationId: string | null
   quantity: number
   shippingStatus: string
@@ -42,7 +41,8 @@ export const restoreStockOnReturn: CollectionAfterChangeHook = async ({
         
         if (!variationId) continue
 
-        const skuId = currentItem.skuId
+        // variationId field in Orders stores the SKU ID
+        const skuId = currentItem.variationId
 
         // If item has a SKU ID, restore SKU stock
         if (skuId) {
@@ -83,16 +83,26 @@ export const restoreStockOnReturn: CollectionAfterChangeHook = async ({
             `Restored stock for SKU ${skuId} on return: ${currentStock} -> ${newStock}`,
           )
         } else {
-          // No SKU - restore variation-level stock
-          const variation = await payload.findByID({
-            collection: 'variations',
-            id: variationId,
-            depth: 0,
+          // No SKU ID provided - try to find first available SKU for this variation
+          const skus = await payload.find({
+            collection: 'skus',
+            where: {
+              variation: { equals: variationId },
+              isActive: { equals: true },
+            },
+            limit: 1,
+            sort: 'price',
           })
 
-          if (!variation) continue
+          if (skus.docs.length === 0) {
+            payload.logger.warn(
+              `No SKUs found for variation ${variationId} - cannot restore stock`,
+            )
+            continue
+          }
 
-          const currentStock = variation.stock as number | null | undefined
+          const firstSku = skus.docs[0]
+          const currentStock = firstSku.stock
 
           // Skip if stock is null/undefined (unlimited stock)
           if (currentStock === null || currentStock === undefined) {
@@ -105,15 +115,15 @@ export const restoreStockOnReturn: CollectionAfterChangeHook = async ({
           const newStock = currentStock + currentItem.quantity
 
           await payload.update({
-            collection: 'products',
-            id: productId,
+            collection: 'skus',
+            id: firstSku.id,
             data: {
               stock: newStock,
             },
           })
 
           payload.logger.info(
-            `Restored stock for product ${productId} on return: ${currentStock} -> ${newStock}`,
+            `Restored stock for SKU ${firstSku.id} (variation ${variationId}) on return: ${currentStock} -> ${newStock}`,
           )
         }
       }

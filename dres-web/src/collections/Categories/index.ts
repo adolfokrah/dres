@@ -89,12 +89,12 @@ export const Categories: CollectionConfig = {
       },
     },
     {
-      name: 'productStats',
+      name: 'variationStats',
       type: 'join',
-      collection: 'product-stats',
+      collection: 'variation-stats',
       on: 'category',
       admin: {
-        description: 'Product stats for this category (for top products, sellers, brands)',
+        description: 'Variation stats for this category (for top variations, sellers, brands)',
       },
     },
   ],

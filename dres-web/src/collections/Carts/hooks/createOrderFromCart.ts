@@ -17,11 +17,10 @@ interface StatusLog {
 type ShippingStatus = 'placed' | 'out_for_delivery' | 'delivered' | 'return_in_progress' | 'returned' | 'not_available'
 
 interface OrderItem {
-  product: string
+  variation: string
   seller: string
   productTitle: string
   productImage: string
-  variationOptions: Record<string, string> | null
   variationId: string | null
   sellerName: string
   price: number
@@ -156,10 +155,10 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
 
       orderItems.push({
         variation: variationId,
-        seller: sellerId,
-        variationTitle: variation.slug || 'Unknown Variation',
-        variationImage,
-        skuId,
+        seller: sellerId || '',
+        productTitle: variation.slug || 'Unknown Variation',
+        productImage: variationImage,
+        variationId: skuId,
         sellerName,
         price: item.price || 0,
         originalPrice,

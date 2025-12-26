@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url'
 
 import { Attributes } from './collections/Attributes'
 import { AttributeOptions } from './collections/AttributeOptions'
-import { ProductBoosts } from './collections/Boosts'
+import { StyleBoosts } from './collections/StyleBoosts'
 import { Brands } from './collections/Brands'
 import { Carts } from './collections/Carts'
 import { Categories } from './collections/Categories'
@@ -29,7 +29,7 @@ import { Styles } from './collections/Styles'
 import { Variations } from './collections/Variations'
 import { SKUs } from './collections/SKUs'
 import { VariationViews } from './collections/VariationViews'
-import { ProductStats } from './collections/ProductStats'
+import { VariationStats } from './collections/VariationStats'
 import { Regions } from './collections/Regions'
 import { Reviews } from './collections/Reviews'
 import { ShippingRates } from './collections/ShippingRates'
@@ -113,7 +113,7 @@ export default buildConfig({
     defaultLocale: 'en',
     fallback: true,
   },
-  collections: [Pages, Posts, PostCategories, Media, Attributes, AttributeOptions, ProductBoosts, Styles, Variations, SKUs, VariationViews, Brands, Carts, Categories, Cities, Collections, Countries, Currencies, Departments, DiscountCodes, Favorites, Follows, Materials, Notifications, Orders, Regions, ProductStats, Reviews, ShippingRates, Transactions, Users, UserPoints],
+  collections: [Pages, Posts, PostCategories, Media, Attributes, AttributeOptions, StyleBoosts, Styles, Variations, SKUs, VariationViews, Brands, Carts, Categories, Cities, Collections, Countries, Currencies, Departments, DiscountCodes, Favorites, Follows, Materials, Notifications, Orders, Regions, VariationStats, Reviews, ShippingRates, Transactions, Users, UserPoints],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins,

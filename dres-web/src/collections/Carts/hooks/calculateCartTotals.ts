@@ -47,27 +47,25 @@ export const calculateCartTotals: CollectionBeforeChangeHook = async ({
               item.price = sku.sellingPrice
             } else if (sku?.price) {
               item.price = Math.round(sku.price * 1.1 * 100) / 100 // Add 10% platform fee
-            } else if (variationId) {
-              // Fallback to variation price if SKU has no price
-              const variation = await req.payload.findByID({
-                collection: 'variations',
-                id: variationId,
-                depth: 0,
-              })
-              item.price = variation?.sellingPrice || (variation?.price ? Math.round(variation.price * 1.1 * 100) / 100 : 0)
             }
           } catch {
             // Ignore errors
           }
         } else if (variationId && !item.price) {
-          // No SKU, use variation price
+          // No SKU selected - try to get price from first SKU of variation
           try {
-            const variation = await req.payload.findByID({
-              collection: 'variations',
-              id: variationId,
+            const skus = await req.payload.find({
+              collection: 'skus',
+              where: {
+                variation: { equals: variationId },
+              },
+              limit: 1,
               depth: 0,
             })
-            item.price = variation?.sellingPrice || (variation?.price ? Math.round(variation.price * 1.1 * 100) / 100 : 0)
+            if (skus.docs.length > 0) {
+              const sku = skus.docs[0]
+              item.price = sku.sellingPrice || (sku.price ? Math.round(sku.price * 1.1 * 100) / 100 : 0)
+            }
           } catch {
             // Ignore errors
           }
@@ -127,14 +125,14 @@ export const calculateCartTotals: CollectionBeforeChangeHook = async ({
     return data
   }
 
-  // Auto-populate price from SKU or variation for all items
+  // Auto-populate price from SKU for all items
   for (const item of data.items as CartItem[]) {
     // Get variation ID
     const variationId = item.variation 
       ? (typeof item.variation === 'object' ? item.variation.id : item.variation)
       : null
 
-    // If SKU is selected, always use SKU price (or variation fallback)
+    // If SKU is selected, use SKU price
     if (item.sku) {
       const skuId = typeof item.sku === 'object' ? item.sku.id : item.sku
       try {
@@ -147,27 +145,30 @@ export const calculateCartTotals: CollectionBeforeChangeHook = async ({
           item.price = sku.sellingPrice
         } else if (sku?.price) {
           item.price = Math.round(sku.price * 1.1 * 100) / 100 // Add 10% platform fee
-        } else if (variationId) {
-          // Fallback to variation price if SKU has no price
-          const variation = await req.payload.findByID({
-            collection: 'variations',
-            id: variationId,
-            depth: 0,
-          })
-          item.price = variation?.sellingPrice || (variation?.price ? Math.round(variation.price * 1.1 * 100) / 100 : 0)
         }
       } catch {
         // Ignore errors
       }
     } else if (variationId && !item.price) {
-      // No SKU, use variation price
+      // No SKU selected, try to get price from first available SKU of this variation
       try {
-        const variation = await req.payload.findByID({
-          collection: 'variations',
-          id: variationId,
-          depth: 0,
+        const skus = await req.payload.find({
+          collection: 'skus',
+          where: {
+            variation: { equals: variationId },
+            isActive: { equals: true },
+          },
+          limit: 1,
+          sort: 'price',
         })
-        item.price = variation?.sellingPrice || (variation?.price ? Math.round(variation.price * 1.1 * 100) / 100 : 0)
+        if (skus.docs.length > 0) {
+          const sku = skus.docs[0]
+          if (sku?.sellingPrice) {
+            item.price = sku.sellingPrice
+          } else if (sku?.price) {
+            item.price = Math.round(sku.price * 1.1 * 100) / 100
+          }
+        }
       } catch {
         // Ignore errors
       }

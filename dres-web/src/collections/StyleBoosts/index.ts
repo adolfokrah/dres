@@ -2,13 +2,13 @@ import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
 
-export const ProductBoosts: CollectionConfig = {
-  slug: 'product-boosts',
+export const StyleBoosts: CollectionConfig = {
+  slug: 'style-boosts',
   admin: {
-    useAsTitle: 'variation',
+    useAsTitle: 'style',
     group: 'Ecommerce',
-    defaultColumns: ['variation', 'tier', 'status', 'startDate', 'endDate', 'createdAt'],
-    description: 'Variation boost/featuring for increased visibility',
+    defaultColumns: ['style', 'tier', 'status', 'startDate', 'endDate', 'createdAt'],
+    description: 'Style boost/featuring for increased visibility',
   },
   access: {
     read: authenticated,
@@ -43,12 +43,12 @@ export const ProductBoosts: CollectionConfig = {
   },
   fields: [
     {
-      name: 'variation',
+      name: 'style',
       type: 'relationship',
-      relationTo: 'variations',
+      relationTo: 'styles',
       required: true,
       admin: {
-        description: 'The variation to boost',
+        description: 'The style to boost',
       },
     },
     {

@@ -2,7 +2,8 @@ import type { CollectionAfterChangeHook } from 'payload'
 
 interface OrderItem {
   id?: string
-  product: string | { id: string }
+  variation: string | { id: string }
+  sku?: string | { id: string } | null
   seller: string | { id: string }
   productTitle: string
   productImage: string
@@ -37,15 +38,15 @@ export const updateSalesStats: CollectionAfterChangeHook = async ({
       const currentItem = currentItems[i]
       const previousItem = previousItems[i]
 
-      // Get product ID
-      const productId =
-        typeof currentItem.product === 'object' ? currentItem.product.id : currentItem.product
+      // Get variation ID
+      const variationId =
+        typeof currentItem.variation === 'object' ? currentItem.variation.id : currentItem.variation
 
       // Check if this item just changed to 'delivered'
       if (
         currentItem.shippingStatus === 'delivered' &&
         previousItem?.shippingStatus !== 'delivered' &&
-        productId
+        variationId
       ) {
         const saleAmount = currentItem.price * currentItem.quantity
         const itemsSold = currentItem.quantity
@@ -55,33 +56,37 @@ export const updateSalesStats: CollectionAfterChangeHook = async ({
         const sellerId =
           typeof currentItem.seller === 'object' ? currentItem.seller.id : currentItem.seller
 
-        // Fetch product to get department, category, collection, brand
-        const product = await payload.findByID({
-          collection: 'products',
-          id: productId,
-          depth: 2,
+        // Fetch variation to get style -> category, department, brand
+        const variation = await payload.findByID({
+          collection: 'variations',
+          id: variationId,
+          depth: 3,
         })
 
-        // Get IDs from product
-        const departmentId = product?.department
-          ? typeof product.department === 'object'
-            ? product.department.id
-            : product.department
+        // Get style data
+        const style = variation?.style
+        const styleData = style && typeof style === 'object' ? style : null
+
+        // Get IDs from style
+        const departmentId = styleData?.department
+          ? typeof styleData.department === 'object'
+            ? styleData.department.id
+            : styleData.department
           : null
-        const categoryId = product?.category
-          ? typeof product.category === 'object'
-            ? product.category.id
-            : product.category
+        const categoryId = styleData?.category
+          ? typeof styleData.category === 'object'
+            ? styleData.category.id
+            : styleData.category
           : null
-        const brandId = product?.brand
-          ? typeof product.brand === 'object'
-            ? product.brand.id
-            : product.brand
+        const brandId = styleData?.brand
+          ? typeof styleData.brand === 'object'
+            ? styleData.brand.id
+            : styleData.brand
           : null
 
         // Get collection from category
         let collectionId = null
-        const category = product?.category
+        const category = styleData?.category
         if (
           category &&
           typeof category === 'object' &&
@@ -94,11 +99,11 @@ export const updateSalesStats: CollectionAfterChangeHook = async ({
             typeof firstCollection === 'object' ? firstCollection.id : firstCollection
         }
 
-        // Find existing stats record for this product
+        // Find existing stats record for this variation
         const existingStats = await payload.find({
-          collection: 'product-stats',
+          collection: 'variation-stats',
           where: {
-            product: { equals: productId },
+            variation: { equals: variationId },
           },
           limit: 1,
         })
@@ -107,7 +112,7 @@ export const updateSalesStats: CollectionAfterChangeHook = async ({
           // Update existing stats
           const stats = existingStats.docs[0]
           await payload.update({
-            collection: 'product-stats',
+            collection: 'variation-stats',
             id: stats.id,
             data: {
               totalSales: (stats.totalSales || 0) + saleAmount,
@@ -119,9 +124,9 @@ export const updateSalesStats: CollectionAfterChangeHook = async ({
         } else {
           // Create new stats record
           await payload.create({
-            collection: 'product-stats',
+            collection: 'variation-stats',
             data: {
-              product: productId,
+              variation: variationId,
               seller: sellerId || null,
               department: departmentId,
               collection: collectionId,
@@ -136,7 +141,7 @@ export const updateSalesStats: CollectionAfterChangeHook = async ({
         }
 
         payload.logger.info(
-          `Updated product stats for: ${currentItem.productTitle} - Sales: ${saleAmount}, Items: ${itemsSold}`,
+          `Updated variation stats for: ${currentItem.productTitle} - Sales: ${saleAmount}, Items: ${itemsSold}`,
         )
       }
     }

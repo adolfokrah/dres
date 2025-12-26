@@ -73,7 +73,7 @@ export interface Config {
     media: Media;
     attributes: Attribute;
     attributeOptions: AttributeOption;
-    'product-boosts': ProductBoost;
+    'style-boosts': StyleBoost;
     styles: Style;
     variations: Variation;
     skus: Skus;
@@ -93,7 +93,7 @@ export interface Config {
     notifications: Notification;
     orders: Order;
     regions: Region;
-    'product-stats': ProductStat;
+    'variation-stats': VariationStat;
     reviews: Review;
     shippingRates: ShippingRate;
     transactions: Transaction;
@@ -122,7 +122,7 @@ export interface Config {
       skus: 'skus';
     };
     categories: {
-      productStats: 'product-stats';
+      variationStats: 'variation-stats';
     };
     collections: {
       categories: 'categories';
@@ -157,7 +157,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     attributes: AttributesSelect<false> | AttributesSelect<true>;
     attributeOptions: AttributeOptionsSelect<false> | AttributeOptionsSelect<true>;
-    'product-boosts': ProductBoostsSelect<false> | ProductBoostsSelect<true>;
+    'style-boosts': StyleBoostsSelect<false> | StyleBoostsSelect<true>;
     styles: StylesSelect<false> | StylesSelect<true>;
     variations: VariationsSelect<false> | VariationsSelect<true>;
     skus: SkusSelect<false> | SkusSelect<true>;
@@ -177,7 +177,7 @@ export interface Config {
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     regions: RegionsSelect<false> | RegionsSelect<true>;
-    'product-stats': ProductStatsSelect<false> | ProductStatsSelect<true>;
+    'variation-stats': VariationStatsSelect<false> | VariationStatsSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
     shippingRates: ShippingRatesSelect<false> | ShippingRatesSelect<true>;
     transactions: TransactionsSelect<false> | TransactionsSelect<true>;
@@ -951,10 +951,10 @@ export interface Category {
    */
   variantAttributes?: (string | Attribute)[] | null;
   /**
-   * Product stats for this category (for top products, sellers, brands)
+   * Variation stats for this category (for top variations, sellers, brands)
    */
-  productStats?: {
-    docs?: (string | ProductStat)[];
+  variationStats?: {
+    docs?: (string | VariationStat)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
@@ -1061,20 +1061,20 @@ export interface AttributeOption {
   createdAt: string;
 }
 /**
- * Tracks product performance - use for top products, sellers, brands per category
+ * Tracks variation performance - use for top variations, sellers, brands per category
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "product-stats".
+ * via the `definition` "variation-stats".
  */
-export interface ProductStat {
+export interface VariationStat {
   id: string;
   variation: string | Variation;
   /**
-   * Auto-populated from product
+   * Auto-populated from variation
    */
   seller?: (string | null) | User;
   /**
-   * Auto-populated from product category
+   * Auto-populated from variation category
    */
   department?: (string | null) | Department;
   /**
@@ -2039,17 +2039,17 @@ export interface FeaturedGridBlock {
   blockType: 'featuredGrid';
 }
 /**
- * Variation boost/featuring for increased visibility
+ * Style boost/featuring for increased visibility
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "product-boosts".
+ * via the `definition` "style-boosts".
  */
-export interface ProductBoost {
+export interface StyleBoost {
   id: string;
   /**
-   * The variation to boost
+   * The style to boost
    */
-  variation: string | Variation;
+  style: string | Style;
   /**
    * Boost tier determines visibility priority and duration
    */
@@ -2536,8 +2536,8 @@ export interface PayloadLockedDocument {
         value: string | AttributeOption;
       } | null)
     | ({
-        relationTo: 'product-boosts';
-        value: string | ProductBoost;
+        relationTo: 'style-boosts';
+        value: string | StyleBoost;
       } | null)
     | ({
         relationTo: 'styles';
@@ -2616,8 +2616,8 @@ export interface PayloadLockedDocument {
         value: string | Region;
       } | null)
     | ({
-        relationTo: 'product-stats';
-        value: string | ProductStat;
+        relationTo: 'variation-stats';
+        value: string | VariationStat;
       } | null)
     | ({
         relationTo: 'reviews';
@@ -3050,10 +3050,10 @@ export interface AttributeOptionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "product-boosts_select".
+ * via the `definition` "style-boosts_select".
  */
-export interface ProductBoostsSelect<T extends boolean = true> {
-  variation?: T;
+export interface StyleBoostsSelect<T extends boolean = true> {
+  style?: T;
   tier?: T;
   status?: T;
   startDate?: T;
@@ -3193,7 +3193,7 @@ export interface CategoriesSelect<T extends boolean = true> {
   brands?: T;
   attributes?: T;
   variantAttributes?: T;
-  productStats?: T;
+  variationStats?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3415,9 +3415,9 @@ export interface RegionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "product-stats_select".
+ * via the `definition` "variation-stats_select".
  */
-export interface ProductStatsSelect<T extends boolean = true> {
+export interface VariationStatsSelect<T extends boolean = true> {
   variation?: T;
   seller?: T;
   department?: T;

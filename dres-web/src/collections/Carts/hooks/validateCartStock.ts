@@ -99,20 +99,23 @@ export const validateCartStock: CollectionBeforeValidateHook = async ({
           }
         }
       } else {
-        // No SKU - check variation-level stock
-        const variationStock = variation.stock as number | null | undefined
+        // No SKU selected - check if variation has any available SKUs
+        const availableSkus = await payload.find({
+          collection: 'skus',
+          where: {
+            variation: { equals: variationId },
+            isActive: { equals: true },
+            stock: { greater_than: 0 },
+          },
+          limit: 1,
+        })
 
-        // Check if variation is sold out (stock = 0, not null/undefined which means unlimited)
-        if (variationStock !== null && variationStock !== undefined) {
-          if (variationStock === 0) {
-            errors.push(`"${variationTitle}" is sold out`)
-          } else if (variationStock < quantity) {
-            errors.push(`"${variationTitle}" only has ${variationStock} in stock`)
-          }
+        if (availableSkus.docs.length === 0) {
+          errors.push(`"${variationTitle}" is sold out - no SKUs available`)
         }
       }
     } catch (error) {
-      payload.logger.error(`Error validating cart stock for product ${productId}: ${error}`)
+      payload.logger.error(`Error validating cart stock for variation ${variationId}: ${error}`)
     }
   }
 
