@@ -28,6 +28,44 @@ flutter:
     - .env
     - assets/images/
 
+  fonts:
+    - family: AlbraSerif
+      fonts:
+        - asset: assets/fonts/AlbraTRIAL-Light.otf
+          weight: 300
+        - asset: assets/fonts/AlbraTRIAL-Regular.otf
+          weight: 400
+        - asset: assets/fonts/AlbraTRIAL-Regular-Italic.otf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/AlbraTRIAL-Medium.otf
+          weight: 500
+        - asset: assets/fonts/AlbraTRIAL-Medium-Italic.otf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/AlbraTRIAL-Semi.otf
+          weight: 600
+        - asset: assets/fonts/AlbraTRIAL-Bold.otf
+          weight: 700
+        - asset: assets/fonts/AlbraTRIAL-Bold-Italic.otf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/AlbraTRIAL-Black.otf
+          weight: 900
+
+    - family: HelveticaNow
+      fonts:
+        - asset: assets/fonts/helveticanowtext-bold-demo.ttf
+          weight: 700
+        - asset: assets/fonts/helveticanowtext-bolditalic-demo.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/helveticanowtext-black-demo.ttf
+          weight: 900
+        - asset: assets/fonts/helveticanowtext-blackitalic-demo.ttf
+          weight: 900
+          style: italic
+
 flutter_launcher_icons:
   android: true
   ios: true
