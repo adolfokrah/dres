@@ -74,7 +74,10 @@ export interface Config {
     attributes: Attribute;
     attributeOptions: AttributeOption;
     'product-boosts': ProductBoost;
-    'product-variations': ProductVariation;
+    styles: Style;
+    variations: Variation;
+    skus: Skus;
+    'variation-views': VariationView;
     brands: Brand;
     carts: Cart;
     categories: Category;
@@ -96,7 +99,6 @@ export interface Config {
     transactions: Transaction;
     users: User;
     'user-points': UserPoint;
-    products: Product;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -112,6 +114,12 @@ export interface Config {
     attributes: {
       categories: 'categories';
       options: 'attributeOptions';
+    };
+    styles: {
+      variations: 'variations';
+    };
+    variations: {
+      skus: 'skus';
     };
     categories: {
       productStats: 'product-stats';
@@ -130,19 +138,13 @@ export interface Config {
     };
     users: {
       shippingRates: 'shippingRates';
-      products: 'products';
+      styles: 'styles';
       purchases: 'orders';
       sales: 'orders';
       favorites: 'favorites';
       following: 'follows';
       followers: 'follows';
       transactions: 'transactions';
-    };
-    products: {
-      variations: 'product-variations';
-      boosts: 'product-boosts';
-      stats: 'product-stats';
-      reviews: 'reviews';
     };
     'payload-folders': {
       documentsAndFolders: 'payload-folders' | 'media';
@@ -156,7 +158,10 @@ export interface Config {
     attributes: AttributesSelect<false> | AttributesSelect<true>;
     attributeOptions: AttributeOptionsSelect<false> | AttributeOptionsSelect<true>;
     'product-boosts': ProductBoostsSelect<false> | ProductBoostsSelect<true>;
-    'product-variations': ProductVariationsSelect<false> | ProductVariationsSelect<true>;
+    styles: StylesSelect<false> | StylesSelect<true>;
+    variations: VariationsSelect<false> | VariationsSelect<true>;
+    skus: SkusSelect<false> | SkusSelect<true>;
+    'variation-views': VariationViewsSelect<false> | VariationViewsSelect<true>;
     brands: BrandsSelect<false> | BrandsSelect<true>;
     carts: CartsSelect<false> | CartsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
@@ -178,7 +183,6 @@ export interface Config {
     transactions: TransactionsSelect<false> | TransactionsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'user-points': UserPointsSelect<false> | UserPointsSelect<true>;
-    products: ProductsSelect<false> | ProductsSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -541,10 +545,10 @@ export interface User {
     totalDocs?: number;
   };
   /**
-   * Products listed by this seller
+   * Product styles listed by this seller
    */
-  products?: {
-    docs?: (string | Product)[];
+  styles?: {
+    docs?: (string | Style)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
@@ -843,17 +847,18 @@ export interface Region {
   createdAt: string;
 }
 /**
+ * Product styles - the main product definition
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "products".
+ * via the `definition` "styles".
  */
-export interface Product {
+export interface Style {
   id: string;
-  title: string;
   /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   * The user selling this product
    */
-  generateSlug?: boolean | null;
-  slug: string;
+  seller: string | User;
+  title: string;
   description?: {
     root: {
       type: string;
@@ -874,82 +879,26 @@ export interface Product {
    */
   isResell?: boolean | null;
   /**
-   * Product images (first image is the main image)
-   */
-  images: (string | Media)[];
-  /**
-   * Select a department first to filter available categories
+   * Select a department first to filter available collections
    */
   department: string | Department;
   /**
-   * Select a department first to filter available categories
+   * Select a collection
+   */
+  collection: string | Collection;
+  /**
+   * Select a category
    */
   category?: (string | null) | Category;
   /**
-   * Select a category first to filter available brands
+   * Select a brand
    */
   brand?: (string | null) | Brand;
   /**
-   * The user selling this product
-   */
-  seller: string | User;
-  /**
-   * Current price for this product
-   */
-  price: number;
-  /**
-   * Original price before discount (shows as crossed out, e.g., "Was $500")
-   */
-  compareAtPrice?: number | null;
-  /**
-   * Final selling price (auto-calculated: price + 10% platform fee)
-   */
-  sellingPrice?: number | null;
-  /**
-   * Available quantity (0 = sold out). Leave empty for unlimited stock.
-   */
-  stock?: number | null;
-  /**
-   * Select attributes that apply to this product (all optional)
-   */
-  attributes?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  /**
-   * Product variations with different options, prices, and inventory
+   * Product variations (color/size combinations)
    */
   variations?: {
-    docs?: (string | ProductVariation)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  /**
-   * Boost history for this product
-   */
-  boosts?: {
-    docs?: (string | ProductBoost)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  /**
-   * Sales statistics for this product
-   */
-  stats?: {
-    docs?: (string | ProductStat)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  /**
-   * Customer reviews for this product
-   */
-  reviews?: {
-    docs?: (string | Review)[];
+    docs?: (string | Variation)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
@@ -1019,6 +968,10 @@ export interface Category {
 export interface Collection {
   id: string;
   name: string;
+  /**
+   * Departments that can use this collection
+   */
+  departments?: (string | Department)[] | null;
   /**
    * Categories in this collection
    */
@@ -1111,7 +1064,7 @@ export interface AttributeOption {
  */
 export interface ProductStat {
   id: string;
-  product: string | Product;
+  variation: string | Variation;
   /**
    * Auto-populated from product
    */
@@ -1152,24 +1105,70 @@ export interface ProductStat {
   createdAt: string;
 }
 /**
- * Product variations with specific options, pricing, and inventory
+ * Product variations - specific color/size combinations
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "product-variations".
+ * via the `definition` "variations".
  */
-export interface ProductVariation {
+export interface Variation {
   id: string;
-  title?: string | null;
   /**
-   * The product this variation belongs to
+   * The style this variation belongs to
    */
-  product: string | Product;
+  style: string | Style;
   /**
-   * Select one option per variant type (e.g., Size: M, Color: Red)
+   * Variant options (e.g., Color: Red, Size: Large)
    */
-  options: (string | AttributeOption)[];
+  variants?:
+    | {
+        /**
+         * Select the attribute type (e.g., Color, Size)
+         */
+        variant: string | Attribute;
+        /**
+         * Select the value for this attribute
+         */
+        value?: (string | null) | AttributeOption;
+        id?: string | null;
+      }[]
+    | null;
   /**
-   * Base price for this variation
+   * Variation images (first image is the main image)
+   */
+  images: (string | Media)[];
+  /**
+   * SKUs for this variation (inventory & pricing)
+   */
+  skus?: {
+    docs?: (string | Skus)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * URL-friendly slug
+   */
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * SKUs - inventory tracking with pricing for each variation
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skus".
+ */
+export interface Skus {
+  id: string;
+  /**
+   * Unique SKU code (auto-generated if empty)
+   */
+  sku: string;
+  /**
+   * The variation this SKU belongs to
+   */
+  variation: string | Variation;
+  /**
+   * Base price for this SKU
    */
   price: number;
   /**
@@ -1181,125 +1180,21 @@ export interface ProductVariation {
    */
   compareAtPrice?: number | null;
   /**
-   * Available quantity (0 = sold out, empty = unlimited)
+   * Available quantity (0 = sold out)
    */
   stock?: number | null;
   /**
-   * Select images from the product gallery for this variation
-   */
-  images?: (string | Media)[] | null;
-  /**
-   * Whether this variation is available for purchase
+   * Whether this SKU is available for purchase
    */
   isActive?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Product boost/featuring for increased visibility
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "product-boosts".
- */
-export interface ProductBoost {
-  id: string;
   /**
-   * The product to boost
+   * Barcode/UPC for this SKU
    */
-  product: string | Product;
+  barcode?: string | null;
   /**
-   * Boost tier determines visibility priority and duration
+   * Weight in grams (for shipping calculations)
    */
-  tier: 'basic' | 'standard' | 'premium';
-  /**
-   * Auto-calculated based on dates
-   */
-  status: 'scheduled' | 'active' | 'expired' | 'cancelled';
-  /**
-   * When the boost starts
-   */
-  startDate: string;
-  /**
-   * When the boost ends
-   */
-  endDate: string;
-  /**
-   * The payment transaction for this boost (optional)
-   */
-  transaction?: (string | null) | Transaction;
-  /**
-   * Additional notes about this boost
-   */
-  notes?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Payment transactions
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "transactions".
- */
-export interface Transaction {
-  id: string;
-  /**
-   * Unique transaction identifier (auto-generated)
-   */
-  transactionId: string;
-  /**
-   * Type of transaction
-   */
-  type: 'transfer' | 'deposit' | 'refund';
-  /**
-   * Transaction status
-   */
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
-  /**
-   * The user for this transaction
-   */
-  user: string | User;
-  /**
-   * The order this transaction belongs to
-   */
-  order: string | Order;
-  /**
-   * The order item ID this transaction is for (used to prevent duplicates)
-   */
-  itemId?: string | null;
-  /**
-   * Transaction amount (seller payout)
-   */
-  amount: number;
-  fees?: number | null;
-  /**
-   * Calculated: 1.95% × selling price
-   */
-  paystackFees?: number | null;
-  /**
-   * Calculated: fees - paystackFees
-   */
-  commissionFees?: number | null;
-  /**
-   * Payment account information
-   */
-  billingDetails?: {
-    /**
-     * Account holder name
-     */
-    accountName?: string | null;
-    /**
-     * Account number
-     */
-    accountNumber?: string | null;
-    /**
-     * Bank or payment provider (e.g., MTN Mobile Money)
-     */
-    bank?: string | null;
-  };
-  /**
-   * Additional notes about this transaction
-   */
-  notes?: string | null;
+  weight?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1332,9 +1227,9 @@ export interface Order {
    */
   items: {
     /**
-     * Reference to the product
+     * Reference to the variation
      */
-    product?: (string | null) | Product;
+    variation?: (string | null) | Variation;
     /**
      * The seller of this item
      */
@@ -1575,9 +1470,9 @@ export interface DiscountCode {
    */
   categories?: (string | Category)[] | null;
   /**
-   * Products this discount applies to
+   * Variations this discount applies to
    */
-  products?: (string | Product)[] | null;
+  variations?: (string | Variation)[] | null;
   /**
    * Sellers whose products this discount applies to
    */
@@ -1597,27 +1492,71 @@ export interface DiscountCode {
   createdAt: string;
 }
 /**
- * Product reviews from customers
+ * Payment transactions
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "reviews".
+ * via the `definition` "transactions".
  */
-export interface Review {
+export interface Transaction {
   id: string;
+  /**
+   * Unique transaction identifier (auto-generated)
+   */
+  transactionId: string;
+  /**
+   * Type of transaction
+   */
+  type: 'transfer' | 'deposit' | 'refund';
+  /**
+   * Transaction status
+   */
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  /**
+   * The user for this transaction
+   */
   user: string | User;
-  product: string | Product;
   /**
-   * Rating from 1 to 5 stars
+   * The order this transaction belongs to
    */
-  rating: number;
+  order: string | Order;
   /**
-   * Review text
+   * The order item ID this transaction is for (used to prevent duplicates)
    */
-  review?: string | null;
+  itemId?: string | null;
   /**
-   * Review images
+   * Transaction amount (seller payout)
    */
-  images?: (string | Media)[] | null;
+  amount: number;
+  fees?: number | null;
+  /**
+   * Calculated: 1.95% × selling price
+   */
+  paystackFees?: number | null;
+  /**
+   * Calculated: fees - paystackFees
+   */
+  commissionFees?: number | null;
+  /**
+   * Payment account information
+   */
+  billingDetails?: {
+    /**
+     * Account holder name
+     */
+    accountName?: string | null;
+    /**
+     * Account number
+     */
+    accountNumber?: string | null;
+    /**
+     * Bank or payment provider (e.g., MTN Mobile Money)
+     */
+    bank?: string | null;
+  };
+  /**
+   * Additional notes about this transaction
+   */
+  notes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1634,9 +1573,9 @@ export interface Favorite {
    */
   user: string | User;
   /**
-   * The favorited product
+   * The favorited variation
    */
-  product: string | Product;
+  variation: string | Variation;
   updatedAt: string;
   createdAt: string;
 }
@@ -2075,6 +2014,70 @@ export interface FeaturedGridBlock {
   blockType: 'featuredGrid';
 }
 /**
+ * Variation boost/featuring for increased visibility
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "product-boosts".
+ */
+export interface ProductBoost {
+  id: string;
+  /**
+   * The variation to boost
+   */
+  variation: string | Variation;
+  /**
+   * Boost tier determines visibility priority and duration
+   */
+  tier: 'basic' | 'standard' | 'premium';
+  /**
+   * Auto-calculated based on dates
+   */
+  status: 'scheduled' | 'active' | 'expired' | 'cancelled';
+  /**
+   * When the boost starts
+   */
+  startDate: string;
+  /**
+   * When the boost ends
+   */
+  endDate: string;
+  /**
+   * The payment transaction for this boost (optional)
+   */
+  transaction?: (string | null) | Transaction;
+  /**
+   * Additional notes about this boost
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Tracks variation views for trending algorithm
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variation-views".
+ */
+export interface VariationView {
+  id: string;
+  variation: string | Variation;
+  /**
+   * Optional - can be null for anonymous views
+   */
+  user?: (string | null) | User;
+  /**
+   * IP address for anonymous users to prevent duplicate views
+   */
+  ipAddress?: string | null;
+  viewedAt: string;
+  /**
+   * Where the user came from
+   */
+  source?: ('search' | 'category' | 'home' | 'recommendation' | 'direct' | 'share') | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Shopping carts for users
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2095,15 +2098,15 @@ export interface Cart {
    */
   items: {
     /**
-     * Products available from sellers in your country
+     * Variations available from sellers in your country
      */
-    product: string | Product;
+    variation: string | Variation;
     /**
-     * Select a variation for this product
+     * Select a SKU for this variation
      */
-    variation?: (string | null) | ProductVariation;
+    sku?: (string | null) | Skus;
     /**
-     * Price (auto-populated from selected variation)
+     * Price (auto-populated from selected SKU)
      */
     price?: number | null;
     /**
@@ -2213,6 +2216,31 @@ export interface Notification {
    * Whether the notification has been read
    */
   read?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Product reviews from customers
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews".
+ */
+export interface Review {
+  id: string;
+  user: string | User;
+  variation: string | Variation;
+  /**
+   * Rating from 1 to 5 stars
+   */
+  rating: number;
+  /**
+   * Review text
+   */
+  review?: string | null;
+  /**
+   * Review images
+   */
+  images?: (string | Media)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2487,8 +2515,20 @@ export interface PayloadLockedDocument {
         value: string | ProductBoost;
       } | null)
     | ({
-        relationTo: 'product-variations';
-        value: string | ProductVariation;
+        relationTo: 'styles';
+        value: string | Style;
+      } | null)
+    | ({
+        relationTo: 'variations';
+        value: string | Variation;
+      } | null)
+    | ({
+        relationTo: 'skus';
+        value: string | Skus;
+      } | null)
+    | ({
+        relationTo: 'variation-views';
+        value: string | VariationView;
       } | null)
     | ({
         relationTo: 'brands';
@@ -2573,10 +2613,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'user-points';
         value: string | UserPoint;
-      } | null)
-    | ({
-        relationTo: 'products';
-        value: string | Product;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -2991,7 +3027,7 @@ export interface AttributeOptionsSelect<T extends boolean = true> {
  * via the `definition` "product-boosts_select".
  */
 export interface ProductBoostsSelect<T extends boolean = true> {
-  product?: T;
+  variation?: T;
   tier?: T;
   status?: T;
   startDate?: T;
@@ -3003,18 +3039,67 @@ export interface ProductBoostsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "product-variations_select".
+ * via the `definition` "styles_select".
  */
-export interface ProductVariationsSelect<T extends boolean = true> {
+export interface StylesSelect<T extends boolean = true> {
+  seller?: T;
   title?: T;
-  product?: T;
-  options?: T;
+  description?: T;
+  isResell?: T;
+  department?: T;
+  collection?: T;
+  category?: T;
+  brand?: T;
+  variations?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variations_select".
+ */
+export interface VariationsSelect<T extends boolean = true> {
+  style?: T;
+  variants?:
+    | T
+    | {
+        variant?: T;
+        value?: T;
+        id?: T;
+      };
+  images?: T;
+  skus?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skus_select".
+ */
+export interface SkusSelect<T extends boolean = true> {
+  sku?: T;
+  variation?: T;
   price?: T;
   sellingPrice?: T;
   compareAtPrice?: T;
   stock?: T;
-  images?: T;
   isActive?: T;
+  barcode?: T;
+  weight?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variation-views_select".
+ */
+export interface VariationViewsSelect<T extends boolean = true> {
+  variation?: T;
+  user?: T;
+  ipAddress?: T;
+  viewedAt?: T;
+  source?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3039,8 +3124,8 @@ export interface CartsSelect<T extends boolean = true> {
   items?:
     | T
     | {
-        product?: T;
         variation?: T;
+        sku?: T;
         price?: T;
         quantity?: T;
         shippingFee?: T;
@@ -3094,6 +3179,7 @@ export interface CitiesSelect<T extends boolean = true> {
  */
 export interface CollectionsSelect<T extends boolean = true> {
   name?: T;
+  departments?: T;
   categories?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -3153,7 +3239,7 @@ export interface DiscountCodesSelect<T extends boolean = true> {
   active?: T;
   applicableTo?: T;
   categories?: T;
-  products?: T;
+  variations?: T;
   sellers?: T;
   usedBy?:
     | T
@@ -3172,7 +3258,7 @@ export interface DiscountCodesSelect<T extends boolean = true> {
  */
 export interface FavoritesSelect<T extends boolean = true> {
   user?: T;
-  product?: T;
+  variation?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3221,7 +3307,7 @@ export interface OrdersSelect<T extends boolean = true> {
   items?:
     | T
     | {
-        product?: T;
+        variation?: T;
         seller?: T;
         productTitle?: T;
         sellerName?: T;
@@ -3297,7 +3383,7 @@ export interface RegionsSelect<T extends boolean = true> {
  * via the `definition` "product-stats_select".
  */
 export interface ProductStatsSelect<T extends boolean = true> {
-  product?: T;
+  variation?: T;
   seller?: T;
   department?: T;
   collection?: T;
@@ -3316,7 +3402,7 @@ export interface ProductStatsSelect<T extends boolean = true> {
  */
 export interface ReviewsSelect<T extends boolean = true> {
   user?: T;
-  product?: T;
+  variation?: T;
   rating?: T;
   review?: T;
   images?: T;
@@ -3381,7 +3467,7 @@ export interface UsersSelect<T extends boolean = true> {
   country?: T;
   language?: T;
   shippingRates?: T;
-  products?: T;
+  styles?: T;
   purchases?: T;
   sales?: T;
   favorites?: T;
@@ -3449,33 +3535,6 @@ export interface UserPointsSelect<T extends boolean = true> {
         createdAt?: T;
         id?: T;
       };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "products_select".
- */
-export interface ProductsSelect<T extends boolean = true> {
-  title?: T;
-  generateSlug?: T;
-  slug?: T;
-  description?: T;
-  isResell?: T;
-  images?: T;
-  department?: T;
-  category?: T;
-  brand?: T;
-  seller?: T;
-  price?: T;
-  compareAtPrice?: T;
-  sellingPrice?: T;
-  stock?: T;
-  attributes?: T;
-  variations?: T;
-  boosts?: T;
-  stats?: T;
-  reviews?: T;
   updatedAt?: T;
   createdAt?: T;
 }

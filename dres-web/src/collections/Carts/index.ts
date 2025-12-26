@@ -91,20 +91,20 @@ export const Carts: CollectionConfig = {
       },
       fields: [
         {
-          name: 'product',
+          name: 'variation',
           type: 'relationship',
-          relationTo: 'products',
+          relationTo: 'variations',
           required: true,
-          // Filter products to only show those where seller is from the same country as the cart user
+          // Filter variations to only show those where seller is from the same country as the cart user
           filterOptions: ({ user }) => {
             // Get the logged-in user's country
             const userCountry = user?.country
             
-            // If we have the user's country, filter products by seller's country
+            // If we have the user's country, filter variations by seller's country
             if (userCountry) {
               const countryId = typeof userCountry === 'object' ? userCountry.id : userCountry
               return {
-                'seller.country': {
+                'style.seller.country': {
                   equals: countryId,
                 },
               }
@@ -114,52 +114,51 @@ export const Carts: CollectionConfig = {
             return true
           },
           admin: {
-            description: 'Products available from sellers in your country',
+            description: 'Variations available from sellers in your country',
           },
         },
         {
-          name: 'variation',
+          name: 'sku',
           type: 'relationship',
-          relationTo: 'product-variations',
+          relationTo: 'skus',
           admin: {
-            description: 'Select a variation for this product',
-            condition: (data, siblingData) => Boolean(siblingData?.product),
+            description: 'Select a SKU for this variation',
+            condition: (data, siblingData) => Boolean(siblingData?.variation),
           },
-          // Filter variations to only show those for the selected product
-          // and exclude variations already selected in other cart items
+          // Filter SKUs to only show those for the selected variation
           filterOptions: ({ siblingData, data }): boolean | Where => {
-            const product = (siblingData as Record<string, unknown>)?.product as string | { id: string } | undefined
-            const productId = product
-              ? typeof product === 'object'
-                ? product.id
-                : product
+            const variation = (siblingData as Record<string, unknown>)?.variation as string | { id: string } | undefined
+            const variationId = variation
+              ? typeof variation === 'object'
+                ? variation.id
+                : variation
               : null
 
-            if (!productId) return false
+            if (!variationId) return false
 
-            // Get current variation ID (to not exclude itself when editing)
-            const currentVariation = (siblingData as Record<string, unknown>)?.variation as string | { id: string } | undefined
-            const currentVariationId = currentVariation
-              ? typeof currentVariation === 'object'
-                ? currentVariation.id
-                : currentVariation
+            // Get current SKU ID (to not exclude itself when editing)
+            const currentSku = (siblingData as Record<string, unknown>)?.sku as string | { id: string } | undefined
+            const currentSkuId = currentSku
+              ? typeof currentSku === 'object'
+                ? currentSku.id
+                : currentSku
               : null
 
-            // Get all variation IDs already in the cart (except current item)
+            // Get all SKU IDs already in the cart (except current item)
             const items = (data as Record<string, unknown>)?.items as Array<{
-              product?: string | { id: string }
               variation?: string | { id: string }
+              sku?: string | { id: string }
             }> | undefined
 
-            const usedVariationIds: string[] = []
+            const usedSkuIds: string[] = []
             if (items && Array.isArray(items)) {
               for (const item of items) {
-                const itemVariation = item?.variation
-                if (itemVariation) {
-                  const varId = typeof itemVariation === 'object' ? itemVariation.id : itemVariation
-                  // Don't exclude the current item's variation
-                  if (varId && varId !== currentVariationId) {
-                    usedVariationIds.push(varId)
+                const itemSku = item?.sku
+                if (itemSku) {
+                  const skuId = typeof itemSku === 'object' ? itemSku.id : itemSku
+                  // Don't exclude the current item's SKU
+                  if (skuId && skuId !== currentSkuId) {
+                    usedSkuIds.push(skuId)
                   }
                 }
               }
@@ -167,18 +166,18 @@ export const Carts: CollectionConfig = {
 
             // Build filter
             const filter: Where = {
-              product: {
-                equals: productId,
+              variation: {
+                equals: variationId,
               },
               isActive: {
                 equals: true,
               },
             }
 
-            // Exclude already used variations
-            if (usedVariationIds.length > 0) {
+            // Exclude already used SKUs
+            if (usedSkuIds.length > 0) {
               filter.id = {
-                not_in: usedVariationIds,
+                not_in: usedSkuIds,
               }
             }
 
@@ -190,7 +189,7 @@ export const Carts: CollectionConfig = {
           type: 'number',
           min: 0,
           admin: {
-            description: 'Price (auto-populated from selected variation)',
+            description: 'Price (auto-populated from selected SKU)',
             readOnly: true,
           },
         },

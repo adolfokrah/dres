@@ -5,10 +5,10 @@ import { authenticated } from '../../access/authenticated'
 export const ProductBoosts: CollectionConfig = {
   slug: 'product-boosts',
   admin: {
-    useAsTitle: 'product',
+    useAsTitle: 'variation',
     group: 'Ecommerce',
-    defaultColumns: ['product', 'tier', 'status', 'startDate', 'endDate', 'createdAt'],
-    description: 'Product boost/featuring for increased visibility',
+    defaultColumns: ['variation', 'tier', 'status', 'startDate', 'endDate', 'createdAt'],
+    description: 'Variation boost/featuring for increased visibility',
   },
   access: {
     read: authenticated,
@@ -43,12 +43,12 @@ export const ProductBoosts: CollectionConfig = {
   },
   fields: [
     {
-      name: 'product',
+      name: 'variation',
       type: 'relationship',
-      relationTo: 'products',
+      relationTo: 'variations',
       required: true,
       admin: {
-        description: 'The product to boost',
+        description: 'The variation to boost',
       },
     },
     {

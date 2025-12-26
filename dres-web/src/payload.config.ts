@@ -25,9 +25,11 @@ import { Orders } from './collections/Orders'
 import { Pages } from './collections/Pages'
 import { PostCategories } from './collections/PostCategories'
 import { Posts } from './collections/Posts'
-import { Products } from './collections/Products'
+import { Styles } from './collections/Styles'
+import { Variations } from './collections/Variations'
+import { SKUs } from './collections/SKUs'
+import { VariationViews } from './collections/VariationViews'
 import { ProductStats } from './collections/ProductStats'
-import { ProductVariations } from './collections/ProductVariations'
 import { Regions } from './collections/Regions'
 import { Reviews } from './collections/Reviews'
 import { ShippingRates } from './collections/ShippingRates'
@@ -52,6 +54,7 @@ export default buildConfig({
       // Feel free to delete this at any time. Simply remove the line below.
       beforeDashboard: ['@/components/BeforeDashboard'],
     },
+    autoRefresh: true,
     importMap: {
       baseDir: path.resolve(dirname),
     },
@@ -110,7 +113,7 @@ export default buildConfig({
     defaultLocale: 'en',
     fallback: true,
   },
-  collections: [Pages, Posts, PostCategories, Media, Attributes, AttributeOptions, ProductBoosts, ProductVariations, Brands, Carts, Categories, Cities, Collections, Countries, Currencies, Departments, DiscountCodes, Favorites, Follows, Materials, Notifications, Orders, Regions, ProductStats, Reviews, ShippingRates, Transactions, Users, UserPoints, Products],
+  collections: [Pages, Posts, PostCategories, Media, Attributes, AttributeOptions, ProductBoosts, Styles, Variations, SKUs, VariationViews, Brands, Carts, Categories, Cities, Collections, Countries, Currencies, Departments, DiscountCodes, Favorites, Follows, Materials, Notifications, Orders, Regions, ProductStats, Reviews, ShippingRates, Transactions, Users, UserPoints],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins,

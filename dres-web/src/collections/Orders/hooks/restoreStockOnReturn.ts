@@ -36,68 +36,68 @@ export const restoreStockOnReturn: CollectionAfterChangeHook = async ({
         currentItem.shippingStatus === 'returned' &&
         previousItem?.shippingStatus !== 'returned'
       ) {
-        const productId = typeof currentItem.product === 'object' 
-          ? currentItem.product.id 
-          : currentItem.product
+        const variationId = typeof currentItem.variation === 'object' 
+          ? currentItem.variation.id 
+          : currentItem.variation
         
-        if (!productId) continue
+        if (!variationId) continue
 
-        const variationId = currentItem.variationId
+        const skuId = currentItem.skuId
 
-        // If item has a variation ID, restore variation stock
-        if (variationId) {
-          // Fetch the variation from product-variations collection
-          const variation = await payload.findByID({
-            collection: 'product-variations',
-            id: variationId,
+        // If item has a SKU ID, restore SKU stock
+        if (skuId) {
+          // Fetch the SKU from skus collection
+          const sku = await payload.findByID({
+            collection: 'skus',
+            id: skuId,
             depth: 0,
           })
 
-          if (!variation) {
-            payload.logger.warn(`Variation ${variationId} not found for stock restore`)
+          if (!sku) {
+            payload.logger.warn(`SKU ${skuId} not found for stock restore`)
             continue
           }
 
-          const currentStock = variation.stock
+          const currentStock = sku.stock
 
           // Skip if stock is null/undefined (unlimited stock)
           if (currentStock === null || currentStock === undefined) {
             payload.logger.info(
-              `Skipping stock restore for variation ${variationId} - unlimited stock`,
+              `Skipping stock restore for SKU ${skuId} - unlimited stock`,
             )
             continue
           }
 
           const newStock = currentStock + currentItem.quantity
 
-          // Update the variation stock directly in product-variations collection
+          // Update the SKU stock directly in skus collection
           await payload.update({
-            collection: 'product-variations',
-            id: variationId,
+            collection: 'skus',
+            id: skuId,
             data: {
               stock: newStock,
             },
           })
 
           payload.logger.info(
-            `Restored stock for variation ${variationId} on return: ${currentStock} -> ${newStock}`,
+            `Restored stock for SKU ${skuId} on return: ${currentStock} -> ${newStock}`,
           )
         } else {
-          // No variation - restore product-level stock
-          const product = await payload.findByID({
-            collection: 'products',
-            id: productId,
+          // No SKU - restore variation-level stock
+          const variation = await payload.findByID({
+            collection: 'variations',
+            id: variationId,
             depth: 0,
           })
 
-          if (!product) continue
+          if (!variation) continue
 
-          const currentStock = product.stock as number | null | undefined
+          const currentStock = variation.stock as number | null | undefined
 
           // Skip if stock is null/undefined (unlimited stock)
           if (currentStock === null || currentStock === undefined) {
             payload.logger.info(
-              `Skipping stock restore for product ${productId} - unlimited stock`,
+              `Skipping stock restore for variation ${variationId} - unlimited stock`,
             )
             continue
           }

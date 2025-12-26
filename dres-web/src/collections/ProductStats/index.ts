@@ -31,9 +31,9 @@ export const ProductStats: CollectionConfig = {
   },
   fields: [
     {
-      name: 'product',
+      name: 'variation',
       type: 'relationship',
-      relationTo: 'products',
+      relationTo: 'variations',
       required: true,
       unique: true,
     },

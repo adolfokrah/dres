@@ -58,99 +58,35 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
     const orderItems: OrderItem[] = []
 
     for (const item of doc.items || []) {
-      const productId = typeof item.product === 'object' ? item.product.id : item.product
+      const variationId = typeof item.variation === 'object' ? item.variation.id : item.variation
 
-      // Fetch product with seller and category (for collections)
-      const product = await payload.findByID({
-        collection: 'products',
-        id: productId,
+      // Fetch variation with style and seller
+      const variation = await payload.findByID({
+        collection: 'variations',
+        id: variationId,
         depth: 2,
       })
 
-      if (!product) continue
+      if (!variation) continue
+
+      // Get style for seller info
+      const style = typeof variation.style === 'object' ? variation.style : null
 
       // Check if seller is on vacation
-      const seller = product.seller
+      const seller = style?.seller
       if (seller && typeof seller === 'object' && seller.vacationMode === true) {
-        // Skip products from sellers on vacation
-        payload.logger.info(`Skipping product ${product.title} - seller on vacation`)
+        // Skip variations from sellers on vacation
+        payload.logger.info(`Skipping variation ${variation.slug} - seller on vacation`)
         continue
       }
 
-      // Get variation options and ID if exists
-      let variationOptions: Record<string, string> | null = null
-      let variationId: string | null = null
+      // Get SKU ID if exists
+      let skuId: string | null = null
       
-      // item.variation is now a relationship to product-variations collection
-      const variationRef = item.variation
-      if (variationRef) {
-        const varId = typeof variationRef === 'object' ? variationRef.id : variationRef
-        
-        // Fetch the variation with depth 2 to get attribute names
-        const variation = await payload.findByID({
-          collection: 'product-variations',
-          id: varId,
-          depth: 2, // Get options AND their attributes
-        })
-        
-        if (variation) {
-          variationId = variation.id
-          
-          // variation.options is now an array of attributeOption relationships
-          const opts = variation.options
-          if (opts && Array.isArray(opts) && opts.length > 0) {
-            const resolvedOptions: Record<string, string> = {}
-            for (const opt of opts) {
-              if (typeof opt === 'object' && opt !== null) {
-                // Option is populated
-                const optionName = opt.name || 'Unknown'
-                
-                // Get attribute name
-                let attrName = 'Option'
-                if (opt.attribute) {
-                  if (typeof opt.attribute === 'object' && opt.attribute !== null) {
-                    attrName = opt.attribute.name || 'Option'
-                  } else if (typeof opt.attribute === 'string') {
-                    // Attribute is just an ID, fetch it
-                    try {
-                      const attr = await payload.findByID({
-                        collection: 'attributes',
-                        id: opt.attribute,
-                        depth: 0,
-                      })
-                      attrName = attr?.name || 'Option'
-                    } catch {
-                      // Use default
-                    }
-                  }
-                }
-                resolvedOptions[attrName] = optionName
-              } else if (typeof opt === 'string') {
-                // Option is just an ID, fetch it with attribute
-                try {
-                  const option = await payload.findByID({
-                    collection: 'attributeOptions',
-                    id: opt,
-                    depth: 1,
-                  })
-                  if (option) {
-                    const optionName = option.name || 'Unknown'
-                    let attrName = 'Option'
-                    if (option.attribute) {
-                      if (typeof option.attribute === 'object' && option.attribute !== null) {
-                        attrName = option.attribute.name || 'Option'
-                      }
-                    }
-                    resolvedOptions[attrName] = optionName
-                  }
-                } catch {
-                  // Skip if can't fetch
-                }
-              }
-            }
-            variationOptions = Object.keys(resolvedOptions).length > 0 ? resolvedOptions : null
-          }
-        }
+      // item.sku is now a relationship to skus collection
+      const skuRef = item.sku
+      if (skuRef) {
+        skuId = typeof skuRef === 'object' ? skuRef.id : skuRef
       }
 
       // Get seller info
@@ -160,38 +96,38 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
           ? seller.shopName || `${seller.firstName || ''} ${seller.lastName || ''}`.trim() || 'Unknown Seller'
           : 'Unknown Seller'
 
-      // Get product image URL (first image)
-      let productImage = ''
-      if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-        const firstImage = product.images[0]
+      // Get variation image URL (first image)
+      let variationImage = ''
+      if (variation.images && Array.isArray(variation.images) && variation.images.length > 0) {
+        const firstImage = variation.images[0]
         if (typeof firstImage === 'object' && firstImage.url) {
-          productImage = firstImage.url
+          variationImage = firstImage.url
         }
       }
 
-      // Get original price (base price without platform fees)
-      let originalPrice = product.price || 0
-      if (variationId) {
-        // Variation price was already fetched above, let's fetch it again if needed
-        const variationForPrice = await payload.findByID({
-          collection: 'product-variations',
-          id: variationId,
+      // Get original price from SKU or variation
+      let originalPrice = item.price || 0
+      if (skuId) {
+        // SKU price was already fetched above, let's fetch it again if needed
+        const skuForPrice = await payload.findByID({
+          collection: 'skus',
+          id: skuId,
           depth: 0,
         })
-        if (variationForPrice?.price) {
-          originalPrice = variationForPrice.price
+        if (skuForPrice?.price) {
+          originalPrice = skuForPrice.price
         }
       }
 
-      // Get department ID from product
-      const departmentId = product.department
-        ? typeof product.department === 'object'
-          ? product.department.id
-          : product.department
+      // Get department ID from style
+      const departmentId = style?.department
+        ? typeof style.department === 'object'
+          ? style.department.id
+          : style.department
         : ''
 
-      // Get category ID from product
-      const category = product.category
+      // Get category ID from style
+      const category = style?.category
       const categoryId = category
         ? typeof category === 'object'
           ? category.id
@@ -211,20 +147,19 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         collectionId = typeof firstCollection === 'object' ? firstCollection.id : firstCollection
       }
 
-      // Get brand ID from product
-      const brandId = product.brand
-        ? typeof product.brand === 'object'
-          ? product.brand.id
-          : product.brand
+      // Get brand ID from style
+      const brandId = style?.brand
+        ? typeof style.brand === 'object'
+          ? style.brand.id
+          : style.brand
         : ''
 
       orderItems.push({
-        product: productId,
+        variation: variationId,
         seller: sellerId,
-        productTitle: product.title || 'Unknown Product',
-        productImage,
-        variationOptions,
-        variationId,
+        variationTitle: variation.slug || 'Unknown Variation',
+        variationImage,
+        skuId,
         sellerName,
         price: item.price || 0,
         originalPrice,

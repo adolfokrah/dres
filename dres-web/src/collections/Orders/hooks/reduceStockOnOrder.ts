@@ -25,58 +25,58 @@ export const reduceStockOnOrder: CollectionAfterChangeHook = async ({
     const items = (doc.items || []) as OrderItem[]
 
     for (const item of items) {
-      const productId = typeof item.product === 'object' ? item.product.id : item.product
-      if (!productId) continue
+      const variationId = typeof item.variation === 'object' ? item.variation.id : item.variation
+      if (!variationId) continue
 
-      const variationId = item.variationId
+      const skuId = item.skuId
 
-      // If item has a variation ID, reduce variation stock
-      if (variationId) {
-        // Fetch the variation from product-variations collection
-        const variation = await payload.findByID({
-          collection: 'product-variations',
-          id: variationId,
+      // If item has a SKU ID, reduce SKU stock
+      if (skuId) {
+        // Fetch the SKU from skus collection
+        const sku = await payload.findByID({
+          collection: 'skus',
+          id: skuId,
           depth: 0,
         })
 
-        if (!variation) {
-          payload.logger.warn(`Variation ${variationId} not found for stock reduction`)
+        if (!sku) {
+          payload.logger.warn(`SKU ${skuId} not found for stock reduction`)
           continue
         }
 
-        const currentStock = variation.stock
+        const currentStock = sku.stock
 
         // Skip if stock is null/undefined (unlimited stock)
         if (currentStock === null || currentStock === undefined) {
           payload.logger.info(
-            `Skipping stock reduction for variation ${variationId} - unlimited stock`,
+            `Skipping stock reduction for SKU ${skuId} - unlimited stock`,
           )
           continue
         }
 
         const newStock = Math.max(0, currentStock - item.quantity)
 
-        // Update the variation stock directly in product-variations collection
+        // Update the SKU stock directly in skus collection
         await payload.update({
-          collection: 'product-variations',
-          id: variationId,
+          collection: 'skus',
+          id: skuId,
           data: {
             stock: newStock,
           },
         })
 
         payload.logger.info(
-          `Reduced stock for variation ${variationId}: ${currentStock} -> ${newStock}`,
+          `Reduced stock for SKU ${skuId}: ${currentStock} -> ${newStock}`,
         )
       } else {
-        // No variation - reduce product-level stock
-        const product = await payload.findByID({
-          collection: 'products',
-          id: productId,
+        // No SKU - try variation-level
+        const variation = await payload.findByID({
+          collection: 'variations',
+          id: variationId,
           depth: 0,
         })
 
-        if (!product) continue
+        if (!variation) continue
 
         const currentStock = product.stock as number | null | undefined
 

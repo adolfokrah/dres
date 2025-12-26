@@ -16,6 +16,15 @@ export const Collections: CollectionConfig = {
       required: true,
     },
     {
+      name: 'departments',
+      type: 'relationship',
+      relationTo: 'departments',
+      hasMany: true,
+      admin: {
+        description: 'Departments that can use this collection',
+      },
+    },
+    {
       name: 'categories',
       type: 'join',
       collection: 'categories',

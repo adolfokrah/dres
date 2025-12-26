@@ -125,11 +125,11 @@ export const Orders: CollectionConfig = {
                   type: 'row',
                   fields: [
                     {
-                      name: 'product',
+                      name: 'variation',
                       type: 'relationship',
-                      relationTo: 'products',
+                      relationTo: 'variations',
                       admin: {
-                        description: 'Reference to the product',
+                        description: 'Reference to the variation',
                         width: '50%',
                       },
                     },

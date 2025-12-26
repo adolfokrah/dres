@@ -41,7 +41,7 @@ export const Favorites: CollectionConfig = {
   },
   indexes: [
     {
-      fields: ['user', 'product'],
+      fields: ['user', 'variation'],
       unique: true,
     },
   ],
@@ -56,12 +56,12 @@ export const Favorites: CollectionConfig = {
       },
     },
     {
-      name: 'product',
+      name: 'variation',
       type: 'relationship',
-      relationTo: 'products',
+      relationTo: 'variations',
       required: true,
       admin: {
-        description: 'The favorited product',
+        description: 'The favorited variation',
       },
     },
   ],

@@ -99,16 +99,16 @@ export const Users: CollectionConfig = {
           ],
         },
         {
-          label: 'Products',
+          label: 'Styles',
           fields: [
             {
-              name: 'products',
+              name: 'styles',
               type: 'join',
-              collection: 'products',
+              collection: 'styles',
               on: 'seller',
               admin: {
-                description: 'Products listed by this seller',
-                defaultColumns: ['title', 'price', 'category', 'status', 'createdAt'],
+                description: 'Product styles listed by this seller',
+                defaultColumns: ['title', 'department', 'category', 'createdAt'],
               },
             },
           ],

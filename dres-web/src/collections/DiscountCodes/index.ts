@@ -186,12 +186,12 @@ export const DiscountCodes: CollectionConfig = {
       },
     },
     {
-      name: 'products',
+      name: 'variations',
       type: 'relationship',
-      relationTo: 'products',
+      relationTo: 'variations',
       hasMany: true,
       admin: {
-        description: 'Products this discount applies to',
+        description: 'Variations this discount applies to',
         condition: (data) => data?.applicableTo === 'products',
       },
     },
