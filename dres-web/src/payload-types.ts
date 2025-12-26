@@ -1189,6 +1189,10 @@ export interface Skus {
       }[]
     | null;
   /**
+   * Currency for this SKU (auto-populated from seller's country)
+   */
+  currency?: (string | null) | Currency;
+  /**
    * Base price for this SKU
    */
   price: number;
@@ -3110,6 +3114,7 @@ export interface SkusSelect<T extends boolean = true> {
         value?: T;
         id?: T;
       };
+  currency?: T;
   price?: T;
   sellingPrice?: T;
   compareAtPrice?: T;

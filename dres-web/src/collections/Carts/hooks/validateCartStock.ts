@@ -10,6 +10,7 @@ interface CartItem {
 interface SKU {
   id: string
   sku?: string
+  title?: string
   stock?: number | null
   isActive?: boolean
 }
@@ -72,7 +73,7 @@ export const validateCartStock: CollectionBeforeValidateHook = async ({
           collection: 'skus',
           id: skuId,
           depth: 1,
-        }) as ProductVariation | null
+        }) as SKU | null
 
         if (!sku) {
           errors.push(`Invalid SKU selected for "${variationTitle}"`)
@@ -88,12 +89,13 @@ export const validateCartStock: CollectionBeforeValidateHook = async ({
 
         // Check if SKU is sold out (stock = 0, not null/undefined which means unlimited)
         if (skuStock !== null && skuStock !== undefined) {
-          const skuLabel = sku.sku || 'SKU'
+          // Use SKU title (e.g., "Red / M / GHS 99") instead of SKU code
+          const skuLabel = sku.title || sku.sku || 'SKU'
 
           if (skuStock === 0) {
-            errors.push(`"${variationTitle}" (${skuLabel}) is sold out`)
+            errors.push(`"${skuLabel}" is sold out`)
           } else if (skuStock < quantity) {
-            errors.push(`"${variationTitle}" (${skuLabel}) only has ${skuStock} in stock`)
+            errors.push(`"${skuLabel}" only has ${skuStock} in stock`)
           }
         }
       } else {

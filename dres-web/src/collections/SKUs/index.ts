@@ -159,6 +159,15 @@ export const SKUs: CollectionConfig = {
       ],
     },
     {
+      name: 'currency',
+      type: 'relationship',
+      relationTo: 'currencies',
+      admin: {
+        description: 'Currency for this SKU (auto-populated from seller\'s country)',
+        readOnly: true,
+      },
+    },
+    {
       name: 'price',
       type: 'number',
       required: true,

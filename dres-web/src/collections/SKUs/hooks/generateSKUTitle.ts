@@ -2,11 +2,13 @@ import type { CollectionBeforeChangeHook } from 'payload'
 
 /**
  * Generates SKU title from variation options + sku options + price with currency
+ * Also auto-populates the currency field from seller's country
  * Example: "Red / Leather / M / GHS 99.99"
  */
 export const generateSKUTitle: CollectionBeforeChangeHook = async ({ data, req }) => {
   const titleParts: string[] = []
-  let currencySymbol = '$' // Default fallback
+  let currencySymbol = '' // No default - will fetch from seller's country
+  let currencyId: string | null = null
 
   // Get variation options and currency from seller's country
   const variationId = data?.variation
@@ -16,7 +18,7 @@ export const generateSKUTitle: CollectionBeforeChangeHook = async ({ data, req }
       const variation = await req.payload.findByID({
         collection: 'variations',
         id: varId,
-        depth: 3, // variation -> style -> seller -> country -> currency
+        depth: 4, // variation -> style -> seller -> country -> currency
       })
       
       // Get variant option values
@@ -35,8 +37,13 @@ export const generateSKUTitle: CollectionBeforeChangeHook = async ({ data, req }
           const country = seller.country
           if (country && typeof country === 'object') {
             const currency = country.currency
-            if (currency && typeof currency === 'object' && currency.symbol) {
-              currencySymbol = currency.symbol
+            if (currency && typeof currency === 'object') {
+              if (currency.symbol) {
+                currencySymbol = currency.symbol
+              }
+              if (currency.id) {
+                currencyId = currency.id
+              }
             }
           }
         }
@@ -44,6 +51,11 @@ export const generateSKUTitle: CollectionBeforeChangeHook = async ({ data, req }
     } catch {
       // Variation not found
     }
+  }
+
+  // Set the currency field
+  if (currencyId) {
+    data.currency = currencyId
   }
 
   // Get SKU options
@@ -67,7 +79,8 @@ export const generateSKUTitle: CollectionBeforeChangeHook = async ({ data, req }
 
   // Add price with currency
   if (data?.price !== undefined) {
-    titleParts.push(`${currencySymbol}${data.price}`)
+    const priceStr = currencySymbol ? `${currencySymbol} ${data.price}` : `${data.price}`
+    titleParts.push(priceStr)
   }
 
   data.title = titleParts.length > 0 ? titleParts.join(' / ') : data.sku || 'SKU'
