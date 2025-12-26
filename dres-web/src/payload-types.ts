@@ -193,7 +193,12 @@ export interface Config {
   db: {
     defaultIDType: string;
   };
-  fallbackLocale: null;
+  fallbackLocale:
+    | ('false' | 'none' | 'null')
+    | false
+    | null
+    | ('en' | 'fr' | 'de' | 'es' | 'it')
+    | ('en' | 'fr' | 'de' | 'es' | 'it')[];
   globals: {
     header: Header;
     footer: Footer;
@@ -202,7 +207,7 @@ export interface Config {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
   };
-  locale: null;
+  locale: 'en' | 'fr' | 'de' | 'es' | 'it';
   user: User & {
     collection: 'users';
   };
@@ -285,7 +290,7 @@ export interface Page {
       | null;
     media?: (string | null) | Media;
   };
-  layout: (CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock)[];
+  layout: (CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock | PromoBannerBlock)[];
   meta?: {
     title?: string | null;
     /**
@@ -1989,6 +1994,46 @@ export interface Form {
   createdAt: string;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PromoBannerBlock".
+ */
+export interface PromoBannerBlock {
+  /**
+   * Main headline, e.g. "First Time?"
+   */
+  title: string;
+  /**
+   * Supporting text, e.g. "Shop: 10% off with code WELCOMEVC..."
+   */
+  description: string;
+  /**
+   * CTA button text
+   */
+  actionText: string;
+  /**
+   * Where the CTA button links to
+   */
+  actionLink: {
+    type?: ('reference' | 'custom') | null;
+    newTab?: boolean | null;
+    reference?:
+      | ({
+          relationTo: 'pages';
+          value: string | Page;
+        } | null)
+      | ({
+          relationTo: 'posts';
+          value: string | Post;
+        } | null);
+    url?: string | null;
+    label: string;
+  };
+  backgroundColor?: ('light' | 'white' | 'dark') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'promoBanner';
+}
+/**
  * Shopping carts for users
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2590,6 +2635,7 @@ export interface PagesSelect<T extends boolean = true> {
         mediaBlock?: T | MediaBlockSelect<T>;
         archive?: T | ArchiveBlockSelect<T>;
         formBlock?: T | FormBlockSelect<T>;
+        promoBanner?: T | PromoBannerBlockSelect<T>;
       };
   meta?:
     | T
@@ -2686,6 +2732,27 @@ export interface FormBlockSelect<T extends boolean = true> {
   form?: T;
   enableIntro?: T;
   introContent?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PromoBannerBlock_select".
+ */
+export interface PromoBannerBlockSelect<T extends boolean = true> {
+  title?: T;
+  description?: T;
+  actionText?: T;
+  actionLink?:
+    | T
+    | {
+        type?: T;
+        newTab?: T;
+        reference?: T;
+        url?: T;
+        label?: T;
+      };
+  backgroundColor?: T;
   id?: T;
   blockName?: T;
 }

@@ -1,6 +1,8 @@
 import 'package:get_it/get_it.dart';
 import 'package:dres/core/services/api_service.dart';
 import 'package:dres/core/services/storage_service.dart';
+import 'package:dres/features/home/data/repositories/home_repository.dart';
+import 'package:dres/features/home/logic/bloc/home_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -21,15 +23,13 @@ Future<void> setupDependencies() async {
   // Repositories (Singletons)
   // ========================
   
-  // TODO: Register repositories here
-  // getIt.registerLazySingleton<AuthRepository>(() => AuthRepository(getIt()));
-  // getIt.registerLazySingleton<ProductRepository>(() => ProductRepository(getIt()));
+  // Home Repository
+  getIt.registerLazySingleton<HomeRepository>(() => HomeRepository(getIt<ApiService>()));
 
   // ========================
-  // BLoCs/Cubits (Factory - new instance each time)
+  // BLoCs (Factory - new instance each time)
   // ========================
   
-  // TODO: Register BLoCs here
-  // getIt.registerFactory<AuthBloc>(() => AuthBloc(getIt()));
-  // getIt.registerFactory<ProductBloc>(() => ProductBloc(getIt()));
+  // Home Bloc
+  getIt.registerFactory<HomeBloc>(() => HomeBloc(getIt<HomeRepository>()));
 }

@@ -10,3 +10,8 @@ const String logout = '$users/logout';
 // Categories
 const String categories = '$apiBaseUrl/categories';
 const String categoriesByDepartment = '$categories?where[departments][contains]=\$department';
+
+// Pages
+const String pages = '$apiBaseUrl/pages';
+const String pageBySlug = '$pages?where[slug][equals]=';
+const String pageById = '$pages/';

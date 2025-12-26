@@ -84,6 +84,32 @@ export default buildConfig({
   db: mongooseAdapter({
     url: process.env.MONGODB_URI || '',
   }),
+  localization: {
+    locales: [
+      {
+        label: 'English',
+        code: 'en',
+      },
+      {
+        label: 'Français',
+        code: 'fr',
+      },
+      {
+        label: 'Deutsch',
+        code: 'de',
+      },
+      {
+        label: 'Español',
+        code: 'es',
+      },
+      {
+        label: 'Italiano',
+        code: 'it',
+      },
+    ],
+    defaultLocale: 'en',
+    fallback: true,
+  },
   collections: [Pages, Posts, PostCategories, Media, Attributes, AttributeOptions, ProductBoosts, ProductVariations, Brands, Carts, Categories, Cities, Collections, Countries, Currencies, Departments, DiscountCodes, Favorites, Follows, Materials, Notifications, Orders, Regions, ProductStats, Reviews, ShippingRates, Transactions, Users, UserPoints, Products],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
