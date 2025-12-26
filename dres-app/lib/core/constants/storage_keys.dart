@@ -1,0 +1,18 @@
+/// Storage keys used for secure storage and shared preferences
+class StorageKeys {
+  StorageKeys._();
+
+  // Auth tokens
+  static const String authToken = 'auth_token';
+  static const String refreshToken = 'refresh_token';
+
+  // User data
+  static const String userId = 'user_id';
+  static const String userEmail = 'user_email';
+
+  // App preferences
+  static const String onboardingCompleted = 'onboarding_completed';
+  static const String selectedLanguage = 'selected_language';
+  static const String selectedCurrency = 'selected_currency';
+  static const String themeMode = 'theme_mode';
+}
