@@ -59,5 +59,29 @@
   "profile": "Profile",
   "@profile": {
     "description": "Profile tab label"
+  },
+  "searchPlaceholder": "Search for items, members",
+  "@searchPlaceholder": {
+    "description": "Search bar placeholder text"
+  },
+  "discover": "Discover",
+  "@discover": {
+    "description": "Discover tab label"
+  },
+  "favourite": "Favourite",
+  "@favourite": {
+    "description": "Favourite tab label"
+  },
+  "me": "Me",
+  "@me": {
+    "description": "Me/Profile tab label"
+  },
+  "shop": "Shop",
+  "@shop": {
+    "description": "Shop tab label"
+  },
+  "favorites": "Favorites",
+  "@favorites": {
+    "description": "Favorites tab label"
   }
 }

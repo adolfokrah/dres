@@ -52,4 +52,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profile => 'Profile';
+
+  @override
+  String get searchPlaceholder => 'Search for items, members';
+
+  @override
+  String get discover => 'Discover';
+
+  @override
+  String get favourite => 'Favourite';
+
+  @override
+  String get me => 'Me';
+
+  @override
+  String get shop => 'Shop';
+
+  @override
+  String get favorites => 'Favorites';
 }
