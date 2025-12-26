@@ -219,6 +219,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Favorites'**
   String get favorites;
+
+  /// First time promo banner title
+  ///
+  /// In en, this message translates to:
+  /// **'First time?'**
+  String get firstTimeTitle;
+
+  /// First time promo banner description
+  ///
+  /// In en, this message translates to:
+  /// **'Shop: 10% off with code WELCOMEVC. SELL: NO FEES TO START.*'**
+  String get firstTimeDescription;
+
+  /// Get started button text
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get getStarted;
 }
 
 class _AppLocalizationsDelegate

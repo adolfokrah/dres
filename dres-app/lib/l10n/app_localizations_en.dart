@@ -70,4 +70,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get favorites => 'Favorites';
+
+  @override
+  String get firstTimeTitle => 'First time?';
+
+  @override
+  String get firstTimeDescription =>
+      'Shop: 10% off with code WELCOMEVC. SELL: NO FEES TO START.*';
+
+  @override
+  String get getStarted => 'Get started';
 }

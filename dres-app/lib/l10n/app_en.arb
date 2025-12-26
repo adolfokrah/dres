@@ -83,5 +83,17 @@
   "favorites": "Favorites",
   "@favorites": {
     "description": "Favorites tab label"
+  },
+  "firstTimeTitle": "First time?",
+  "@firstTimeTitle": {
+    "description": "First time promo banner title"
+  },
+  "firstTimeDescription": "Shop: 10% off with code WELCOMEVC. SELL: NO FEES TO START.*",
+  "@firstTimeDescription": {
+    "description": "First time promo banner description"
+  },
+  "getStarted": "Get started",
+  "@getStarted": {
+    "description": "Get started button text"
   }
 }

@@ -22,7 +22,7 @@ export const Collections: CollectionConfig = {
       on: 'collections',
       admin: {
         description: 'Categories in this collection',
-      },
-    },
+      }
+    }
   ],
 }
