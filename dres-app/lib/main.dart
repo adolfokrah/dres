@@ -3,8 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/theme.dart';
-import 'package:dres/core/widgets/splash_screen.dart';
 import 'package:dres/l10n/app_localizations.dart';
+import 'package:dres/routes.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +23,7 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'DRES',
       theme: AppTheme.theme,
@@ -39,7 +39,8 @@ class MainApp extends StatelessWidget {
         Locale('en'),
       ],
       
-      home: const SplashScreen(),
+      // GoRouter
+      routerConfig: AppRoutes.router,
     );
   }
 }

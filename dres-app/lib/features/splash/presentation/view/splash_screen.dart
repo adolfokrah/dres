@@ -9,8 +9,8 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    
+    final translation = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -31,7 +31,7 @@ class SplashScreen extends StatelessWidget {
                     const SizedBox(height: 1),
                     // Tagline
                     Text(
-                      l10n.splashTagline,
+                      translation.splashTagline,
                       style: AppTypography.bodyL.copyWith(
                         color: AppColors.textPrimary,
                       ),
