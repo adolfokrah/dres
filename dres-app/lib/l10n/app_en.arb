@@ -1,0 +1,63 @@
+{
+  "@@locale": "en",
+  "appName": "DRES",
+  "@appName": {
+    "description": "The app name"
+  },
+  "splashTagline": "Buy & Sell Fashion, Made\nEasy",
+  "@splashTagline": {
+    "description": "Tagline shown on splash screen"
+  },
+  "login": "Login",
+  "@login": {
+    "description": "Login button text"
+  },
+  "signUp": "Sign Up",
+  "@signUp": {
+    "description": "Sign up button text"
+  },
+  "email": "Email",
+  "@email": {
+    "description": "Email field label"
+  },
+  "password": "Password",
+  "@password": {
+    "description": "Password field label"
+  },
+  "forgotPassword": "Forgot Password?",
+  "@forgotPassword": {
+    "description": "Forgot password link text"
+  },
+  "continueWithGoogle": "Continue with Google",
+  "@continueWithGoogle": {
+    "description": "Google sign in button text"
+  },
+  "continueWithApple": "Continue with Apple",
+  "@continueWithApple": {
+    "description": "Apple sign in button text"
+  },
+  "orContinueWith": "Or continue with",
+  "@orContinueWith": {
+    "description": "Divider text for social login"
+  },
+  "home": "Home",
+  "@home": {
+    "description": "Home tab label"
+  },
+  "search": "Search",
+  "@search": {
+    "description": "Search tab label"
+  },
+  "sell": "Sell",
+  "@sell": {
+    "description": "Sell tab label"
+  },
+  "inbox": "Inbox",
+  "@inbox": {
+    "description": "Inbox tab label"
+  },
+  "profile": "Profile",
+  "@profile": {
+    "description": "Profile tab label"
+  }
+}

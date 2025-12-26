@@ -10,6 +10,9 @@ dependencies:
   dio: ^5.9.0
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
   flutter_bloc: ^9.1.1
   flutter_dotenv: ^6.0.0
   flutter_secure_storage: ^10.0.0
@@ -23,6 +26,7 @@ dev_dependencies:
   flutter_launcher_icons: ^0.14.4
 
 flutter:
+  generate: true
   uses-material-design: true
   assets:
     - .env
@@ -55,14 +59,44 @@ flutter:
 
     - family: HelveticaNow
       fonts:
-        - asset: assets/fonts/helveticanowtext-bold-demo.ttf
+        - asset: assets/fonts/HelveticaNowText-Thin.ttf
+          weight: 100
+        - asset: assets/fonts/HelveticaNowText-ThinItalic.ttf
+          weight: 100
+          style: italic
+        - asset: assets/fonts/HelveticaNowText-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/HelveticaNowText-ExtLtIta.ttf
+          weight: 200
+          style: italic
+        - asset: assets/fonts/HelveticaNowText-Light.ttf
+          weight: 300
+        - asset: assets/fonts/HelveticaNowText-LightItalic.ttf
+          weight: 300
+          style: italic
+        - asset: assets/fonts/HelveticaNowText-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/HelveticaNowText-RegIta.ttf
+          weight: 400
+          style: italic
+        - asset: assets/fonts/HelveticaNowText-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/HelveticaNowText-MediumItalic.ttf
+          weight: 500
+          style: italic
+        - asset: assets/fonts/HelveticaNowText-Bold.ttf
           weight: 700
-        - asset: assets/fonts/helveticanowtext-bolditalic-demo.ttf
+        - asset: assets/fonts/HelveticaNowText-BoldItalic.ttf
           weight: 700
           style: italic
-        - asset: assets/fonts/helveticanowtext-black-demo.ttf
+        - asset: assets/fonts/HelveticaNowText-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/HelveticaNowText-ExtBdIta.ttf
+          weight: 800
+          style: italic
+        - asset: assets/fonts/HelveticaNowText-Black.ttf
           weight: 900
-        - asset: assets/fonts/helveticanowtext-blackitalic-demo.ttf
+        - asset: assets/fonts/HelveticaNowText-BlackItalic.ttf
           weight: 900
           style: italic
 
