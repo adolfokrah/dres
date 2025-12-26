@@ -1,21 +1,23 @@
 import type { CollectionAfterChangeHook } from 'payload'
 
 interface OrderItem {
+  price?: number
+  quantity?: number
   buyerProtectionFee?: number
   shippingStatus?: string
 }
 
 /**
  * Calculate platform commission using simple formula:
- * Total Commission = Commission Fees (from transactions) + Buyer Protection Fees - Discount Amount - Points Discount
+ * Total Commission = Platform Fee (10% of subtotal) + Buyer Protection Fees - Discount Amount - Points Discount
  * 
  * Where:
- * - Commission Fees = Sum of commissionFees from all transfer transactions for this order
- * - Buyer Protection Fees = Sum of buyer protection fees from delivered items
+ * - Platform Fee = 10% of subtotal from active items (excludes returned/return_in_progress/not_available)
+ * - Buyer Protection Fees = Sum of buyer protection fees from active items
  * - Discount Amount = Discount applied to the order
  * - Points Discount = Points redeemed as discount
  * 
- * This runs AFTER order changes, so transactions are already created
+ * This runs AFTER order changes
  */
 export const calculateTotalCommission: CollectionAfterChangeHook = async ({
   doc,
@@ -35,37 +37,29 @@ export const calculateTotalCommission: CollectionAfterChangeHook = async ({
     const discountAmount = doc?.discountAmount || 0
     const pointsDiscount = doc?.pointsDiscount || 0
 
-    // Get delivered items for buyer protection fees
-    const deliveredItems = items.filter((item) => item.shippingStatus === 'delivered')
+    // Get active items (exclude returned/return_in_progress/not_available)
+    const activeItems = items.filter((item) => 
+      item.shippingStatus !== 'returned' && 
+      item.shippingStatus !== 'return_in_progress' &&
+      item.shippingStatus !== 'not_available'
+    )
 
-    // Calculate total buyer protection fees from delivered items
-    const totalBuyerProtectionFee = deliveredItems.reduce((sum, item) => {
+    // Calculate subtotal from active items
+    const subtotal = activeItems.reduce((sum, item) => {
+      return sum + ((item.price || 0) * (item.quantity || 0))
+    }, 0)
+
+    // Platform fee = 10% of subtotal
+    const platformFee = subtotal * 0.1
+
+    // Calculate total buyer protection fees from active items
+    const totalBuyerProtectionFee = activeItems.reduce((sum, item) => {
       return sum + (item.buyerProtectionFee || 0)
     }, 0)
 
-    // Get commission fees from transactions for this order
-    let totalCommissionFees = 0
-
-    if (orderId) {
-      const transactions = await payload.find({
-        collection: 'transactions',
-        where: {
-          and: [
-            { order: { equals: orderId } },
-            { type: { equals: 'transfer' } },
-          ],
-        },
-        limit: 100,
-      })
-
-      totalCommissionFees = transactions.docs.reduce((sum, tx) => {
-        return sum + ((tx.commissionFees as number) || 0)
-      }, 0)
-    }
-
-    // Total Commission = Commission Fees + Buyer Protection Fees - Discount Amount - Points Discount
+    // Total Commission = Platform Fee + Buyer Protection Fees - Discount Amount - Points Discount
     // Can be negative (for accounting purposes)
-    const totalCommission = totalCommissionFees + totalBuyerProtectionFee - discountAmount - pointsDiscount
+    const totalCommission = platformFee + totalBuyerProtectionFee - discountAmount - pointsDiscount
     const roundedCommission = Math.round(totalCommission * 100) / 100
 
     // Only update if commission has changed
@@ -83,7 +77,7 @@ export const calculateTotalCommission: CollectionAfterChangeHook = async ({
       })
 
       payload.logger.info(
-        `Order commission updated: Commission Fees: ${totalCommissionFees}, Buyer Protection: ${totalBuyerProtectionFee}, Discount: ${discountAmount}, Points Discount: ${pointsDiscount}, Total: ${roundedCommission}`,
+        `Order commission updated: Platform Fee (10%): ${platformFee.toFixed(2)}, Buyer Protection: ${totalBuyerProtectionFee}, Discount: ${discountAmount}, Points Discount: ${pointsDiscount}, Total: ${roundedCommission}`,
       )
     }
   } catch (error) {

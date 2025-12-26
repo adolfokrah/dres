@@ -8,6 +8,7 @@ interface CartItem {
   buyerProtectionFee?: number
   quantity?: number
   price?: number
+  _sellerId?: string // Internal field for grouping
 }
 
 interface OriginalCartItem {
@@ -72,6 +73,32 @@ export const calculateCartTotals: CollectionBeforeChangeHook = async ({
         }
       }
 
+      // Fetch seller IDs for each item (for shipping grouping)
+      for (const item of data.items as CartItem[]) {
+        const variationId = item.variation 
+          ? (typeof item.variation === 'object' ? item.variation.id : item.variation)
+          : null
+        
+        if (variationId) {
+          try {
+            const variation = await req.payload.findByID({
+              collection: 'variations',
+              id: variationId,
+              depth: 2,
+            })
+            const style = variation?.style
+            if (style && typeof style === 'object') {
+              const seller = style.seller
+              item._sellerId = seller 
+                ? (typeof seller === 'object' ? seller.id : seller)
+                : 'unknown'
+            }
+          } catch {
+            item._sellerId = 'unknown'
+          }
+        }
+      }
+
       // Calculate buyer protection fees
       for (const item of data.items as CartItem[]) {
         if (item.buyerProtection && item.shippingFee) {
@@ -79,6 +106,16 @@ export const calculateCartTotals: CollectionBeforeChangeHook = async ({
         } else {
           item.buyerProtectionFee = 0
         }
+      }
+
+      // Group items by seller for shipping calculation
+      const itemsBySeller = new Map<string, CartItem[]>()
+      for (const item of data.items as CartItem[]) {
+        const sellerId = item._sellerId || 'unknown'
+        if (!itemsBySeller.has(sellerId)) {
+          itemsBySeller.set(sellerId, [])
+        }
+        itemsBySeller.get(sellerId)!.push(item)
       }
 
       // Calculate totals
@@ -93,9 +130,19 @@ export const calculateCartTotals: CollectionBeforeChangeHook = async ({
         }, 0) * 100,
       ) / 100
 
-      const totalBeforeDiscount = data.items.reduce((total: number, item: CartItem) => {
-        return total + (item.quantity || 0) * (item.price || 0) + (item.shippingFee || 0) + (item.buyerProtectionFee || 0)
-      }, 0)
+      // Calculate shipping (one per seller) and buyer protection
+      let totalShipping = 0
+      let totalBuyerProtection = 0
+      for (const [, sellerItems] of itemsBySeller) {
+        // One shipping fee per seller
+        totalShipping += sellerItems[0]?.shippingFee || 0
+        // Sum all buyer protection fees
+        for (const item of sellerItems) {
+          totalBuyerProtection += item.buyerProtectionFee || 0
+        }
+      }
+
+      const totalBeforeDiscount = data.subtotal + totalShipping + totalBuyerProtection
 
       data.grandTotal = Math.max(0, Math.round((totalBeforeDiscount - (data.discountAmount || 0) - (data.pointsDiscount || 0)) * 100) / 100)
     }
@@ -177,6 +224,32 @@ export const calculateCartTotals: CollectionBeforeChangeHook = async ({
 
   const originalItems = (originalDoc?.items || []) as OriginalCartItem[]
 
+  // Fetch seller IDs for each item (for shipping grouping)
+  for (const item of data.items as CartItem[]) {
+    const variationId = item.variation 
+      ? (typeof item.variation === 'object' ? item.variation.id : item.variation)
+      : null
+    
+    if (variationId) {
+      try {
+        const variation = await req.payload.findByID({
+          collection: 'variations',
+          id: variationId,
+          depth: 2,
+        })
+        const style = variation?.style
+        if (style && typeof style === 'object') {
+          const seller = style.seller
+          item._sellerId = seller 
+            ? (typeof seller === 'object' ? seller.id : seller)
+            : 'unknown'
+        }
+      } catch {
+        item._sellerId = 'unknown'
+      }
+    }
+  }
+
   // Calculate buyer protection fees - only update if different
   for (let i = 0; i < data.items.length; i++) {
     const item = data.items[i] as CartItem
@@ -193,6 +266,16 @@ export const calculateCartTotals: CollectionBeforeChangeHook = async ({
     }
   }
 
+  // Group items by seller for shipping calculation
+  const itemsBySeller = new Map<string, CartItem[]>()
+  for (const item of data.items as CartItem[]) {
+    const sellerId = item._sellerId || 'unknown'
+    if (!itemsBySeller.has(sellerId)) {
+      itemsBySeller.set(sellerId, [])
+    }
+    itemsBySeller.get(sellerId)!.push(item)
+  }
+
   // Calculate expected totals
   const expectedItemCount = data.items.reduce(
     (total: number, item: CartItem) => total + (item.quantity || 0),
@@ -205,10 +288,20 @@ export const calculateCartTotals: CollectionBeforeChangeHook = async ({
     }, 0) * 100,
   ) / 100
 
-  const totalBeforeDiscount = data.items.reduce((total: number, item: CartItem) => {
-    const buyerProtectionFee = item.buyerProtectionFee ?? (originalItems[data.items.indexOf(item)]?.buyerProtectionFee || 0)
-    return total + (item.quantity || 0) * (item.price || 0) + (item.shippingFee || 0) + buyerProtectionFee
-  }, 0)
+  // Calculate shipping (one per seller) and buyer protection
+  let totalShipping = 0
+  let totalBuyerProtection = 0
+  for (const [, sellerItems] of itemsBySeller) {
+    // One shipping fee per seller
+    totalShipping += sellerItems[0]?.shippingFee || 0
+    // Sum all buyer protection fees
+    for (const item of sellerItems) {
+      const fee = item.buyerProtectionFee ?? (originalItems[data.items.indexOf(item)]?.buyerProtectionFee || 0)
+      totalBuyerProtection += fee
+    }
+  }
+
+  const totalBeforeDiscount = expectedSubtotal + totalShipping + totalBuyerProtection
 
   const discountAmount = data.discountAmount ?? originalDoc?.discountAmount ?? 0
   const pointsDiscount = data.pointsDiscount ?? originalDoc?.pointsDiscount ?? 0

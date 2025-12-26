@@ -19,9 +19,10 @@ type ShippingStatus = 'placed' | 'out_for_delivery' | 'delivered' | 'return_in_p
 interface OrderItem {
   variation: string
   seller: string
-  productTitle: string
-  productImage: string
-  variationId: string | null
+  variationTitle: string
+  variationImage: string
+  sku: string | null
+  skuTitle: string | null
   sellerName: string
   price: number
   originalPrice: number
@@ -79,8 +80,9 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         continue
       }
 
-      // Get SKU ID if exists
+      // Get SKU ID and title if exists
       let skuId: string | null = null
+      let skuTitle: string | null = null
       
       // item.sku is now a relationship to skus collection
       const skuRef = item.sku
@@ -104,17 +106,57 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         }
       }
 
-      // Get original price from SKU or variation
+      // Get price, original price, and SKU title from SKU
+      let itemPrice = item.price || 0
       let originalPrice = item.price || 0
+      
       if (skuId) {
-        // SKU price was already fetched above, let's fetch it again if needed
-        const skuForPrice = await payload.findByID({
+        // Fetch SKU to get price, original price and title
+        const skuData = await payload.findByID({
           collection: 'skus',
           id: skuId,
           depth: 0,
         })
-        if (skuForPrice?.price) {
-          originalPrice = skuForPrice.price
+        if (skuData?.sellingPrice) {
+          itemPrice = skuData.sellingPrice
+        } else if (skuData?.price) {
+          itemPrice = Math.round(skuData.price * 1.1 * 100) / 100 // Add 10% platform fee
+        }
+        if (skuData?.price) {
+          originalPrice = skuData.price
+        }
+        if (skuData?.title) {
+          skuTitle = skuData.title
+        }
+      } else {
+        // No SKU selected - try to get price from first available SKU of this variation
+        try {
+          const skus = await payload.find({
+            collection: 'skus',
+            where: {
+              variation: { equals: variationId },
+              isActive: { equals: true },
+            },
+            limit: 1,
+            sort: 'price',
+          })
+          if (skus.docs.length > 0) {
+            const firstSku = skus.docs[0]
+            skuId = firstSku.id
+            if (firstSku?.sellingPrice) {
+              itemPrice = firstSku.sellingPrice
+            } else if (firstSku?.price) {
+              itemPrice = Math.round(firstSku.price * 1.1 * 100) / 100
+            }
+            if (firstSku?.price) {
+              originalPrice = firstSku.price
+            }
+            if (firstSku?.title) {
+              skuTitle = firstSku.title
+            }
+          }
+        } catch {
+          // Ignore errors
         }
       }
 
@@ -156,11 +198,12 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
       orderItems.push({
         variation: variationId,
         seller: sellerId || '',
-        productTitle: variation.slug || 'Unknown Variation',
-        productImage: variationImage,
-        variationId: skuId,
+        variationTitle: variation.slug || 'Unknown Variation',
+        variationImage,
+        sku: skuId,
+        skuTitle,
         sellerName,
-        price: item.price || 0,
+        price: itemPrice,
         originalPrice,
         quantity: item.quantity || 1,
         shippingFee: item.shippingFee || 0,
@@ -220,11 +263,32 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
       }
     }
 
+    // Group items by seller for shipping calculation (one shipping fee per seller)
+    const itemsBySeller = new Map<string, typeof orderItems>()
+    for (const item of orderItems) {
+      const sellerId = item.seller || 'unknown'
+      if (!itemsBySeller.has(sellerId)) {
+        itemsBySeller.set(sellerId, [])
+      }
+      itemsBySeller.get(sellerId)!.push(item)
+    }
+
     // Calculate totals
     const totalItems = orderItems.reduce((sum, item) => sum + item.quantity, 0)
     const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-    const totalShipping = orderItems.reduce((sum, item) => sum + (item.shippingFee || 0), 0)
-    const totalBuyerProtection = orderItems.reduce((sum, item) => sum + (item.buyerProtectionFee || 0), 0)
+    
+    // Total shipping = ONE shipping fee per seller (from first item of each seller)
+    let totalShipping = 0
+    let totalBuyerProtection = 0
+    for (const [, sellerItems] of itemsBySeller) {
+      // One shipping fee per seller
+      totalShipping += sellerItems[0]?.shippingFee || 0
+      // Sum all buyer protection fees
+      for (const item of sellerItems) {
+        totalBuyerProtection += item.buyerProtectionFee || 0
+      }
+    }
+    
     const pointsDiscount = doc.pointsDiscount || 0
     const grandTotal = Math.max(0, subtotal + totalShipping + totalBuyerProtection - discountAmount - pointsDiscount)
 

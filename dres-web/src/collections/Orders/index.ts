@@ -148,11 +148,11 @@ export const Orders: CollectionConfig = {
                   type: 'row',
                   fields: [
                     {
-                      name: 'productTitle',
+                      name: 'variationTitle',
                       type: 'text',
                       required: true,
                       admin: {
-                        description: 'Product title at time of purchase',
+                        description: 'Variation title at time of purchase',
                         width: '50%',
                       },
                     },
@@ -167,25 +167,33 @@ export const Orders: CollectionConfig = {
                   ],
                 },
                 {
-                  name: 'productImage',
+                  name: 'variationImage',
                   type: 'text',
                   admin: {
-                    description: 'URL to product image at time of purchase',
+                    description: 'URL to variation image at time of purchase',
                   },
                 },
                 {
-                  name: 'variationOptions',
-                  type: 'json',
-                  admin: {
-                    description: 'Selected variation options (e.g., {"Size": "M", "Color": "Blue"})',
-                  },
-                },
-                {
-                  name: 'variationId',
-                  type: 'text',
-                  admin: {
-                    description: 'ID of the selected variation (for stock management)',
-                  },
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'sku',
+                      type: 'relationship',
+                      relationTo: 'skus',
+                      admin: {
+                        description: 'Reference to the SKU',
+                        width: '50%',
+                      },
+                    },
+                    {
+                      name: 'skuTitle',
+                      type: 'text',
+                      admin: {
+                        description: 'SKU title at time of purchase (e.g., "Red / M / GHS 99")',
+                        width: '50%',
+                      },
+                    },
+                  ],
                 },
                 {
                   type: 'row',

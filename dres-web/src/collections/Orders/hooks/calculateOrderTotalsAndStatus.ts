@@ -24,16 +24,20 @@ export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = ({ data
     data.orderId = generateOrderId()
   }
 
-  // Calculate totals from DELIVERED items only
+  // Calculate totals from ALL items (not just delivered)
   if (data?.items && Array.isArray(data.items)) {
     const items = data.items as OrderItem[]
     
-    // Filter to delivered items only for totals
-    const deliveredItems = items.filter((item) => item.shippingStatus === 'delivered')
+    // Exclude returned/return_in_progress/not_available items from totals
+    const activeItems = items.filter((item) => 
+      item.shippingStatus !== 'returned' && 
+      item.shippingStatus !== 'return_in_progress' &&
+      item.shippingStatus !== 'not_available'
+    )
 
-    // Group delivered items by seller (for shipping fee - one per seller)
+    // Group active items by seller (for shipping fee - one per seller)
     const itemsBySeller = new Map<string, OrderItem[]>()
-    for (const item of deliveredItems) {
+    for (const item of activeItems) {
       const sellerId = item.seller 
         ? (typeof item.seller === 'object' ? item.seller.id : item.seller)
         : 'unknown'
@@ -44,14 +48,14 @@ export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = ({ data
       itemsBySeller.get(sellerId)!.push(item)
     }
 
-    // Calculate totals from delivered items
-    // Total items = sum of quantities from delivered items
-    data.totalItems = deliveredItems.reduce((total: number, item: OrderItem) => {
+    // Calculate totals from active items
+    // Total items = sum of quantities from active items
+    data.totalItems = activeItems.reduce((total: number, item: OrderItem) => {
       return total + (item.quantity || 0)
     }, 0)
 
-    // Subtotal = sum of (price × quantity) from delivered items
-    const subtotal = deliveredItems.reduce((total: number, item: OrderItem) => {
+    // Subtotal = sum of (price × quantity) from active items
+    const subtotal = activeItems.reduce((total: number, item: OrderItem) => {
       const quantity = item.quantity || 0
       const price = item.price || 0
       return total + quantity * price
@@ -78,7 +82,7 @@ export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = ({ data
     data.grandTotal = Math.round(Math.max(0, grandTotal) * 100) / 100
     data.totalAmount = data.grandTotal // Keep totalAmount in sync
 
-    // Auto-update order status based on item statuses (all items, not just delivered)
+    // Auto-update order status based on item statuses (all items)
     const itemStatuses = items.map((item: OrderItem) => item.shippingStatus)
 
     if (itemStatuses.length > 0) {

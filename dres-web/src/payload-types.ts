@@ -1260,33 +1260,25 @@ export interface Order {
      */
     seller?: (string | null) | User;
     /**
-     * Product title at time of purchase
+     * Variation title at time of purchase
      */
-    productTitle: string;
+    variationTitle: string;
     /**
      * Seller name at time of purchase
      */
     sellerName?: string | null;
     /**
-     * URL to product image at time of purchase
+     * URL to variation image at time of purchase
      */
-    productImage?: string | null;
+    variationImage?: string | null;
     /**
-     * Selected variation options (e.g., {"Size": "M", "Color": "Blue"})
+     * Reference to the SKU
      */
-    variationOptions?:
-      | {
-          [k: string]: unknown;
-        }
-      | unknown[]
-      | string
-      | number
-      | boolean
-      | null;
+    sku?: (string | null) | Skus;
     /**
-     * ID of the selected variation (for stock management)
+     * SKU title at time of purchase (e.g., "Red / M / GHS 99")
      */
-    variationId?: string | null;
+    skuTitle?: string | null;
     /**
      * Selling price (what customer paid)
      */
@@ -3344,11 +3336,11 @@ export interface OrdersSelect<T extends boolean = true> {
     | {
         variation?: T;
         seller?: T;
-        productTitle?: T;
+        variationTitle?: T;
         sellerName?: T;
-        productImage?: T;
-        variationOptions?: T;
-        variationId?: T;
+        variationImage?: T;
+        sku?: T;
+        skuTitle?: T;
         price?: T;
         originalPrice?: T;
         quantity?: T;
