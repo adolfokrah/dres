@@ -79,6 +79,16 @@ class StorageService {
     return await _secureStorage.read(key: StorageKeys.userEmail);
   }
 
+  /// Save user department preference
+  Future<void> setUserDepartment(String department) async {
+    await _prefs.setString(StorageKeys.userDepartment, department);
+  }
+
+  /// Get user department preference (men | women | kids)
+  String? getUserDepartment() {
+    return _prefs.getString(StorageKeys.userDepartment);
+  }
+
   // ========================
   // General Preferences
   // ========================

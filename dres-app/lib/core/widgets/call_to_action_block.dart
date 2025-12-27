@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../utilities/media_utils.dart';
+import '../services/storage_service.dart';
+import '../di/injection.dart';
 
 class CallToActionBlock extends StatelessWidget {
   final String? imageUrl;
   final String title;
   final String buttonText;
   final String buttonLink;
+  final VoidCallback? onDepartmentChanged;
 
   const CallToActionBlock({
     super.key,
@@ -15,6 +18,7 @@ class CallToActionBlock extends StatelessWidget {
     required this.title,
     required this.buttonText,
     required this.buttonLink,
+    this.onDepartmentChanged,
   });
 
   @override
@@ -64,9 +68,24 @@ class CallToActionBlock extends StatelessWidget {
                   
                   // Button
                   GestureDetector(
-                    onTap: () {
-                      // TODO: Handle button tap navigation
-                      // Navigator.pushNamed(context, buttonLink);
+                    onTap: () async {
+                      // Toggle department based on current preference
+                      final storageService = getIt<StorageService>();
+                      final currentDepartment = storageService.getUserDepartment();
+                      
+                      // Toggle between men and women (default to men if not set)
+                      String newDepartment;
+                      if (currentDepartment == 'men' || currentDepartment == null) {
+                        newDepartment = 'women';
+                      } else {
+                        newDepartment = 'men';
+                      }
+                      
+                      // Save new department
+                      await storageService.setUserDepartment(newDepartment);
+                      
+                      // Trigger reload callback
+                      onDepartmentChanged?.call();
                     },
                     child: Row(
                       mainAxisSize: MainAxisSize.min,

@@ -9,6 +9,7 @@ class StorageKeys {
   // User data
   static const String userId = 'user_id';
   static const String userEmail = 'user_email';
+  static const String userDepartment = 'user_department'; // men | women | kids
 
   // App preferences
   static const String onboardingCompleted = 'onboarding_completed';

@@ -95,7 +95,7 @@ class _HomeScreenView extends StatelessWidget {
                       child: Column(
                         children: [
                           // Render blocks from CMS
-                          ...page.layout.map((block) => _buildBlock(block)),
+                          ...page.layout.map((block) => _buildBlock(context, block)),
                         ],
                       ),
                     ),
@@ -109,7 +109,7 @@ class _HomeScreenView extends StatelessWidget {
     );
   }
 
-  Widget _buildBlock(BlockModel block) {
+  Widget _buildBlock(BuildContext context, BlockModel block) {
     switch (block.blockType) {
       case 'promoBanner':
         final promoBanner = block as PromoBannerBlockModel;
@@ -150,6 +150,10 @@ class _HomeScreenView extends StatelessWidget {
           title: cta.title,
           buttonText: cta.buttonText,
           buttonLink: cta.buttonLink,
+          onDepartmentChanged: () {
+            // Reload home page when department changes
+            context.read<HomeBloc>().add(const RefreshHomePage());
+          },
         );
       default:
         return const SizedBox.shrink();
