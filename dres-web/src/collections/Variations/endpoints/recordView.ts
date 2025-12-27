@@ -74,10 +74,7 @@ export const recordView: PayloadHandler = async (req: PayloadRequest) => {
       collection: 'variation-views',
       data: {
         variation: variationId,
-        user: user?.id || null,
-        ipAddress,
-        source: source || 'direct',
-        viewedAt: new Date().toISOString(),
+        users: user?.id ? [user.id] : undefined,
       },
     })
 
