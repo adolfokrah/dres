@@ -5,6 +5,7 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/widgets/app_header.dart';
 import 'package:dres/core/widgets/promo_banner.dart';
 import 'package:dres/core/widgets/featured_grid.dart';
+import 'package:dres/core/widgets/product_archive_block.dart';
 import 'package:dres/features/home/logic/bloc/home_bloc.dart';
 import 'package:dres/features/home/logic/bloc/home_event.dart';
 import 'package:dres/features/home/logic/bloc/home_state.dart';
@@ -131,6 +132,16 @@ class _HomeScreenView extends StatelessWidget {
             // TODO: Handle item tap navigation
           },
         );
+      case 'productArchive':
+        final productArchive = block as ProductArchiveBlockModel;
+        return ProductArchiveBlock(
+          title: productArchive.title,
+          queryType: _getQueryType(productArchive.queryType),
+          seeAllLink: productArchive.seeAllLink,
+          seeAllText: productArchive.seeAllText ?? 'See all',
+          department: productArchive.department,
+          limit: productArchive.limit ?? 8,
+        );
       default:
         return const SizedBox.shrink();
     }
@@ -145,6 +156,20 @@ class _HomeScreenView extends StatelessWidget {
       case 'square':
       default:
         return 1.0;
+    }
+  }
+
+  QueryType _getQueryType(String type) {
+    switch (type) {
+      case 'new-arrivals':
+        return QueryType.newArrivals;
+      case 'recently-viewed':
+        return QueryType.recentlyViewed;
+      case 'featured':
+        return QueryType.featured;
+      case 'trending':
+      default:
+        return QueryType.trending;
     }
   }
 }

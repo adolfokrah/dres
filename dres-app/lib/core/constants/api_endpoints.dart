@@ -15,3 +15,6 @@ const String categoriesByDepartment = '$categories?where[departments][contains]=
 const String pages = '$apiBaseUrl/pages';
 const String pageBySlug = '$pages?where[slug][equals]=';
 const String pageById = '$pages/';
+
+// Variations
+const String trendingVariations = '/variations/trending';

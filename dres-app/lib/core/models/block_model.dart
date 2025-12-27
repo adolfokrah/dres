@@ -20,6 +20,8 @@ abstract class BlockModel {
         return PromoBannerBlockModel.fromJson(json);
       case 'featuredGrid':
         return FeaturedGridBlockModel.fromJson(json);
+      case 'productArchive':
+        return ProductArchiveBlockModel.fromJson(json);
       case 'cta':
         return CallToActionBlockModel.fromJson(json);
       case 'content':
@@ -354,6 +356,40 @@ class UnknownBlockModel extends BlockModel {
       blockName: json['blockName'] as String?,
       blockType: json['blockType'] as String? ?? 'unknown',
       data: json,
+    );
+  }
+}
+
+/// Product Archive Block
+class ProductArchiveBlockModel extends BlockModel {
+  final String title;
+  final String queryType;
+  final String? seeAllLink;
+  final String? seeAllText;
+  final String? department;
+  final int? limit;
+
+  ProductArchiveBlockModel({
+    super.id,
+    super.blockName,
+    required this.title,
+    required this.queryType,
+    this.seeAllLink,
+    this.seeAllText,
+    this.department,
+    this.limit,
+  }) : super(blockType: 'productArchive');
+
+  factory ProductArchiveBlockModel.fromJson(Map<String, dynamic> json) {
+    return ProductArchiveBlockModel(
+      id: json['id'] as String?,
+      blockName: json['blockName'] as String?,
+      title: json['title'] as String? ?? 'Products',
+      queryType: json['queryType'] as String? ?? 'trending',
+      seeAllLink: json['seeAllLink'] as String?,
+      seeAllText: json['seeAllText'] as String?,
+      department: json['department'] as String?,
+      limit: json['limit'] as int?,
     );
   }
 }
