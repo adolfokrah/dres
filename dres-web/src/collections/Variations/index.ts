@@ -14,9 +14,9 @@ interface VariantItem {
 export const Variations: CollectionConfig = {
   slug: 'variations',
   admin: {
-    useAsTitle: 'slug',
+    useAsTitle: 'title',
     group: 'Ecommerce',
-    defaultColumns: ['slug', 'style', 'images', 'variants'],
+    defaultColumns: ['title', 'style', 'images', 'variants'],
     description: 'Product variations - specific color/size combinations',
   },
   access: {
@@ -41,6 +41,14 @@ export const Variations: CollectionConfig = {
     beforeChange: [generateVariationSlug],
   },
   fields: [
+    {
+      name: 'title',
+      type: 'text',
+      admin: {
+        hidden: true,
+        readOnly: true,
+      },
+    },
     {
       name: 'style',
       type: 'relationship',
@@ -169,5 +177,14 @@ export const Variations: CollectionConfig = {
         readOnly: true,
       },
     },
+    {
+      name: 'stats',
+      type: 'join',
+      collection: 'variation-stats',
+      on: 'variation',
+      admin: {
+        description: 'Stats for this variation',
+      },
+    }
   ],
 }

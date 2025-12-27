@@ -85,6 +85,18 @@ export const generateVariationSlug: CollectionBeforeChangeHook = async ({
 
     data.slug = slugParts.join('-')
 
+    // Generate title: "Style Name - Variant1 - Variant2"
+    const titleParts: string[] = []
+    if (styleTitle) {
+      titleParts.push(styleTitle)
+    }
+    for (const valueName of variantValueNames) {
+      if (valueName) {
+        titleParts.push(valueName)
+      }
+    }
+    data.title = titleParts.join(' - ') || `Variation ${uniqueId.toString().slice(-6)}`
+
     return data
   } catch (error) {
     console.error('Error generating variation slug:', error)

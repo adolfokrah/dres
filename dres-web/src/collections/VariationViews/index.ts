@@ -7,7 +7,7 @@ export const VariationViews: CollectionConfig = {
   slug: 'variation-views',
   admin: {
     group: 'Analytics',
-    defaultColumns: ['variation', 'user', 'viewedAt'],
+    defaultColumns: ['variation', 'users', 'updatedAt'],
     description: 'Tracks variation views for trending algorithm',
   },
   access: {
@@ -28,48 +28,14 @@ export const VariationViews: CollectionConfig = {
       index: true,
     },
     {
-      name: 'user',
+      name: 'users',
       type: 'relationship',
       relationTo: 'users',
       index: true,
+      hasMany: true,
       admin: {
         description: 'Optional - can be null for anonymous views',
       },
-    },
-    {
-      name: 'ipAddress',
-      type: 'text',
-      index: true,
-      admin: {
-        description: 'IP address for anonymous users to prevent duplicate views',
-      },
-    },
-    {
-      name: 'viewedAt',
-      type: 'date',
-      required: true,
-      defaultValue: () => new Date().toISOString(),
-      index: true,
-      admin: {
-        date: {
-          pickerAppearance: 'dayAndTime',
-        },
-      },
-    },
-    {
-      name: 'source',
-      type: 'select',
-      options: [
-        { label: 'Search', value: 'search' },
-        { label: 'Category', value: 'category' },
-        { label: 'Home', value: 'home' },
-        { label: 'Recommendation', value: 'recommendation' },
-        { label: 'Direct', value: 'direct' },
-        { label: 'Share', value: 'share' },
-      ],
-      admin: {
-        description: 'Where the user came from',
-      },
-    },
+    }
   ],
 }

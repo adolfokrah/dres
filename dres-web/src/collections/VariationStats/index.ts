@@ -9,6 +9,7 @@ export const VariationStats: CollectionConfig = {
     group: 'Ecommerce',
     defaultColumns: [
       'variation',
+      'sku',
       'seller',
       'department',
       'collection',
@@ -31,11 +32,28 @@ export const VariationStats: CollectionConfig = {
   },
   fields: [
     {
-      name: 'variation',
-      type: 'relationship',
-      relationTo: 'variations',
-      required: true,
-      unique: true,
+      type: 'row',
+      fields: [
+        {
+          name: 'variation',
+          type: 'relationship',
+          relationTo: 'variations',
+          required: true,
+          admin: {
+            width: '50%',
+          },
+        },
+        {
+          name: 'sku',
+          type: 'relationship',
+          relationTo: 'skus',
+          required: true,
+          admin: {
+            description: 'Stats are tracked per SKU + Variation combination',
+            width: '50%',
+          },
+        },
+      ],
     },
     {
       type: 'row',

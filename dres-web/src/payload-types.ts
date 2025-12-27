@@ -120,6 +120,7 @@ export interface Config {
     };
     variations: {
       skus: 'skus';
+      stats: 'variation-stats';
     };
     categories: {
       variationStats: 'variation-stats';
@@ -1070,6 +1071,10 @@ export interface VariationStat {
   id: string;
   variation: string | Variation;
   /**
+   * Stats are tracked per SKU + Variation combination
+   */
+  sku: string | Skus;
+  /**
    * Auto-populated from variation
    */
   seller?: (string | null) | User;
@@ -1116,6 +1121,7 @@ export interface VariationStat {
  */
 export interface Variation {
   id: string;
+  title?: string | null;
   /**
    * The style this variation belongs to
    */
@@ -1152,6 +1158,14 @@ export interface Variation {
    * URL-friendly slug
    */
   slug: string;
+  /**
+   * Stats for this variation
+   */
+  stats?: {
+    docs?: (string | VariationStat)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -2081,16 +2095,7 @@ export interface VariationView {
   /**
    * Optional - can be null for anonymous views
    */
-  user?: (string | null) | User;
-  /**
-   * IP address for anonymous users to prevent duplicate views
-   */
-  ipAddress?: string | null;
-  viewedAt: string;
-  /**
-   * Where the user came from
-   */
-  source?: ('search' | 'category' | 'home' | 'recommendation' | 'direct' | 'share') | null;
+  users?: (string | User)[] | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -3077,6 +3082,7 @@ export interface StylesSelect<T extends boolean = true> {
  * via the `definition` "variations_select".
  */
 export interface VariationsSelect<T extends boolean = true> {
+  title?: T;
   style?: T;
   variants?:
     | T
@@ -3088,6 +3094,7 @@ export interface VariationsSelect<T extends boolean = true> {
   images?: T;
   skus?: T;
   slug?: T;
+  stats?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3123,10 +3130,7 @@ export interface SkusSelect<T extends boolean = true> {
  */
 export interface VariationViewsSelect<T extends boolean = true> {
   variation?: T;
-  user?: T;
-  ipAddress?: T;
-  viewedAt?: T;
-  source?: T;
+  users?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3411,6 +3415,7 @@ export interface RegionsSelect<T extends boolean = true> {
  */
 export interface VariationStatsSelect<T extends boolean = true> {
   variation?: T;
+  sku?: T;
   seller?: T;
   department?: T;
   collection?: T;

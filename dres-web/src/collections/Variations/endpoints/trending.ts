@@ -1,4 +1,5 @@
 import type { PayloadHandler, PayloadRequest, Where } from 'payload'
+import { transformVariations } from '../utils/transformVariation'
 
 type SupportedLocale = 'en' | 'fr' | 'de' | 'es' | 'it'
 
@@ -15,110 +16,139 @@ type SupportedLocale = 'en' | 'fr' | 'de' | 'es' | 'it'
  * - locale: language code (default: en)
  */
 export const trendingVariations: PayloadHandler = async (req: PayloadRequest) => {
-  const { payload } = req
   const searchParams = req.searchParams
 
   // Parse query params
   const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50)
-  const days = parseInt(searchParams.get('days') || '7')
   const department = searchParams.get('department')
   const category = searchParams.get('category')
   const localeParam = searchParams.get('locale') || 'en'
   const locale = (['en', 'fr', 'de', 'es', 'it'].includes(localeParam) ? localeParam : 'en') as SupportedLocale
 
-  // Calculate date range
-  const startDate = new Date()
-  startDate.setDate(startDate.getDate() - days)
-
   try {
-    // Aggregate views by variation within the time period
-    const viewsCollection = payload.db.collections['variation-views']
-    
-    // Build match conditions
-    const matchConditions: Record<string, unknown> = {
-      viewedAt: { $gte: startDate },
+    // Build where clause for filtering
+    const variationsWhere: Where = {
+      // Filter by time period - only variations updated within the days
+      updatedAt: {
+        greater_than: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      }
     }
 
-    // Aggregate to get view counts per variation
-    const aggregation = await viewsCollection.aggregate([
-      { $match: matchConditions },
-      {
-        $group: {
-          _id: '$variation',
-          viewCount: { $sum: 1 },
-          uniqueUsers: { $addToSet: '$user' },
-          lastViewed: { $max: '$viewedAt' },
-        },
-      },
-      {
-        $project: {
-          variationId: '$_id',
-          viewCount: 1,
-          uniqueUserCount: { $size: '$uniqueUsers' },
-          lastViewed: 1,
-        },
-      },
-      { $sort: { viewCount: -1 } },
-      { $limit: limit * 2 },
-    ])
-
-    const trendingVariationIds = aggregation.map((item: { _id: string }) => item._id)
-
-    if (trendingVariationIds.length === 0) {
-      // Fallback: return newest variations if no views
-      const fallbackVariations = await payload.find({
-        collection: 'variations',
-        limit,
-        locale,
-        sort: '-createdAt',
-      })
-
-      return Response.json({
-        docs: fallbackVariations.docs,
-        totalDocs: fallbackVariations.totalDocs,
-        source: 'fallback',
-        period: `${days} days`,
-      })
+    // Add department filter if provided (filter through variation's style relationship)
+    if (department) {
+      variationsWhere['variation.style.department'] = {
+        equals: department
+      }
     }
 
-    // Build variation query
-    const variationWhere: Where = {
-      id: { in: trendingVariationIds },
+    // Add category filter if provided (filter through variation's style relationship)
+    if (category) {
+      variationsWhere['variation.style.category'] = {
+        equals: category
+      }
     }
 
-    // Fetch the actual variations
-    const variations = await payload.find({
-      collection: 'variations',
-      where: variationWhere,
-      limit,
+    // Fetch trending variations: > minViews users, updated within days, limited
+    const trendingViews = await req.payload.find({
+      collection: 'variation-views',
+      limit, // Apply limit at query level - no jumping records
       locale,
-      depth: 2,
+      depth: 4,
+      sort: '-updatedAt', // Most recently updated first
+      where: variationsWhere,
     })
 
-    // Sort variations by view count (maintain trending order)
-    const viewCountMap = new Map(
-      aggregation.map((item: { _id: string; viewCount: number }) => [
-        item._id.toString(),
-        item.viewCount,
-      ])
+    // Extract and transform variations
+    const variations = trendingViews.docs
+      .map(viewDoc => viewDoc.variation)
+      .filter(Boolean)
+    
+    // Fetch SKUs for each variation separately since it's a join field
+    const variationsWithSKUs = await Promise.all(
+      variations.map(async (variation: any) => {
+        if (!variation?.id) return variation
+
+        try {
+          // Fetch SKUs for this variation with full details
+          const skusResult = await req.payload.find({
+            collection: 'skus',
+            where: {
+              variation: { equals: variation.id }
+            },
+            depth: 3, // Include variant details
+            limit: 100,
+          })
+
+          // Fetch related variations (same style, different variation)
+          const styleId = typeof variation.style === 'object' ? variation.style.id : variation.style
+          let relatedVariations: any[] = []
+          
+          if (styleId) {
+            const relatedResult = await req.payload.find({
+              collection: 'variations',
+              where: {
+                style: { equals: styleId },
+                id: { not_equals: variation.id } // Exclude current variation
+              },
+              limit: 10,
+              depth: 2,
+            })
+
+            // Fetch SKUs for each related variation
+            relatedVariations = await Promise.all(
+              relatedResult.docs.map(async (relatedVar: any) => {
+                const relatedSKUs = await req.payload.find({
+                  collection: 'skus',
+                  where: {
+                    variation: { equals: relatedVar.id }
+                  },
+                  depth: 3,
+                  limit: 100,
+                })
+
+                return {
+                  ...relatedVar,
+                  skus: { docs: relatedSKUs.docs }
+                }
+              })
+            )
+          }
+
+          return {
+            ...variation,
+            skus: { docs: skusResult.docs },
+            relatedVariations: { docs: relatedVariations }
+          }
+        } catch (err) {
+          console.error(`Error fetching SKUs for variation ${variation.id}:`, err)
+          return {
+            ...variation,
+            skus: { docs: [] },
+            relatedVariations: { docs: [] }
+          }
+        }
+      })
     )
-
-    const sortedVariations = variations.docs.sort((a, b) => {
-      const aViews = viewCountMap.get(a.id.toString()) || 0
-      const bViews = viewCountMap.get(b.id.toString()) || 0
-      return bViews - aViews
-    })
-
+    
+    const transformedDocs = transformVariations(variationsWithSKUs, true)
+ 
     return Response.json({
-      docs: sortedVariations.slice(0, limit),
-      totalDocs: sortedVariations.length,
-      viewCounts: Object.fromEntries(viewCountMap),
-      period: `${days} days`,
+      docs: transformedDocs,
+      totalDocs: trendingViews.totalDocs,
+      limit: trendingViews.limit,
+      page: trendingViews.page,
+      totalPages: trendingViews.totalPages,
+      hasNextPage: trendingViews.hasNextPage,
+      hasPrevPage: trendingViews.hasPrevPage,
+      includeRelated: false
     })
   } catch (error) {
     console.error('Error fetching trending variations:', error)
     return Response.json(
-      { error: 'Failed to fetch trending variations' },
+      { 
+        error: 'Failed to fetch trending variations',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     )
   }
