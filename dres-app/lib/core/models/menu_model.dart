@@ -29,7 +29,7 @@ class DepartmentModel {
     return DepartmentModel(
       id: json['id'] as String,
       name: json['name'] as String,
-      slug: json['slug'] as String,
+      slug: json['slug'] as String? ?? '', // slug is optional
       collections: (json['collections'] as List?)
           ?.map((c) => CollectionModel.fromJson(c))
           .toList() ?? [],
@@ -54,7 +54,7 @@ class CollectionModel {
     return CollectionModel(
       id: json['id'] as String,
       name: json['name'] as String,
-      slug: json['slug'] as String,
+      slug: json['slug'] as String? ?? '', // slug is optional
       categories: (json['categories'] as List?)
           ?.map((c) => CategoryModel.fromJson(c))
           .toList() ?? [],
@@ -77,7 +77,7 @@ class CategoryModel {
     return CategoryModel(
       id: json['id'] as String,
       name: json['name'] as String,
-      slug: json['slug'] as String,
+      slug: json['slug'] as String? ?? '', // slug is optional
     );
   }
 }

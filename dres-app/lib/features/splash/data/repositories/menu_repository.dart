@@ -10,8 +10,13 @@ class MenuRepository {
   Future<MenuModel> fetchMenu() async {
     try {
       final response = await _apiService.get('/menu');
+      
+      // Debug log
+      print('Menu API Response: ${response.data}');
+      
       return MenuModel.fromJson(response.data);
     } catch (e) {
+      print('Error in MenuRepository.fetchMenu: $e');
       throw Exception('Failed to fetch menu: $e');
     }
   }

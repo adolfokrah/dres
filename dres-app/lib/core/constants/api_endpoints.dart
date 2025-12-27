@@ -22,4 +22,4 @@ const String newArrivals = '/variations/new-arrivals';
 const String featuredVariations = '/variations/featured';
 
 // Menu
-const String menu = '/menu';
+const String menu = '$apiBaseUrl/menu';

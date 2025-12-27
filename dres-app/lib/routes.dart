@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dres/features/splash/splash.dart';
 import 'package:dres/features/home/home.dart';
-import 'package:dres/features/discover/discover.dart';
 import 'package:dres/features/sell/sell.dart';
 import 'package:dres/features/favourite/favourite.dart';
 import 'package:dres/features/profile/profile.dart';
+import 'package:dres/features/shop/presentation/view/shop_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
 
 // Navigator keys for each tab
@@ -22,6 +22,7 @@ class AppRoutes {
   // Route paths
   static const String splash = '/splash';
   static const String home = '/home';
+  static const String shop = '/shop';
   static const String discover = '/discover';
   static const String sell = '/sell';
   static const String favourite = '/favourite';
@@ -64,14 +65,14 @@ class AppRoutes {
             ],
           ),
           
-          // Discover tab
+          // Discover tab (Shop)
           StatefulShellBranch(
             navigatorKey: _shellNavigatorDiscoverKey,
             routes: [
               GoRoute(
                 path: discover,
                 name: 'discover',
-                builder: (context, state) => const DiscoverScreen(),
+                builder: (context, state) => const ShopScreen(),
               ),
             ],
           ),
