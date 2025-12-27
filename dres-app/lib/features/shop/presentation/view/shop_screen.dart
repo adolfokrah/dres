@@ -6,6 +6,7 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_header.dart';
 import 'package:dres/core/widgets/custom_tab_bar.dart';
 import 'package:dres/core/widgets/shop_promo_card.dart';
+import 'package:dres/core/widgets/main_shell.dart';
 import 'package:dres/features/splash/logic/menu_bloc/menu_bloc.dart';
 import 'package:dres/features/splash/logic/menu_bloc/menu_state.dart';
 import 'package:dres/core/models/menu_model.dart';
@@ -21,10 +22,32 @@ class ShopScreen extends StatefulWidget {
 
 class _ShopScreenState extends State<ShopScreen> {
   int _selectedTabIndex = 0;
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return NotificationListener<ScrollToTopNotification>(
+      onNotification: (notification) {
+        debugPrint('📲 ShopScreen: Received ScrollToTopNotification');
+        if (_scrollController.hasClients) {
+          debugPrint('📲 ShopScreen: Scrolling to top');
+          _scrollController.animateTo(
+            0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        } else {
+          debugPrint('⚠️ ShopScreen: ScrollController has no clients');
+        }
+        return true;
+      },
+      child: Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
@@ -109,6 +132,7 @@ class _ShopScreenState extends State<ShopScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 
@@ -126,6 +150,7 @@ class _ShopScreenState extends State<ShopScreen> {
     final promoCards = _getPromoCardsForDepartment(department.name);
 
     return ListView.builder(
+      controller: _scrollController,
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: department.collections.length + (promoCards.isNotEmpty ? 1 : 0),
       itemBuilder: (context, index) {
