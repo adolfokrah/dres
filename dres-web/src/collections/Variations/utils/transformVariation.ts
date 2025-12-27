@@ -14,6 +14,7 @@ interface TransformedVariation {
   category: string | null
   brand: string | null
   price: number
+  compareAtPrice?: number
   currency: {
     code: string
     symbol: string
@@ -99,6 +100,10 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
     ? firstSku.price 
     : 0
   
+  const compareAtPrice = firstSku && typeof firstSku === 'object' && typeof firstSku.compareAtPrice === 'number'
+    ? firstSku.compareAtPrice
+    : undefined
+  
   const currency = firstSku?.currency && typeof firstSku.currency === 'object'
     ? {
         code: firstSku.currency.code || '',
@@ -123,6 +128,7 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
     category,
     brand,
     price,
+    compareAtPrice,
     currency,
     variants,
     ...(includeRelated && { relatedVariations }),

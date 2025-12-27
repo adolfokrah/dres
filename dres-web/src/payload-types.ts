@@ -303,6 +303,7 @@ export interface Page {
     | FormBlock
     | PromoBannerBlock
     | FeaturedGridBlock
+    | ProductArchiveBlock
   )[];
   meta?: {
     title?: string | null;
@@ -2045,6 +2046,39 @@ export interface FeaturedGridBlock {
   blockType: 'featuredGrid';
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ProductArchiveBlock".
+ */
+export interface ProductArchiveBlock {
+  /**
+   * The heading for this product section
+   */
+  title: string;
+  /**
+   * Type of products to display
+   */
+  queryType: 'trending' | 'new-arrivals' | 'recently-viewed' | 'featured';
+  /**
+   * URL for the "See all" button
+   */
+  seeAllLink?: string | null;
+  /**
+   * Text for the "See all" button
+   */
+  seeAllText?: string | null;
+  /**
+   * Filter products by department
+   */
+  department?: ('694eee871a36e6d75fbb15af' | '694eee871a36e6d75fbb15b1' | '694eee871a36e6d75fbb15b3') | null;
+  /**
+   * Number of products to display
+   */
+  limit?: number | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'productArchive';
+}
+/**
  * Style boost/featuring for increased visibility
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2736,6 +2770,7 @@ export interface PagesSelect<T extends boolean = true> {
         formBlock?: T | FormBlockSelect<T>;
         promoBanner?: T | PromoBannerBlockSelect<T>;
         featuredGrid?: T | FeaturedGridBlockSelect<T>;
+        productArchive?: T | ProductArchiveBlockSelect<T>;
       };
   meta?:
     | T
@@ -2872,6 +2907,20 @@ export interface FeaturedGridBlockSelect<T extends boolean = true> {
       };
   columns?: T;
   aspectRatio?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ProductArchiveBlock_select".
+ */
+export interface ProductArchiveBlockSelect<T extends boolean = true> {
+  title?: T;
+  queryType?: T;
+  seeAllLink?: T;
+  seeAllText?: T;
+  department?: T;
+  limit?: T;
   id?: T;
   blockName?: T;
 }
