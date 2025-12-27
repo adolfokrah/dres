@@ -6,7 +6,6 @@ import '../di/injection.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
-import 'app_button.dart';
 
 enum QueryType { trending, newArrivals, recentlyViewed, featured }
 
@@ -46,23 +45,29 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
   }
 
   Future<List<ProductCardData>> _fetchProducts() async {
+    final departmentId = widget.department ?? '694eee871a36e6d75fbb15af';
+    final apiService = getIt<ApiService>();
+    
+    String endpoint;
     if (widget.queryType == QueryType.trending) {
-      final departmentId = widget.department ?? '694eee871a36e6d75fbb15af';
-      final apiService = getIt<ApiService>();
-      
-      final response = await apiService.dio.get(
-        trendingVariations,
-        queryParameters: {
-          'limit': widget.limit,
-          'department': departmentId,
-        },
-      );
-      
-      return (response.data['docs'] as List)
-          .map((p) => ProductCardData.fromJson(p))
-          .toList();
+      endpoint = trendingVariations;
+    } else if (widget.queryType == QueryType.newArrivals) {
+      endpoint = newArrivals;
+    } else {
+      return [];
     }
-    return [];
+    
+    final response = await apiService.dio.get(
+      endpoint,
+      queryParameters: {
+        'limit': widget.limit,
+        'department': departmentId,
+      },
+    );
+    
+    return (response.data['docs'] as List)
+        .map((p) => ProductCardData.fromJson(p))
+        .toList();
   }
 
   @override

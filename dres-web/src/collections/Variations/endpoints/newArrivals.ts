@@ -4,18 +4,17 @@ import { transformVariations } from '../utils/transformVariation'
 type SupportedLocale = 'en' | 'fr' | 'de' | 'es' | 'it'
 
 /**
- * GET /api/variations/trending
+ * GET /api/variations/new-arrivals
  * 
- * Fetches trending variations based on view counts within a time period.
+ * Fetches newly added variations sorted by creation date.
  * 
  * Query params:
  * - limit: number of variations to return (default: 10, max: 50)
- * - days: time period in days (default: 7)
  * - department: filter by department ID
  * - category: filter by category ID
  * - locale: language code (default: en)
  */
-export const trendingVariations: PayloadHandler = async (req: PayloadRequest) => {
+export const newArrivals: PayloadHandler = async (req: PayloadRequest) => {
   const searchParams = req.searchParams
 
   // Parse query params
@@ -27,45 +26,35 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
 
   try {
     // Build where clause for filtering
-    const variationsWhere: Where = {
-      // Filter by time period - only variations updated within the days
-      updatedAt: {
-        greater_than: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-      }
-    }
+    const where: Where = {}
 
-    // Add department filter if provided (filter through variation's style relationship)
+    // Add department filter if provided
     if (department) {
-      variationsWhere['variation.style.department'] = {
+      where['style.department'] = {
         equals: department
       }
     }
 
-    // Add category filter if provided (filter through variation's style relationship)
+    // Add category filter if provided
     if (category) {
-      variationsWhere['variation.style.category'] = {
+      where['style.category'] = {
         equals: category
       }
     }
 
-    // Fetch trending variations: > minViews users, updated within days, limited
-    const trendingViews = await req.payload.find({
-      collection: 'variation-views',
-      limit, // Apply limit at query level - no jumping records
+    // Fetch new arrivals: most recently created variations
+    const newArrivalsResult = await req.payload.find({
+      collection: 'variations',
+      limit,
       locale,
-      depth: 5, // Increased depth to get style.boost data
-      sort: '-updatedAt', // Most recently updated first
-      where: variationsWhere,
+      depth: 5,
+      sort: '-createdAt', // Most recently created first
+      where,
     })
 
-    // Extract and transform variations
-    const variations = trendingViews.docs
-      .map(viewDoc => viewDoc.variation)
-      .filter(Boolean)
-    
-    // Fetch SKUs for each variation separately since it's a join field
+    // Fetch SKUs and style for each variation
     const variationsWithSKUs = await Promise.all(
-      variations.map(async (variation: any) => {
+      newArrivalsResult.docs.map(async (variation: any) => {
         if (!variation?.id) return variation
 
         try {
@@ -78,7 +67,7 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
             const styleResult = await req.payload.findByID({
               collection: 'styles',
               id: styleId,
-              depth: 3, // Increased depth to ensure boost is fully populated
+              depth: 3,
             })
             fullStyle = styleResult
           }
@@ -89,7 +78,7 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
             where: {
               variation: { equals: variation.id }
             },
-            depth: 3, // Include variant details
+            depth: 3,
             limit: 100,
           })
 
@@ -101,7 +90,7 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
               collection: 'variations',
               where: {
                 style: { equals: styleId },
-                id: { not_equals: variation.id } // Exclude current variation
+                id: { not_equals: variation.id }
               },
               limit: 10,
               depth: 2,
@@ -129,7 +118,7 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
 
           return {
             ...variation,
-            style: fullStyle, // Use the fully populated style
+            style: fullStyle,
             skus: { docs: skusResult.docs },
             relatedVariations: { docs: relatedVariations }
           }
@@ -148,19 +137,19 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
  
     return Response.json({
       docs: transformedDocs,
-      totalDocs: trendingViews.totalDocs,
-      limit: trendingViews.limit,
-      page: trendingViews.page,
-      totalPages: trendingViews.totalPages,
-      hasNextPage: trendingViews.hasNextPage,
-      hasPrevPage: trendingViews.hasPrevPage,
+      totalDocs: newArrivalsResult.totalDocs,
+      limit: newArrivalsResult.limit,
+      page: newArrivalsResult.page,
+      totalPages: newArrivalsResult.totalPages,
+      hasNextPage: newArrivalsResult.hasNextPage,
+      hasPrevPage: newArrivalsResult.hasPrevPage,
     })
   } catch (error) {
-    console.error('Error fetching trending variations:', error)
+    console.error('Error fetching new arrivals:', error)
     return Response.json(
-      { 
-        error: 'Failed to fetch trending variations',
-        details: error instanceof Error ? error.message : 'Unknown error'
+      {
+        error: 'Failed to fetch new arrivals',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     )

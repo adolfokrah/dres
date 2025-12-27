@@ -47,9 +47,25 @@ export default async function ProductArchiveBlockComponent({
         const data = await response.json()
         products = data.docs || []
       }
+    } else if (queryType === 'new-arrivals') {
+      const params = new URLSearchParams({
+        limit: (limit || 8).toString(),
+        department: departmentId,
+      })
+      
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/variations/new-arrivals?${params}`,
+        {
+          next: { revalidate: 600 } // Cache for 10 minutes
+        }
+      )
+      
+      if (response.ok) {
+        const data = await response.json()
+        products = data.docs || []
+      }
     }
     // Add other query types here as they're implemented
-    // else if (queryType === 'new-arrivals') { ... }
     // else if (queryType === 'recently-viewed') { ... }
     // else if (queryType === 'featured') { ... }
     

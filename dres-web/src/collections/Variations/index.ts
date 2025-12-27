@@ -4,6 +4,7 @@ import { anyone } from '../../access/anyone'
 import { authenticated } from '../../access/authenticated'
 import { generateVariationSlug } from './hooks/generateVariationSlug'
 import { trendingVariations } from './endpoints/trending'
+import { newArrivals } from './endpoints/newArrivals'
 import { recordView } from './endpoints/recordView'
 
 interface VariantItem {
@@ -30,6 +31,11 @@ export const Variations: CollectionConfig = {
       path: '/trending',
       method: 'get',
       handler: trendingVariations,
+    },
+    {
+      path: '/new-arrivals',
+      method: 'get',
+      handler: newArrivals,
     },
     {
       path: '/record-view',
