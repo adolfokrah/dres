@@ -2,6 +2,7 @@ import type { CollectionAfterChangeHook } from 'payload'
 
 // Points configuration
 // Spend 100 GHS → earn 10 points (10% back)
+// 100 points = 1 GHS when redeeming
 const POINTS_PER_GHS = 0.1 // 0.1 points per 1 GHS spent (10% earning rate)
 const POINTS_MULTIPLIER = 1 // Can be increased for promotions
 

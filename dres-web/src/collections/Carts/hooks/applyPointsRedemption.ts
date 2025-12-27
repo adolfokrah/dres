@@ -2,7 +2,7 @@ import type { CollectionBeforeChangeHook } from 'payload'
 import { APIError } from 'payload'
 
 // Points redemption configuration
-// 1 point = 1 GHS (base currency)
+// 100 points = 1 GHS (base currency)
 // When redeeming in other currencies, we convert based on exchange rate
 
 /**
@@ -12,8 +12,8 @@ import { APIError } from 'payload'
  * - Limits redemption to subtotal (can't make cart negative)
  * 
  * Points are stored in GHS equivalent, so when redeeming:
- * - If cart is in GHS: 100 points = 100 GHS discount
- * - If cart is in USD (1 USD = 15 GHS): 100 points = 6.67 USD discount (100/15)
+ * - If cart is in GHS: 100 points = 1 GHS discount
+ * - If cart is in USD (1 USD = 15 GHS): 100 points = 0.067 USD discount (1/15)
  */
 export const applyPointsRedemption: CollectionBeforeChangeHook = async ({
   data,
@@ -108,21 +108,22 @@ export const applyPointsRedemption: CollectionBeforeChangeHook = async ({
     const maxRedeemableAmount = Math.max(0, subtotal - discountAmount)
 
     // Calculate points discount in cart's currency
-    // Points are in GHS, so divide by exchange rate to get cart currency amount
-    // E.g., 100 points (GHS) / 15 (USD rate) = 6.67 USD discount
-    let pointsDiscount = pointsToRedeem / exchangeRateToGHS
+    // 100 points = 1 GHS, so divide points by 100 first, then by exchange rate
+    // E.g., 1000 points = 10 GHS, if USD rate is 15: 10/15 = 0.67 USD discount
+    const pointsInGHS = pointsToRedeem / 100 // Convert points to GHS value
+    let pointsDiscount = pointsInGHS / exchangeRateToGHS
 
     // Can't redeem more than remaining subtotal after discount code
     if (pointsDiscount > maxRedeemableAmount) {
       pointsDiscount = maxRedeemableAmount
-      // Adjust points to redeem (convert back to GHS/points)
-      data.pointsToRedeem = Math.floor(pointsDiscount * exchangeRateToGHS)
+      // Adjust points to redeem (convert back to points)
+      data.pointsToRedeem = Math.floor(pointsDiscount * exchangeRateToGHS * 100)
     }
 
     data.pointsDiscount = Math.round(pointsDiscount * 100) / 100
 
     payload.logger.info(
-      `Points redemption applied: ${data.pointsToRedeem} points = ${data.pointsDiscount} discount (rate: ${exchangeRateToGHS})`,
+      `Points redemption applied: ${data.pointsToRedeem} points (${pointsInGHS} GHS) = ${data.pointsDiscount} discount (rate: ${exchangeRateToGHS})`,
     )
   } catch (error) {
     if (error instanceof APIError) {
