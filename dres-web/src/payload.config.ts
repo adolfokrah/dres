@@ -41,6 +41,7 @@ import { Header } from './Header/config'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
+import { getMenu } from './endpoints/menu'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
@@ -115,6 +116,13 @@ export default buildConfig({
   },
   collections: [Pages, Posts, PostCategories, Media, Attributes, AttributeOptions, StyleBoosts, Styles, Variations, SKUs, VariationViews, Brands, Carts, Categories, Cities, Collections, Countries, Currencies, Departments, DiscountCodes, Favorites, Follows, Materials, Notifications, Orders, Regions, VariationStats, Reviews, ShippingRates, Transactions, Users, UserPoints],
   cors: [getServerSideURL()].filter(Boolean),
+  endpoints: [
+    {
+      path: '/menu',
+      method: 'get',
+      handler: getMenu,
+    },
+  ],
   globals: [Header, Footer],
   plugins,
   secret: process.env.PAYLOAD_SECRET,
