@@ -92,7 +92,7 @@ class _HomeScreenView extends StatelessWidget {
                     return const SizedBox.shrink();
                   }
 
-                  RefreshIndicator(
+                  return RefreshIndicator(
                     onRefresh: () async {
                       final storageService = getIt<StorageService>();
                       final department = storageService.getUserDepartment() ?? 'men';
