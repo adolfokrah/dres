@@ -23,7 +23,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(state.copyWithLoading());
 
     try {
-      final page = await _homeRepository.fetchHomePage(locale: event.locale);
+      final page = await _homeRepository.fetchHomePage(
+        slug: event.slug,
+        locale: event.locale,
+      );
       emit(state.copyWithSuccess(page));
     } catch (e) {
       emit(state.copyWithFailure(e.toString()));
@@ -37,7 +40,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(state.copyWithLoading());
 
     try {
-      final page = await _homeRepository.fetchHomePage(locale: event.locale);
+      final page = await _homeRepository.fetchHomePage(
+        slug: event.slug,
+        locale: event.locale,
+      );
       emit(state.copyWithSuccess(page));
     } catch (e) {
       emit(state.copyWithFailure(e.toString()));

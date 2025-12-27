@@ -9,20 +9,22 @@ abstract class HomeEvent extends Equatable {
 
 /// Event to fetch home page data
 class FetchHomePage extends HomeEvent {
+  final String slug;
   final String locale;
 
-  const FetchHomePage({this.locale = 'en'});
+  const FetchHomePage({this.slug = 'home', this.locale = 'en'});
 
   @override
-  List<Object?> get props => [locale];
+  List<Object?> get props => [slug, locale];
 }
 
 /// Event to refresh home page data
 class RefreshHomePage extends HomeEvent {
+  final String slug;
   final String locale;
 
-  const RefreshHomePage({this.locale = 'en'});
+  const RefreshHomePage({this.slug = 'home', this.locale = 'en'});
 
   @override
-  List<Object?> get props => [locale];
+  List<Object?> get props => [slug, locale];
 }

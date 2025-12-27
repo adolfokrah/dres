@@ -7,13 +7,14 @@ class HomeRepository {
   HomeRepository(this._apiService);
 
   /// Fetch home page data by slug
+  /// [slug] - Page slug (home, home-women, etc.)
   /// [locale] - Language code (en, fr, de, es, it)
-  Future<PageModel> fetchHomePage({String locale = 'en'}) async {
+  Future<PageModel> fetchHomePage({String slug = 'home', String locale = 'en'}) async {
     try {
       final response = await _apiService.get(
         '/pages',
         queryParameters: {
-          'where[slug][equals]': 'home',
+          'where[slug][equals]': slug,
           'depth': 2,
           'locale': locale,
         },

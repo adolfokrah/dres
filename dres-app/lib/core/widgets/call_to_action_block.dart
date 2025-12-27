@@ -84,7 +84,12 @@ class CallToActionBlock extends StatelessWidget {
                       // Save new department
                       await storageService.setUserDepartment(newDepartment);
                       
-                      // Trigger reload callback
+                      // Navigate to the corresponding home page
+                      // men -> home, women -> home-women
+                      final pageSlug = newDepartment == 'women' ? 'home-women' : 'home';
+                      
+                      // Trigger navigation via buttonLink (which should be the page slug)
+                      // The parent will handle the actual navigation
                       onDepartmentChanged?.call();
                     },
                     child: Row(

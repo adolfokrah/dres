@@ -11,14 +11,20 @@ import 'package:dres/features/home/logic/bloc/home_bloc.dart';
 import 'package:dres/features/home/logic/bloc/home_event.dart';
 import 'package:dres/features/home/logic/bloc/home_state.dart';
 import 'package:dres/core/models/block_model.dart';
+import 'package:dres/core/services/storage_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Get current department to determine which page slug to load
+    final storageService = getIt<StorageService>();
+    final department = storageService.getUserDepartment() ?? 'men';
+    final pageSlug = department == 'women' ? 'home-women' : 'home';
+    
     return BlocProvider(
-      create: (_) => getIt<HomeBloc>()..add(const FetchHomePage()),
+      create: (_) => getIt<HomeBloc>()..add(FetchHomePage(slug: pageSlug)),
       child: const _HomeScreenView(),
     );
   }
@@ -86,9 +92,12 @@ class _HomeScreenView extends StatelessWidget {
                     return const SizedBox.shrink();
                   }
 
-                  return RefreshIndicator(
+                  RefreshIndicator(
                     onRefresh: () async {
-                      context.read<HomeBloc>().add(const RefreshHomePage());
+                      final storageService = getIt<StorageService>();
+                      final department = storageService.getUserDepartment() ?? 'men';
+                      final pageSlug = department == 'women' ? 'home-women' : 'home';
+                      context.read<HomeBloc>().add(RefreshHomePage(slug: pageSlug));
                     },
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
@@ -151,8 +160,11 @@ class _HomeScreenView extends StatelessWidget {
           buttonText: cta.buttonText,
           buttonLink: cta.buttonLink,
           onDepartmentChanged: () {
-            // Reload home page when department changes
-            context.read<HomeBloc>().add(const RefreshHomePage());
+            // Reload home page with the new department's page slug
+            final storageService = getIt<StorageService>();
+            final department = storageService.getUserDepartment() ?? 'men';
+            final pageSlug = department == 'women' ? 'home-women' : 'home';
+            context.read<HomeBloc>().add(RefreshHomePage(slug: pageSlug));
           },
         );
       default:
