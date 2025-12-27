@@ -30,6 +30,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forgotPassword => 'Forgot Password?';
 
   @override
+  String get weLove => 'WE LOVE';
+
+  @override
   String get continueWithGoogle => 'Continue with Google';
 
   @override

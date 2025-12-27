@@ -136,6 +136,12 @@ abstract class AppLocalizations {
   /// **'Forgot Password?'**
   String get forgotPassword;
 
+  /// Boosted product tag label
+  ///
+  /// In en, this message translates to:
+  /// **'WE LOVE'**
+  String get weLove;
+
   /// Google sign in button text
   ///
   /// In en, this message translates to:

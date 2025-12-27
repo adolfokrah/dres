@@ -20,6 +20,7 @@ interface TransformedVariation {
     symbol: string
   } | null
   variants: string
+  isBoosted?: boolean
   relatedVariations?: Omit<TransformedVariation, 'relatedVariations'>[]
 }
 
@@ -119,6 +120,58 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
       .filter((v: TransformedVariation | null): v is Omit<TransformedVariation, 'relatedVariations'> => v !== null)
   }
 
+  // Check if style has an active boost
+  const hasActiveBoost = () => {
+    // Handle boost as either array or Payload relationship object
+    let boostItems: any[] = []
+    
+    if (!style?.boost) {
+      console.log('No boost found for style:', style?.id)
+      return false
+    }
+    
+    // Check if boost is a Payload relationship object with docs
+    if (typeof style.boost === 'object' && 'docs' in style.boost) {
+      boostItems = Array.isArray(style.boost.docs) ? style.boost.docs : []
+    } else if (Array.isArray(style.boost)) {
+      boostItems = style.boost
+    }
+    
+    if (boostItems.length === 0) {
+      console.log('No boost items found for style:', style?.id)
+      return false
+    }
+    
+    console.log('Checking boost for style:', style.id, 'boost items:', boostItems.length)
+    
+    const now = new Date()
+    return boostItems.some((boostItem: any) => {
+      if (!boostItem || typeof boostItem !== 'object') {
+        console.log('Invalid boost item:', boostItem)
+        return false
+      }
+      
+      const startDate = boostItem.startDate ? new Date(boostItem.startDate) : null
+      const endDate = boostItem.endDate ? new Date(boostItem.endDate) : null
+      
+      console.log('Boost item:', {
+        id: boostItem.id,
+        startDate: startDate?.toISOString(),
+        endDate: endDate?.toISOString(),
+        now: now.toISOString()
+      })
+      
+      // Check if current date is within the boost period
+      const isAfterStart = !startDate || now >= startDate
+      const isBeforeEnd = !endDate || now <= endDate
+      
+      const isActive = isAfterStart && isBeforeEnd
+      console.log('Boost active:', isActive, 'isAfterStart:', isAfterStart, 'isBeforeEnd:', isBeforeEnd)
+      
+      return isActive
+    })
+  }
+
   return {
     id: variation.id,
     thumbnail,
@@ -131,6 +184,7 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
     compareAtPrice,
     currency,
     variants,
+    isBoosted: hasActiveBoost(),
     ...(includeRelated && { relatedVariations }),
   }
 }

@@ -116,5 +116,14 @@ export const Styles: CollectionConfig = {
         description: 'Product variations (color/size combinations)',
       },
     },
+    {
+      name: 'boost',
+      type: 'join',
+      collection: 'style-boosts',
+      on: 'style',
+      admin: {
+        description: 'Boosts for increased visibility',
+      },
+    }
   ],
 }

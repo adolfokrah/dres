@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../utilities/media_utils.dart';
+import 'package:dres/l10n/app_localizations.dart';
 
 class ProductCard extends StatefulWidget {
   final String id;
@@ -17,6 +18,7 @@ class ProductCard extends StatefulWidget {
   final bool isFavorited;
   final Function(String id, bool isFavorited)? onFavoriteToggle;
   final bool showLeftBorder;
+  final bool isBoosted;
 
   const ProductCard({
     super.key,
@@ -33,6 +35,7 @@ class ProductCard extends StatefulWidget {
     this.isFavorited = false,
     this.onFavoriteToggle,
     this.showLeftBorder = true,
+    this.isBoosted = false,
   });
 
   @override
@@ -48,6 +51,8 @@ class _ProductCardState extends State<ProductCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return GestureDetector(
       onTap: () {
         // Navigate to product detail page
@@ -71,27 +76,34 @@ class _ProductCardState extends State<ProductCard> {
             // Image Container
             AspectRatio(
               aspectRatio: 1,
-              child: Container(
-                color: Colors.white,
-                child: widget.thumbnail != null
-                    ? Image.network(
-                        MediaUtils.resolveUrl(widget.thumbnail) ?? '',
-                        fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Center(
+              child: Stack(
+                children: [
+                  Container(
+                    color: Colors.white,
+                    child: widget.thumbnail != null
+                        ? Center(
+                          child: Image.network(
+                              MediaUtils.resolveUrl(widget.thumbnail) ?? '',
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Center(
+                                  child: Text(
+                                    'No Image',
+                                    style: AppTypography.bodyS.copyWith(color: AppColors.textHint),
+                                  ),
+                                );
+                              },
+                            ),
+                        )
+                        : Center(
                             child: Text(
                               'No Image',
                               style: AppTypography.bodyS.copyWith(color: AppColors.textHint),
                             ),
-                          );
-                        },
-                      )
-                    : Center(
-                        child: Text(
-                          'No Image',
-                          style: AppTypography.bodyS.copyWith(color: AppColors.textHint),
-                        ),
-                      ),
+                          ),
+                  ),
+                  
+                ],
               ),
             ),
             // Content Container
@@ -101,6 +113,30 @@ class _ProductCardState extends State<ProductCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                  // WE LOVE tag
+                  if (widget.isBoosted) 
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                      ),
+                      child: Text(
+                        l10n.weLove,
+                        style: AppTypography.bodyXS.copyWith(
+                          color: AppColors.textOnPrimary,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
+                    if(!widget.isBoosted)
+                    const SizedBox(height: 15),
+
+                    const SizedBox(height: 4),
                   // Brand with favorite icon
                   if (widget.brand != null) ...[
                     Row(

@@ -151,6 +151,7 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
                         isFavorited: widget.favoritedProducts.contains(product.id),
                         onFavoriteToggle: widget.onFavoriteToggle,
                         showLeftBorder: index == 0,
+                        isBoosted: product.isBoosted,
                       ),
                     );
                   },
@@ -190,6 +191,7 @@ class ProductCardData {
   final String currencyCode;
   final String currencySymbol;
   final String slug;
+  final bool isBoosted;
 
   ProductCardData({
     required this.id,
@@ -202,6 +204,7 @@ class ProductCardData {
     required this.currencyCode,
     required this.currencySymbol,
     required this.slug,
+    this.isBoosted = false,
   });
 
   factory ProductCardData.fromJson(Map<String, dynamic> json) {
@@ -218,6 +221,7 @@ class ProductCardData {
       currencyCode: json['currency']?['code'] ?? 'GHS',
       currencySymbol: json['currency']?['symbol'] ?? '₵',
       slug: json['slug'],
+      isBoosted: json['isBoosted'] ?? false,
     );
   }
 }

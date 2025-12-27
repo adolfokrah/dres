@@ -28,6 +28,10 @@
   "@forgotPassword": {
     "description": "Forgot password link text"
   },
+  "weLove": "WE LOVE",
+  "@weLove": {
+    "description": "Boosted product tag label"
+  },
   "continueWithGoogle": "Continue with Google",
   "@continueWithGoogle": {
     "description": "Google sign in button text"

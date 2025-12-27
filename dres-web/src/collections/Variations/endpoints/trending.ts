@@ -53,7 +53,7 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
       collection: 'variation-views',
       limit, // Apply limit at query level - no jumping records
       locale,
-      depth: 4,
+      depth: 5, // Increased depth to get style.boost data
       sort: '-updatedAt', // Most recently updated first
       where: variationsWhere,
     })
@@ -69,6 +69,20 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
         if (!variation?.id) return variation
 
         try {
+          // Fetch the full style with boost data
+          const styleId = typeof variation.style === 'object' ? variation.style.id : variation.style
+          let fullStyle = variation.style
+          
+          if (styleId) {
+            // Always fetch the full style object with populated boost relationship
+            const styleResult = await req.payload.findByID({
+              collection: 'styles',
+              id: styleId,
+              depth: 3, // Increased depth to ensure boost is fully populated
+            })
+            fullStyle = styleResult
+          }
+
           // Fetch SKUs for this variation with full details
           const skusResult = await req.payload.find({
             collection: 'skus',
@@ -80,7 +94,6 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
           })
 
           // Fetch related variations (same style, different variation)
-          const styleId = typeof variation.style === 'object' ? variation.style.id : variation.style
           let relatedVariations: any[] = []
           
           if (styleId) {
@@ -116,6 +129,7 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
 
           return {
             ...variation,
+            style: fullStyle, // Use the fully populated style
             skus: { docs: skusResult.docs },
             relatedVariations: { docs: relatedVariations }
           }

@@ -117,6 +117,7 @@ export interface Config {
     };
     styles: {
       variations: 'variations';
+      boost: 'style-boosts';
     };
     variations: {
       skus: 'skus';
@@ -904,6 +905,14 @@ export interface Style {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  /**
+   * Boosts for increased visibility
+   */
+  boost?: {
+    docs?: (string | StyleBoost)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -1239,6 +1248,114 @@ export interface Skus {
   createdAt: string;
 }
 /**
+ * Style boost/featuring for increased visibility
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "style-boosts".
+ */
+export interface StyleBoost {
+  id: string;
+  /**
+   * The style to boost
+   */
+  style: string | Style;
+  /**
+   * Boost tier determines visibility priority and duration
+   */
+  tier: 'basic' | 'standard' | 'premium';
+  /**
+   * Auto-calculated based on dates
+   */
+  status: 'scheduled' | 'active' | 'expired' | 'cancelled';
+  /**
+   * When the boost starts
+   */
+  startDate: string;
+  /**
+   * When the boost ends
+   */
+  endDate: string;
+  /**
+   * The payment transaction for this boost (optional)
+   */
+  transaction?: (string | null) | Transaction;
+  /**
+   * Additional notes about this boost
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Payment transactions
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "transactions".
+ */
+export interface Transaction {
+  id: string;
+  /**
+   * Unique transaction identifier (auto-generated)
+   */
+  transactionId: string;
+  /**
+   * Type of transaction
+   */
+  type: 'transfer' | 'deposit' | 'refund';
+  /**
+   * Transaction status
+   */
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  /**
+   * The user for this transaction
+   */
+  user: string | User;
+  /**
+   * The order this transaction belongs to
+   */
+  order: string | Order;
+  /**
+   * The order item ID this transaction is for (used to prevent duplicates)
+   */
+  itemId?: string | null;
+  /**
+   * Transaction amount (seller payout)
+   */
+  amount: number;
+  fees?: number | null;
+  /**
+   * Calculated: 1.95% × selling price
+   */
+  paystackFees?: number | null;
+  /**
+   * Calculated: fees - paystackFees
+   */
+  commissionFees?: number | null;
+  /**
+   * Payment account information
+   */
+  billingDetails?: {
+    /**
+     * Account holder name
+     */
+    accountName?: string | null;
+    /**
+     * Account number
+     */
+    accountNumber?: string | null;
+    /**
+     * Bank or payment provider (e.g., MTN Mobile Money)
+     */
+    bank?: string | null;
+  };
+  /**
+   * Additional notes about this transaction
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Customer orders
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1520,75 +1637,6 @@ export interface DiscountCode {
         id?: string | null;
       }[]
     | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Payment transactions
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "transactions".
- */
-export interface Transaction {
-  id: string;
-  /**
-   * Unique transaction identifier (auto-generated)
-   */
-  transactionId: string;
-  /**
-   * Type of transaction
-   */
-  type: 'transfer' | 'deposit' | 'refund';
-  /**
-   * Transaction status
-   */
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
-  /**
-   * The user for this transaction
-   */
-  user: string | User;
-  /**
-   * The order this transaction belongs to
-   */
-  order: string | Order;
-  /**
-   * The order item ID this transaction is for (used to prevent duplicates)
-   */
-  itemId?: string | null;
-  /**
-   * Transaction amount (seller payout)
-   */
-  amount: number;
-  fees?: number | null;
-  /**
-   * Calculated: 1.95% × selling price
-   */
-  paystackFees?: number | null;
-  /**
-   * Calculated: fees - paystackFees
-   */
-  commissionFees?: number | null;
-  /**
-   * Payment account information
-   */
-  billingDetails?: {
-    /**
-     * Account holder name
-     */
-    accountName?: string | null;
-    /**
-     * Account number
-     */
-    accountNumber?: string | null;
-    /**
-     * Bank or payment provider (e.g., MTN Mobile Money)
-     */
-    bank?: string | null;
-  };
-  /**
-   * Additional notes about this transaction
-   */
-  notes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2077,45 +2125,6 @@ export interface ProductArchiveBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'productArchive';
-}
-/**
- * Style boost/featuring for increased visibility
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "style-boosts".
- */
-export interface StyleBoost {
-  id: string;
-  /**
-   * The style to boost
-   */
-  style: string | Style;
-  /**
-   * Boost tier determines visibility priority and duration
-   */
-  tier: 'basic' | 'standard' | 'premium';
-  /**
-   * Auto-calculated based on dates
-   */
-  status: 'scheduled' | 'active' | 'expired' | 'cancelled';
-  /**
-   * When the boost starts
-   */
-  startDate: string;
-  /**
-   * When the boost ends
-   */
-  endDate: string;
-  /**
-   * The payment transaction for this boost (optional)
-   */
-  transaction?: (string | null) | Transaction;
-  /**
-   * Additional notes about this boost
-   */
-  notes?: string | null;
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * Tracks variation views for trending algorithm
@@ -3123,6 +3132,7 @@ export interface StylesSelect<T extends boolean = true> {
   category?: T;
   brand?: T;
   variations?: T;
+  boost?: T;
   updatedAt?: T;
   createdAt?: T;
 }
