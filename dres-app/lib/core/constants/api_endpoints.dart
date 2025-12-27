@@ -19,3 +19,4 @@ const String pageById = '$pages/';
 // Variations
 const String trendingVariations = '/variations/trending';
 const String newArrivals = '/variations/new-arrivals';
+const String featuredVariations = '/variations/featured';

@@ -4,18 +4,17 @@ import { transformVariations } from '../utils/transformVariation'
 type SupportedLocale = 'en' | 'fr' | 'de' | 'es' | 'it'
 
 /**
- * GET /api/variations/trending
+ * GET /api/variations/featured
  * 
- * Fetches trending variations based on view counts within a time period.
+ * Fetches featured variations - variations from styles with active boosts.
  * 
  * Query params:
  * - limit: number of variations to return (default: 10, max: 50)
- * - days: time period in days (default: 7)
  * - department: filter by department ID
  * - category: filter by category ID
  * - locale: language code (default: en)
  */
-export const trendingVariations: PayloadHandler = async (req: PayloadRequest) => {
+export const featuredVariations: PayloadHandler = async (req: PayloadRequest) => {
   const searchParams = req.searchParams
 
   // Parse query params
@@ -26,12 +25,61 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
   const locale = (['en', 'fr', 'de', 'es', 'it'].includes(localeParam) ? localeParam : 'en') as SupportedLocale
 
   try {
-    // Build where clause for filtering variations
-    const variationsWhere: Where = {
-      // Filter by time period - only variations updated within the days
-      updatedAt: {
-        greater_than: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    // Step 1: Get all active style boosts
+    const now = new Date()
+    const activeBoosts = await req.payload.find({
+      collection: 'style-boosts',
+      limit: 1000,
+      where: {
+        and: [
+          {
+            or: [
+              { startDate: { exists: false } },
+              { startDate: { less_than_equal: now.toISOString() } }
+            ]
+          },
+          {
+            or: [
+              { endDate: { exists: false } },
+              { endDate: { greater_than_equal: now.toISOString() } }
+            ]
+          }
+        ]
       }
+    })
+
+    if (activeBoosts.docs.length === 0) {
+      return Response.json({
+        docs: [],
+        totalDocs: 0,
+        limit,
+        page: 1,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPrevPage: false,
+      })
+    }
+
+    // Step 2: Get style IDs from active boosts
+    const boostedStyleIds = activeBoosts.docs
+      .map((boost: any) => typeof boost.style === 'string' ? boost.style : boost.style?.id)
+      .filter(Boolean)
+
+    if (boostedStyleIds.length === 0) {
+      return Response.json({
+        docs: [],
+        totalDocs: 0,
+        limit,
+        page: 1,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPrevPage: false,
+      })
+    }
+
+    // Step 3: Build where clause for variations
+    const variationsWhere: Where = {
+      'style': { in: boostedStyleIds }
     }
 
     // Add department filter if provided
@@ -48,69 +96,19 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
       }
     }
 
-    // Step 1: Get all variation views within the time period
-    const allViews = await req.payload.find({
-      collection: 'variation-views',
-      limit: 1000, // Get a large number to aggregate
-      locale,
-      depth: 0, // We only need the variation IDs
-      where: {
-        createdAt: {
-          greater_than: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      },
-    })
-
-    // Step 2: Count views per variation (count unique users per variation)
-    const viewCounts = new Map<string, number>()
-    
-    allViews.docs.forEach((view: any) => {
-      const variationId = typeof view.variation === 'string' ? view.variation : view.variation?.id
-      if (variationId) {
-        // Count unique users (if users array exists, count its length, otherwise count as 1)
-        const userCount = Array.isArray(view.users) ? view.users.length : (view.users ? 1 : 1)
-        viewCounts.set(variationId, (viewCounts.get(variationId) || 0) + userCount)
-      }
-    })
-
-    // Step 3: Sort variations by view count and get top ones
-    const sortedVariationIds = Array.from(viewCounts.entries())
-      .sort((a, b) => b[1] - a[1]) // Sort by count descending
-      .slice(0, limit)
-      .map(([id]) => id)
-
-    if (sortedVariationIds.length === 0) {
-      return Response.json({
-        docs: [],
-        totalDocs: 0,
-        limit,
-        page: 1,
-        totalPages: 0,
-        hasNextPage: false,
-        hasPrevPage: false,
-      })
-    }
-
-    // Step 4: Fetch the actual variation data
-    const variationsResult = await req.payload.find({
+    // Step 4: Fetch featured variations
+    const featuredResult = await req.payload.find({
       collection: 'variations',
-      where: {
-        id: { in: sortedVariationIds },
-        ...variationsWhere
-      },
       limit,
       locale,
       depth: 5,
+      sort: '-createdAt', // Show newest boosted items first
+      where: variationsWhere,
     })
 
-    // Sort the results to match the view count order
-    const sortedVariations = sortedVariationIds
-      .map(id => variationsResult.docs.find((v: any) => v.id === id))
-      .filter(Boolean)
-    
-    // Fetch SKUs for each variation separately since it's a join field
+    // Fetch SKUs and style for each variation
     const variationsWithSKUs = await Promise.all(
-      sortedVariations.map(async (variation: any) => {
+      featuredResult.docs.map(async (variation: any) => {
         if (!variation?.id) return variation
 
         try {
@@ -123,7 +121,7 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
             const styleResult = await req.payload.findByID({
               collection: 'styles',
               id: styleId,
-              depth: 3, // Increased depth to ensure boost is fully populated
+              depth: 3,
             })
             fullStyle = styleResult
           }
@@ -134,7 +132,7 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
             where: {
               variation: { equals: variation.id }
             },
-            depth: 3, // Include variant details
+            depth: 3,
             limit: 100,
           })
 
@@ -146,7 +144,7 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
               collection: 'variations',
               where: {
                 style: { equals: styleId },
-                id: { not_equals: variation.id } // Exclude current variation
+                id: { not_equals: variation.id }
               },
               limit: 10,
               depth: 2,
@@ -174,7 +172,7 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
 
           return {
             ...variation,
-            style: fullStyle, // Use the fully populated style
+            style: fullStyle,
             skus: { docs: skusResult.docs },
             relatedVariations: { docs: relatedVariations }
           }
@@ -189,23 +187,23 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
       })
     )
     
-    const transformedDocs = transformVariations(variationsWithSKUs, false)
+    const transformedDocs = transformVariations(variationsWithSKUs, true)
  
     return Response.json({
       docs: transformedDocs,
-      totalDocs: sortedVariationIds.length,
-      limit,
-      page: 1,
-      totalPages: 1,
-      hasNextPage: false,
-      hasPrevPage: false,
+      totalDocs: featuredResult.totalDocs,
+      limit: featuredResult.limit,
+      page: featuredResult.page,
+      totalPages: featuredResult.totalPages,
+      hasNextPage: featuredResult.hasNextPage,
+      hasPrevPage: featuredResult.hasPrevPage,
     })
   } catch (error) {
-    console.error('Error fetching trending variations:', error)
+    console.error('Error fetching featured variations:', error)
     return Response.json(
-      { 
-        error: 'Failed to fetch trending variations',
-        details: error instanceof Error ? error.message : 'Unknown error'
+      {
+        error: 'Failed to fetch featured variations',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     )

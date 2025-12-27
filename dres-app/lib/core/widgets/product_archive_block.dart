@@ -53,6 +53,8 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
       endpoint = trendingVariations;
     } else if (widget.queryType == QueryType.newArrivals) {
       endpoint = newArrivals;
+    } else if (widget.queryType == QueryType.featured) {
+      endpoint = featuredVariations;
     } else {
       return [];
     }

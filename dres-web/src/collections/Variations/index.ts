@@ -5,6 +5,7 @@ import { authenticated } from '../../access/authenticated'
 import { generateVariationSlug } from './hooks/generateVariationSlug'
 import { trendingVariations } from './endpoints/trending'
 import { newArrivals } from './endpoints/newArrivals'
+import { featuredVariations } from './endpoints/featured'
 import { recordView } from './endpoints/recordView'
 
 interface VariantItem {
@@ -36,6 +37,11 @@ export const Variations: CollectionConfig = {
       path: '/new-arrivals',
       method: 'get',
       handler: newArrivals,
+    },
+    {
+      path: '/featured',
+      method: 'get',
+      handler: featuredVariations,
     },
     {
       path: '/record-view',
