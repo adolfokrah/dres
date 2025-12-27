@@ -20,3 +20,6 @@ const String pageById = '$pages/';
 const String trendingVariations = '/variations/trending';
 const String newArrivals = '/variations/new-arrivals';
 const String featuredVariations = '/variations/featured';
+
+// Menu
+const String menu = '/menu';

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../utilities/media_utils.dart';
 import '../services/storage_service.dart';
@@ -84,11 +83,7 @@ class CallToActionBlock extends StatelessWidget {
                       // Save new department
                       await storageService.setUserDepartment(newDepartment);
                       
-                      // Navigate to the corresponding home page
-                      // men -> home, women -> home-women
-                      final pageSlug = newDepartment == 'women' ? 'home-women' : 'home';
-                      
-                      // Trigger navigation via buttonLink (which should be the page slug)
+                      // Trigger navigation via callback
                       // The parent will handle the actual navigation
                       onDepartmentChanged?.call();
                     },

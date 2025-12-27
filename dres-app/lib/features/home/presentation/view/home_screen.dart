@@ -18,15 +18,8 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get current department to determine which page slug to load
-    final storageService = getIt<StorageService>();
-    final department = storageService.getUserDepartment() ?? 'men';
-    final pageSlug = department == 'women' ? 'home-women' : 'home';
-    
-    return BlocProvider(
-      create: (_) => getIt<HomeBloc>()..add(FetchHomePage(slug: pageSlug)),
-      child: const _HomeScreenView(),
-    );
+    // Use the global HomeBloc from MultiBlocProvider in main.dart
+    return const _HomeScreenView();
   }
 }
 

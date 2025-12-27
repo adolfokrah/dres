@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dres/core/constants/app_images.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:dres/routes.dart';
+import 'package:dres/features/splash/logic/menu_bloc/menu_bloc.dart';
+import 'package:dres/features/splash/logic/menu_bloc/menu_state.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -21,7 +24,27 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 2));
+    // Wait a brief moment to ensure bloc is ready
+    await Future.delayed(const Duration(milliseconds: 100));
+    
+    if (!mounted) return;
+    
+    // Wait for menu to load successfully before navigating
+    final menuBloc = context.read<MenuBloc>();
+    
+    // If already loaded, navigate immediately
+    if (menuBloc.state.status == MenuStatus.success) {
+      if (mounted) {
+        context.go(AppRoutes.home);
+      }
+      return;
+    }
+    
+    // Otherwise wait for success state
+    await menuBloc.stream.firstWhere(
+      (state) => state.status == MenuStatus.success || state.status == MenuStatus.failure,
+    );
+    
     if (mounted) {
       context.go(AppRoutes.home);
     }
