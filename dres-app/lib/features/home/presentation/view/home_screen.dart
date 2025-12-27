@@ -6,6 +6,7 @@ import 'package:dres/core/widgets/app_header.dart';
 import 'package:dres/core/widgets/promo_banner.dart';
 import 'package:dres/core/widgets/featured_grid.dart';
 import 'package:dres/core/widgets/product_archive_block.dart';
+import 'package:dres/core/widgets/call_to_action_block.dart';
 import 'package:dres/features/home/logic/bloc/home_bloc.dart';
 import 'package:dres/features/home/logic/bloc/home_event.dart';
 import 'package:dres/features/home/logic/bloc/home_state.dart';
@@ -141,6 +142,14 @@ class _HomeScreenView extends StatelessWidget {
           seeAllText: productArchive.seeAllText ?? 'See all',
           department: productArchive.department,
           limit: productArchive.limit ?? 8,
+        );
+      case 'cta':
+        final cta = block as CallToActionBlockModel;
+        return CallToActionBlock(
+          imageUrl: cta.imageUrl,
+          title: cta.title,
+          buttonText: cta.buttonText,
+          buttonLink: cta.buttonLink,
         );
       default:
         return const SizedBox.shrink();

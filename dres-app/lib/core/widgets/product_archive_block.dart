@@ -166,21 +166,32 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
               );
             },
           ),
-          // See All Button
-          if (widget.seeAllLink != null) ...[
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: AppButton.outlined(
-                text: widget.seeAllText,
-                isFullWidth: true,
-                onPressed: () {
-                  // Navigate to see all page
-                  // Navigator.pushNamed(context, widget.seeAllLink!);
-                },
-              ),
-            ),
-          ],
+          // See All Button - only show if there are more than 2 items
+          FutureBuilder<List<ProductCardData>>(
+            future: _productsFuture,
+            builder: (context, snapshot) {
+              final products = snapshot.data ?? [];
+              if (widget.seeAllLink != null && products.length > 2) {
+                return Column(
+                  children: [
+                    const SizedBox(height: 24),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: AppButton.outlined(
+                        text: widget.seeAllText,
+                        isFullWidth: true,
+                        onPressed: () {
+                          // Navigate to see all page
+                          // Navigator.pushNamed(context, widget.seeAllLink!);
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
         ],
       ),
     );

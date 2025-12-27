@@ -1,39 +1,57 @@
 import type { Block } from 'payload'
 
-import {
-  FixedToolbarFeature,
-  HeadingFeature,
-  InlineToolbarFeature,
-  lexicalEditor,
-} from '@payloadcms/richtext-lexical'
-
-import { linkGroup } from '../../fields/linkGroup'
-
 export const CallToAction: Block = {
   slug: 'cta',
   interfaceName: 'CallToActionBlock',
   fields: [
     {
-      name: 'richText',
-      type: 'richText',
-      editor: lexicalEditor({
-        features: ({ rootFeatures }) => {
-          return [
-            ...rootFeatures,
-            HeadingFeature({ enabledHeadingSizes: ['h1', 'h2', 'h3', 'h4'] }),
-            FixedToolbarFeature(),
-            InlineToolbarFeature(),
-          ]
+      name: 'style',
+      type: 'select',
+      defaultValue: 'image',
+      options: [
+        {
+          label: 'Image-based CTA',
+          value: 'image',
         },
-      }),
-      label: false,
-    },
-    linkGroup({
-      appearances: ['default', 'outline'],
-      overrides: {
-        maxRows: 2,
+      ],
+      admin: {
+        description: 'Choose the CTA style',
       },
-    }),
+    },
+    {
+      name: 'image',
+      type: 'upload',
+      relationTo: 'media',
+      required: true,
+      admin: {
+        description: 'Background image for the CTA',
+      },
+    },
+    {
+      name: 'title',
+      type: 'text',
+      required: true,
+      admin: {
+        description: 'Main heading text (e.g., "Interested in Womenswear?")',
+      },
+    },
+    {
+      name: 'buttonText',
+      type: 'text',
+      required: true,
+      defaultValue: 'Update preference',
+      admin: {
+        description: 'Text for the action button',
+      },
+    },
+    {
+      name: 'buttonLink',
+      type: 'text',
+      required: true,
+      admin: {
+        description: 'URL or path for the button action',
+      },
+    },
   ],
   labels: {
     plural: 'Calls to Action',

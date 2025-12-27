@@ -1683,45 +1683,26 @@ export interface Follow {
  * via the `definition` "CallToActionBlock".
  */
 export interface CallToActionBlock {
-  richText?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  links?:
-    | {
-        link: {
-          type?: ('reference' | 'custom') | null;
-          newTab?: boolean | null;
-          reference?:
-            | ({
-                relationTo: 'pages';
-                value: string | Page;
-              } | null)
-            | ({
-                relationTo: 'posts';
-                value: string | Post;
-              } | null);
-          url?: string | null;
-          label: string;
-          /**
-           * Choose how the link should be rendered.
-           */
-          appearance?: ('default' | 'outline') | null;
-        };
-        id?: string | null;
-      }[]
-    | null;
+  /**
+   * Choose the CTA style
+   */
+  style?: 'image' | null;
+  /**
+   * Background image for the CTA
+   */
+  image: string | Media;
+  /**
+   * Main heading text (e.g., "Interested in Womenswear?")
+   */
+  title: string;
+  /**
+   * Text for the action button
+   */
+  buttonText: string;
+  /**
+   * URL or path for the button action
+   */
+  buttonLink: string;
   id?: string | null;
   blockName?: string | null;
   blockType: 'cta';
@@ -2800,22 +2781,11 @@ export interface PagesSelect<T extends boolean = true> {
  * via the `definition` "CallToActionBlock_select".
  */
 export interface CallToActionBlockSelect<T extends boolean = true> {
-  richText?: T;
-  links?:
-    | T
-    | {
-        link?:
-          | T
-          | {
-              type?: T;
-              newTab?: T;
-              reference?: T;
-              url?: T;
-              label?: T;
-              appearance?: T;
-            };
-        id?: T;
-      };
+  style?: T;
+  image?: T;
+  title?: T;
+  buttonText?: T;
+  buttonLink?: T;
   id?: T;
   blockName?: T;
 }

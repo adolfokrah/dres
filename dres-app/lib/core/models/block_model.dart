@@ -69,26 +69,35 @@ class PromoBannerBlockModel extends BlockModel {
 
 /// Call to Action Block
 class CallToActionBlockModel extends BlockModel {
-  final Map<String, dynamic>? richText;
-  final List<LinkModel> links;
+  final String? imageUrl;
+  final String title;
+  final String buttonText;
+  final String buttonLink;
 
   CallToActionBlockModel({
     super.id,
     super.blockName,
-    this.richText,
-    this.links = const [],
+    this.imageUrl,
+    required this.title,
+    required this.buttonText,
+    required this.buttonLink,
   }) : super(blockType: 'cta');
 
   factory CallToActionBlockModel.fromJson(Map<String, dynamic> json) {
-    final linksJson = json['links'] as List<dynamic>? ?? [];
+    // Extract image URL
+    String? imageUrl;
+    final image = json['image'];
+    if (image != null && image is Map<String, dynamic>) {
+      imageUrl = image['url'] as String?;
+    }
+
     return CallToActionBlockModel(
       id: json['id'] as String?,
       blockName: json['blockName'] as String?,
-      richText: json['richText'] as Map<String, dynamic>?,
-      links: linksJson
-          .map((e) => LinkModel.fromJson(
-              (e as Map<String, dynamic>)['link'] as Map<String, dynamic>))
-          .toList(),
+      imageUrl: imageUrl,
+      title: json['title'] as String? ?? '',
+      buttonText: json['buttonText'] as String? ?? 'Learn More',
+      buttonLink: json['buttonLink'] as String? ?? '',
     );
   }
 }
