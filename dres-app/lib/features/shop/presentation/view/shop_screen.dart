@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_header.dart';
@@ -9,6 +10,7 @@ import 'package:dres/features/splash/logic/menu_bloc/menu_bloc.dart';
 import 'package:dres/features/splash/logic/menu_bloc/menu_state.dart';
 import 'package:dres/core/models/menu_model.dart';
 import 'package:dres/l10n/app_localizations.dart';
+import 'package:dres/routes.dart';
 
 class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
@@ -94,7 +96,10 @@ class _ShopScreenState extends State<ShopScreen> {
 
                       // Collections List
                       Expanded(
-                        child: _buildCollectionsList(departments[_selectedTabIndex]),
+                        child: _buildCollectionsList(
+                          departments[_selectedTabIndex],
+                          departments[_selectedTabIndex].name,
+                        ),
                       ),
                     ],
                   );
@@ -107,7 +112,7 @@ class _ShopScreenState extends State<ShopScreen> {
     );
   }
 
-  Widget _buildCollectionsList(DepartmentModel department) {
+  Widget _buildCollectionsList(DepartmentModel department, String departmentName) {
     if (department.collections.isEmpty) {
       return Center(
         child: Text(
@@ -127,7 +132,7 @@ class _ShopScreenState extends State<ShopScreen> {
         // Show collections first
         if (index < department.collections.length) {
           final collection = department.collections[index];
-          return _buildCollectionItem(collection);
+          return _buildCollectionItem(collection, departmentName);
         }
         
         // Show promo cards at the end
@@ -222,12 +227,18 @@ class _ShopScreenState extends State<ShopScreen> {
     return [];
   }
 
-  Widget _buildCollectionItem(CollectionModel collection) {
+  Widget _buildCollectionItem(CollectionModel collection, String departmentName) {
     return Column(
       children: [
         InkWell(
           onTap: () {
-            // TODO: Navigate to collection detail page
+            context.pushNamed(
+              AppRoutes.categories,
+              extra: {
+                'collection': collection,
+                'departmentName': departmentName,
+              },
+            );
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -239,7 +250,6 @@ class _ShopScreenState extends State<ShopScreen> {
                   style: AppTypography.bodyL.copyWith(
                     fontSize: 18
                   ),
-
                 ),
                 Icon(
                   Icons.chevron_right,

@@ -6,7 +6,9 @@ import 'package:dres/features/sell/sell.dart';
 import 'package:dres/features/favourite/favourite.dart';
 import 'package:dres/features/profile/profile.dart';
 import 'package:dres/features/shop/presentation/view/shop_screen.dart';
+import 'package:dres/features/shop/presentation/view/categories_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
+import 'package:dres/core/models/menu_model.dart';
 
 // Navigator keys for each tab
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -24,6 +26,7 @@ class AppRoutes {
   static const String home = '/home';
   static const String shop = '/shop';
   static const String discover = '/discover';
+  static const String categories = 'categories';
   static const String sell = '/sell';
   static const String favourite = '/favourite';
   static const String profile = '/profile';
@@ -73,6 +76,25 @@ class AppRoutes {
                 path: discover,
                 name: 'discover',
                 builder: (context, state) => const ShopScreen(),
+                routes: [
+                  GoRoute(
+                    path: categories,
+                    name: 'categories',
+                    builder: (context, state) {
+                      final extra = state.extra as Map<String, dynamic>?;
+                      if (extra == null) {
+                        // Fallback if extra is null
+                        return const Scaffold(
+                          body: Center(child: Text('No collection data')),
+                        );
+                      }
+                      return CategoriesScreen(
+                        collection: extra['collection'] as CollectionModel,
+                        departmentName: extra['departmentName'] as String,
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),
