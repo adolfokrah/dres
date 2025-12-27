@@ -30,7 +30,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forgotPassword => 'Forgot Password?';
 
   @override
-  String get weLove => 'WE LOVE';
+  String get weLove => 'We Love';
 
   @override
   String get continueWithGoogle => 'Continue with Google';
@@ -83,4 +83,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get getStarted => 'Get started';
+
+  @override
+  String get failedToLoadMenu => 'Failed to load menu';
+
+  @override
+  String get pullToRefresh => 'Pull to refresh';
+
+  @override
+  String get noCollectionsAvailable => 'No collections available';
+
+  @override
+  String get newArrivalsForYou => 'New Arrivals for you';
+
+  @override
+  String get dailyDropPersonalized => 'A daily drop, personalized for you';
+
+  @override
+  String get designers => 'Designers';
+
+  @override
+  String get azOfBrands => 'A-Z of brand and official partners';
+
+  @override
+  String get styleTeamTopPicks => 'The style team\'s top picks';
+
+  @override
+  String get onSale => 'On Sale';
+
+  @override
+  String get finestDeals => 'Our Finest deals';
 }

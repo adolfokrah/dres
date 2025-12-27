@@ -72,6 +72,7 @@ class _TabItem extends StatelessWidget {
             style: AppTypography.bodyL.copyWith(
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
               color: isSelected ? Colors.black : const Color(0xFF9B9B9B),
+              fontSize: 18
             ),
           ),
         ),

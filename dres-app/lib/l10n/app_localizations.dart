@@ -136,10 +136,10 @@ abstract class AppLocalizations {
   /// **'Forgot Password?'**
   String get forgotPassword;
 
-  /// Boosted product tag label
+  /// We Love promo card title
   ///
   /// In en, this message translates to:
-  /// **'WE LOVE'**
+  /// **'We Love'**
   String get weLove;
 
   /// Google sign in button text
@@ -243,6 +243,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Get started'**
   String get getStarted;
+
+  /// Error message when menu fails to load
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load menu'**
+  String get failedToLoadMenu;
+
+  /// Pull to refresh hint text
+  ///
+  /// In en, this message translates to:
+  /// **'Pull to refresh'**
+  String get pullToRefresh;
+
+  /// Message when department has no collections
+  ///
+  /// In en, this message translates to:
+  /// **'No collections available'**
+  String get noCollectionsAvailable;
+
+  /// New arrivals promo card title
+  ///
+  /// In en, this message translates to:
+  /// **'New Arrivals for you'**
+  String get newArrivalsForYou;
+
+  /// New arrivals promo card subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'A daily drop, personalized for you'**
+  String get dailyDropPersonalized;
+
+  /// Designers promo card title
+  ///
+  /// In en, this message translates to:
+  /// **'Designers'**
+  String get designers;
+
+  /// Designers promo card subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'A-Z of brand and official partners'**
+  String get azOfBrands;
+
+  /// We Love promo card subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'The style team\'s top picks'**
+  String get styleTeamTopPicks;
+
+  /// On Sale promo card title
+  ///
+  /// In en, this message translates to:
+  /// **'On Sale'**
+  String get onSale;
+
+  /// On Sale promo card subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Our Finest deals'**
+  String get finestDeals;
 }
 
 class _AppLocalizationsDelegate

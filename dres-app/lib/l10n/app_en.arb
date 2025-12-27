@@ -99,5 +99,49 @@
   "getStarted": "Get started",
   "@getStarted": {
     "description": "Get started button text"
+  },
+  "failedToLoadMenu": "Failed to load menu",
+  "@failedToLoadMenu": {
+    "description": "Error message when menu fails to load"
+  },
+  "pullToRefresh": "Pull to refresh",
+  "@pullToRefresh": {
+    "description": "Pull to refresh hint text"
+  },
+  "noCollectionsAvailable": "No collections available",
+  "@noCollectionsAvailable": {
+    "description": "Message when department has no collections"
+  },
+  "newArrivalsForYou": "New Arrivals for you",
+  "@newArrivalsForYou": {
+    "description": "New arrivals promo card title"
+  },
+  "dailyDropPersonalized": "A daily drop, personalized for you",
+  "@dailyDropPersonalized": {
+    "description": "New arrivals promo card subtitle"
+  },
+  "designers": "Designers",
+  "@designers": {
+    "description": "Designers promo card title"
+  },
+  "azOfBrands": "A-Z of brand and official partners",
+  "@azOfBrands": {
+    "description": "Designers promo card subtitle"
+  },
+  "weLove": "We Love",
+  "@weLove": {
+    "description": "We Love promo card title"
+  },
+  "styleTeamTopPicks": "The style team's top picks",
+  "@styleTeamTopPicks": {
+    "description": "We Love promo card subtitle"
+  },
+  "onSale": "On Sale",
+  "@onSale": {
+    "description": "On Sale promo card title"
+  },
+  "finestDeals": "Our Finest deals",
+  "@finestDeals": {
+    "description": "On Sale promo card subtitle"
   }
 }
