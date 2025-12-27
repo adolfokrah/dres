@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/widgets/app_bottom_nav_bar.dart';
+import 'package:dres/core/services/scroll_to_top_service.dart';
 import 'package:dres/routes.dart';
 
 // Notification to trigger scroll to top
@@ -24,11 +25,13 @@ class _MainShellState extends State<MainShell> {
     final currentRoute = GoRouterState.of(context).uri.toString();
     final isSameTab = widget.navigationShell.currentIndex == index;
     
+    debugPrint('🔵 Tab tapped: $index, Same tab: $isSameTab, Current route: $currentRoute');
+    
     if (isSameTab) {
       // Check if we're on the initial route of this tab
       final initialRoutes = [
         AppRoutes.home,
-        AppRoutes.shop,
+        AppRoutes.discover, // Shop tab uses /discover route
         AppRoutes.sell,
         AppRoutes.favourite,
         AppRoutes.profile,
@@ -36,10 +39,12 @@ class _MainShellState extends State<MainShell> {
       
       final isOnInitialRoute = currentRoute == initialRoutes[index];
       
+      debugPrint('🔵 Expected route: ${initialRoutes[index]}, Is initial: $isOnInitialRoute');
+      
       if (isOnInitialRoute) {
         // Already on initial route - send notification to scroll to top
         debugPrint('🔝 MainShell: Sending ScrollToTopNotification for tab $index');
-        ScrollToTopNotification().dispatch(context);
+        ScrollToTopService.instance.notifyScrollToTop(index);
       } else {
         // Not on initial route - go to initial route
         widget.navigationShell.goBranch(
@@ -57,7 +62,13 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: widget.navigationShell,
+      body: NotificationListener<ScrollToTopNotification>(
+        onNotification: (notification) {
+          debugPrint('🎯 MainShell body: Notification passed through');
+          return false; // Let it bubble up to the screens
+        },
+        child: widget.navigationShell,
+      ),
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: widget.navigationShell.currentIndex,
         onTap: _onBottomNavTap,

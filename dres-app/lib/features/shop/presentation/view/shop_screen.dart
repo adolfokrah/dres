@@ -6,12 +6,13 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_header.dart';
 import 'package:dres/core/widgets/custom_tab_bar.dart';
 import 'package:dres/core/widgets/shop_promo_card.dart';
-import 'package:dres/core/widgets/main_shell.dart';
+import 'package:dres/core/services/scroll_to_top_service.dart';
 import 'package:dres/features/splash/logic/menu_bloc/menu_bloc.dart';
 import 'package:dres/features/splash/logic/menu_bloc/menu_state.dart';
 import 'package:dres/core/models/menu_model.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:dres/routes.dart';
+import 'dart:async';
 
 class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
@@ -23,31 +24,38 @@ class ShopScreen extends StatefulWidget {
 class _ShopScreenState extends State<ShopScreen> {
   int _selectedTabIndex = 0;
   final ScrollController _scrollController = ScrollController();
+  StreamSubscription<int>? _scrollSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen for scroll to top notifications (tab index 1 is Shop)
+    _scrollSubscription = ScrollToTopService.instance.scrollToTopStream.listen((tabIndex) {
+      if (tabIndex == 1 && _scrollController.hasClients) { // Tab index 1 = Shop
+        debugPrint('📲 ShopScreen: Received scroll notification, has clients: ${_scrollController.hasClients}');
+        debugPrint('📲 ShopScreen: Current offset: ${_scrollController.offset}');
+        debugPrint('📲 ShopScreen: Scrolling to top via stream');
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      } else if (tabIndex == 1) {
+        debugPrint('⚠️ ShopScreen: Received scroll notification but controller has no clients');
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _scrollSubscription?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
-    return NotificationListener<ScrollToTopNotification>(
-      onNotification: (notification) {
-        debugPrint('📲 ShopScreen: Received ScrollToTopNotification');
-        if (_scrollController.hasClients) {
-          debugPrint('📲 ShopScreen: Scrolling to top');
-          _scrollController.animateTo(
-            0,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        } else {
-          debugPrint('⚠️ ShopScreen: ScrollController has no clients');
-        }
-        return true;
-      },
-      child: Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
@@ -132,7 +140,6 @@ class _ShopScreenState extends State<ShopScreen> {
           ],
         ),
       ),
-    ),
     );
   }
 
@@ -150,6 +157,7 @@ class _ShopScreenState extends State<ShopScreen> {
     final promoCards = _getPromoCardsForDepartment(department.name);
 
     return ListView.builder(
+      key: ValueKey('collections_${department.name}'),
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: department.collections.length + (promoCards.isNotEmpty ? 1 : 0),
@@ -157,7 +165,7 @@ class _ShopScreenState extends State<ShopScreen> {
         // Show collections first
         if (index < department.collections.length) {
           final collection = department.collections[index];
-          return _buildCollectionItem(collection, departmentName);
+          return _buildCollectionItem(collection, department.name);
         }
         
         // Show promo cards at the end

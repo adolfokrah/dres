@@ -8,11 +8,13 @@ import 'package:dres/core/widgets/featured_grid.dart';
 import 'package:dres/core/widgets/product_archive_block.dart';
 import 'package:dres/core/widgets/call_to_action_block.dart';
 import 'package:dres/core/widgets/main_shell.dart';
+import 'package:dres/core/services/scroll_to_top_service.dart';
 import 'package:dres/features/home/logic/bloc/home_bloc.dart';
 import 'package:dres/features/home/logic/bloc/home_event.dart';
 import 'package:dres/features/home/logic/bloc/home_state.dart';
 import 'package:dres/core/models/block_model.dart';
 import 'package:dres/core/services/storage_service.dart';
+import 'dart:async';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,18 +25,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
+  StreamSubscription<int>? _scrollSubscription;
 
   @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return NotificationListener<ScrollToTopNotification>(
-      onNotification: (notification) {
-        debugPrint('📲 HomeScreen: Received ScrollToTopNotification');
+  void initState() {
+    super.initState();
+    // Listen for scroll to top notifications (tab index 0 is Home)
+    _scrollSubscription = ScrollToTopService.instance.scrollToTopStream.listen((tabIndex) {
+      if (tabIndex == 0) { // Home tab
+        debugPrint('📲 HomeScreen: Received scroll notification');
         if (_scrollController.hasClients) {
           debugPrint('📲 HomeScreen: Scrolling to top');
           _scrollController.animateTo(
@@ -45,15 +44,27 @@ class _HomeScreenState extends State<HomeScreen> {
         } else {
           debugPrint('⚠️ HomeScreen: ScrollController has no clients');
         }
-        return true;
-      },
-      child: const _HomeScreenView(),
-    );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollSubscription?.cancel();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _HomeScreenView(scrollController: _scrollController);
   }
 }
 
 class _HomeScreenView extends StatefulWidget {
-  const _HomeScreenView();
+  final ScrollController scrollController;
+
+  const _HomeScreenView({required this.scrollController});
 
   @override
   State<_HomeScreenView> createState() => _HomeScreenViewState();
@@ -128,7 +139,7 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                       context.read<HomeBloc>().add(RefreshHomePage(slug: pageSlug));
                     },
                     child: SingleChildScrollView(
-                      controller: context.findAncestorStateOfType<_HomeScreenState>()!._scrollController,
+                      controller: widget.scrollController,
                       physics: const AlwaysScrollableScrollPhysics(),
                       child: Column(
                         children: [
