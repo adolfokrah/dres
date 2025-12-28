@@ -134,43 +134,50 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                       context.read<ProductsBloc>().add(const RefreshProducts());
                       await Future.delayed(const Duration(milliseconds: 500));
                     },
-                    child: GridView.builder(
+                    child: CustomScrollView(
                       controller: _scrollController,
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.65,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                      ),
-                      itemCount: state.products.length +
-                          (state.status == ProductsStatus.loadingMore ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index >= state.products.length) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
+                      slivers: [
+                        SliverPadding(
+                          padding: const EdgeInsets.all(16),
+                          sliver: SliverGrid(
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 0.5, // Taller cards to accommodate all content
+                            ),
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                if (index >= state.products.length) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
 
-                        final product = state.products[index];
-                        return ProductCard(
-                          id: product.id,
-                          thumbnail: product.thumbnail,
-                          brand: product.brand ?? '',
-                          category: product.category ?? '',
-                          title: product.title,
-                          price: product.price,
-                          compareAtPrice: product.compareAtPrice,
-                          currencyCode: 'GHS',
-                          currencySymbol: 'GHS',
-                          slug: product.slug,
-                          isFavorited: false,
-                          showLeftBorder: index % 2 == 0,
-                          onFavoriteToggle: (id, isFavorited) {
-                            // TODO: Toggle favorite
-                          },
-                        );
-                      },
+                                final product = state.products[index];
+                                return ProductCard(
+                                  id: product.id,
+                                  thumbnail: product.thumbnail,
+                                  brand: product.brand ?? '',
+                                  category: product.category ?? '',
+                                  title: product.title,
+                                  price: product.price,
+                                  compareAtPrice: product.compareAtPrice,
+                                  currencyCode: 'GHS',
+                                  currencySymbol: 'GHS',
+                                  slug: product.slug,
+                                  isFavorited: false,
+                                  showLeftBorder: index % 2 == 0,
+                                  onFavoriteToggle: (id, isFavorited) {
+                                    // TODO: Toggle favorite
+                                  },
+                                );
+                              },
+                              childCount: state.products.length +
+                                  (state.status == ProductsStatus.loadingMore ? 1 : 0),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },
