@@ -15,6 +15,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     on<ChangeSortOption>(_onChangeSortOption);
     on<ChangePriceSort>(_onChangePriceSort);
     on<ResetProducts>(_onResetProducts);
+    on<ChangeAttributeFilter>(_onChangeAttributeFilter);
   }
 
   Future<void> _onFetchProducts(
@@ -30,6 +31,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       filterType: event.filterType,
       sortBy: event.sortBy,
       sortPrice: event.sortPrice,
+      selectedAttributes: event.selectedAttributes ?? state.selectedAttributes,
     ));
 
     try {
@@ -41,6 +43,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         filterType: event.filterType,
         sortBy: event.sortBy,
         sortPrice: event.sortPrice,
+        selectedAttributes: event.selectedAttributes ?? state.selectedAttributes,
         page: event.page,
       );
 
@@ -84,6 +87,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         filterType: state.filterType,
         sortBy: state.sortBy,
         sortPrice: state.sortPrice,
+        selectedAttributes: state.selectedAttributes,
         page: state.currentPage + 1,
       );
 
@@ -161,5 +165,34 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     Emitter<ProductsState> emit,
   ) {
     emit(const ProductsState());
+  }
+
+  Future<void> _onChangeAttributeFilter(
+    ChangeAttributeFilter event,
+    Emitter<ProductsState> emit,
+  ) async {
+    // Update selected attributes
+    final newSelectedAttributes = Map<String, List<String>>.from(state.selectedAttributes);
+    
+    if (event.optionIds.isEmpty) {
+      // Remove attribute filter if no options selected
+      newSelectedAttributes.remove(event.attributeId);
+    } else {
+      // Set selected options for this attribute
+      newSelectedAttributes[event.attributeId] = event.optionIds;
+    }
+    
+    // Refetch products with updated attribute filters
+    add(FetchProducts(
+      departmentId: state.departmentId,
+      categoryId: state.categoryId,
+      collectionId: state.collectionId,
+      brandId: state.brandId,
+      filterType: state.filterType,
+      sortBy: state.sortBy,
+      sortPrice: state.sortPrice,
+      selectedAttributes: newSelectedAttributes,
+      page: 1,
+    ));
   }
 }

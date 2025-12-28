@@ -15,6 +15,7 @@ class ProductsRepository {
     String? filterType,
     String? sortBy,
     String? sortPrice,
+    Map<String, List<String>>? selectedAttributes,
     int page = 1,
     int limit = 20,
   }) async {
@@ -34,6 +35,16 @@ class ProductsRepository {
       if (filterType != null) queryParams['filterType'] = filterType;
       if (sortBy != null) queryParams['sortBy'] = sortBy;
       if (sortPrice != null) queryParams['sortPrice'] = sortPrice;
+      
+      // Add attribute filters
+      if (selectedAttributes != null && selectedAttributes.isNotEmpty) {
+        selectedAttributes.forEach((attributeId, optionIds) {
+          if (optionIds.isNotEmpty) {
+            // Format: attributeId:optionId1,optionId2
+            queryParams['attributes[$attributeId]'] = optionIds.join(',');
+          }
+        });
+      }
 
       final response = await _dio.get(
         endpoint,

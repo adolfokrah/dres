@@ -19,6 +19,7 @@ class ProductsFilterBar extends StatelessWidget {
   final SortOption selectedSort;
   final PriceOption selectedPrice;
   final List<AttributeFilterModel> filters;
+  final Map<String, List<String>> selectedAttributes;
   final Function(SortOption) onSortChanged;
   final Function(PriceOption) onPriceChanged;
   final Function(String attributeId, List<String> optionIds)? onAttributeFilterChanged;
@@ -28,6 +29,7 @@ class ProductsFilterBar extends StatelessWidget {
     required this.selectedSort,
     required this.selectedPrice,
     this.filters = const [],
+    this.selectedAttributes = const {},
     required this.onSortChanged,
     required this.onPriceChanged,
     this.onAttributeFilterChanged,
@@ -47,6 +49,7 @@ class ProductsFilterBar extends StatelessWidget {
             context: context,
             label: selectedSort == SortOption.latest ? 'Latest' : 'Oldest',
             onTap: () => _showSortOptions(context),
+            isActive: false, // Sort is always applied, so not marked as active
           ),
           const SizedBox(width: 7),
           
@@ -60,16 +63,34 @@ class ProductsFilterBar extends StatelessWidget {
                     : 'Price High to Low',
             isWide: true,
             onTap: () => _showPriceOptions(context),
+            isActive: selectedPrice != PriceOption.all,
           ),
           
           // Attribute Filters
           ...filters.map((filter) {
+            final hasSelection = selectedAttributes.containsKey(filter.id) && 
+                                 selectedAttributes[filter.id]!.isNotEmpty;
+            
+            // Get selected option names for display
+            String label = filter.name;
+            if (hasSelection) {
+              final selectedIds = selectedAttributes[filter.id]!;
+              final selectedOptions = filter.options
+                  .where((opt) => selectedIds.contains(opt.id))
+                  .map((opt) => opt.name)
+                  .toList();
+              if (selectedOptions.isNotEmpty) {
+                label = '${filter.name}: ${selectedOptions.join(', ')}';
+              }
+            }
+            
             return Padding(
               padding: const EdgeInsets.only(left: 7),
               child: _buildFilterButton(
                 context: context,
-                label: filter.name,
+                label: label,
                 onTap: () => _showAttributeOptions(context, filter),
+                isActive: hasSelection,
               ),
             );
           }).toList(),
@@ -83,6 +104,7 @@ class ProductsFilterBar extends StatelessWidget {
     required String label,
     required VoidCallback onTap,
     bool isWide = false,
+    bool isActive = false,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -90,7 +112,10 @@ class ProductsFilterBar extends StatelessWidget {
         height: 36,
         padding: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.textSecondary),
+          border: Border.all(
+            color: isActive ? AppColors.textPrimary : AppColors.textSecondary,
+            width: isActive ? 2 : 1,
+          ),
           borderRadius: BorderRadius.zero,
         ),
         child: Row(
@@ -100,6 +125,7 @@ class ProductsFilterBar extends StatelessWidget {
               label,
               style: AppTypography.bodyM.copyWith(
                 color: AppColors.textPrimary,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
               ),
             ),
             const SizedBox(width: 10),
@@ -283,56 +309,96 @@ class ProductsFilterBar extends StatelessWidget {
   }
 
   void _showAttributeOptions(BuildContext context, AttributeFilterModel filter) {
+    final initialSelection = List<String>.from(selectedAttributes[filter.id] ?? []);
+    
     showModalBottomSheet(
       context: context,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
       ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    filter.name,
-                    style: AppTypography.titleLM.copyWith(
-                      fontWeight: FontWeight.w600,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return Container(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        filter.name,
+                        style: AppTypography.titleLM.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      IconButton(
+                        icon: PhosphorIcon(
+                          PhosphorIconsRegular.x,
+                          size: 24,
+                        ),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                
+                // Options
+                ...filter.options.map((option) {
+                  final isSelected = initialSelection.contains(option.id);
+                  return _buildOption(
+                    context: context,
+                    label: option.name,
+                    isSelected: isSelected,
+                    onTap: () {
+                      setState(() {
+                        if (isSelected) {
+                          initialSelection.remove(option.id);
+                        } else {
+                          initialSelection.add(option.id);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
+                
+                // Apply Button
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        onAttributeFilterChanged?.call(filter.id, initialSelection);
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.textPrimary,
+                        foregroundColor: AppColors.surface,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.zero,
+                        ),
+                      ),
+                      child: Text(
+                        'Apply',
+                        style: AppTypography.bodyL.copyWith(
+                          color: AppColors.surface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   ),
-                  IconButton(
-                    icon: PhosphorIcon(
-                      PhosphorIconsRegular.x,
-                      size: 24,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const Divider(height: 1),
-            
-            // Options
-            ...filter.options.map((option) {
-              return _buildOption(
-                context: context,
-                label: option.name,
-                isSelected: false, // TODO: Track selected options
-                onTap: () {
-                  // TODO: Handle option selection
-                  onAttributeFilterChanged?.call(filter.id, [option.id]);
-                  Navigator.pop(context);
-                },
-              );
-            }).toList(),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

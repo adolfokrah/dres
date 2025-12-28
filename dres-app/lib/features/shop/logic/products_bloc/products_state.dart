@@ -20,6 +20,7 @@ class ProductsState extends Equatable {
   final String? sortBy;
   final String? sortPrice;
   final List<AttributeFilterModel> filters;
+  final Map<String, List<String>> selectedAttributes;
 
   const ProductsState({
     this.status = ProductsStatus.initial,
@@ -37,6 +38,7 @@ class ProductsState extends Equatable {
     this.sortBy,
     this.sortPrice,
     this.filters = const [],
+    this.selectedAttributes = const {},
   });
 
   ProductsState copyWith({
@@ -55,6 +57,7 @@ class ProductsState extends Equatable {
     String? sortBy,
     String? sortPrice,
     List<AttributeFilterModel>? filters,
+    Map<String, List<String>>? selectedAttributes,
   }) {
     return ProductsState(
       status: status ?? this.status,
@@ -72,6 +75,7 @@ class ProductsState extends Equatable {
       sortBy: sortBy ?? this.sortBy,
       sortPrice: sortPrice ?? this.sortPrice,
       filters: filters ?? this.filters,
+      selectedAttributes: selectedAttributes ?? this.selectedAttributes,
     );
   }
 
@@ -92,5 +96,6 @@ class ProductsState extends Equatable {
         sortBy,
         sortPrice,
         filters,
+        selectedAttributes,
       ];
 }

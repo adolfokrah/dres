@@ -15,6 +15,7 @@ class FetchProducts extends ProductsEvent {
   final String? filterType;
   final String? sortBy; // 'latest' or 'oldest'
   final String? sortPrice; // 'asc' or 'desc'
+  final Map<String, List<String>>? selectedAttributes;
   final int page;
 
   const FetchProducts({
@@ -25,11 +26,12 @@ class FetchProducts extends ProductsEvent {
     this.filterType,
     this.sortBy,
     this.sortPrice,
+    this.selectedAttributes,
     this.page = 1,
   });
 
   @override
-  List<Object?> get props => [departmentId, categoryId, collectionId, brandId, filterType, sortBy, sortPrice, page];
+  List<Object?> get props => [departmentId, categoryId, collectionId, brandId, filterType, sortBy, sortPrice, selectedAttributes, page];
 }
 
 class LoadMoreProducts extends ProductsEvent {
@@ -56,6 +58,19 @@ class ChangePriceSort extends ProductsEvent {
 
 class ResetProducts extends ProductsEvent {
   const ResetProducts();
+}
+
+class ChangeAttributeFilter extends ProductsEvent {
+  final String attributeId;
+  final List<String> optionIds;
+  
+  const ChangeAttributeFilter({
+    required this.attributeId,
+    required this.optionIds,
+  });
+  
+  @override
+  List<Object?> get props => [attributeId, optionIds];
 }
 
 class RefreshProducts extends ProductsEvent {

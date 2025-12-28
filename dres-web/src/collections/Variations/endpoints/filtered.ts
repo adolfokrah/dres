@@ -4,7 +4,19 @@ import { transformVariation } from '../utils/transformVariation'
 
 export const filteredVariations: PayloadHandler = async (req) => {
   const { payload } = req
-  const { department, category, collection, brand, filterType, sortBy, sortPrice, limit = 20, page = 1 } = req.query
+  const { department, category, collection, brand, filterType, sortBy, sortPrice, limit = 20, page = 1, ...queryParams } = req.query
+
+  // Parse attribute filters from query params
+  // Format: attributes[attributeId]=optionId1,optionId2
+  const attributeFilters: Record<string, string[]> = {}
+  Object.keys(queryParams).forEach(key => {
+    const match = key.match(/^attributes\[(.+)\]$/)
+    if (match) {
+      const attributeId = match[1]
+      const optionIds = (queryParams[key] as string).split(',')
+      attributeFilters[attributeId] = optionIds
+    }
+  })
 
   try {
     // Build the aggregation pipeline
@@ -134,6 +146,20 @@ export const filteredVariations: PayloadHandler = async (req) => {
           // Will be handled by sort (createdAt descending)
           break
       }
+    }
+
+    // Apply attribute filters
+    // Filter variations by their variant attributes (e.g., Color: Red, Size: M)
+    if (Object.keys(attributeFilters).length > 0) {
+      Object.entries(attributeFilters).forEach(([attributeId, optionIds]) => {
+        // Each variation must have at least one variant with the specified attribute option
+        matchConditions['variants'] = {
+          $elemMatch: {
+            variant: new Types.ObjectId(attributeId),
+            value: { $in: optionIds.map(id => new Types.ObjectId(id)) }
+          }
+        }
+      })
     }
 
     // Add match stage if we have conditions
