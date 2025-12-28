@@ -30,7 +30,7 @@ class ProductsFilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
       child: Row(
         children: [
           // Sort Filter

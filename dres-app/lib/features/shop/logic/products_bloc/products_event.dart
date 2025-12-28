@@ -54,6 +54,10 @@ class ChangePriceSort extends ProductsEvent {
   List<Object?> get props => [sortPrice];
 }
 
+class ResetProducts extends ProductsEvent {
+  const ResetProducts();
+}
+
 class RefreshProducts extends ProductsEvent {
   const RefreshProducts();
 }

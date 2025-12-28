@@ -13,6 +13,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     on<RefreshProducts>(_onRefreshProducts);
     on<ChangeSortOption>(_onChangeSortOption);
     on<ChangePriceSort>(_onChangePriceSort);
+    on<ResetProducts>(_onResetProducts);
   }
 
   Future<void> _onFetchProducts(
@@ -147,5 +148,12 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       sortPrice: event.sortPrice,
       page: 1,
     ));
+  }
+
+  void _onResetProducts(
+    ResetProducts event,
+    Emitter<ProductsState> emit,
+  ) {
+    emit(const ProductsState());
   }
 }

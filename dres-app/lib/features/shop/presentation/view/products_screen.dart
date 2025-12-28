@@ -38,6 +38,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
   @override
   void initState() {
     super.initState();
+    // Reset bloc state to clear any previous filter values
+    context.read<ProductsBloc>().add(const ResetProducts());
     // Fetch products only once when screen is created
     context.read<ProductsBloc>().add(FetchProducts(
       departmentId: widget.departmentId,
