@@ -9,6 +9,8 @@ import 'package:dres/features/shop/data/repositories/products_repository.dart';
 import 'package:dres/features/shop/data/repositories/brands_repository.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_bloc.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_bloc.dart';
+import 'package:dres/features/product_details/data/repositories/product_details_repository.dart';
+import 'package:dres/features/product_details/logic/product_details_bloc/product_details_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -41,6 +43,9 @@ Future<void> setupDependencies() async {
   // Brands Repository
   getIt.registerLazySingleton<BrandsRepository>(() => BrandsRepository(getIt<ApiService>().dio));
 
+  // Product Details Repository
+  getIt.registerLazySingleton<ProductDetailsRepository>(() => ProductDetailsRepository(getIt<ApiService>()));
+
   // ========================
   // BLoCs (Factory - new instance each time)
   // ========================
@@ -56,4 +61,7 @@ Future<void> setupDependencies() async {
 
   // Brands Bloc
   getIt.registerFactory<BrandsBloc>(() => BrandsBloc(getIt<BrandsRepository>()));
+
+  // Product Details Bloc
+  getIt.registerFactory<ProductDetailsBloc>(() => ProductDetailsBloc(getIt<ProductDetailsRepository>()));
 }

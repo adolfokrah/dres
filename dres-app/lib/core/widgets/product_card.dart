@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../utilities/media_utils.dart';
@@ -15,6 +16,7 @@ class ProductCard extends StatefulWidget {
   final String currencyCode;
   final String currencySymbol;
   final String slug;
+  final String? defaultSku;
   final bool isFavorited;
   final Function(String id, bool isFavorited)? onFavoriteToggle;
   final bool showLeftBorder;
@@ -33,6 +35,7 @@ class ProductCard extends StatefulWidget {
     required this.currencyCode,
     required this.currencySymbol,
     required this.slug,
+    this.defaultSku,
     this.isFavorited = false,
     this.onFavoriteToggle,
     this.showLeftBorder = true,
@@ -58,7 +61,8 @@ class _ProductCardState extends State<ProductCard> {
     return GestureDetector(
       onTap: () {
         // Navigate to product detail page
-        // Navigator.pushNamed(context, '/products/${widget.slug}');
+        final skuParam = widget.defaultSku != null ? '?skuId=${widget.defaultSku}' : '';
+        context.push('/product/${widget.id}$skuParam');
       },
       child: Container(
         decoration: BoxDecoration(

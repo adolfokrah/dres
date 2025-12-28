@@ -9,6 +9,7 @@ import 'package:dres/features/shop/presentation/view/shop_screen.dart';
 import 'package:dres/features/shop/presentation/view/categories_screen.dart';
 import 'package:dres/features/shop/presentation/view/brands_screen.dart';
 import 'package:dres/features/shop/presentation/view/products_screen.dart';
+import 'package:dres/features/product_details/presentation/view/product_details_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
 import 'package:dres/core/models/menu_model.dart';
 
@@ -44,6 +45,20 @@ class AppRoutes {
         path: splash,
         name: 'splash',
         builder: (context, state) => const SplashScreen(),
+      ),
+      
+      // Product Details (outside shell, full screen)
+      GoRoute(
+        path: '/product/:id',
+        name: 'product-details',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final skuId = state.uri.queryParameters['skuId'];
+          return ProductDetailsScreen(
+            id: id,
+            skuId: skuId,
+          );
+        },
       ),
       
       // Main shell with bottom navigation

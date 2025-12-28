@@ -21,6 +21,7 @@ const String trendingVariations = '/variations/trending';
 const String newArrivals = '/variations/new-arrivals';
 const String featuredVariations = '/variations/featured';
 const String filteredVariations = '/variations/filtered';
+const String variationById = '/variations/';
 
 // Menu
 const String menu = '$apiBaseUrl/menu';
