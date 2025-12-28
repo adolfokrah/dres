@@ -79,7 +79,7 @@ class VariationDetailsModel {
               ?.map((i) => ImageModel.fromJson(i))
               .toList() ??
           [],
-      styleDescription: json['styleDescription'],
+      styleDescription: json['styleDescription'] is String ? json['styleDescription'] : null,
       details: (json['details'] as List<dynamic>?)
               ?.map((d) => DetailModel.fromJson(d))
               .toList() ??
