@@ -9,6 +9,7 @@ enum SortOption {
 }
 
 enum PriceOption {
+  all,
   lowToHigh,
   highToLow,
 }
@@ -44,9 +45,11 @@ class ProductsFilterBar extends StatelessWidget {
           // Price Filter
           _buildFilterButton(
             context: context,
-            label: selectedPrice == PriceOption.lowToHigh 
-                ? 'Price Low to High' 
-                : 'Price High to Low',
+            label: selectedPrice == PriceOption.all
+                ? 'Price Any'
+                : selectedPrice == PriceOption.lowToHigh 
+                    ? 'Price Low to High' 
+                    : 'Price High to Low',
             isWide: true,
             onTap: () => _showPriceOptions(context),
           ),
@@ -189,6 +192,17 @@ class ProductsFilterBar extends StatelessWidget {
               ),
             ),
             const Divider(height: 1),
+            
+            // Price Any Option
+            _buildOption(
+              context: context,
+              label: 'Price Any',
+              isSelected: selectedPrice == PriceOption.all,
+              onTap: () {
+                onPriceChanged(PriceOption.all);
+                Navigator.pop(context);
+              },
+            ),
             
             // Low to High Option
             _buildOption(

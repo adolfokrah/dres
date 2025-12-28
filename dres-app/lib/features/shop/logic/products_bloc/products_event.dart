@@ -46,7 +46,7 @@ class ChangeSortOption extends ProductsEvent {
 }
 
 class ChangePriceSort extends ProductsEvent {
-  final String sortPrice; // 'asc' or 'desc'
+  final String? sortPrice; // 'asc', 'desc', or null for reset
   
   const ChangePriceSort(this.sortPrice);
   

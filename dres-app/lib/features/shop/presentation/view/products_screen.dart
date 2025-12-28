@@ -129,15 +129,21 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                   selectedSort: state.sortBy == 'oldest' 
                       ? SortOption.oldest 
                       : SortOption.latest,
-                  selectedPrice: state.sortPrice == 'desc' 
-                      ? PriceOption.highToLow 
-                      : PriceOption.lowToHigh,
+                  selectedPrice: state.sortPrice == null
+                      ? PriceOption.all
+                      : state.sortPrice == 'desc' 
+                          ? PriceOption.highToLow 
+                          : PriceOption.lowToHigh,
                   onSortChanged: (sortOption) {
                     final sortBy = sortOption == SortOption.oldest ? 'oldest' : 'latest';
                     context.read<ProductsBloc>().add(ChangeSortOption(sortBy));
                   },
                   onPriceChanged: (priceOption) {
-                    final sortPrice = priceOption == PriceOption.highToLow ? 'desc' : 'asc';
+                    final sortPrice = priceOption == PriceOption.all 
+                        ? null 
+                        : priceOption == PriceOption.highToLow 
+                            ? 'desc' 
+                            : 'asc';
                     context.read<ProductsBloc>().add(ChangePriceSort(sortPrice));
                   },
                 );
