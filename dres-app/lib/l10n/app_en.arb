@@ -143,5 +143,69 @@
   "finestDeals": "Our Finest deals",
   "@finestDeals": {
     "description": "On Sale promo card subtitle"
+  },
+  "latest": "Latest",
+  "@latest": {
+    "description": "Sort option - Latest"
+  },
+  "oldest": "Oldest",
+  "@oldest": {
+    "description": "Sort option - Oldest"
+  },
+  "priceAny": "Price Any",
+  "@priceAny": {
+    "description": "Price filter option - Any"
+  },
+  "priceLowToHigh": "Price Low to High",
+  "@priceLowToHigh": {
+    "description": "Price filter option - Low to High"
+  },
+  "priceHighToLow": "Price High to Low",
+  "@priceHighToLow": {
+    "description": "Price filter option - High to Low"
+  },
+  "priceRange": "Price Range",
+  "@priceRange": {
+    "description": "Price range filter label"
+  },
+  "minPrice": "Min Price",
+  "@minPrice": {
+    "description": "Minimum price input label"
+  },
+  "maxPrice": "Max Price",
+  "@maxPrice": {
+    "description": "Maximum price input label"
+  },
+  "apply": "Apply",
+  "@apply": {
+    "description": "Apply button text"
+  },
+  "reset": "Reset",
+  "@reset": {
+    "description": "Reset button text"
+  },
+  "noProductsFound": "No Products Found",
+  "@noProductsFound": {
+    "description": "Empty state title when no products found"
+  },
+  "tryAdjustingFilters": "Try adjusting your filters or search\nto find what you're looking for",
+  "@tryAdjustingFilters": {
+    "description": "Empty state message when no products found"
+  },
+  "failedToLoadProducts": "Failed to load products",
+  "@failedToLoadProducts": {
+    "description": "Error message when products fail to load"
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Retry button text"
+  },
+  "sort": "Sort",
+  "@sort": {
+    "description": "Sort filter header"
+  },
+  "price": "Price",
+  "@price": {
+    "description": "Price filter header"
   }
 }

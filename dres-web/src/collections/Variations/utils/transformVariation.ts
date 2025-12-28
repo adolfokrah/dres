@@ -21,6 +21,7 @@ interface TransformedVariation {
   } | null
   variants: string
   isBoosted?: boolean
+  defaultSku?: string
   relatedVariations?: Omit<TransformedVariation, 'relatedVariations'>[]
 }
 
@@ -203,6 +204,7 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
     currency,
     variants,
     isBoosted: boostedValue,
+    defaultSku: selectedSku?.id || undefined,
     ...(includeRelated && { relatedVariations }),
   }
 }

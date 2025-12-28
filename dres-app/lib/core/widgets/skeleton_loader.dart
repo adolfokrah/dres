@@ -56,7 +56,7 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
               end: Alignment.centerRight,
               colors: [
                 AppColors.surface,
-                AppColors.textSecondary.withOpacity(0.1),
+                AppColors.textSecondary.withValues(alpha: 0.1),
                 AppColors.surface,
               ],
               stops: [

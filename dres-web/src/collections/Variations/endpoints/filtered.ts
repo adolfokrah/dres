@@ -345,7 +345,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
           level: { equals: 'variation' }
         },
         depth: 1,
-        limit: 100,
+        pagination: false,
       })
       availableAttributes = attributesResult.docs
     }
@@ -375,7 +375,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
         const optionsResult = await payload.find({
           collection: 'attributeOptions',
           where: optionsWhere,
-          limit: 100,
+          pagination: false,
         })
 
         return {

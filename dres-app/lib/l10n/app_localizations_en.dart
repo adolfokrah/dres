@@ -113,4 +113,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get finestDeals => 'Our Finest deals';
+
+  @override
+  String get latest => 'Latest';
+
+  @override
+  String get oldest => 'Oldest';
+
+  @override
+  String get priceAny => 'Price Any';
+
+  @override
+  String get priceLowToHigh => 'Price Low to High';
+
+  @override
+  String get priceHighToLow => 'Price High to Low';
+
+  @override
+  String get priceRange => 'Price Range';
+
+  @override
+  String get minPrice => 'Min Price';
+
+  @override
+  String get maxPrice => 'Max Price';
+
+  @override
+  String get apply => 'Apply';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get noProductsFound => 'No Products Found';
+
+  @override
+  String get tryAdjustingFilters =>
+      'Try adjusting your filters or search\nto find what you\'re looking for';
+
+  @override
+  String get failedToLoadProducts => 'Failed to load products';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get sort => 'Sort';
+
+  @override
+  String get price => 'Price';
 }

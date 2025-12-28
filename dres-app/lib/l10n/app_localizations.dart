@@ -303,6 +303,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Our Finest deals'**
   String get finestDeals;
+
+  /// Sort option - Latest
+  ///
+  /// In en, this message translates to:
+  /// **'Latest'**
+  String get latest;
+
+  /// Sort option - Oldest
+  ///
+  /// In en, this message translates to:
+  /// **'Oldest'**
+  String get oldest;
+
+  /// Price filter option - Any
+  ///
+  /// In en, this message translates to:
+  /// **'Price Any'**
+  String get priceAny;
+
+  /// Price filter option - Low to High
+  ///
+  /// In en, this message translates to:
+  /// **'Price Low to High'**
+  String get priceLowToHigh;
+
+  /// Price filter option - High to Low
+  ///
+  /// In en, this message translates to:
+  /// **'Price High to Low'**
+  String get priceHighToLow;
+
+  /// Price range filter label
+  ///
+  /// In en, this message translates to:
+  /// **'Price Range'**
+  String get priceRange;
+
+  /// Minimum price input label
+  ///
+  /// In en, this message translates to:
+  /// **'Min Price'**
+  String get minPrice;
+
+  /// Maximum price input label
+  ///
+  /// In en, this message translates to:
+  /// **'Max Price'**
+  String get maxPrice;
+
+  /// Apply button text
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get apply;
+
+  /// Reset button text
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// Empty state title when no products found
+  ///
+  /// In en, this message translates to:
+  /// **'No Products Found'**
+  String get noProductsFound;
+
+  /// Empty state message when no products found
+  ///
+  /// In en, this message translates to:
+  /// **'Try adjusting your filters or search\nto find what you\'re looking for'**
+  String get tryAdjustingFilters;
+
+  /// Error message when products fail to load
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load products'**
+  String get failedToLoadProducts;
+
+  /// Retry button text
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// Sort filter header
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get sort;
+
+  /// Price filter header
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get price;
 }
 
 class _AppLocalizationsDelegate

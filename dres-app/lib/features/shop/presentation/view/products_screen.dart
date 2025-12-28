@@ -13,6 +13,7 @@ import 'package:dres/features/shop/logic/products_bloc/products_state.dart';
 import 'package:dres/features/shop/presentation/widgets/products_header.dart';
 import 'package:dres/features/shop/presentation/widgets/products_filter_bar.dart';
 import 'package:dres/features/shop/presentation/widgets/products_empty_state.dart';
+import 'package:dres/l10n/app_localizations.dart';
 
 class ProductsScreen extends StatefulWidget {
   final String? departmentId;
@@ -200,7 +201,7 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Failed to load products',
+                            AppLocalizations.of(context)!.failedToLoadProducts,
                             style: AppTypography.bodyL,
                           ),
                           const SizedBox(height: 8),
@@ -208,7 +209,7 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                             onPressed: () {
                               context.read<ProductsBloc>().add(const RefreshProducts());
                             },
-                            child: const Text('Retry'),
+                            child: Text(AppLocalizations.of(context)!.retry),
                           ),
                         ],
                       ),

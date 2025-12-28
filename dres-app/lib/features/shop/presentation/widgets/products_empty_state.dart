@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:dres/l10n/app_localizations.dart';
 
 class ProductsEmptyState extends StatelessWidget {
   const ProductsEmptyState({super.key});
@@ -24,7 +25,7 @@ class ProductsEmptyState extends StatelessWidget {
             
             // Heading
             Text(
-              'No Products Found',
+              AppLocalizations.of(context)!.noProductsFound,
               style: AppTypography.titleLM.copyWith(
                 color: AppColors.textPrimary,
               ),
@@ -34,7 +35,7 @@ class ProductsEmptyState extends StatelessWidget {
             
             // Message
             Text(
-              'Try adjusting your filters or search\nto find what you\'re looking for',
+              AppLocalizations.of(context)!.tryAdjustingFilters,
               style: AppTypography.bodyM.copyWith(
                 color: AppColors.textSecondary,
               ),

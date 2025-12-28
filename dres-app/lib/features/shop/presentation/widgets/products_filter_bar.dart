@@ -3,6 +3,7 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/models/attribute_filter_model.dart';
+import 'package:dres/l10n/app_localizations.dart';
 
 enum SortOption {
   latest,
@@ -53,7 +54,9 @@ class ProductsFilterBar extends StatelessWidget {
           // Sort Filter
           _buildFilterButton(
             context: context,
-            label: selectedSort == SortOption.latest ? 'Latest' : 'Oldest',
+            label: selectedSort == SortOption.latest 
+                ? AppLocalizations.of(context)!.latest 
+                : AppLocalizations.of(context)!.oldest,
             onTap: () => _showSortOptions(context),
             isActive: false, // Sort is always applied, so not marked as active
           ),
@@ -63,10 +66,10 @@ class ProductsFilterBar extends StatelessWidget {
           _buildFilterButton(
             context: context,
             label: selectedPrice == PriceOption.all
-                ? 'Price Any'
+                ? AppLocalizations.of(context)!.priceAny
                 : selectedPrice == PriceOption.lowToHigh 
-                    ? 'Price Low to High' 
-                    : 'Price High to Low',
+                    ? AppLocalizations.of(context)!.priceLowToHigh
+                    : AppLocalizations.of(context)!.priceHighToLow,
             isWide: true,
             onTap: () => _showPriceOptions(context),
             isActive: selectedPrice != PriceOption.all,
@@ -78,7 +81,7 @@ class ProductsFilterBar extends StatelessWidget {
             context: context,
             label: (minPrice != null || maxPrice != null)
                 ? 'GH₵${minPrice?.toStringAsFixed(0) ?? '0'} - GH₵${maxPrice?.toStringAsFixed(0) ?? '∞'}'
-                : 'Price Range',
+                : AppLocalizations.of(context)!.priceRange,
             isWide: true,
             onTap: () => _showPriceRangeDialog(context),
             isActive: minPrice != null || maxPrice != null,
@@ -178,7 +181,7 @@ class ProductsFilterBar extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Sort By',
+                    AppLocalizations.of(context)!.sort,
                     style: AppTypography.titleLM.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -198,7 +201,7 @@ class ProductsFilterBar extends StatelessWidget {
             // Latest Option
             _buildOption(
               context: context,
-              label: 'Latest',
+              label: AppLocalizations.of(context)!.latest,
               isSelected: selectedSort == SortOption.latest,
               onTap: () {
                 onSortChanged(SortOption.latest);
@@ -209,7 +212,7 @@ class ProductsFilterBar extends StatelessWidget {
             // Oldest Option
             _buildOption(
               context: context,
-              label: 'Oldest',
+              label: AppLocalizations.of(context)!.oldest,
               isSelected: selectedSort == SortOption.oldest,
               onTap: () {
                 onSortChanged(SortOption.oldest);
@@ -241,7 +244,7 @@ class ProductsFilterBar extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Price',
+                    AppLocalizations.of(context)!.price,
                     style: AppTypography.titleLM.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -261,7 +264,7 @@ class ProductsFilterBar extends StatelessWidget {
             // Price Any Option
             _buildOption(
               context: context,
-              label: 'Price Any',
+              label: AppLocalizations.of(context)!.priceAny,
               isSelected: selectedPrice == PriceOption.all,
               onTap: () {
                 onPriceChanged(PriceOption.all);
@@ -272,7 +275,7 @@ class ProductsFilterBar extends StatelessWidget {
             // Low to High Option
             _buildOption(
               context: context,
-              label: 'Price Low to High',
+              label: AppLocalizations.of(context)!.priceLowToHigh,
               isSelected: selectedPrice == PriceOption.lowToHigh,
               onTap: () {
                 onPriceChanged(PriceOption.lowToHigh);
@@ -283,7 +286,7 @@ class ProductsFilterBar extends StatelessWidget {
             // High to Low Option
             _buildOption(
               context: context,
-              label: 'Price High to Low',
+              label: AppLocalizations.of(context)!.priceHighToLow,
               isSelected: selectedPrice == PriceOption.highToLow,
               onTap: () {
                 onPriceChanged(PriceOption.highToLow);
@@ -417,7 +420,7 @@ class ProductsFilterBar extends StatelessWidget {
                               ),
                             ),
                             child: Text(
-                              'Reset',
+                              AppLocalizations.of(context)!.reset,
                               style: AppTypography.bodyL.copyWith(
                                 color: AppColors.textPrimary,
                                 fontWeight: FontWeight.w600,
@@ -443,7 +446,7 @@ class ProductsFilterBar extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                            'Apply',
+                            AppLocalizations.of(context)!.apply,
                             style: AppTypography.bodyL.copyWith(
                               color: AppColors.surface,
                               fontWeight: FontWeight.w600,
@@ -493,7 +496,7 @@ class ProductsFilterBar extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Price Range',
+                      AppLocalizations.of(context)!.priceRange,
                       style: AppTypography.titleLM.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -521,7 +524,7 @@ class ProductsFilterBar extends StatelessWidget {
                         controller: minController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: 'Min Price',
+                          labelText: AppLocalizations.of(context)!.minPrice,
                           labelStyle: AppTypography.bodyM.copyWith(
                             color: AppColors.textSecondary,
                           ),
@@ -548,7 +551,7 @@ class ProductsFilterBar extends StatelessWidget {
                         controller: maxController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: 'Max Price',
+                          labelText: AppLocalizations.of(context)!.maxPrice,
                           labelStyle: AppTypography.bodyM.copyWith(
                             color: AppColors.textSecondary,
                           ),
@@ -594,7 +597,7 @@ class ProductsFilterBar extends StatelessWidget {
                             ),
                           ),
                           child: Text(
-                            'Reset',
+                            AppLocalizations.of(context)!.reset,
                             style: AppTypography.bodyL.copyWith(
                               color: AppColors.textPrimary,
                               fontWeight: FontWeight.w600,
@@ -622,7 +625,7 @@ class ProductsFilterBar extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          'Apply',
+                          AppLocalizations.of(context)!.apply,
                           style: AppTypography.bodyL.copyWith(
                             color: AppColors.surface,
                             fontWeight: FontWeight.w600,
