@@ -33,8 +33,8 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       sortBy: event.sortBy,
       sortPrice: event.sortPrice,
       selectedAttributes: event.selectedAttributes ?? state.selectedAttributes,
-      minPrice: event.minPrice,
-      maxPrice: event.maxPrice,
+      minPrice: event.updateMinPrice ? NullableValue(event.minPrice) : null,
+      maxPrice: event.updateMaxPrice ? NullableValue(event.maxPrice) : null,
     ));
 
     try {
@@ -221,6 +221,8 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       selectedAttributes: state.selectedAttributes,
       minPrice: event.minPrice,
       maxPrice: event.maxPrice,
+      updateMinPrice: true,
+      updateMaxPrice: true,
       page: 1,
     ));
   }

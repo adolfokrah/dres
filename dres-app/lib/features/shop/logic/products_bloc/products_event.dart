@@ -18,6 +18,8 @@ class FetchProducts extends ProductsEvent {
   final Map<String, List<String>>? selectedAttributes;
   final double? minPrice;
   final double? maxPrice;
+  final bool updateMinPrice;
+  final bool updateMaxPrice;
   final int page;
 
   const FetchProducts({
@@ -31,11 +33,13 @@ class FetchProducts extends ProductsEvent {
     this.selectedAttributes,
     this.minPrice,
     this.maxPrice,
+    this.updateMinPrice = false,
+    this.updateMaxPrice = false,
     this.page = 1,
   });
 
   @override
-  List<Object?> get props => [departmentId, categoryId, collectionId, brandId, filterType, sortBy, sortPrice, selectedAttributes, minPrice, maxPrice, page];
+  List<Object?> get props => [departmentId, categoryId, collectionId, brandId, filterType, sortBy, sortPrice, selectedAttributes, minPrice, maxPrice, updateMinPrice, updateMaxPrice, page];
 }
 
 class LoadMoreProducts extends ProductsEvent {

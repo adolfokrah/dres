@@ -2,7 +2,13 @@ import 'package:equatable/equatable.dart';
 import 'package:dres/core/models/variation_model.dart';
 import 'package:dres/core/models/attribute_filter_model.dart';
 
-enum ProductsStatus { initial, loading, success, failure, loadingMore }
+// Helper class for nullable value updates
+class NullableValue<T> {
+  final T? value;
+  const NullableValue(this.value);
+}
+
+enum ProductsStatus { initial, loading, loadingMore, success, failure }
 
 class ProductsState extends Equatable {
   final ProductsStatus status;
@@ -62,8 +68,8 @@ class ProductsState extends Equatable {
     String? sortPrice,
     List<AttributeFilterModel>? filters,
     Map<String, List<String>>? selectedAttributes,
-    double? minPrice,
-    double? maxPrice,
+    NullableValue<double>? minPrice,
+    NullableValue<double>? maxPrice,
   }) {
     return ProductsState(
       status: status ?? this.status,
@@ -82,8 +88,8 @@ class ProductsState extends Equatable {
       sortPrice: sortPrice ?? this.sortPrice,
       filters: filters ?? this.filters,
       selectedAttributes: selectedAttributes ?? this.selectedAttributes,
-      minPrice: minPrice ?? this.minPrice,
-      maxPrice: maxPrice ?? this.maxPrice,
+      minPrice: minPrice != null ? minPrice.value : this.minPrice,
+      maxPrice: maxPrice != null ? maxPrice.value : this.maxPrice,
     );
   }
 
