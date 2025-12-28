@@ -9,6 +9,7 @@ import 'package:dres/core/widgets/product_card.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_bloc.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_event.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_state.dart';
+import 'package:dres/features/shop/presentation/widgets/products_header.dart';
 
 class ProductsScreen extends StatelessWidget {
   final String? departmentId;
@@ -91,7 +92,18 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
               onSearchTap: () {},
             ),
 
-            const SizedBox(height: 16),
+            // Products Header (Title and Save Search)
+            BlocBuilder<ProductsBloc, ProductsState>(
+              builder: (context, state) {
+                return ProductsHeader(
+                  title: widget.title,
+                  itemCount: state.totalDocs,
+                  onSaveSearch: () {
+                    // TODO: Save search functionality
+                  },
+                );
+              },
+            ),
 
             // Products Grid
             Expanded(

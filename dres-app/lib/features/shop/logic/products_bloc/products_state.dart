@@ -9,6 +9,7 @@ class ProductsState extends Equatable {
   final String? errorMessage;
   final int currentPage;
   final int totalPages;
+  final int totalDocs;
   final bool hasNextPage;
   final String? departmentId;
   final String? categoryId;
@@ -20,6 +21,7 @@ class ProductsState extends Equatable {
     this.errorMessage,
     this.currentPage = 1,
     this.totalPages = 0,
+    this.totalDocs = 0,
     this.hasNextPage = false,
     this.departmentId,
     this.categoryId,
@@ -32,6 +34,7 @@ class ProductsState extends Equatable {
     String? errorMessage,
     int? currentPage,
     int? totalPages,
+    int? totalDocs,
     bool? hasNextPage,
     String? departmentId,
     String? categoryId,
@@ -43,6 +46,7 @@ class ProductsState extends Equatable {
       errorMessage: errorMessage ?? this.errorMessage,
       currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
+      totalDocs: totalDocs ?? this.totalDocs,
       hasNextPage: hasNextPage ?? this.hasNextPage,
       departmentId: departmentId ?? this.departmentId,
       categoryId: categoryId ?? this.categoryId,
@@ -57,6 +61,7 @@ class ProductsState extends Equatable {
         errorMessage,
         currentPage,
         totalPages,
+        totalDocs,
         hasNextPage,
         departmentId,
         categoryId,

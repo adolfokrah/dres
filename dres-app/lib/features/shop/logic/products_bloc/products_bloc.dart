@@ -37,6 +37,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         products: result['variations'] as List<VariationModel>,
         currentPage: result['page'] as int,
         totalPages: result['totalPages'] as int,
+        totalDocs: result['totalDocs'] as int,
         hasNextPage: result['hasNextPage'] as bool,
       ));
     } catch (e) {
@@ -75,6 +76,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         products: newProducts,
         currentPage: result['page'] as int,
         totalPages: result['totalPages'] as int,
+        totalDocs: result['totalDocs'] as int,
         hasNextPage: result['hasNextPage'] as bool,
       ));
     } catch (e) {
