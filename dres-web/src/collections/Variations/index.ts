@@ -7,6 +7,7 @@ import { trendingVariations } from './endpoints/trending'
 import { newArrivals } from './endpoints/newArrivals'
 import { featuredVariations } from './endpoints/featured'
 import { recordView } from './endpoints/recordView'
+import { filteredVariations } from './endpoints/filtered'
 
 interface VariantItem {
   variant?: string | { id: string }
@@ -42,6 +43,11 @@ export const Variations: CollectionConfig = {
       path: '/featured',
       method: 'get',
       handler: featuredVariations,
+    },
+    {
+      path: '/filtered',
+      method: 'get',
+      handler: filteredVariations,
     },
     {
       path: '/record-view',
