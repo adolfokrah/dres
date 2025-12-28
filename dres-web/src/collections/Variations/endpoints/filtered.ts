@@ -6,36 +6,11 @@ export const filteredVariations: PayloadHandler = async (req) => {
   const { department, category, collection, limit = 20, page = 1 } = req.query
 
   try {
-    // Build the where clause for styles
+    // Build the where clause for styles using IDs
     const styleWhere: any = {}
     
-    // If department name is provided, find the department ID
     if (department) {
-      const departmentName = String(department).toLowerCase()
-      const departments = await payload.find({
-        collection: 'departments',
-        where: {
-          name: {
-            equals: departmentName.charAt(0).toUpperCase() + departmentName.slice(1),
-          },
-        },
-        limit: 1,
-      })
-
-      if (departments.docs.length > 0) {
-        styleWhere.department = { equals: departments.docs[0].id }
-      } else {
-        // No matching department found, return empty result
-        return Response.json({
-          variations: [],
-          totalDocs: 0,
-          totalPages: 0,
-          page: 1,
-          limit: Number(limit),
-          hasNextPage: false,
-          hasPrevPage: false,
-        })
-      }
+      styleWhere.department = { equals: department }
     }
     
     if (collection) {
@@ -54,20 +29,37 @@ export const filteredVariations: PayloadHandler = async (req) => {
       depth: 0,
     })
 
-    const styleIds = styles.docs.map((style) => style.id)
+    const styleIds = styles.docs.map(style => style.id)
+
+    // If no styles found with the filters, return empty
+    if (styleIds.length === 0 && Object.keys(styleWhere).length > 0) {
+      return Response.json({
+        variations: [],
+        totalDocs: 0,
+        totalPages: 0,
+        page: 1,
+        limit: Number(limit),
+        hasNextPage: false,
+        hasPrevPage: false,
+      })
+    }
 
     // Now find variations that belong to these styles
     const variations = await payload.find({
       collection: 'variations',
-      where: styleIds.length > 0 ? { style: { in: styleIds } } : undefined,
+      where: styleIds.length > 0 
+        ? { style: { in: styleIds } }
+        : undefined,
       limit: Number(limit),
       page: Number(page),
-      depth: 2, // Include style, images, etc.
+      depth: 2,
       sort: '-createdAt',
     })
 
-    // Transform all variations using the utility function
-    const transformedVariations = variations.docs.map((variation) => transformVariation(variation))
+    // Transform all variations
+    const transformedVariations = variations.docs.map(variation => 
+      transformVariation(variation)
+    )
 
     return Response.json({
       variations: transformedVariations,
