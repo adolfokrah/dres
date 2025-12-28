@@ -18,6 +18,7 @@ class ProductCard extends StatefulWidget {
   final bool isFavorited;
   final Function(String id, bool isFavorited)? onFavoriteToggle;
   final bool showLeftBorder;
+  final bool showTopBorder;
   final bool isBoosted;
 
   const ProductCard({
@@ -35,6 +36,7 @@ class ProductCard extends StatefulWidget {
     this.isFavorited = false,
     this.onFavoriteToggle,
     this.showLeftBorder = true,
+    this.showTopBorder = true,
     this.isBoosted = false,
   });
 
@@ -66,7 +68,9 @@ class _ProductCardState extends State<ProductCard> {
                 ? BorderSide(color: AppColors.primary.withValues(alpha: 0.4), width: 1)
                 : BorderSide.none,
             right:  BorderSide(color: AppColors.primary.withValues(alpha: 0.4), width: 1),
-            top:  BorderSide(color: AppColors.primary.withValues(alpha: 0.4), width: 1),
+            top: widget.showTopBorder
+                ? BorderSide(color: AppColors.primary.withValues(alpha: 0.4), width: 1)
+                : BorderSide.none,
             bottom:  BorderSide(color: AppColors.primary.withValues(alpha: 0.4), width: 1),
           ),
         ),

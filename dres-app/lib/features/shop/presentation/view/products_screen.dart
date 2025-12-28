@@ -185,6 +185,7 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                                   slug: product.slug,
                                   isFavorited: false,
                                   showLeftBorder: index % 2 == 0,
+                                  showTopBorder: index < 2, // Only show top border for first row (index 0 and 1)
                                   onFavoriteToggle: (id, isFavorited) {
                                     // TODO: Toggle favorite
                                   },
