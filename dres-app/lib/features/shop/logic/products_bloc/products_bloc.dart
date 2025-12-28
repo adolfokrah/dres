@@ -31,7 +31,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       brandId: event.brandId,
       filterType: event.filterType,
       sortBy: event.sortBy,
-      sortPrice: event.sortPrice,
+      sortPrice: event.updatePriceSort ? NullableValue(event.sortPrice) : null,
       selectedAttributes: event.selectedAttributes ?? state.selectedAttributes,
       minPrice: event.updateMinPrice ? NullableValue(event.minPrice) : null,
       maxPrice: event.updateMaxPrice ? NullableValue(event.maxPrice) : null,
@@ -45,7 +45,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         brandId: event.brandId,
         filterType: event.filterType,
         sortBy: event.sortBy,
-        sortPrice: event.sortPrice,
+        sortPrice: event.updatePriceSort ? event.sortPrice : state.sortPrice,
         selectedAttributes: event.selectedAttributes ?? state.selectedAttributes,
         minPrice: event.minPrice ?? state.minPrice,
         maxPrice: event.maxPrice ?? state.maxPrice,
@@ -163,6 +163,10 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       filterType: state.filterType,
       sortBy: state.sortBy,
       sortPrice: event.sortPrice,
+      selectedAttributes: state.selectedAttributes,
+      minPrice: state.minPrice,
+      maxPrice: state.maxPrice,
+      updatePriceSort: true,
       page: 1,
     ));
   }

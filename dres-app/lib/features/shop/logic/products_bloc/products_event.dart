@@ -20,6 +20,7 @@ class FetchProducts extends ProductsEvent {
   final double? maxPrice;
   final bool updateMinPrice;
   final bool updateMaxPrice;
+  final bool updatePriceSort;
   final int page;
 
   const FetchProducts({
@@ -35,11 +36,12 @@ class FetchProducts extends ProductsEvent {
     this.maxPrice,
     this.updateMinPrice = false,
     this.updateMaxPrice = false,
+    this.updatePriceSort = false,
     this.page = 1,
   });
 
   @override
-  List<Object?> get props => [departmentId, categoryId, collectionId, brandId, filterType, sortBy, sortPrice, selectedAttributes, minPrice, maxPrice, updateMinPrice, updateMaxPrice, page];
+  List<Object?> get props => [departmentId, categoryId, collectionId, brandId, filterType, sortBy, sortPrice, selectedAttributes, minPrice, maxPrice, updateMinPrice, updateMaxPrice, updatePriceSort, page];
 }
 
 class LoadMoreProducts extends ProductsEvent {
