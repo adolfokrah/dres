@@ -381,31 +381,33 @@ class ProductsFilterBar extends StatelessWidget {
                   padding: const EdgeInsets.all(20),
                   child: Row(
                     children: [
-                      // Reset Button
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            onAttributeFilterChanged?.call(filter.id, []);
-                            Navigator.pop(context);
-                          },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.textPrimary,
-                            side: BorderSide(color: AppColors.textPrimary),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.zero,
+                      // Reset Button (only show if there are selections)
+                      if (initialSelection.isNotEmpty) ...[
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () {
+                              onAttributeFilterChanged?.call(filter.id, []);
+                              Navigator.pop(context);
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.textPrimary,
+                              side: BorderSide(color: AppColors.textPrimary),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.zero,
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            'Reset',
-                            style: AppTypography.bodyL.copyWith(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.w600,
+                            child: Text(
+                              'Reset',
+                              style: AppTypography.bodyL.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
+                        const SizedBox(width: 12),
+                      ],
                       // Apply Button
                       Expanded(
                         child: ElevatedButton(
