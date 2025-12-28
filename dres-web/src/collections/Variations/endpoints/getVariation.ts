@@ -214,79 +214,14 @@ export const getVariation: PayloadHandler = async (req) => {
 
     const skus = await Promise.all(
       skusResult.docs.map(async (sku: any) => {
-        const options = Array.isArray(sku.skuOptions)
-          ? await Promise.all(
-              sku.skuOptions.map(async (skuOption: any) => {
-                const optionId = typeof skuOption.option === 'object' ? skuOption.option.id : skuOption.option
-                const valueId = typeof skuOption.value === 'object' ? skuOption.value.id : skuOption.value
-
-                const option = await payload.findByID({
-                  collection: 'attributes',
-                  id: optionId,
-                })
-
-                const value = await payload.findByID({
-                  collection: 'attributeOptions',
-                  id: valueId,
-                })
-
-                return {
-                  option: option.name,
-                  value: value.name,
-                }
-              })
-            )
-          : []
-
         return {
           id: sku.id,
-          options,
           price: sku.price,
           compareAtPrice: sku.compareAtPrice,
           stock: sku.stock,
         }
       })
     )
-
-    // Group SKU options by attribute name with id and value objects
-    const optionsMap = new Map<string, Map<string, { id: string, value: string }>>()
-    
-    skus.forEach(sku => {
-      // Find the original SKU document to get the option IDs
-      const skuDoc = skusResult.docs.find((s: any) => s.id === sku.id)
-      
-      sku.options.forEach((opt: any) => {
-        if (!optionsMap.has(opt.option)) {
-          optionsMap.set(opt.option, new Map())
-        }
-        
-        // Get the option value ID from the original SKU document
-        if (skuDoc && Array.isArray(skuDoc.skuOptions)) {
-          const skuOption = skuDoc.skuOptions.find((so: any) => {
-            const optionName = typeof so.option === 'object' ? so.option.name : null
-            return optionName === opt.option
-          })
-          
-          if (skuOption && skuOption.value) {
-            const valueId = typeof skuOption.value === 'object' ? skuOption.value.id : skuOption.value
-            const valueName = typeof skuOption.value === 'object' ? skuOption.value.name : opt.value
-            
-            // Use valueId as key to avoid duplicates
-            if (valueId) {
-              optionsMap.get(opt.option)!.set(valueId, {
-                id: valueId,
-                value: valueName
-              })
-            }
-          }
-        }
-      })
-    })
-
-    const groupedOptions = Array.from(optionsMap.entries()).map(([name, valuesMap]) => ({
-      name,
-      values: Array.from(valuesMap.values())
-    }))
 
     return Response.json({
       variation: {
@@ -295,7 +230,6 @@ export const getVariation: PayloadHandler = async (req) => {
         styleDescription: fullStyle?.description || null,
         details,
         skus: skus as any, // Custom SKU structure with options
-        options: groupedOptions, // Grouped options by attribute
       },
       relatedVariations: relatedVariations as any, // Custom structure with details
     })

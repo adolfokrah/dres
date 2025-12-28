@@ -85,6 +85,7 @@ export const Variations: CollectionConfig = {
       },
     },
     {
+      label: 'Attributes',
       name: 'variants',
       type: 'array',
       admin: {

@@ -95,6 +95,7 @@ export const SKUs: CollectionConfig = {
         }
         return true
       },
+      maxRows: 1,
       fields: [
         {
           name: 'option',
