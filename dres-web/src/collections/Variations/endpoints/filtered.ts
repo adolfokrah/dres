@@ -4,7 +4,7 @@ import { transformVariation } from '../utils/transformVariation'
 
 export const filteredVariations: PayloadHandler = async (req) => {
   const { payload } = req
-  const { department, category, collection, brand, filterType, sortBy, sortPrice, attributes, limit = 20, page = 1 } = req.query
+  const { department, category, collection, brand, filterType, sortBy, sortPrice, attributes, minPrice, maxPrice, limit = 20, page = 1 } = req.query
 
   // Parse attribute filters from query params
   // Format: attributes=attributeId:optionId1,optionId2|attributeId2:optionId3,optionId4
@@ -200,6 +200,38 @@ export const filteredVariations: PayloadHandler = async (req) => {
       }
       
       payload.logger.info(`Final match with attributes: ${JSON.stringify(matchConditions, null, 2)}`)
+    }
+
+    // Apply price range filter
+    if (minPrice || maxPrice) {
+      const priceConditions: any = {}
+      
+      if (minPrice) {
+        priceConditions.minPrice = { $gte: parseFloat(minPrice as string) }
+      }
+      
+      if (maxPrice) {
+        priceConditions.minPrice = { 
+          ...priceConditions.minPrice,
+          $lte: parseFloat(maxPrice as string)
+        }
+      }
+      
+      // Combine with existing conditions
+      if (Object.keys(matchConditions).length > 0) {
+        if (matchConditions.$and) {
+          matchConditions.$and.push(priceConditions)
+        } else {
+          const existingConditions = Object.entries(matchConditions).map(([key, value]) => ({ [key]: value }))
+          matchConditions = {
+            $and: [...existingConditions, priceConditions]
+          }
+        }
+      } else {
+        matchConditions = priceConditions
+      }
+      
+      payload.logger.info(`Price range filter applied: ${minPrice} - ${maxPrice}`)
     }
 
     // Add match stage if we have conditions

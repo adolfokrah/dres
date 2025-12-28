@@ -16,6 +16,8 @@ class ProductsRepository {
     String? sortBy,
     String? sortPrice,
     Map<String, List<String>>? selectedAttributes,
+    double? minPrice,
+    double? maxPrice,
     int page = 1,
     int limit = 20,
   }) async {
@@ -35,6 +37,8 @@ class ProductsRepository {
       if (filterType != null) queryParams['filterType'] = filterType;
       if (sortBy != null) queryParams['sortBy'] = sortBy;
       if (sortPrice != null) queryParams['sortPrice'] = sortPrice;
+      if (minPrice != null) queryParams['minPrice'] = minPrice;
+      if (maxPrice != null) queryParams['maxPrice'] = maxPrice;
       
       // Add attribute filters
       // Format: attributes=attributeId:optionId1,optionId2

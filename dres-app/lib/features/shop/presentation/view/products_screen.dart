@@ -138,6 +138,8 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                           : PriceOption.lowToHigh,
                   filters: state.filters,
                   selectedAttributes: state.selectedAttributes,
+                  minPrice: state.minPrice,
+                  maxPrice: state.maxPrice,
                   onSortChanged: (sortOption) {
                     final sortBy = sortOption == SortOption.oldest ? 'oldest' : 'latest';
                     context.read<ProductsBloc>().add(ChangeSortOption(sortBy));
@@ -155,6 +157,14 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                       ChangeAttributeFilter(
                         attributeId: attributeId,
                         optionIds: optionIds,
+                      ),
+                    );
+                  },
+                  onPriceRangeChanged: (min, max) {
+                    context.read<ProductsBloc>().add(
+                      ChangePriceRange(
+                        minPrice: min,
+                        maxPrice: max,
                       ),
                     );
                   },

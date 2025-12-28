@@ -20,9 +20,12 @@ class ProductsFilterBar extends StatelessWidget {
   final PriceOption selectedPrice;
   final List<AttributeFilterModel> filters;
   final Map<String, List<String>> selectedAttributes;
+  final double? minPrice;
+  final double? maxPrice;
   final Function(SortOption) onSortChanged;
   final Function(PriceOption) onPriceChanged;
   final Function(String attributeId, List<String> optionIds)? onAttributeFilterChanged;
+  final Function(double? min, double? max)? onPriceRangeChanged;
 
   const ProductsFilterBar({
     super.key,
@@ -30,9 +33,12 @@ class ProductsFilterBar extends StatelessWidget {
     required this.selectedPrice,
     this.filters = const [],
     this.selectedAttributes = const {},
+    this.minPrice,
+    this.maxPrice,
     required this.onSortChanged,
     required this.onPriceChanged,
     this.onAttributeFilterChanged,
+    this.onPriceRangeChanged,
   });
 
   @override
@@ -65,6 +71,19 @@ class ProductsFilterBar extends StatelessWidget {
             onTap: () => _showPriceOptions(context),
             isActive: selectedPrice != PriceOption.all,
           ),
+          const SizedBox(width: 7),
+          
+          // Price Range Filter
+          _buildFilterButton(
+            context: context,
+            label: (minPrice != null || maxPrice != null)
+                ? 'GH₵${minPrice?.toStringAsFixed(0) ?? '0'} - GH₵${maxPrice?.toStringAsFixed(0) ?? '∞'}'
+                : 'Price Range',
+            isWide: true,
+            onTap: () => _showPriceRangeDialog(context),
+            isActive: minPrice != null || maxPrice != null,
+          ),
+          const SizedBox(width: 7),
           
           // Attribute Filters
           ...filters.map((filter) {
@@ -439,6 +458,185 @@ class ProductsFilterBar extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _showPriceRangeDialog(BuildContext context) {
+    final minController = TextEditingController(
+      text: minPrice?.toStringAsFixed(0) ?? '',
+    );
+    final maxController = TextEditingController(
+      text: maxPrice?.toStringAsFixed(0) ?? '',
+    );
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Price Range',
+                      style: AppTypography.titleLM.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    IconButton(
+                      icon: PhosphorIcon(
+                        PhosphorIconsRegular.x,
+                        size: 24,
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              
+              // Input Fields
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    // Min Price
+                    Expanded(
+                      child: TextField(
+                        controller: minController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Min Price',
+                          labelStyle: AppTypography.bodyM.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                          prefixText: 'GH₵ ',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.zero,
+                            borderSide: BorderSide(color: AppColors.textSecondary),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.zero,
+                            borderSide: BorderSide(color: AppColors.textSecondary),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.zero,
+                            borderSide: BorderSide(color: AppColors.textPrimary, width: 2),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Max Price
+                    Expanded(
+                      child: TextField(
+                        controller: maxController,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Max Price',
+                          labelStyle: AppTypography.bodyM.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                          prefixText: 'GH₵ ',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.zero,
+                            borderSide: BorderSide(color: AppColors.textSecondary),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.zero,
+                            borderSide: BorderSide(color: AppColors.textSecondary),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.zero,
+                            borderSide: BorderSide(color: AppColors.textPrimary, width: 2),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              // Buttons
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    // Reset Button
+                    if (minPrice != null || maxPrice != null) ...[
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            onPriceRangeChanged?.call(null, null);
+                            Navigator.pop(context);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.textPrimary,
+                            side: BorderSide(color: AppColors.textPrimary),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.zero,
+                            ),
+                          ),
+                          child: Text(
+                            'Reset',
+                            style: AppTypography.bodyL.copyWith(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                    ],
+                    // Apply Button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          final min = double.tryParse(minController.text);
+                          final max = double.tryParse(maxController.text);
+                          onPriceRangeChanged?.call(min, max);
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.textPrimary,
+                          foregroundColor: AppColors.surface,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.zero,
+                          ),
+                        ),
+                        child: Text(
+                          'Apply',
+                          style: AppTypography.bodyL.copyWith(
+                            color: AppColors.surface,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
       ),
     );
   }

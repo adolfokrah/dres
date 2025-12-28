@@ -16,6 +16,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     on<ChangePriceSort>(_onChangePriceSort);
     on<ResetProducts>(_onResetProducts);
     on<ChangeAttributeFilter>(_onChangeAttributeFilter);
+    on<ChangePriceRange>(_onChangePriceRange);
   }
 
   Future<void> _onFetchProducts(
@@ -32,6 +33,8 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       sortBy: event.sortBy,
       sortPrice: event.sortPrice,
       selectedAttributes: event.selectedAttributes ?? state.selectedAttributes,
+      minPrice: event.minPrice,
+      maxPrice: event.maxPrice,
     ));
 
     try {
@@ -44,6 +47,8 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         sortBy: event.sortBy,
         sortPrice: event.sortPrice,
         selectedAttributes: event.selectedAttributes ?? state.selectedAttributes,
+        minPrice: event.minPrice ?? state.minPrice,
+        maxPrice: event.maxPrice ?? state.maxPrice,
         page: event.page,
       );
 
@@ -88,6 +93,8 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         sortBy: state.sortBy,
         sortPrice: state.sortPrice,
         selectedAttributes: state.selectedAttributes,
+        minPrice: state.minPrice,
+        maxPrice: state.maxPrice,
         page: state.currentPage + 1,
       );
 
@@ -192,6 +199,28 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       sortBy: state.sortBy,
       sortPrice: state.sortPrice,
       selectedAttributes: newSelectedAttributes,
+      minPrice: state.minPrice,
+      maxPrice: state.maxPrice,
+      page: 1,
+    ));
+  }
+
+  Future<void> _onChangePriceRange(
+    ChangePriceRange event,
+    Emitter<ProductsState> emit,
+  ) async {
+    // Refetch products with updated price range
+    add(FetchProducts(
+      departmentId: state.departmentId,
+      categoryId: state.categoryId,
+      collectionId: state.collectionId,
+      brandId: state.brandId,
+      filterType: state.filterType,
+      sortBy: state.sortBy,
+      sortPrice: state.sortPrice,
+      selectedAttributes: state.selectedAttributes,
+      minPrice: event.minPrice,
+      maxPrice: event.maxPrice,
       page: 1,
     ));
   }
