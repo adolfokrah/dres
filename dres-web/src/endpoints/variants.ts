@@ -1,4 +1,5 @@
 import type { Endpoint } from 'payload'
+import { transformVariation } from '../utilities/transformVariation'
 
 export const variantsEndpoint: Endpoint = {
   method: 'get',
@@ -27,7 +28,7 @@ export const variantsEndpoint: Endpoint = {
       const styles = await payload.find({
         collection: 'styles',
         where: Object.keys(styleWhere).length > 0 ? styleWhere : undefined,
-        limit: 1000, // Get all matching styles
+        pagination: false,
         depth: 0,
       })
 
@@ -45,8 +46,13 @@ export const variantsEndpoint: Endpoint = {
         sort: '-createdAt',
       })
 
+      // Transform all variations using the utility function
+      const transformedVariations = variations.docs.map(variation => 
+        transformVariation(variation)
+      )
+
       return Response.json({
-        variations: variations.docs,
+        variations: transformedVariations,
         totalDocs: variations.totalDocs,
         totalPages: variations.totalPages,
         page: variations.page,
