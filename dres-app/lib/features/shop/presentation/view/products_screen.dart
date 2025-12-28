@@ -6,6 +6,7 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/widgets/app_header.dart';
 import 'package:dres/core/widgets/product_card.dart';
+import 'package:dres/core/widgets/product_card_skeleton.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_bloc.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_event.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_state.dart';
@@ -166,7 +167,21 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
               child: BlocBuilder<ProductsBloc, ProductsState>(
                 builder: (context, state) {
                   if (state.status == ProductsStatus.loading) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Padding(
+                      padding: const EdgeInsets.all(15),
+                      child: GridView.builder(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.55,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 20,
+                        ),
+                        itemCount: 6, // Show 6 skeleton cards
+                        itemBuilder: (context, index) {
+                          return const ProductCardSkeleton();
+                        },
+                      ),
+                    );
                   }
 
                   if (state.status == ProductsStatus.failure) {
