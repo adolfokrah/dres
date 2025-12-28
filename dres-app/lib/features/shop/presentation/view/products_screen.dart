@@ -11,6 +11,7 @@ import 'package:dres/features/shop/logic/products_bloc/products_event.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_state.dart';
 import 'package:dres/features/shop/presentation/widgets/products_header.dart';
 import 'package:dres/features/shop/presentation/widgets/products_filter_bar.dart';
+import 'package:dres/features/shop/presentation/widgets/products_empty_state.dart';
 
 class ProductsScreen extends StatefulWidget {
   final String? departmentId;
@@ -190,12 +191,7 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                   }
 
                   if (state.products.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'No products found',
-                        style: AppTypography.bodyL,
-                      ),
-                    );
+                    return const ProductsEmptyState();
                   }
 
                   return RefreshIndicator(
