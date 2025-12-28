@@ -42,9 +42,14 @@ export const filteredVariations: PayloadHandler = async (req) => {
       matchConditions['styleData.category'] = new Types.ObjectId(category as string)
     }
 
-    // Filter by brand (convert string to ObjectId)
+    // Filter by brand (convert string to ObjectId if valid, otherwise keep as string)
     if (brand) {
-      matchConditions['brand'] = new Types.ObjectId(brand as string)
+      // Try to convert to ObjectId, if invalid keep as string (for custom brand IDs)
+      try {
+        matchConditions['styleData.brand'] = new Types.ObjectId(brand as string)
+      } catch {
+        matchConditions['styleData.brand'] = brand
+      }
     }
 
     // Apply filter type
