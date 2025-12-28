@@ -3,6 +3,7 @@ import type { CollectionConfig, Where } from 'payload'
 import { anyone } from '../../access/anyone'
 import { authenticated } from '../../access/authenticated'
 import { generateVariationSlug } from './hooks/generateVariationSlug'
+import { processProductMainImage } from './hooks/processProductMainImage'
 import { trendingVariations } from './endpoints/trending'
 import { newArrivals } from './endpoints/newArrivals'
 import { featuredVariations } from './endpoints/featured'
@@ -57,6 +58,7 @@ export const Variations: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [generateVariationSlug],
+    afterChange: [processProductMainImage],
   },
   fields: [
     {
