@@ -147,9 +147,11 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
     const now = new Date()
     return boostItems.some((boostItem: any) => {
       if (!boostItem || typeof boostItem !== 'object') {
-        console.log('Invalid boost item:', boostItem)
+        console.log('Invalid boost item (not an object):', typeof boostItem, boostItem)
         return false
       }
+      
+      console.log('Boost item details:', JSON.stringify(boostItem, null, 2))
       
       const startDate = boostItem.startDate ? new Date(boostItem.startDate) : null
       const endDate = boostItem.endDate ? new Date(boostItem.endDate) : null
@@ -172,6 +174,9 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
     })
   }
 
+  const boostedValue = hasActiveBoost()
+  console.log('=== Variation isBoosted value:', boostedValue, 'for variation:', variation.id)
+
   return {
     id: variation.id,
     thumbnail,
@@ -184,7 +189,7 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
     compareAtPrice,
     currency,
     variants,
-    isBoosted: hasActiveBoost(),
+    isBoosted: boostedValue,
     ...(includeRelated && { relatedVariations }),
   }
 }

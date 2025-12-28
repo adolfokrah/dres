@@ -16,7 +16,35 @@ export const filteredVariations: PayloadHandler = async (req) => {
         from: 'styles',
         localField: 'style',
         foreignField: '_id',
-        as: 'styleData'
+        as: 'styleData',
+        pipeline: [
+          {
+            $lookup: {
+              from: 'style-boosts',
+              localField: '_id',
+              foreignField: 'style',
+              as: 'boosts'
+            }
+          },
+          {
+            $addFields: {
+              hasActiveBoost: {
+                $gt: [
+                  {
+                    $size: {
+                      $filter: {
+                        input: '$boosts',
+                        as: 'boost',
+                        cond: { $eq: ['$$boost.status', 'active'] }
+                      }
+                    }
+                  },
+                  0
+                ]
+              }
+            }
+          }
+        ]
       }
     })
 
@@ -65,7 +93,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
           break
         case 'we-love':
           // Variations with active style boost
-          matchConditions['styleData.boost.active'] = true
+          matchConditions['styleData.hasActiveBoost'] = true
           break
         case 'new-arrivals':
           // Will be handled by sort (createdAt descending)
@@ -126,8 +154,20 @@ export const filteredVariations: PayloadHandler = async (req) => {
         const fullVariation = await payload.findByID({
           collection: 'variations',
           id: variation._id,
-          depth: 2,
+          depth: 5,
         })
+        
+        // Fetch the full style with boost data separately (same as trending endpoint)
+        const styleId = typeof fullVariation.style === 'object' ? fullVariation.style.id : fullVariation.style
+        if (styleId) {
+          const fullStyle = await payload.findByID({
+            collection: 'styles',
+            id: styleId,
+            depth: 3, // Ensure boost is fully populated
+          })
+          fullVariation.style = fullStyle
+        }
+        
         return transformVariation(fullVariation)
       })
     )

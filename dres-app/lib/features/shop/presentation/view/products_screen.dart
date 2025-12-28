@@ -184,6 +184,7 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                                   currencySymbol: 'GHS',
                                   slug: product.slug,
                                   isFavorited: false,
+                                  isBoosted: product.isBoosted,
                                   showLeftBorder: index % 2 == 0,
                                   showTopBorder: index < 2, // Only show top border for first row (index 0 and 1)
                                   onFavoriteToggle: (id, isFavorited) {
