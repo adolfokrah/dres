@@ -203,6 +203,31 @@ export const getVariation: PayloadHandler = async (req) => {
         )
       : []
 
+    // Create variationsTitle from first detail attribute
+    let variationsTitle: { attribute: string; values: string[] } | null = null
+    if (details.length > 0 && relatedVariations.length > 0) {
+      const firstAttribute = details[0].attribute.name
+      const allValues = new Set<string>()
+      
+      // Add current variation's value
+      allValues.add(details[0].value.name)
+      
+      // Add related variations' values for the same attribute
+      relatedVariations.forEach((related: any) => {
+        if (related.details && related.details.length > 0) {
+          const relatedFirstDetail = related.details.find((d: any) => d.attribute === firstAttribute)
+          if (relatedFirstDetail) {
+            allValues.add(relatedFirstDetail.value)
+          }
+        }
+      })
+      
+      variationsTitle = {
+        attribute: firstAttribute,
+        values: Array.from(allValues)
+      }
+    }
+
     // Fetch SKUs with their options
     const skusResult = await payload.find({
       collection: 'skus',
@@ -214,8 +239,33 @@ export const getVariation: PayloadHandler = async (req) => {
 
     const skus = await Promise.all(
       skusResult.docs.map(async (sku: any) => {
+        const options = Array.isArray(sku.skuOptions)
+          ? await Promise.all(
+              sku.skuOptions.map(async (skuOption: any) => {
+                const optionId = typeof skuOption.option === 'object' ? skuOption.option.id : skuOption.option
+                const valueId = typeof skuOption.value === 'object' ? skuOption.value.id : skuOption.value
+
+                const option = await payload.findByID({
+                  collection: 'attributes',
+                  id: optionId,
+                })
+
+                const value = await payload.findByID({
+                  collection: 'attributeOptions',
+                  id: valueId,
+                })
+
+                return {
+                  option: option.name,
+                  value: value.name,
+                }
+              })
+            )
+          : []
+
         return {
           id: sku.id,
+          options,
           price: sku.price,
           compareAtPrice: sku.compareAtPrice,
           stock: sku.stock,
@@ -230,6 +280,7 @@ export const getVariation: PayloadHandler = async (req) => {
         styleDescription: fullStyle?.description || null,
         details,
         skus: skus as any, // Custom SKU structure with options
+        variationsTitle,
       },
       relatedVariations: relatedVariations as any, // Custom structure with details
     })
