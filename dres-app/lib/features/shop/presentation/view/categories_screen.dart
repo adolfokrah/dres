@@ -8,11 +8,13 @@ import 'package:go_router/go_router.dart';
 class CategoriesScreen extends StatelessWidget {
   final CollectionModel collection;
   final String departmentName;
+  final String departmentId;
 
   const CategoriesScreen({
     super.key,
     required this.collection,
     required this.departmentName,
+    required this.departmentId,
   });
 
   @override
@@ -56,6 +58,7 @@ class CategoriesScreen extends StatelessWidget {
             return _buildCategoryItem(
               context,
               'All $departmentName ${collection.name}',
+              departmentId: departmentId,
               collectionId: collection.id,
               isAll: true,
             );
@@ -66,6 +69,7 @@ class CategoriesScreen extends StatelessWidget {
           return _buildCategoryItem(
             context,
             category.name,
+            departmentId: departmentId,
             categoryId: category.id,
           );
         },
@@ -80,6 +84,7 @@ class CategoriesScreen extends StatelessWidget {
   Widget _buildCategoryItem(
     BuildContext context,
     String categoryName, {
+    required String departmentId,
     String? categoryId,
     String? collectionId,
     bool isAll = false,
@@ -91,6 +96,7 @@ class CategoriesScreen extends StatelessWidget {
             context.push(
               '/discover/categories/products',
               extra: {
+                'departmentId': departmentId,
                 'categoryId': categoryId,
                 'collectionId': collectionId,
                 'title': categoryName,

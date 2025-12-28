@@ -165,7 +165,7 @@ class _ShopScreenState extends State<ShopScreen> {
         // Show collections first
         if (index < department.collections.length) {
           final collection = department.collections[index];
-          return _buildCollectionItem(collection, department.name);
+          return _buildCollectionItem(collection, department);
         }
         
         // Show promo cards at the end
@@ -260,7 +260,7 @@ class _ShopScreenState extends State<ShopScreen> {
     return [];
   }
 
-  Widget _buildCollectionItem(CollectionModel collection, String departmentName) {
+  Widget _buildCollectionItem(CollectionModel collection, DepartmentModel department) {
     return Column(
       children: [
         InkWell(
@@ -269,7 +269,8 @@ class _ShopScreenState extends State<ShopScreen> {
               AppRoutes.categories,
               extra: {
                 'collection': collection,
-                'departmentName': departmentName,
+                'departmentName': department.name,
+                'departmentId': department.id,
               },
             );
           },

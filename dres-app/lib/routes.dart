@@ -92,6 +92,7 @@ class AppRoutes {
                       return CategoriesScreen(
                         collection: extra['collection'] as CollectionModel,
                         departmentName: extra['departmentName'] as String,
+                        departmentId: extra['departmentId'] as String,
                       );
                     },
                     routes: [
