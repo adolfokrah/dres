@@ -22,6 +22,8 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       departmentId: event.departmentId,
       categoryId: event.categoryId,
       collectionId: event.collectionId,
+      brandId: event.brandId,
+      filterType: event.filterType,
     ));
 
     try {
@@ -29,6 +31,8 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         departmentId: event.departmentId,
         categoryId: event.categoryId,
         collectionId: event.collectionId,
+        brandId: event.brandId,
+        filterType: event.filterType,
         page: event.page,
       );
 
@@ -63,6 +67,8 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         departmentId: state.departmentId,
         categoryId: state.categoryId,
         collectionId: state.collectionId,
+        brandId: state.brandId,
+        filterType: state.filterType,
         page: state.currentPage + 1,
       );
 
@@ -95,6 +101,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       departmentId: state.departmentId,
       categoryId: state.categoryId,
       collectionId: state.collectionId,
+      filterType: state.filterType,
       page: 1,
     ));
   }

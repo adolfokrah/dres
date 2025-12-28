@@ -15,6 +15,8 @@ class ProductsScreen extends StatelessWidget {
   final String? departmentId;
   final String? categoryId;
   final String? collectionId;
+  final String? brandId;
+  final String? filterType; // 'new-arrivals', 'featured', 'trending', 'on-sale'
   final String title;
 
   const ProductsScreen({
@@ -22,20 +24,23 @@ class ProductsScreen extends StatelessWidget {
     this.departmentId,
     this.categoryId,
     this.collectionId,
+    this.brandId,
+    this.filterType,
     required this.title,
   });
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<ProductsBloc>()
-        ..add(FetchProducts(
-          departmentId: departmentId,
-          categoryId: categoryId,
-          collectionId: collectionId,
-        )),
-      child: _ProductsScreenView(title: title),
-    );
+    // Add event to fetch products
+    context.read<ProductsBloc>().add(FetchProducts(
+      departmentId: departmentId,
+      categoryId: categoryId,
+      collectionId: collectionId,
+      brandId: brandId,
+      filterType: filterType,
+    ));
+    
+    return _ProductsScreenView(title: title);
   }
 }
 

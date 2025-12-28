@@ -11,17 +11,21 @@ class FetchProducts extends ProductsEvent {
   final String? departmentId;
   final String? categoryId;
   final String? collectionId;
+  final String? brandId;
+  final String? filterType;
   final int page;
 
   const FetchProducts({
     this.departmentId,
     this.categoryId,
     this.collectionId,
+    this.brandId,
+    this.filterType,
     this.page = 1,
   });
 
   @override
-  List<Object?> get props => [departmentId, categoryId, collectionId, page];
+  List<Object?> get props => [departmentId, categoryId, collectionId, brandId, filterType, page];
 }
 
 class LoadMoreProducts extends ProductsEvent {

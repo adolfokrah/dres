@@ -7,6 +7,7 @@ import 'package:dres/features/favourite/favourite.dart';
 import 'package:dres/features/profile/profile.dart';
 import 'package:dres/features/shop/presentation/view/shop_screen.dart';
 import 'package:dres/features/shop/presentation/view/categories_screen.dart';
+import 'package:dres/features/shop/presentation/view/brands_screen.dart';
 import 'package:dres/features/shop/presentation/view/products_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
 import 'package:dres/core/models/menu_model.dart';
@@ -80,6 +81,22 @@ class AppRoutes {
                 builder: (context, state) => const ShopScreen(),
                 routes: [
                   GoRoute(
+                    path: 'brands',
+                    name: 'brands',
+                    builder: (context, state) {
+                      final extra = state.extra as Map<String, dynamic>?;
+                      if (extra == null) {
+                        return const Scaffold(
+                          body: Center(child: Text('No department data')),
+                        );
+                      }
+                      return BrandsScreen(
+                        departmentId: extra['departmentId'] as String,
+                        departmentName: extra['departmentName'] as String,
+                      );
+                    },
+                  ),
+                  GoRoute(
                     path: categories,
                     name: 'categories',
                     builder: (context, state) {
@@ -110,6 +127,8 @@ class AppRoutes {
                             departmentId: extra['departmentId'] as String?,
                             categoryId: extra['categoryId'] as String?,
                             collectionId: extra['collectionId'] as String?,
+                            brandId: extra['brandId'] as String?,
+                            filterType: extra['filterType'] as String?,
                             title: extra['title'] as String,
                           );
                         },

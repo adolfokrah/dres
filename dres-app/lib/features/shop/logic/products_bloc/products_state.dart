@@ -14,6 +14,8 @@ class ProductsState extends Equatable {
   final String? departmentId;
   final String? categoryId;
   final String? collectionId;
+  final String? brandId;
+  final String? filterType;
 
   const ProductsState({
     this.status = ProductsStatus.initial,
@@ -26,6 +28,8 @@ class ProductsState extends Equatable {
     this.departmentId,
     this.categoryId,
     this.collectionId,
+    this.brandId,
+    this.filterType,
   });
 
   ProductsState copyWith({
@@ -39,6 +43,8 @@ class ProductsState extends Equatable {
     String? departmentId,
     String? categoryId,
     String? collectionId,
+    String? brandId,
+    String? filterType,
   }) {
     return ProductsState(
       status: status ?? this.status,
@@ -51,6 +57,8 @@ class ProductsState extends Equatable {
       departmentId: departmentId ?? this.departmentId,
       categoryId: categoryId ?? this.categoryId,
       collectionId: collectionId ?? this.collectionId,
+      brandId: brandId ?? this.brandId,
+      filterType: filterType ?? this.filterType,
     );
   }
 
@@ -66,5 +74,7 @@ class ProductsState extends Equatable {
         departmentId,
         categoryId,
         collectionId,
+        brandId,
+        filterType,
       ];
 }

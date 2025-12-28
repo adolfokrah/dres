@@ -154,7 +154,7 @@ class _ShopScreenState extends State<ShopScreen> {
     }
 
     // Get promo cards based on department
-    final promoCards = _getPromoCardsForDepartment(department.name);
+    final promoCards = _getPromoCardsForDepartment(department.name, department.id);
 
     return ListView.builder(
       key: ValueKey('collections_${department.name}'),
@@ -184,7 +184,7 @@ class _ShopScreenState extends State<ShopScreen> {
     );
   }
 
-  List<Widget> _getPromoCardsForDepartment(String departmentName) {
+  List<Widget> _getPromoCardsForDepartment(String departmentName, String departmentId) {
     final name = departmentName.toLowerCase();
     final l10n = AppLocalizations.of(context)!;
     
@@ -195,6 +195,7 @@ class _ShopScreenState extends State<ShopScreen> {
           subtitle: l10n.dailyDropPersonalized,
           imageText: 'NEW',
           gradientColors: const [Color(0xFF121212), Color(0xFF939393)],
+          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'new-arrivals', l10n.newArrivalsForYou),
         ),
         ShopPromoCard(
           title: l10n.designers,
@@ -202,6 +203,7 @@ class _ShopScreenState extends State<ShopScreen> {
           imageText: '',
           imagePath: 'assets/images/desiners_women.png',
           gradientColors: const [Color(0xFF121212), Color(0xFF939393)],
+          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'designers', l10n.designers),
         ),
         ShopPromoCard(
           title: l10n.weLove,
@@ -209,12 +211,14 @@ class _ShopScreenState extends State<ShopScreen> {
           imageText: '',
           imagePath: 'assets/images/we_love_women.png',
           gradientColors: const [Color(0xFF121212), Color(0xFF939393)],
+          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'we-love', l10n.weLove),
         ),
         ShopPromoCard(
           title: l10n.onSale,
           subtitle: l10n.finestDeals,
           imageText: 'SALE',
           gradientColors: const [Color(0xFF121212), Color(0xFFC6CA77)],
+          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'on-sale', l10n.onSale),
         ),
       ];
     } else if (name == 'men') {
@@ -302,6 +306,30 @@ class _ShopScreenState extends State<ShopScreen> {
           endIndent: 16,
         ),
       ],
+    );
+  }
+
+  void _navigateToFilteredProducts(BuildContext context, String departmentId, String departmentName, String filterType, String title) {
+    // For Designers, navigate to brands screen instead
+    if (filterType == 'designers') {
+      context.pushNamed(
+        'brands',
+        extra: {
+          'departmentId': departmentId,
+          'departmentName': departmentName,
+        },
+      );
+      return;
+    }
+
+    // For other filters, navigate to products with filterType
+    context.push(
+      '/discover/categories/products',
+      extra: {
+        'departmentId': departmentId,
+        'filterType': filterType,
+        'title': title,
+      },
     );
   }
 }

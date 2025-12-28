@@ -3,11 +3,12 @@ import { transformVariation } from '../utils/transformVariation'
 
 export const filteredVariations: PayloadHandler = async (req) => {
   const { payload } = req
-  const { department, category, collection, limit = 20, page = 1 } = req.query
+  const { department, category, collection, brand, filterType, limit = 20, page = 1 } = req.query
 
   try {
     // Build the where clause for styles using IDs
     const styleWhere: any = {}
+    const variationWhere: any = {}
     
     if (department) {
       styleWhere.department = { equals: department }
@@ -19,6 +20,31 @@ export const filteredVariations: PayloadHandler = async (req) => {
     
     if (category) {
       styleWhere.category = { equals: category }
+    }
+
+    // Add brand filter if provided
+    if (brand) {
+      variationWhere.brand = { equals: brand }
+    }
+
+    // Apply filter type to variations
+    if (filterType) {
+      switch (filterType) {
+        case 'on-sale':
+          // Variations with discount > 0
+          variationWhere.discount = { greater_than: 0 }
+          break
+        case 'we-love':
+          // Boosted/featured variations
+          variationWhere.isBoosted = { equals: true }
+          break
+        case 'designers':
+          // This is handled by navigating to brands screen, not filtering here
+          break
+        case 'new-arrivals':
+          // Most recent variations - handled by sort, no where clause needed
+          break
+      }
     }
 
     // First, find matching styles
@@ -44,16 +70,28 @@ export const filteredVariations: PayloadHandler = async (req) => {
       })
     }
 
+    // Build final where clause for variations
+    const finalWhere: any = { ...variationWhere }
+    if (styleIds.length > 0) {
+      finalWhere.style = { in: styleIds }
+    }
+
+    // Determine sort order based on filter type
+    let sortOrder = '-createdAt'
+    if (filterType === 'new-arrivals') {
+      sortOrder = '-createdAt' // Most recent first
+    } else if (filterType === 'on-sale') {
+      sortOrder = '-discount' // Highest discount first
+    }
+
     // Now find variations that belong to these styles
     const variations = await payload.find({
       collection: 'variations',
-      where: styleIds.length > 0 
-        ? { style: { in: styleIds } }
-        : undefined,
+      where: Object.keys(finalWhere).length > 0 ? finalWhere : undefined,
       limit: Number(limit),
       page: Number(page),
       depth: 2,
-      sort: '-createdAt',
+      sort: sortOrder,
     })
 
     // Transform all variations

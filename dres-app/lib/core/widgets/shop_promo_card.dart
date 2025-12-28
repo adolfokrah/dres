@@ -9,6 +9,7 @@ class ShopPromoCard extends StatelessWidget {
   final String? badgeImagePath;
   final String? imagePath;
   final List<Color> gradientColors;
+  final VoidCallback? onTap;
 
   const ShopPromoCard({
     super.key,
@@ -18,16 +19,19 @@ class ShopPromoCard extends StatelessWidget {
     this.badgeImagePath,
     this.imagePath,
     required this.gradientColors,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 88,
-      margin: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          // Left side - Text content
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 88,
+        margin: const EdgeInsets.only(bottom: 10),
+        child: Row(
+          children: [
+            // Left side - Text content
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(20),
@@ -94,6 +98,7 @@ class ShopPromoCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

@@ -10,6 +10,8 @@ import 'package:dres/features/splash/logic/menu_bloc/menu_bloc.dart';
 import 'package:dres/features/splash/logic/menu_bloc/menu_event.dart';
 import 'package:dres/features/home/logic/bloc/home_bloc.dart';
 import 'package:dres/features/home/logic/bloc/home_event.dart';
+import 'package:dres/features/shop/logic/products_bloc/products_bloc.dart';
+import 'package:dres/features/shop/logic/brands_bloc/brands_bloc.dart';
 import 'package:dres/core/services/storage_service.dart';
 
 Future<void> main() async {
@@ -46,7 +48,16 @@ class MainApp extends StatelessWidget {
           },
           lazy: false, // Load immediately
         ),
-        // Add other global blocs here as needed
+        // ProductsBloc - for products listing
+        BlocProvider<ProductsBloc>(
+          create: (_) => getIt<ProductsBloc>(),
+          lazy: true,
+        ),
+        // BrandsBloc - for brands listing
+        BlocProvider<BrandsBloc>(
+          create: (_) => getIt<BrandsBloc>(),
+          lazy: true,
+        ),
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,

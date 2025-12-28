@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/models/menu_model.dart';
-import 'package:dres/core/widgets/app_header.dart';
+import 'package:dres/core/widgets/simple_header.dart';
 import 'package:go_router/go_router.dart';
 
 class CategoriesScreen extends StatelessWidget {
@@ -25,26 +25,10 @@ class CategoriesScreen extends StatelessWidget {
         bottom: false,
         child: Column(
           children: [
-            // Header with back button
-            AppHeader(
-              showBackButton: true,
-              onBackTap: () => context.pop(),
+            // Header
+            SimpleHeader(
+              title: collection.name.toUpperCase(),
               onCartTap: () {},
-              onSearchTap: () {},
-            ),
-            
-            // Title
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  collection.name.toUpperCase(),
-                  style: AppTypography.titleLM.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
             ),
             
             // Categories List

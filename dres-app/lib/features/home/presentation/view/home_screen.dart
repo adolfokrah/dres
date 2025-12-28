@@ -7,7 +7,6 @@ import 'package:dres/core/widgets/promo_banner.dart';
 import 'package:dres/core/widgets/featured_grid.dart';
 import 'package:dres/core/widgets/product_archive_block.dart';
 import 'package:dres/core/widgets/call_to_action_block.dart';
-import 'package:dres/core/widgets/main_shell.dart';
 import 'package:dres/core/services/scroll_to_top_service.dart';
 import 'package:dres/features/home/logic/bloc/home_bloc.dart';
 import 'package:dres/features/home/logic/bloc/home_event.dart';
