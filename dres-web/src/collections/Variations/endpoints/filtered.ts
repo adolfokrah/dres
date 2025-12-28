@@ -151,15 +151,21 @@ export const filteredVariations: PayloadHandler = async (req) => {
     // Apply attribute filters
     // Filter variations by their variant attributes (e.g., Color: Red, Size: M)
     if (Object.keys(attributeFilters).length > 0) {
-      Object.entries(attributeFilters).forEach(([attributeId, optionIds]) => {
-        // Each variation must have at least one variant with the specified attribute option
-        matchConditions['variants'] = {
-          $elemMatch: {
-            variant: new Types.ObjectId(attributeId),
-            value: { $in: optionIds.map(id => new Types.ObjectId(id)) }
+      const attributeConditions = Object.entries(attributeFilters).map(([attributeId, optionIds]) => {
+        return {
+          variants: {
+            $elemMatch: {
+              variant: new Types.ObjectId(attributeId),
+              value: { $in: optionIds.map(id => new Types.ObjectId(id)) }
+            }
           }
         }
       })
+      
+      // All attribute conditions must match (AND logic)
+      if (attributeConditions.length > 0) {
+        matchConditions['$and'] = attributeConditions
+      }
     }
 
     // Add match stage if we have conditions

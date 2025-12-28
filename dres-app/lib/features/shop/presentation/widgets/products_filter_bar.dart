@@ -321,6 +321,9 @@ class ProductsFilterBar extends StatelessWidget {
         builder: (context, setState) {
           return Container(
             padding: const EdgeInsets.symmetric(vertical: 20),
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.7,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -348,24 +351,30 @@ class ProductsFilterBar extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 
-                // Options
-                ...filter.options.map((option) {
-                  final isSelected = initialSelection.contains(option.id);
-                  return _buildOption(
-                    context: context,
-                    label: option.name,
-                    isSelected: isSelected,
-                    onTap: () {
-                      setState(() {
-                        if (isSelected) {
-                          initialSelection.remove(option.id);
-                        } else {
-                          initialSelection.add(option.id);
-                        }
-                      });
-                    },
-                  );
-                }).toList(),
+                // Scrollable Options
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: filter.options.map((option) {
+                        final isSelected = initialSelection.contains(option.id);
+                        return _buildOption(
+                          context: context,
+                          label: option.name,
+                          isSelected: isSelected,
+                          onTap: () {
+                            setState(() {
+                              if (isSelected) {
+                                initialSelection.remove(option.id);
+                              } else {
+                                initialSelection.add(option.id);
+                              }
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
                 
                 // Apply Button
                 Padding(
