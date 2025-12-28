@@ -12,7 +12,7 @@ import 'package:dres/features/shop/logic/products_bloc/products_state.dart';
 import 'package:dres/features/shop/presentation/widgets/products_header.dart';
 import 'package:dres/features/shop/presentation/widgets/products_filter_bar.dart';
 
-class ProductsScreen extends StatelessWidget {
+class ProductsScreen extends StatefulWidget {
   final String? departmentId;
   final String? categoryId;
   final String? collectionId;
@@ -31,17 +31,26 @@ class ProductsScreen extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    // Add event to fetch products
+  State<ProductsScreen> createState() => _ProductsScreenState();
+}
+
+class _ProductsScreenState extends State<ProductsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch products only once when screen is created
     context.read<ProductsBloc>().add(FetchProducts(
-      departmentId: departmentId,
-      categoryId: categoryId,
-      collectionId: collectionId,
-      brandId: brandId,
-      filterType: filterType,
+      departmentId: widget.departmentId,
+      categoryId: widget.categoryId,
+      collectionId: widget.collectionId,
+      brandId: widget.brandId,
+      filterType: widget.filterType,
     ));
-    
-    return _ProductsScreenView(title: title);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _ProductsScreenView(title: widget.title);
   }
 }
 
