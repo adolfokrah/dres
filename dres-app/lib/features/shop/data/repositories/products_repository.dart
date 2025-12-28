@@ -37,6 +37,8 @@ class ProductsRepository {
       if (departmentId != null) queryParams['department'] = departmentId;
       if (categoryId != null) queryParams['category'] = categoryId;
       if (collectionId != null) queryParams['collection'] = collectionId;
+      if (brandId != null) queryParams['brand'] = brandId;
+      if (filterType != null) queryParams['filterType'] = filterType;
 
       final response = await _dio.get(
         endpoint,
