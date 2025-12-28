@@ -95,20 +95,33 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
     })
   }
 
-  // Get price and currency from first SKU
-  const firstSku = variation.skus?.docs?.[0]
-  const price = firstSku && typeof firstSku === 'object' && typeof firstSku.price === 'number' 
-    ? firstSku.price 
+  // Get price and currency - prioritize SKU with compareAtPrice for on-sale items
+  let selectedSku = variation.skus?.docs?.[0]
+  
+  // If any SKU has compareAtPrice, use that one
+  if (Array.isArray(variation.skus?.docs)) {
+    const skuWithDiscount = variation.skus.docs.find((sku: any) => 
+      sku && typeof sku === 'object' && 
+      typeof sku.compareAtPrice === 'number' && 
+      sku.compareAtPrice > 0
+    )
+    if (skuWithDiscount) {
+      selectedSku = skuWithDiscount
+    }
+  }
+  
+  const price = selectedSku && typeof selectedSku === 'object' && typeof selectedSku.price === 'number' 
+    ? selectedSku.price 
     : 0
   
-  const compareAtPrice = firstSku && typeof firstSku === 'object' && typeof firstSku.compareAtPrice === 'number'
-    ? firstSku.compareAtPrice
+  const compareAtPrice = selectedSku && typeof selectedSku === 'object' && typeof selectedSku.compareAtPrice === 'number'
+    ? selectedSku.compareAtPrice
     : undefined
   
-  const currency = firstSku?.currency && typeof firstSku.currency === 'object'
+  const currency = selectedSku?.currency && typeof selectedSku.currency === 'object'
     ? {
-        code: firstSku.currency.code || '',
-        symbol: firstSku.currency.symbol || ''
+        code: selectedSku.currency.code || '',
+        symbol: selectedSku.currency.symbol || ''
       }
     : null
 

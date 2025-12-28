@@ -52,6 +52,41 @@ export const filteredVariations: PayloadHandler = async (req) => {
       $unwind: '$styleData'
     })
 
+    // Lookup SKUs to check for on-sale items
+    pipeline.push({
+      $lookup: {
+        from: 'skus',
+        localField: '_id',
+        foreignField: 'variation',
+        as: 'skuData'
+      }
+    })
+
+    // Add computed field for on-sale check
+    pipeline.push({
+      $addFields: {
+        hasOnSaleSku: {
+          $gt: [
+            {
+              $size: {
+                $filter: {
+                  input: '$skuData',
+                  as: 'sku',
+                  cond: {
+                    $and: [
+                      { $gt: ['$$sku.compareAtPrice', 0] },
+                      { $ne: ['$$sku.compareAtPrice', null] }
+                    ]
+                  }
+                }
+              }
+            },
+            0
+          ]
+        }
+      }
+    })
+
     // Build match conditions
     const matchConditions: any = {}
 
@@ -85,11 +120,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
       switch (filterType) {
         case 'on-sale':
           // Variations with SKUs that have compareAtPrice
-          matchConditions['skus'] = {
-            $elemMatch: {
-              compareAtPrice: { $exists: true, $ne: null, $gt: 0 }
-            }
-          }
+          matchConditions['hasOnSaleSku'] = true
           break
         case 'we-love':
           // Variations with active style boost
