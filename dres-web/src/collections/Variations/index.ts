@@ -9,6 +9,7 @@ import { newArrivals } from './endpoints/newArrivals'
 import { featuredVariations } from './endpoints/featured'
 import { recordView } from './endpoints/recordView'
 import { filteredVariations } from './endpoints/filtered'
+import { getVariation } from './endpoints/getVariation'
 
 interface VariantItem {
   variant?: string | { id: string }
@@ -49,6 +50,11 @@ export const Variations: CollectionConfig = {
       path: '/filtered',
       method: 'get',
       handler: filteredVariations,
+    },
+    {
+      path: '/:id',
+      method: 'get',
+      handler: getVariation,
     },
     {
       path: '/record-view',
