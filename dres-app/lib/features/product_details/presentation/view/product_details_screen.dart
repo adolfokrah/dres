@@ -222,6 +222,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                               ),
                               const SizedBox(height: 20),
 
+                               if(variation.compareAtPrice != null)
+                              Text(
+                                'GHS ${variation.compareAtPrice!.toStringAsFixed(2)}',
+                                style: AppTypography.bodyL.copyWith(
+                                  decoration: TextDecoration.lineThrough,
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 24
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+
                               // Price
                               Text(
                                 'GHS ${variation.price.toStringAsFixed(2)}',
