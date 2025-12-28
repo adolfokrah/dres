@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/di/injection.dart';
@@ -82,9 +83,10 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
         bottom: false,
         child: Column(
           children: [
-            // Header
+            // Header with back button
             AppHeader(
-              onNotificationTap: () {},
+              showBackButton: true,
+              onBackTap: () => context.pop(),
               onCartTap: () {},
               onSearchTap: () {},
             ),

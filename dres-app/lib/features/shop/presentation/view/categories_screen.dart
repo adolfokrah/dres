@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/models/menu_model.dart';
+import 'package:dres/core/widgets/app_header.dart';
 import 'package:go_router/go_router.dart';
 
 class CategoriesScreen extends StatelessWidget {
@@ -16,32 +17,37 @@ class CategoriesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Debug: Print collection name
-    debugPrint('Categories Screen - Collection: ${collection.name}, Department: $departmentName');
-    
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios,
-            color: AppColors.textPrimary,
-            size: 20,
-          ),
-          onPressed: () => context.pop(),
-        ),
-        title: Text(
-          collection.name,
-          style: AppTypography.bodyL.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: ListView.builder(
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // Header with back button
+            AppHeader(
+              showBackButton: true,
+              onBackTap: () => context.pop(),
+              onCartTap: () {},
+              onSearchTap: () {},
+            ),
+            
+            // Title
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  collection.name.toUpperCase(),
+                  style: AppTypography.titleLM.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            
+            // Categories List
+            Expanded(
+              child: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: collection.categories.length + 1,
         itemBuilder: (context, index) {
@@ -63,6 +69,10 @@ class CategoriesScreen extends StatelessWidget {
             categoryId: category.id,
           );
         },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

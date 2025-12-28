@@ -10,6 +10,8 @@ class AppHeader extends StatelessWidget {
     this.onNotificationTap,
     this.onCartTap,
     this.onSearchTap,
+    this.onBackTap,
+    this.showBackButton = false,
     this.cartItemCount = 0,
     this.notificationCount = 0,
   });
@@ -17,6 +19,8 @@ class AppHeader extends StatelessWidget {
   final VoidCallback? onNotificationTap;
   final VoidCallback? onCartTap;
   final VoidCallback? onSearchTap;
+  final VoidCallback? onBackTap;
+  final bool showBackButton;
   final int cartItemCount;
   final int notificationCount;
 
@@ -29,12 +33,17 @@ class AppHeader extends StatelessWidget {
       color: AppColors.background,
       child: Row(
         children: [
-          // Notification bell
-          _HeaderIconButton(
-            icon: PhosphorIcons.bellSimple(),
-            onTap: onNotificationTap,
-            badgeCount: notificationCount,
-          ),
+          // Back button or Notification bell
+          showBackButton
+              ? _HeaderIconButton(
+                  icon: PhosphorIcons.caretLeft(),
+                  onTap: onBackTap,
+                )
+              : _HeaderIconButton(
+                  icon: PhosphorIcons.bellSimple(),
+                  onTap: onNotificationTap,
+                  badgeCount: notificationCount,
+                ),
           
           const SizedBox(width: 12),
           
