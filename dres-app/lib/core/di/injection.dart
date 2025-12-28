@@ -5,6 +5,8 @@ import 'package:dres/features/home/data/repositories/home_repository.dart';
 import 'package:dres/features/home/logic/bloc/home_bloc.dart';
 import 'package:dres/features/splash/data/repositories/menu_repository.dart';
 import 'package:dres/features/splash/logic/menu_bloc/menu_bloc.dart';
+import 'package:dres/features/shop/data/repositories/products_repository.dart';
+import 'package:dres/features/shop/logic/products_bloc/products_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -31,6 +33,9 @@ Future<void> setupDependencies() async {
   // Menu Repository
   getIt.registerLazySingleton<MenuRepository>(() => MenuRepository(getIt<ApiService>()));
 
+  // Products Repository
+  getIt.registerLazySingleton<ProductsRepository>(() => ProductsRepository(getIt<ApiService>().dio));
+
   // ========================
   // BLoCs (Factory - new instance each time)
   // ========================
@@ -40,4 +45,7 @@ Future<void> setupDependencies() async {
 
   // Menu Bloc
   getIt.registerFactory<MenuBloc>(() => MenuBloc(getIt<MenuRepository>()));
+
+  // Products Bloc
+  getIt.registerFactory<ProductsBloc>(() => ProductsBloc(getIt<ProductsRepository>()));
 }

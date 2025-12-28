@@ -7,6 +7,7 @@ import 'package:dres/features/favourite/favourite.dart';
 import 'package:dres/features/profile/profile.dart';
 import 'package:dres/features/shop/presentation/view/shop_screen.dart';
 import 'package:dres/features/shop/presentation/view/categories_screen.dart';
+import 'package:dres/features/shop/presentation/view/products_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
 import 'package:dres/core/models/menu_model.dart';
 
@@ -27,6 +28,7 @@ class AppRoutes {
   static const String shop = '/shop';
   static const String discover = '/discover';
   static const String categories = 'categories';
+  static const String products = 'products';
   static const String sell = '/sell';
   static const String favourite = '/favourite';
   static const String profile = '/profile';
@@ -83,7 +85,6 @@ class AppRoutes {
                     builder: (context, state) {
                       final extra = state.extra as Map<String, dynamic>?;
                       if (extra == null) {
-                        // Fallback if extra is null
                         return const Scaffold(
                           body: Center(child: Text('No collection data')),
                         );
@@ -93,6 +94,26 @@ class AppRoutes {
                         departmentName: extra['departmentName'] as String,
                       );
                     },
+                    routes: [
+                      GoRoute(
+                        path: products,
+                        name: 'products',
+                        builder: (context, state) {
+                          final extra = state.extra as Map<String, dynamic>?;
+                          if (extra == null) {
+                            return const Scaffold(
+                              body: Center(child: Text('No product data')),
+                            );
+                          }
+                          return ProductsScreen(
+                            departmentId: extra['departmentId'] as String?,
+                            categoryId: extra['categoryId'] as String?,
+                            collectionId: extra['collectionId'] as String?,
+                            title: extra['title'] as String,
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),

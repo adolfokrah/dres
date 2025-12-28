@@ -20,6 +20,7 @@ const String pageById = '$pages/';
 const String trendingVariations = '/variations/trending';
 const String newArrivals = '/variations/new-arrivals';
 const String featuredVariations = '/variations/featured';
+const String filteredVariations = '/variations/filtered';
 
 // Menu
 const String menu = '$apiBaseUrl/menu';

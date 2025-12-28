@@ -50,6 +50,7 @@ class CategoriesScreen extends StatelessWidget {
             return _buildCategoryItem(
               context,
               'All $departmentName ${collection.name}',
+              collectionId: collection.id,
               isAll: true,
             );
           }
@@ -59,18 +60,32 @@ class CategoriesScreen extends StatelessWidget {
           return _buildCategoryItem(
             context,
             category.name,
+            categoryId: category.id,
           );
         },
       ),
     );
   }
 
-  Widget _buildCategoryItem(BuildContext context, String categoryName, {bool isAll = false}) {
+  Widget _buildCategoryItem(
+    BuildContext context,
+    String categoryName, {
+    String? categoryId,
+    String? collectionId,
+    bool isAll = false,
+  }) {
     return Column(
       children: [
         InkWell(
           onTap: () {
-            // TODO: Navigate to products page with this category
+            context.push(
+              '/discover/categories/products',
+              extra: {
+                'categoryId': categoryId,
+                'collectionId': collectionId,
+                'title': categoryName,
+              },
+            );
           },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

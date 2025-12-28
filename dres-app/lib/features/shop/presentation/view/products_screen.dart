@@ -1,0 +1,184 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dres/core/theme/app_colors.dart';
+import 'package:dres/core/theme/app_typography.dart';
+import 'package:dres/core/di/injection.dart';
+import 'package:dres/core/widgets/app_header.dart';
+import 'package:dres/core/widgets/product_card.dart';
+import 'package:dres/features/shop/logic/products_bloc/products_bloc.dart';
+import 'package:dres/features/shop/logic/products_bloc/products_event.dart';
+import 'package:dres/features/shop/logic/products_bloc/products_state.dart';
+
+class ProductsScreen extends StatelessWidget {
+  final String? departmentId;
+  final String? categoryId;
+  final String? collectionId;
+  final String title;
+
+  const ProductsScreen({
+    super.key,
+    this.departmentId,
+    this.categoryId,
+    this.collectionId,
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => getIt<ProductsBloc>()
+        ..add(FetchProducts(
+          departmentId: departmentId,
+          categoryId: categoryId,
+          collectionId: collectionId,
+        )),
+      child: _ProductsScreenView(title: title),
+    );
+  }
+}
+
+class _ProductsScreenView extends StatefulWidget {
+  final String title;
+
+  const _ProductsScreenView({required this.title});
+
+  @override
+  State<_ProductsScreenView> createState() => _ProductsScreenViewState();
+}
+
+class _ProductsScreenViewState extends State<_ProductsScreenView> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_isBottom) {
+      context.read<ProductsBloc>().add(const LoadMoreProducts());
+    }
+  }
+
+  bool get _isBottom {
+    if (!_scrollController.hasClients) return false;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    return currentScroll >= (maxScroll * 0.9);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            // Header
+            AppHeader(
+              onNotificationTap: () {},
+              onCartTap: () {},
+              onSearchTap: () {},
+            ),
+
+            const SizedBox(height: 16),
+
+            // Products Grid
+            Expanded(
+              child: BlocBuilder<ProductsBloc, ProductsState>(
+                builder: (context, state) {
+                  if (state.status == ProductsStatus.loading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (state.status == ProductsStatus.failure) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Failed to load products',
+                            style: AppTypography.bodyL,
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton(
+                            onPressed: () {
+                              context.read<ProductsBloc>().add(const RefreshProducts());
+                            },
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  if (state.products.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No products found',
+                        style: AppTypography.bodyL,
+                      ),
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      context.read<ProductsBloc>().add(const RefreshProducts());
+                      await Future.delayed(const Duration(milliseconds: 500));
+                    },
+                    child: GridView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.65,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                      ),
+                      itemCount: state.products.length +
+                          (state.status == ProductsStatus.loadingMore ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index >= state.products.length) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        final product = state.products[index];
+                        return ProductCard(
+                          id: product.id,
+                          thumbnail: product.thumbnail,
+                          brand: product.brand ?? '',
+                          category: product.category ?? '',
+                          title: product.title,
+                          price: product.price,
+                          compareAtPrice: product.compareAtPrice,
+                          currencyCode: 'GHS',
+                          currencySymbol: 'GHS',
+                          slug: product.slug,
+                          isFavorited: false,
+                          showLeftBorder: index % 2 == 0,
+                          onFavoriteToggle: (id, isFavorited) {
+                            // TODO: Toggle favorite
+                          },
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
