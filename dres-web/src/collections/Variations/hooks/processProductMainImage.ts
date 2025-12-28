@@ -114,9 +114,8 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
       return doc
     }
 
-    // Remove background and add white background
+    // Remove background and keep it transparent
     const result = await removeBackgroundFromBuffer(imageBuffer, {
-      bgColor: 'FFFFFF',
       size: 'auto',
       format: 'png',
     })

@@ -38,9 +38,21 @@ export async function removeBackgroundFromBuffer(
     }
   }
 
-  const { bgColor = 'FFFFFF', size = 'auto', format = 'png' } = options || {}
+  const { bgColor, size = 'auto', format = 'png' } = options || {}
 
   try {
+    // Build URL params
+    const params: Record<string, string> = {
+      image_file_b64: imageBuffer.toString('base64'),
+      size: size,
+      format: format,
+    }
+    
+    // Only add bg_color if specified (otherwise keep transparent)
+    if (bgColor) {
+      params.bg_color = bgColor
+    }
+    
     // Send the raw image as binary data
     const response = await fetch('https://api.remove.bg/v1.0/removebg', {
       method: 'POST',
@@ -48,12 +60,7 @@ export async function removeBackgroundFromBuffer(
         'X-Api-Key': apiKey,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: new URLSearchParams({
-        image_file_b64: imageBuffer.toString('base64'),
-        size: size,
-        format: format,
-        bg_color: bgColor,
-      }),
+      body: new URLSearchParams(params),
     })
 
     if (!response.ok) {
