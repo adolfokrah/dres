@@ -228,6 +228,7 @@ class _ShopScreenState extends State<ShopScreen> {
           subtitle: l10n.dailyDropPersonalized,
           imageText: 'NEW',
           gradientColors: const [Color(0xFF121212), Color(0xFF939393)],
+          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'new-arrivals', l10n.newArrivalsForYou),
         ),
         ShopPromoCard(
           title: l10n.designers,
@@ -235,6 +236,7 @@ class _ShopScreenState extends State<ShopScreen> {
           imageText: '',
           imagePath: 'assets/images/designers_men.png',
           gradientColors: const [Color(0xFF121212), Color(0xFF939393)],
+          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'designers', l10n.designers),
         ),
         ShopPromoCard(
           title: l10n.weLove,
@@ -242,12 +244,14 @@ class _ShopScreenState extends State<ShopScreen> {
           imageText: '',
           imagePath: 'assets/images/we_love_men.png',
           gradientColors: const [Color(0xFF121212), Color(0xFF939393)],
+          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'we-love', l10n.weLove),
         ),
         ShopPromoCard(
           title: l10n.onSale,
           subtitle: l10n.finestDeals,
           imageText: 'SALE',
           gradientColors: const [Color(0xFF121212), Color(0xFF77B1CA)],
+          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'on-sale', l10n.onSale),
         ),
       ];
     } else if (name == 'kids') {
@@ -257,6 +261,7 @@ class _ShopScreenState extends State<ShopScreen> {
           subtitle: l10n.dailyDropPersonalized,
           badgeImagePath: 'assets/images/arrival_kids.png',
           gradientColors: const [Color(0xFF121212), Color(0xFF939393)],
+          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'new-arrivals', l10n.newArrivalsForYou),
         ),
       ];
     }

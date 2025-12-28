@@ -248,7 +248,7 @@ class _BrandsScreenViewState extends State<_BrandsScreenView> {
       children: [
         InkWell(
           onTap: () {
-            // Navigate to products filtered by this brand
+            // Navigate to products filtered by this brand and department
             context.push(
               '/discover/categories/products',
               extra: {

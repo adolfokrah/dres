@@ -44,7 +44,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
 
     // Filter by brand (convert string to ObjectId if valid, otherwise keep as string)
     if (brand) {
-      // Try to convert to ObjectId, if invalid keep as string (for custom brand IDs)
+      // The brand is stored as ObjectId reference in style.brand
       try {
         matchConditions['styleData.brand'] = new Types.ObjectId(brand as string)
       } catch {
