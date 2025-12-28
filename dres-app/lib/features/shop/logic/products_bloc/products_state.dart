@@ -16,6 +16,8 @@ class ProductsState extends Equatable {
   final String? collectionId;
   final String? brandId;
   final String? filterType;
+  final String? sortBy;
+  final String? sortPrice;
 
   const ProductsState({
     this.status = ProductsStatus.initial,
@@ -30,6 +32,8 @@ class ProductsState extends Equatable {
     this.collectionId,
     this.brandId,
     this.filterType,
+    this.sortBy,
+    this.sortPrice,
   });
 
   ProductsState copyWith({
@@ -45,6 +49,8 @@ class ProductsState extends Equatable {
     String? collectionId,
     String? brandId,
     String? filterType,
+    String? sortBy,
+    String? sortPrice,
   }) {
     return ProductsState(
       status: status ?? this.status,
@@ -59,6 +65,8 @@ class ProductsState extends Equatable {
       collectionId: collectionId ?? this.collectionId,
       brandId: brandId ?? this.brandId,
       filterType: filterType ?? this.filterType,
+      sortBy: sortBy ?? this.sortBy,
+      sortPrice: sortPrice ?? this.sortPrice,
     );
   }
 
@@ -76,5 +84,7 @@ class ProductsState extends Equatable {
         collectionId,
         brandId,
         filterType,
+        sortBy,
+        sortPrice,
       ];
 }

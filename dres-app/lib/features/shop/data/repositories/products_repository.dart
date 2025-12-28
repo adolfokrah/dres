@@ -13,6 +13,8 @@ class ProductsRepository {
     String? collectionId,
     String? brandId,
     String? filterType,
+    String? sortBy,
+    String? sortPrice,
     int page = 1,
     int limit = 20,
   }) async {
@@ -30,6 +32,8 @@ class ProductsRepository {
       if (collectionId != null) queryParams['collection'] = collectionId;
       if (brandId != null) queryParams['brand'] = brandId;
       if (filterType != null) queryParams['filterType'] = filterType;
+      if (sortBy != null) queryParams['sortBy'] = sortBy;
+      if (sortPrice != null) queryParams['sortPrice'] = sortPrice;
 
       final response = await _dio.get(
         endpoint,

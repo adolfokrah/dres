@@ -4,7 +4,7 @@ import { transformVariation } from '../utils/transformVariation'
 
 export const filteredVariations: PayloadHandler = async (req) => {
   const { payload } = req
-  const { department, category, collection, brand, filterType, limit = 20, page = 1 } = req.query
+  const { department, category, collection, brand, filterType, sortBy, sortPrice, limit = 20, page = 1 } = req.query
 
   try {
     // Build the aggregation pipeline
@@ -143,9 +143,19 @@ export const filteredVariations: PayloadHandler = async (req) => {
     let sortField = 'createdAt'
     let sortOrder = -1 // descending by default
     
-    if (filterType === 'new-arrivals') {
+    // Handle sortBy parameter (latest/oldest)
+    if (sortBy === 'oldest') {
       sortField = 'createdAt'
-      sortOrder = -1 // newest first
+      sortOrder = 1 // ascending for oldest
+    } else if (sortBy === 'latest' || filterType === 'new-arrivals') {
+      sortField = 'createdAt'
+      sortOrder = -1 // descending for latest/new arrivals
+    }
+    
+    // Handle sortPrice parameter (asc/desc) - overrides other sorts
+    if (sortPrice) {
+      sortField = 'skuData.price'
+      sortOrder = sortPrice === 'desc' ? -1 : 1
     } else if (filterType === 'on-sale') {
       sortField = 'createdAt'
       sortOrder = -1 // newest sales first

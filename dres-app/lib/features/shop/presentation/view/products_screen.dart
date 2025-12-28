@@ -10,6 +10,7 @@ import 'package:dres/features/shop/logic/products_bloc/products_bloc.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_event.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_state.dart';
 import 'package:dres/features/shop/presentation/widgets/products_header.dart';
+import 'package:dres/features/shop/presentation/widgets/products_filter_bar.dart';
 
 class ProductsScreen extends StatelessWidget {
   final String? departmentId;
@@ -105,6 +106,28 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                   itemCount: state.totalDocs,
                   onSaveSearch: () {
                     // TODO: Save search functionality
+                  },
+                );
+              },
+            ),
+
+            // Filter Bar
+            BlocBuilder<ProductsBloc, ProductsState>(
+              builder: (context, state) {
+                return ProductsFilterBar(
+                  selectedSort: state.sortBy == 'oldest' 
+                      ? SortOption.oldest 
+                      : SortOption.latest,
+                  selectedPrice: state.sortPrice == 'desc' 
+                      ? PriceOption.highToLow 
+                      : PriceOption.lowToHigh,
+                  onSortChanged: (sortOption) {
+                    final sortBy = sortOption == SortOption.oldest ? 'oldest' : 'latest';
+                    context.read<ProductsBloc>().add(ChangeSortOption(sortBy));
+                  },
+                  onPriceChanged: (priceOption) {
+                    final sortPrice = priceOption == PriceOption.highToLow ? 'desc' : 'asc';
+                    context.read<ProductsBloc>().add(ChangePriceSort(sortPrice));
                   },
                 );
               },

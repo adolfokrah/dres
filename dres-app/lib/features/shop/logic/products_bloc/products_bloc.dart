@@ -11,6 +11,8 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     on<FetchProducts>(_onFetchProducts);
     on<LoadMoreProducts>(_onLoadMoreProducts);
     on<RefreshProducts>(_onRefreshProducts);
+    on<ChangeSortOption>(_onChangeSortOption);
+    on<ChangePriceSort>(_onChangePriceSort);
   }
 
   Future<void> _onFetchProducts(
@@ -24,6 +26,8 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       collectionId: event.collectionId,
       brandId: event.brandId,
       filterType: event.filterType,
+      sortBy: event.sortBy,
+      sortPrice: event.sortPrice,
     ));
 
     try {
@@ -33,6 +37,8 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         collectionId: event.collectionId,
         brandId: event.brandId,
         filterType: event.filterType,
+        sortBy: event.sortBy,
+        sortPrice: event.sortPrice,
         page: event.page,
       );
 
@@ -69,6 +75,8 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         collectionId: state.collectionId,
         brandId: state.brandId,
         filterType: state.filterType,
+        sortBy: state.sortBy,
+        sortPrice: state.sortPrice,
         page: state.currentPage + 1,
       );
 
@@ -101,7 +109,42 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       departmentId: state.departmentId,
       categoryId: state.categoryId,
       collectionId: state.collectionId,
+      brandId: state.brandId,
       filterType: state.filterType,
+      sortBy: state.sortBy,
+      sortPrice: state.sortPrice,
+      page: 1,
+    ));
+  }
+
+  Future<void> _onChangeSortOption(
+    ChangeSortOption event,
+    Emitter<ProductsState> emit,
+  ) async {
+    add(FetchProducts(
+      departmentId: state.departmentId,
+      categoryId: state.categoryId,
+      collectionId: state.collectionId,
+      brandId: state.brandId,
+      filterType: state.filterType,
+      sortBy: event.sortBy,
+      sortPrice: state.sortPrice,
+      page: 1,
+    ));
+  }
+
+  Future<void> _onChangePriceSort(
+    ChangePriceSort event,
+    Emitter<ProductsState> emit,
+  ) async {
+    add(FetchProducts(
+      departmentId: state.departmentId,
+      categoryId: state.categoryId,
+      collectionId: state.collectionId,
+      brandId: state.brandId,
+      filterType: state.filterType,
+      sortBy: state.sortBy,
+      sortPrice: event.sortPrice,
       page: 1,
     ));
   }
