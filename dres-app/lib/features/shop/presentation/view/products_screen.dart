@@ -161,7 +161,6 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                           sliver: SliverGrid(
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              mainAxisSpacing: 16,
                               childAspectRatio: 0.5, // Taller cards to accommodate all content
                             ),
                             delegate: SliverChildBuilderDelegate(

@@ -17,17 +17,8 @@ class ProductsRepository {
     int limit = 20,
   }) async {
     try {
-      // Determine which endpoint to use based on filterType
-      String endpoint;
-      if (filterType == 'new-arrivals') {
-        endpoint = api.newArrivals;
-      } else if (filterType == 'featured' || filterType == 'we-love') {
-        endpoint = api.featuredVariations;
-      } else if (filterType == 'trending' || filterType == 'designers') {
-        endpoint = api.trendingVariations;
-      } else {
-        endpoint = api.filteredVariations;
-      }
+      // Always use the filtered endpoint which supports all filter types
+      final endpoint = api.filteredVariations;
 
       final queryParams = <String, dynamic>{
         'page': page,
