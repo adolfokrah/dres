@@ -4,6 +4,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../utilities/media_utils.dart';
 import 'package:dres/l10n/app_localizations.dart';
+import 'package:dres/core/widgets/badge_widget.dart';
 
 class ProductCard extends StatefulWidget {
   final String id;
@@ -123,23 +124,11 @@ class _ProductCardState extends State<ProductCard> {
                   children: [
                   // WE LOVE tag
                   if (widget.isBoosted) 
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                      ),
-                      child: Text(
-                        l10n.weLove,
-                        style: AppTypography.bodyXS.copyWith(
-                          color: AppColors.textOnPrimary,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                          fontSize: 10,
-                        ),
-                      ),
+                    BadgeWidget(
+                      text: l10n.weLove,
+                      backgroundColor: AppColors.primary,
+                      borderColor: AppColors.primary,
+                      textColor: AppColors.textOnPrimary,
                     ),
                     if(!widget.isBoosted)
                     const SizedBox(height: 15),

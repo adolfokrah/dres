@@ -1,4 +1,5 @@
 import 'package:dres/core/widgets/simple_header.dart';
+import 'package:dres/core/widgets/badge_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dres/core/theme/app_colors.dart';
@@ -10,6 +11,7 @@ import 'package:dres/features/product_details/logic/product_details_bloc/product
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_state.dart';
 import 'package:dres/features/product_details/presentation/widgets/product_image_carousel.dart';
 import 'package:dres/features/product_details/presentation/widgets/variation_thumbnails.dart';
+import 'package:dres/features/product_details/presentation/widgets/buyer_protection_fee.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
@@ -144,27 +146,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             children: [
                               // Tags (Vintage, We Love)
                               if (variation.isBoosted)
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 5,
-                                        vertical: 5,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.surface,
-                                        border: Border.all(
-                                          color: AppColors.textSecondary,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        'WE LOVE',
-                                        style: AppTypography.bodyXS.copyWith(
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                const BadgeWidget(
+                                  text: 'We Love',
                                 ),
                               const SizedBox(height: 10),
 
@@ -249,7 +232,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                               ),
                               const SizedBox(height: 10),
 
-                              // TODO: Add buyer protection, size selector, add to bag button
+                              // Buyer Protection Fee
+                              BuyerProtectionFee(
+                                fee: 35.00,
+                              ),
+                              const SizedBox(height: 10),
+
+                              // TODO: Add size selector, add to bag button
                             ],
                           ),
                         ),
