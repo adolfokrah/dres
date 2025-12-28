@@ -1,4 +1,5 @@
 import type { PayloadHandler } from 'payload'
+import { Types } from 'mongoose'
 import { transformVariation } from '../utils/transformVariation'
 
 export const filteredVariations: PayloadHandler = async (req) => {
@@ -6,107 +7,137 @@ export const filteredVariations: PayloadHandler = async (req) => {
   const { department, category, collection, brand, filterType, limit = 20, page = 1 } = req.query
 
   try {
-    // Build the where clause for styles using IDs
-    const styleWhere: any = {}
-    const variationWhere: any = {}
-    
+    // Build the aggregation pipeline
+    const pipeline: any[] = []
+
+    // Lookup style information
+    pipeline.push({
+      $lookup: {
+        from: 'styles',
+        localField: 'style',
+        foreignField: '_id',
+        as: 'styleData'
+      }
+    })
+
+    pipeline.push({
+      $unwind: '$styleData'
+    })
+
+    // Build match conditions
+    const matchConditions: any = {}
+
+    // Filter by department (convert string to ObjectId)
     if (department) {
-      styleWhere.department = { equals: department }
+      matchConditions['styleData.department'] = new Types.ObjectId(department as string)
     }
-    
+
+    // Filter by collection (convert string to ObjectId)
     if (collection) {
-      styleWhere.collection = { equals: collection }
+      matchConditions['styleData.collection'] = new Types.ObjectId(collection as string)
     }
-    
+
+    // Filter by category (convert string to ObjectId)
     if (category) {
-      styleWhere.category = { equals: category }
+      matchConditions['styleData.category'] = new Types.ObjectId(category as string)
     }
 
-    // Add brand filter if provided
+    // Filter by brand (convert string to ObjectId)
     if (brand) {
-      variationWhere.brand = { equals: brand }
+      matchConditions['brand'] = new Types.ObjectId(brand as string)
     }
 
-    // Apply filter type to variations
+    // Apply filter type
     if (filterType) {
       switch (filterType) {
         case 'on-sale':
-          // Variations with discount > 0
-          variationWhere.discount = { greater_than: 0 }
+          // Variations with SKUs that have compareAtPrice
+          matchConditions['skus'] = {
+            $elemMatch: {
+              compareAtPrice: { $exists: true, $ne: null, $gt: 0 }
+            }
+          }
           break
         case 'we-love':
-          // Boosted/featured variations
-          variationWhere.isBoosted = { equals: true }
-          break
-        case 'designers':
-          // This is handled by navigating to brands screen, not filtering here
+          // Variations with active style boost
+          matchConditions['styleData.boost.active'] = true
           break
         case 'new-arrivals':
-          // Most recent variations - handled by sort, no where clause needed
+          // Will be handled by sort (createdAt descending)
           break
       }
     }
 
-    // First, find matching styles
-    const styles = await payload.find({
-      collection: 'styles',
-      where: Object.keys(styleWhere).length > 0 ? styleWhere : undefined,
-      pagination: false,
-      depth: 0,
-    })
-
-    const styleIds = styles.docs.map(style => style.id)
-
-    // If no styles found with the filters, return empty
-    if (styleIds.length === 0 && Object.keys(styleWhere).length > 0) {
-      return Response.json({
-        variations: [],
-        totalDocs: 0,
-        totalPages: 0,
-        page: 1,
-        limit: Number(limit),
-        hasNextPage: false,
-        hasPrevPage: false,
+    // Add match stage if we have conditions
+    if (Object.keys(matchConditions).length > 0) {
+      pipeline.push({
+        $match: matchConditions
       })
     }
 
-    // Build final where clause for variations
-    const finalWhere: any = { ...variationWhere }
-    if (styleIds.length > 0) {
-      finalWhere.style = { in: styleIds }
-    }
-
-    // Determine sort order based on filter type
-    let sortOrder = '-createdAt'
+    // Determine sort order
+    let sortField = 'createdAt'
+    let sortOrder = -1 // descending by default
+    
     if (filterType === 'new-arrivals') {
-      sortOrder = '-createdAt' // Most recent first
+      sortField = 'createdAt'
+      sortOrder = -1 // newest first
     } else if (filterType === 'on-sale') {
-      sortOrder = '-discount' // Highest discount first
+      sortField = 'createdAt'
+      sortOrder = -1 // newest sales first
+    } else if (filterType === 'we-love') {
+      sortField = 'styleData.boost.startDate'
+      sortOrder = -1 // most recently boosted first
     }
 
-    // Now find variations that belong to these styles
-    const variations = await payload.find({
-      collection: 'variations',
-      where: Object.keys(finalWhere).length > 0 ? finalWhere : undefined,
-      limit: Number(limit),
-      page: Number(page),
-      depth: 2,
-      sort: sortOrder,
+    // Add sort stage
+    pipeline.push({
+      $sort: { [sortField]: sortOrder }
     })
 
-    // Transform all variations
-    const transformedVariations = variations.docs.map(variation => 
-      transformVariation(variation)
+    // Add pagination - facet for both data and count
+    pipeline.push({
+      $facet: {
+        metadata: [{ $count: 'total' }],
+        data: [
+          { $skip: (Number(page) - 1) * Number(limit) },
+          { $limit: Number(limit) }
+        ]
+      }
+    })
+
+    // Execute aggregation
+    const db = payload.db
+    const variationsCollection = db.collections['variations']
+    const result: any[] = await variationsCollection.aggregate(pipeline)
+
+    const totalDocs = result[0]?.metadata[0]?.total || 0
+    const variations = result[0]?.data || []
+
+    // Transform variations
+    const transformedVariations = await Promise.all(
+      variations.map(async (variation: any) => {
+        // Fetch full variation with depth for transformation
+        const fullVariation = await payload.findByID({
+          collection: 'variations',
+          id: variation._id,
+          depth: 2,
+        })
+        return transformVariation(fullVariation)
+      })
     )
+
+    const totalPages = Math.ceil(totalDocs / Number(limit))
+    const currentPage = Number(page)
 
     return Response.json({
       variations: transformedVariations,
-      totalDocs: variations.totalDocs,
-      totalPages: variations.totalPages,
-      page: variations.page,
-      limit: variations.limit,
-      hasNextPage: variations.hasNextPage,
-      hasPrevPage: variations.hasPrevPage,
+      totalDocs,
+      totalPages,
+      page: currentPage,
+      limit: Number(limit),
+      hasNextPage: currentPage < totalPages,
+      hasPrevPage: currentPage > 1,
     })
   } catch (error) {
     payload.logger.error(`Error fetching filtered variations: ${error}`)
