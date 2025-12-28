@@ -37,13 +37,16 @@ class ProductsRepository {
       if (sortPrice != null) queryParams['sortPrice'] = sortPrice;
       
       // Add attribute filters
+      // Format: attributes=attributeId:optionId1,optionId2
       if (selectedAttributes != null && selectedAttributes.isNotEmpty) {
-        selectedAttributes.forEach((attributeId, optionIds) {
-          if (optionIds.isNotEmpty) {
-            // Format: attributeId:optionId1,optionId2
-            queryParams['attributes[$attributeId]'] = optionIds.join(',');
-          }
-        });
+        final attributeParams = selectedAttributes.entries
+            .where((entry) => entry.value.isNotEmpty)
+            .map((entry) => '${entry.key}:${entry.value.join(',')}')
+            .toList();
+        
+        if (attributeParams.isNotEmpty) {
+          queryParams['attributes'] = attributeParams.join('|');
+        }
       }
 
       final response = await _dio.get(

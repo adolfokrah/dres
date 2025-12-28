@@ -376,32 +376,61 @@ class ProductsFilterBar extends StatelessWidget {
                   ),
                 ),
                 
-                // Apply Button
+                // Apply and Reset Buttons
                 Padding(
                   padding: const EdgeInsets.all(20),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        onAttributeFilterChanged?.call(filter.id, initialSelection);
-                        Navigator.pop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.textPrimary,
-                        foregroundColor: AppColors.surface,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.zero,
+                  child: Row(
+                    children: [
+                      // Reset Button
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            onAttributeFilterChanged?.call(filter.id, []);
+                            Navigator.pop(context);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.textPrimary,
+                            side: BorderSide(color: AppColors.textPrimary),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.zero,
+                            ),
+                          ),
+                          child: Text(
+                            'Reset',
+                            style: AppTypography.bodyL.copyWith(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
-                      child: Text(
-                        'Apply',
-                        style: AppTypography.bodyL.copyWith(
-                          color: AppColors.surface,
-                          fontWeight: FontWeight.w600,
+                      const SizedBox(width: 12),
+                      // Apply Button
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            onAttributeFilterChanged?.call(filter.id, initialSelection);
+                            Navigator.pop(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.textPrimary,
+                            foregroundColor: AppColors.surface,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.zero,
+                            ),
+                          ),
+                          child: Text(
+                            'Apply',
+                            style: AppTypography.bodyL.copyWith(
+                              color: AppColors.surface,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ],

@@ -4,19 +4,25 @@ import { transformVariation } from '../utils/transformVariation'
 
 export const filteredVariations: PayloadHandler = async (req) => {
   const { payload } = req
-  const { department, category, collection, brand, filterType, sortBy, sortPrice, limit = 20, page = 1, ...queryParams } = req.query
+  const { department, category, collection, brand, filterType, sortBy, sortPrice, attributes, limit = 20, page = 1 } = req.query
 
   // Parse attribute filters from query params
-  // Format: attributes[attributeId]=optionId1,optionId2
+  // Format: attributes=attributeId:optionId1,optionId2|attributeId2:optionId3,optionId4
   const attributeFilters: Record<string, string[]> = {}
-  Object.keys(queryParams).forEach(key => {
-    const match = key.match(/^attributes\[(.+)\]$/)
-    if (match) {
-      const attributeId = match[1]
-      const optionIds = (queryParams[key] as string).split(',')
-      attributeFilters[attributeId] = optionIds
-    }
-  })
+  
+  if (attributes && typeof attributes === 'string') {
+    const attributePairs = attributes.split('|')
+    attributePairs.forEach(pair => {
+      const [attributeId, optionIdsStr] = pair.split(':')
+      if (attributeId && optionIdsStr) {
+        attributeFilters[attributeId] = optionIdsStr.split(',')
+        payload.logger.info(`Parsed attribute filter: ${attributeId} = ${optionIdsStr}`)
+      }
+    })
+  }
+
+  // Debug logging
+  payload.logger.info(`Attribute filters parsed: ${JSON.stringify(attributeFilters)}`)
 
   try {
     // Build the aggregation pipeline
@@ -104,7 +110,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
     })
 
     // Build match conditions
-    const matchConditions: any = {}
+    let matchConditions: any = {}
 
     // Filter by department (convert string to ObjectId)
     if (department) {
@@ -149,23 +155,51 @@ export const filteredVariations: PayloadHandler = async (req) => {
     }
 
     // Apply attribute filters
-    // Filter variations by their variant attributes (e.g., Color: Red, Size: M)
+    // Filter by BOTH variation-level (variants) and SKU-level (skuOptions) attributes
     if (Object.keys(attributeFilters).length > 0) {
       const attributeConditions = Object.entries(attributeFilters).map(([attributeId, optionIds]) => {
+        payload.logger.info(`Creating condition for attribute ${attributeId} with options: ${optionIds.join(',')}`)
+        
+        // Check if variation has this attribute in variants OR any SKU has it in skuOptions
         return {
-          variants: {
-            $elemMatch: {
-              variant: new Types.ObjectId(attributeId),
-              value: { $in: optionIds.map(id => new Types.ObjectId(id)) }
+          $or: [
+            // Variation-level attribute (e.g., Color)
+            {
+              variants: {
+                $elemMatch: {
+                  variant: new Types.ObjectId(attributeId),
+                  value: { $in: optionIds.map(id => new Types.ObjectId(id)) }
+                }
+              }
+            },
+            // SKU-level attribute (e.g., Size)
+            {
+              'skuData.skuOptions': {
+                $elemMatch: {
+                  option: new Types.ObjectId(attributeId),
+                  value: { $in: optionIds.map(id => new Types.ObjectId(id)) }
+                }
+              }
             }
-          }
+          ]
         }
       })
       
-      // All attribute conditions must match (AND logic)
-      if (attributeConditions.length > 0) {
-        matchConditions['$and'] = attributeConditions
+      // If we already have conditions in matchConditions, we need to combine them
+      const existingConditions = Object.entries(matchConditions).map(([key, value]) => ({ [key]: value }))
+      
+      // Create a new $and array with all conditions
+      if (existingConditions.length > 0) {
+        matchConditions = {
+          $and: [...existingConditions, ...attributeConditions]
+        }
+      } else {
+        matchConditions = {
+          $and: attributeConditions
+        }
       }
+      
+      payload.logger.info(`Final match with attributes: ${JSON.stringify(matchConditions, null, 2)}`)
     }
 
     // Add match stage if we have conditions
@@ -284,7 +318,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
       availableAttributes = attributesResult.docs
     }
 
-    // For each attribute, fetch its options
+    // For each attribute, fetch its options (filtered by category if available)
     const filters = await Promise.all(
       availableAttributes.map(async (attr: any) => {
         const attributeId = typeof attr === 'object' ? attr.id : attr
@@ -293,11 +327,22 @@ export const filteredVariations: PayloadHandler = async (req) => {
           id: attributeId,
         })
 
+        // Build where clause for options
+        const optionsWhere: any = {
+          attribute: { equals: attributeId }
+        }
+        
+        // Filter options by category if category is provided
+        if (category) {
+          optionsWhere.or = [
+            { categories: { contains: category } },
+            { categories: { exists: false } }
+          ]
+        }
+
         const optionsResult = await payload.find({
           collection: 'attributeOptions',
-          where: {
-            attribute: { equals: attributeId }
-          },
+          where: optionsWhere,
           limit: 100,
         })
 
