@@ -224,6 +224,63 @@ export const filteredVariations: PayloadHandler = async (req) => {
     const totalPages = Math.ceil(totalDocs / Number(limit))
     const currentPage = Number(page)
 
+    // Fetch available attributes for filtering
+    // Get attributes based on category if provided, otherwise get all variation-level attributes
+    let availableAttributes: any[] = []
+    
+    if (category) {
+      // Fetch attributes associated with this category
+      const categoryDoc = await payload.findByID({
+        collection: 'categories',
+        id: category as string,
+        depth: 2,
+      })
+      
+      if (categoryDoc && Array.isArray(categoryDoc.attributes)) {
+        availableAttributes = categoryDoc.attributes
+      }
+    } else {
+      // Fetch all variation-level attributes
+      const attributesResult = await payload.find({
+        collection: 'attributes',
+        where: {
+          level: { equals: 'variation' }
+        },
+        depth: 1,
+        limit: 100,
+      })
+      availableAttributes = attributesResult.docs
+    }
+
+    // For each attribute, fetch its options
+    const filters = await Promise.all(
+      availableAttributes.map(async (attr: any) => {
+        const attributeId = typeof attr === 'object' ? attr.id : attr
+        const attributeData = typeof attr === 'object' ? attr : await payload.findByID({
+          collection: 'attributes',
+          id: attributeId,
+        })
+
+        const optionsResult = await payload.find({
+          collection: 'attributeOptions',
+          where: {
+            attribute: { equals: attributeId }
+          },
+          limit: 100,
+        })
+
+        return {
+          id: attributeId,
+          name: attributeData.name,
+          options: optionsResult.docs.map((opt: any) => ({
+            id: opt.id,
+            name: opt.name,
+            slug: opt.slug,
+          }))
+        }
+      })
+    )
+
     return Response.json({
       variations: transformedVariations,
       totalDocs,
@@ -232,6 +289,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
       limit: Number(limit),
       hasNextPage: currentPage < totalPages,
       hasPrevPage: currentPage > 1,
+      filters,
     })
   } catch (error) {
     payload.logger.error(`Error fetching filtered variations: ${error}`)

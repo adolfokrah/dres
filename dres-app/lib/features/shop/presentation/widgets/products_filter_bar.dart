@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:dres/core/models/attribute_filter_model.dart';
 
 enum SortOption {
   latest,
@@ -17,22 +18,29 @@ enum PriceOption {
 class ProductsFilterBar extends StatelessWidget {
   final SortOption selectedSort;
   final PriceOption selectedPrice;
+  final List<AttributeFilterModel> filters;
   final Function(SortOption) onSortChanged;
   final Function(PriceOption) onPriceChanged;
+  final Function(String attributeId, List<String> optionIds)? onAttributeFilterChanged;
 
   const ProductsFilterBar({
     super.key,
     required this.selectedSort,
     required this.selectedPrice,
+    this.filters = const [],
     required this.onSortChanged,
     required this.onPriceChanged,
+    this.onAttributeFilterChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
-      child: Row(
+      height: 48,
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 15),
         children: [
           // Sort Filter
           _buildFilterButton(
@@ -53,6 +61,18 @@ class ProductsFilterBar extends StatelessWidget {
             isWide: true,
             onTap: () => _showPriceOptions(context),
           ),
+          
+          // Attribute Filters
+          ...filters.map((filter) {
+            return Padding(
+              padding: const EdgeInsets.only(left: 7),
+              child: _buildFilterButton(
+                context: context,
+                label: filter.name,
+                onTap: () => _showAttributeOptions(context, filter),
+              ),
+            );
+          }).toList(),
         ],
       ),
     );
@@ -256,6 +276,61 @@ class ProductsFilterBar extends StatelessWidget {
                 size: 20,
                 color: AppColors.textPrimary,
               ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showAttributeOptions(BuildContext context, AttributeFilterModel filter) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    filter.name,
+                    style: AppTypography.titleLM.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  IconButton(
+                    icon: PhosphorIcon(
+                      PhosphorIconsRegular.x,
+                      size: 24,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            
+            // Options
+            ...filter.options.map((option) {
+              return _buildOption(
+                context: context,
+                label: option.name,
+                isSelected: false, // TODO: Track selected options
+                onTap: () {
+                  // TODO: Handle option selection
+                  onAttributeFilterChanged?.call(filter.id, [option.id]);
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
           ],
         ),
       ),

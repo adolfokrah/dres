@@ -44,6 +44,8 @@ class ProductsRepository {
           .map((v) => VariationModel.fromJson(v))
           .toList();
 
+      final filters = response.data['filters'] as List? ?? [];
+
       return {
         'variations': variations,
         'totalDocs': response.data['totalDocs'] as int,
@@ -51,6 +53,7 @@ class ProductsRepository {
         'page': response.data['page'] as int,
         'hasNextPage': response.data['hasNextPage'] as bool,
         'hasPrevPage': response.data['hasPrevPage'] as bool,
+        'filters': filters,
       };
     } catch (e) {
       throw Exception('Failed to fetch products: $e');

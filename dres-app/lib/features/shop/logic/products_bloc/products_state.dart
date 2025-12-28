@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:dres/core/models/variation_model.dart';
+import 'package:dres/core/models/attribute_filter_model.dart';
 
 enum ProductsStatus { initial, loading, success, failure, loadingMore }
 
@@ -18,6 +19,7 @@ class ProductsState extends Equatable {
   final String? filterType;
   final String? sortBy;
   final String? sortPrice;
+  final List<AttributeFilterModel> filters;
 
   const ProductsState({
     this.status = ProductsStatus.initial,
@@ -34,6 +36,7 @@ class ProductsState extends Equatable {
     this.filterType,
     this.sortBy,
     this.sortPrice,
+    this.filters = const [],
   });
 
   ProductsState copyWith({
@@ -51,6 +54,7 @@ class ProductsState extends Equatable {
     String? filterType,
     String? sortBy,
     String? sortPrice,
+    List<AttributeFilterModel>? filters,
   }) {
     return ProductsState(
       status: status ?? this.status,
@@ -67,6 +71,7 @@ class ProductsState extends Equatable {
       filterType: filterType ?? this.filterType,
       sortBy: sortBy ?? this.sortBy,
       sortPrice: sortPrice ?? this.sortPrice,
+      filters: filters ?? this.filters,
     );
   }
 
@@ -86,5 +91,6 @@ class ProductsState extends Equatable {
         filterType,
         sortBy,
         sortPrice,
+        filters,
       ];
 }

@@ -134,6 +134,7 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                       : state.sortPrice == 'desc' 
                           ? PriceOption.highToLow 
                           : PriceOption.lowToHigh,
+                  filters: state.filters,
                   onSortChanged: (sortOption) {
                     final sortBy = sortOption == SortOption.oldest ? 'oldest' : 'latest';
                     context.read<ProductsBloc>().add(ChangeSortOption(sortBy));
@@ -145,6 +146,10 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                             ? 'desc' 
                             : 'asc';
                     context.read<ProductsBloc>().add(ChangePriceSort(sortPrice));
+                  },
+                  onAttributeFilterChanged: (attributeId, optionIds) {
+                    // TODO: Handle attribute filtering
+                    print('Filter by attribute: $attributeId, options: $optionIds');
                   },
                 );
               },

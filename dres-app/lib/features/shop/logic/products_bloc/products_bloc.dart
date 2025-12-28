@@ -3,6 +3,7 @@ import 'package:dres/features/shop/data/repositories/products_repository.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_event.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_state.dart';
 import 'package:dres/core/models/variation_model.dart';
+import 'package:dres/core/models/attribute_filter_model.dart';
 
 class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
   final ProductsRepository _repository;
@@ -43,6 +44,10 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         page: event.page,
       );
 
+      final filters = (result['filters'] as List)
+          .map((f) => AttributeFilterModel.fromJson(f as Map<String, dynamic>))
+          .toList();
+
       emit(state.copyWith(
         status: ProductsStatus.success,
         products: result['variations'] as List<VariationModel>,
@@ -50,6 +55,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         totalPages: result['totalPages'] as int,
         totalDocs: result['totalDocs'] as int,
         hasNextPage: result['hasNextPage'] as bool,
+        filters: filters,
       ));
     } catch (e) {
       emit(state.copyWith(
