@@ -339,8 +339,8 @@ export const getVariation: PayloadHandler = async (req) => {
     )
 
     // Get seller information
-    const seller = typeof fullStyle?.seller === 'object' ? fullStyle.seller : null
-    const sellerData = await getSellerData(payload, seller)
+    const sellerId = typeof fullStyle?.seller === 'object' ? fullStyle.seller.id : fullStyle?.seller
+    const sellerData = await getSellerData(payload, sellerId)
 
     // Get style reviews
     const styleReviews = styleId ? await getStyleReviews(payload, styleId, 1, 10) : null

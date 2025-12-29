@@ -1,7 +1,16 @@
 import type { Payload } from 'payload'
 import { formatCompactNumberWithPlus } from '../../../utilities/formatNumber'
 
-export async function getSellerData(payload: Payload, seller: any) {
+export async function getSellerData(payload: Payload, sellerId: string | null) {
+  if (!sellerId) return null
+
+  // Fetch the seller user
+  const seller = await payload.findByID({
+    collection: 'users',
+    id: sellerId,
+    depth: 2,
+  })
+
   if (!seller) return null
 
   // Get sales history from orders
@@ -9,7 +18,7 @@ export async function getSellerData(payload: Payload, seller: any) {
     collection: 'orders',
     where: {
       sellers: {
-        contains: seller.id,
+        contains: sellerId,
       },
     },
     limit: 1000,
@@ -24,7 +33,7 @@ export async function getSellerData(payload: Payload, seller: any) {
     if (order.items && Array.isArray(order.items)) {
       order.items.forEach((item: any) => {
         const itemSellerId = typeof item.seller === 'object' ? item.seller?.id : item.seller
-        if (itemSellerId === seller.id) {
+        if (itemSellerId === sellerId) {
           itemsSold += item.quantity || 1
           if (item.shippingStatus === 'delivered' || item.shippingStatus === 'out_for_delivery') {
             shipped += item.quantity || 1

@@ -1,3 +1,4 @@
+import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/simple_header.dart';
 import 'package:dres/core/widgets/badge_widget.dart';
 import 'package:dres/core/widgets/accordion.dart';
@@ -250,8 +251,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   );
                                 },
                               ),
-
-                              // TODO: Add size selector, add to bag button
+                              const SizedBox(height: 10),
+                              AppButton.filled(text: "Add to bag", onPressed: ()=>{},width: double.infinity,)
                             ],
                           ),
                         ),

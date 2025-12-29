@@ -45,7 +45,7 @@ export const getVariationSeller: PayloadHandler = async (req) => {
     const style = await payload.findByID({
       collection: 'styles',
       id: styleId,
-      depth: 3, // Deep enough to get full seller data
+      depth: 1, // Only need shallow depth for seller ID
     })
 
     if (!style) {
@@ -55,10 +55,10 @@ export const getVariationSeller: PayloadHandler = async (req) => {
       )
     }
 
-    // Extract seller information
-    const seller = typeof style.seller === 'object' ? style.seller : null
+    // Extract seller ID
+    const sellerId = typeof style.seller === 'object' ? style.seller.id : style.seller
 
-    if (!seller) {
+    if (!sellerId) {
       return Response.json(
         { error: 'Seller not found for this style' },
         { status: 404 }
@@ -66,7 +66,7 @@ export const getVariationSeller: PayloadHandler = async (req) => {
     }
 
     // Get seller data using utility function
-    const sellerData = await getSellerData(payload, seller)
+    const sellerData = await getSellerData(payload, sellerId)
 
     // Return seller data
     return Response.json({
