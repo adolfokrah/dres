@@ -13,6 +13,10 @@ class AppButton extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final double? width;
   final double? height;
+  final Color? backgroundColor;
+  final Color? textColor;
+  final Color? borderColor;
+  final Widget? icon;
 
   const AppButton({
     Key? key,
@@ -24,6 +28,10 @@ class AppButton extends StatelessWidget {
     this.padding,
     this.width,
     this.height,
+    this.backgroundColor,
+    this.textColor,
+    this.borderColor,
+    this.icon,
   }) : super(key: key);
 
   const AppButton.filled({
@@ -35,7 +43,11 @@ class AppButton extends StatelessWidget {
     this.padding,
     this.width,
     this.height,
+    this.backgroundColor,
+    this.textColor,
+    this.icon,
   })  : variant = AppButtonVariant.filled,
+        borderColor = null,
         super(key: key);
 
   const AppButton.outlined({
@@ -47,7 +59,11 @@ class AppButton extends StatelessWidget {
     this.padding,
     this.width,
     this.height,
+    this.textColor,
+    this.borderColor,
+    this.icon,
   })  : variant = AppButtonVariant.outlined,
+        backgroundColor = null,
         super(key: key);
 
   @override
@@ -61,8 +77,10 @@ class AppButton extends StatelessWidget {
         child: ElevatedButton(
           onPressed: isDisabled ? null : onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: isDisabled ? AppColors.disabled : AppColors.primary,
-            foregroundColor: AppColors.textOnPrimary,
+            backgroundColor: isDisabled 
+                ? AppColors.disabled 
+                : (backgroundColor ?? AppColors.primary),
+            foregroundColor: textColor ?? AppColors.textOnPrimary,
             elevation: 0,
             padding: padding ??
                 const EdgeInsets.symmetric(
@@ -74,19 +92,35 @@ class AppButton extends StatelessWidget {
             ),
           ),
           child: isLoading
-              ? const SizedBox(
+              ? SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.textOnPrimary),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      textColor ?? AppColors.textOnPrimary,
+                    ),
                   ),
                 )
-              : Text(
-                  text,
-                  style: AppTypography.bodyM.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (icon != null) ...[
+                      icon!,
+                      const SizedBox(width: 12),
+                    ],
+                    Flexible(
+                      child: Text(
+                        text,
+                        style: AppTypography.bodyM.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: textColor ?? AppColors.textOnPrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
         ),
       );
@@ -99,9 +133,13 @@ class AppButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: isDisabled ? null : onPressed,
         style: OutlinedButton.styleFrom(
-          foregroundColor: isDisabled ? AppColors.disabled : AppColors.textPrimary,
+          foregroundColor: isDisabled 
+              ? AppColors.disabled 
+              : (textColor ?? AppColors.textPrimary),
           side: BorderSide(
-            color: isDisabled ? AppColors.disabled : AppColors.textPrimary,
+            color: isDisabled 
+                ? AppColors.disabled 
+                : (borderColor ?? AppColors.textPrimary),
             width: 1,
           ),
           elevation: 0,
@@ -121,15 +159,28 @@ class AppButton extends StatelessWidget {
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    isDisabled ? AppColors.disabled : AppColors.textPrimary,
+                    isDisabled 
+                        ? AppColors.disabled 
+                        : (textColor ?? AppColors.textPrimary),
                   ),
                 ),
               )
-            : Text(
-                text,
-                style: AppTypography.bodyM.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (icon != null) ...[
+                    icon!,
+                    const SizedBox(width: 8),
+                  ],
+                  Text(
+                    text,
+                    style: AppTypography.bodyM.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: textColor ?? AppColors.textPrimary,
+                    ),
+                  ),
+                ],
               ),
       ),
     );

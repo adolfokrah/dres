@@ -293,5 +293,33 @@
   "youMayAlsoLike": "You may also like",
   "@youMayAlsoLike": {
     "description": "Similar products section title"
+  },
+  "addToBag": "Add to bag",
+  "@addToBag": {
+    "description": "Add to bag button text"
+  },
+  "registerDiscount": "Register today for a special discount off your first purchase",
+  "@registerDiscount": {
+    "description": "Auth home registration prompt"
+  },
+  "continueWithApple": "Continue with Apple",
+  "@continueWithApple": {
+    "description": "Continue with Apple button text"
+  },
+  "continueWithGoogle": "Continue with Google",
+  "@continueWithGoogle": {
+    "description": "Continue with Google button text"
+  },
+  "registerWithEmail": "Register with Email",
+  "@registerWithEmail": {
+    "description": "Register with email button text"
+  },
+  "alreadyHaveAccount": "Already have an account? Log in",
+  "@alreadyHaveAccount": {
+    "description": "Login link text"
+  },
+  "registerLater": "Register later",
+  "@registerLater": {
+    "description": "Skip registration link text"
   }
 }

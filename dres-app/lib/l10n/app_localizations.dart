@@ -142,13 +142,13 @@ abstract class AppLocalizations {
   /// **'We Love'**
   String get weLove;
 
-  /// Google sign in button text
+  /// Continue with Google button text
   ///
   /// In en, this message translates to:
   /// **'Continue with Google'**
   String get continueWithGoogle;
 
-  /// Apple sign in button text
+  /// Continue with Apple button text
   ///
   /// In en, this message translates to:
   /// **'Continue with Apple'**
@@ -519,6 +519,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You may also like'**
   String get youMayAlsoLike;
+
+  /// Add to bag button text
+  ///
+  /// In en, this message translates to:
+  /// **'Add to bag'**
+  String get addToBag;
+
+  /// Auth home registration prompt
+  ///
+  /// In en, this message translates to:
+  /// **'Register today for a special discount off your first purchase'**
+  String get registerDiscount;
+
+  /// Register with email button text
+  ///
+  /// In en, this message translates to:
+  /// **'Register with Email'**
+  String get registerWithEmail;
+
+  /// Login link text
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? Log in'**
+  String get alreadyHaveAccount;
+
+  /// Skip registration link text
+  ///
+  /// In en, this message translates to:
+  /// **'Register later'**
+  String get registerLater;
 }
 
 class _AppLocalizationsDelegate

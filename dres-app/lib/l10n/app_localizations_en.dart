@@ -229,4 +229,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get youMayAlsoLike => 'You may also like';
+
+  @override
+  String get addToBag => 'Add to bag';
+
+  @override
+  String get registerDiscount =>
+      'Register today for a special discount off your first purchase';
+
+  @override
+  String get registerWithEmail => 'Register with Email';
+
+  @override
+  String get alreadyHaveAccount => 'Already have an account? Log in';
+
+  @override
+  String get registerLater => 'Register later';
 }

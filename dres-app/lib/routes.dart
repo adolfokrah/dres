@@ -10,6 +10,7 @@ import 'package:dres/features/shop/presentation/view/categories_screen.dart';
 import 'package:dres/features/shop/presentation/view/brands_screen.dart';
 import 'package:dres/features/shop/presentation/view/products_screen.dart';
 import 'package:dres/features/product_details/presentation/view/product_details_screen.dart';
+import 'package:dres/features/auth/presentation/view/auth_home_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
 import 'package:dres/core/models/menu_model.dart';
 
@@ -45,6 +46,13 @@ class AppRoutes {
         path: splash,
         name: 'splash',
         builder: (context, state) => const SplashScreen(),
+      ),
+      
+      // Auth (outside shell, full screen)
+      GoRoute(
+        path: '/auth',
+        name: 'auth',
+        builder: (context, state) => const AuthHomeScreen(),
       ),
       
       // Product Details (outside shell, full screen)

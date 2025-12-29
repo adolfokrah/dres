@@ -19,6 +19,7 @@ import 'package:dres/features/product_details/presentation/widgets/sku_selector.
 import 'package:dres/features/product_details/presentation/widgets/seller_info.dart';
 import 'package:dres/features/product_details/presentation/widgets/reviews_section.dart';
 import 'package:dres/features/product_details/presentation/widgets/similar_variations_section.dart';
+import 'package:dres/features/product_details/presentation/widgets/add_to_bag_button.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
@@ -253,7 +254,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                 },
                               ),
                               const SizedBox(height: 10),
-                              AppButton.filled(text: "Add to bag", onPressed: ()=>{},width: double.infinity,)
+                              AddToBagButton(
+                                selectedSkuId: state.selectedSkuId ?? variation.defaultSku,
+                                onAddToBag: () {
+                                  // TODO: Implement add to bag functionality
+                                },
+                              ),
                             ],
                           ),
                         ),
