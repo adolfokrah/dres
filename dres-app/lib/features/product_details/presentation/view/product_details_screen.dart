@@ -302,20 +302,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           ),
 
                         const SizedBox(height: 26),
+                        const SizedBox(height: 26),
 
                         // Reviews Section
-                        if (state.productData?.styleReviews != null && 
-                            state.productData!.styleReviews!.reviews.isNotEmpty)
+                        if (variation.styleId != null)
                           ReviewsSection(
-                            totalReviews: state.productData!.styleReviews!.totalReviews,
-                            reviews: state.productData!.styleReviews!.reviews
-                                .map((review) => ReviewItemData(
-                                      reviewerName: review.reviewer.name,
-                                      reviewerImage: review.reviewer.profileImage,
-                                      review: review.review,
-                                      images: review.images,
-                                    ))
-                                .toList(),
+                            styleId: variation.styleId!,
                           ),
 
                       ],

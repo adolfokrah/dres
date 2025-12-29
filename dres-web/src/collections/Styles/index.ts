@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
 import { anyone } from '../../access/anyone'
+import { getStyleReviewsEndpoint } from './endpoints/getStyleReviews'
 
 export const Styles: CollectionConfig = {
   slug: 'styles',
@@ -20,6 +21,13 @@ export const Styles: CollectionConfig = {
       return user.role === 'admin'
     },
   },
+  endpoints: [
+    {
+      path: '/:id/reviews',
+      method: 'get',
+      handler: getStyleReviewsEndpoint,
+    },
+  ],
   fields: [
     {
       name: 'seller',

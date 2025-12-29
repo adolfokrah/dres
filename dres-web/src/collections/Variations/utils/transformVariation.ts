@@ -22,6 +22,7 @@ interface TransformedVariation {
   variants: string
   isBoosted?: boolean
   defaultSku?: string
+  styleId?: string | null
   relatedVariations?: Omit<TransformedVariation, 'relatedVariations'>[]
 }
 
@@ -191,6 +192,9 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
   const boostedValue = hasActiveBoost()
   console.log('=== Variation isBoosted value:', boostedValue, 'for variation:', variation.id)
 
+  // Get style ID
+  const styleId = typeof variation.style === 'object' ? variation.style.id : variation.style
+
   return {
     id: variation.id,
     thumbnail,
@@ -205,6 +209,7 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
     variants,
     isBoosted: boostedValue,
     defaultSku: selectedSku?.id || undefined,
+    styleId: styleId || null,
     ...(includeRelated && { relatedVariations }),
   }
 }

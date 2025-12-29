@@ -47,6 +47,7 @@ class VariationDetailsModel {
   final String? styleDescription;
   final List<DetailModel> details;
   final VariationsTitleModel? variationsTitle;
+  final String? styleId;
 
   VariationDetailsModel({
     required this.id,
@@ -66,6 +67,7 @@ class VariationDetailsModel {
     this.styleDescription,
     required this.details,
     this.variationsTitle,
+    this.styleId,
   });
 
   factory VariationDetailsModel.fromJson(Map<String, dynamic> json) {
@@ -98,6 +100,7 @@ class VariationDetailsModel {
       variationsTitle: json['variationsTitle'] != null
           ? VariationsTitleModel.fromJson(json['variationsTitle'])
           : null,
+      styleId: json['styleId'],
     );
   }
 }
