@@ -1,4 +1,5 @@
 import type { Payload } from 'payload'
+import { formatCompactNumberWithPlus } from '../../../utilities/formatNumber'
 
 export async function getSellerData(payload: Payload, seller: any) {
   if (!seller) return null
@@ -44,9 +45,9 @@ export async function getSellerData(payload: Payload, seller: any) {
     vacationMode: (seller as any).vacationMode || false,
     usuallyShipsIn: '24 hours',
     salesHistory: {
-      itemsSold: itemsSold,
-      shipped: shipped,
-      cancelled: cancelled,
+      itemsSold: formatCompactNumberWithPlus(itemsSold),
+      shipped: formatCompactNumberWithPlus(shipped),
+      cancelled: formatCompactNumberWithPlus(cancelled),
     },
     memberSince: seller.createdAt,
   }

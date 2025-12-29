@@ -1,14 +1,17 @@
 import 'seller_model.dart';
+import 'reviews_model.dart';
 
 class ProductDetailsModel {
   final VariationDetailsModel variation;
   final List<RelatedVariationModel> relatedVariations;
   final SellerModel? seller;
+  final ReviewsModel? styleReviews;
 
   ProductDetailsModel({
     required this.variation,
     required this.relatedVariations,
     this.seller,
+    this.styleReviews,
   });
 
   factory ProductDetailsModel.fromJson(Map<String, dynamic> json) {
@@ -19,6 +22,9 @@ class ProductDetailsModel {
               .toList() ??
           [],
       seller: json['seller'] != null ? SellerModel.fromJson(json['seller']) : null,
+      styleReviews: json['styleReviews'] != null 
+          ? ReviewsModel.fromJson(json['styleReviews']) 
+          : null,
     );
   }
 }

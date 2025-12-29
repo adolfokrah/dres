@@ -16,6 +16,7 @@ import 'package:dres/features/product_details/presentation/widgets/buyer_protect
 import 'package:dres/features/product_details/presentation/widgets/price_display.dart';
 import 'package:dres/features/product_details/presentation/widgets/sku_selector.dart';
 import 'package:dres/features/product_details/presentation/widgets/seller_info.dart';
+import 'package:dres/features/product_details/presentation/widgets/reviews_section.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
@@ -297,6 +298,23 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                               cancelled: state.productData!.seller!.salesHistory.cancelled,
                               memberSince: state.productData!.seller!.memberSince,
                             ),
+                          ),
+
+                        const SizedBox(height: 26),
+
+                        // Reviews Section
+                        if (state.productData?.styleReviews != null && 
+                            state.productData!.styleReviews!.reviews.isNotEmpty)
+                          ReviewsSection(
+                            totalReviews: state.productData!.styleReviews!.totalReviews,
+                            reviews: state.productData!.styleReviews!.reviews
+                                .map((review) => ReviewItemData(
+                                      reviewerName: review.reviewer.name,
+                                      reviewerImage: review.reviewer.profileImage,
+                                      review: review.review,
+                                      images: review.images,
+                                    ))
+                                .toList(),
                           ),
 
                       ],

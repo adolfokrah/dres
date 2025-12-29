@@ -4,6 +4,7 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:dres/core/utilities/media_utils.dart';
 import 'package:dres/core/widgets/app_button.dart';
+import 'package:dres/core/utilities/number_formatter.dart';
 
 class SellerInfo extends StatelessWidget {
   final String id;
@@ -13,9 +14,9 @@ class SellerInfo extends StatelessWidget {
   final bool verified;
   final bool vacationMode;
   final String usuallyShipsIn;
-  final int itemsSold;
-  final int shipped;
-  final int cancelled;
+  final String itemsSold;
+  final String shipped;
+  final String cancelled;
   final String memberSince;
 
   const SellerInfo({

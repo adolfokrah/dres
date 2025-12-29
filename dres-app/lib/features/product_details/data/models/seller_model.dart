@@ -37,9 +37,9 @@ class SellerModel {
 }
 
 class SalesHistoryModel {
-  final int itemsSold;
-  final int shipped;
-  final int cancelled;
+  final String itemsSold;
+  final String shipped;
+  final String cancelled;
 
   SalesHistoryModel({
     required this.itemsSold,
@@ -49,9 +49,9 @@ class SalesHistoryModel {
 
   factory SalesHistoryModel.fromJson(Map<String, dynamic> json) {
     return SalesHistoryModel(
-      itemsSold: json['itemsSold'] ?? 0,
-      shipped: json['shipped'] ?? 0,
-      cancelled: json['cancelled'] ?? 0,
+      itemsSold: json['itemsSold']?.toString() ?? '0',
+      shipped: json['shipped']?.toString() ?? '0',
+      cancelled: json['cancelled']?.toString() ?? '0',
     );
   }
 }
