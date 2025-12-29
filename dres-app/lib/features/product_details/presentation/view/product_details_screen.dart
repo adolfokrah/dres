@@ -282,26 +282,17 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                          const SizedBox(height: 26),
 
+                        const SizedBox(height: 26),
+
                         // Seller Info
                         if (state.productData?.seller != null)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: SellerInfo(
-                              id: state.productData!.seller!.id,
-                              name: state.productData!.seller!.name,
-                              username: state.productData!.seller!.username,
-                              profileImage: state.productData!.seller!.profileImage,
-                              verified: state.productData!.seller!.verified,
-                              vacationMode: state.productData!.seller!.vacationMode,
-                              usuallyShipsIn: state.productData!.seller!.usuallyShipsIn,
-                              itemsSold: state.productData!.seller!.salesHistory.itemsSold,
-                              shipped: state.productData!.seller!.salesHistory.shipped,
-                              cancelled: state.productData!.seller!.salesHistory.cancelled,
-                              memberSince: state.productData!.seller!.memberSince,
+                              sellerId: state.productData!.seller!.id,
                             ),
                           ),
 
-                        const SizedBox(height: 26),
                         const SizedBox(height: 26),
 
                         // Reviews Section

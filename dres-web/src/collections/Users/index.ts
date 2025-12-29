@@ -2,6 +2,7 @@ import type { CollectionConfig, Where } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
 import { generateUsername } from './hooks/generateUsername'
+import { getSellerInfo } from './endpoints/getSellerInfo'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -17,6 +18,13 @@ export const Users: CollectionConfig = {
     useAsTitle: 'email',
   },
   auth: true,
+  endpoints: [
+    {
+      path: '/:id/seller',
+      method: 'get',
+      handler: getSellerInfo,
+    },
+  ],
   fields: [
     {
       type: 'tabs',

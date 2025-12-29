@@ -4,40 +4,73 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:dres/core/utilities/media_utils.dart';
 import 'package:dres/core/widgets/app_button.dart';
-import 'package:dres/core/utilities/number_formatter.dart';
+import 'package:dres/features/product_details/data/repositories/seller_repository.dart';
+import 'package:dres/features/product_details/data/models/seller_model.dart';
+import 'package:dres/core/di/injection.dart';
 
-class SellerInfo extends StatelessWidget {
-  final String id;
-  final String name;
-  final String username;
-  final String? profileImage;
-  final bool verified;
-  final bool vacationMode;
-  final String usuallyShipsIn;
-  final String itemsSold;
-  final String shipped;
-  final String cancelled;
-  final String memberSince;
+class SellerInfo extends StatefulWidget {
+  final String sellerId;
 
   const SellerInfo({
     super.key,
-    required this.id,
-    required this.name,
-    required this.username,
-    this.profileImage,
-    required this.verified,
-    required this.vacationMode,
-    required this.usuallyShipsIn,
-    required this.itemsSold,
-    required this.shipped,
-    required this.cancelled,
-    required this.memberSince,
+    required this.sellerId,
   });
+
+  @override
+  State<SellerInfo> createState() => _SellerInfoState();
+}
+
+class _SellerInfoState extends State<SellerInfo> {
+  late final SellerRepository _sellerRepository;
+  late Future<SellerModel> _sellerFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _sellerRepository = getIt<SellerRepository>();
+    _sellerFuture = _sellerRepository.getSellerInfo(sellerId: widget.sellerId);
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
+    return FutureBuilder<SellerModel>(
+      future: _sellerFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(
+              'Error loading seller info: ${snapshot.error}',
+              style: AppTypography.bodyS.copyWith(
+                color: AppColors.error,
+              ),
+            ),
+          );
+        }
+
+        if (!snapshot.hasData) {
+          return const SizedBox.shrink();
+        }
+
+        final seller = snapshot.data!;
+
+        return _buildSellerInfo(seller, l10n);
+      },
+    );
+  }
+
+  Widget _buildSellerInfo(SellerModel seller, AppLocalizations l10n) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(
@@ -63,10 +96,10 @@ class SellerInfo extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: const Color(0xFFD9D9D9),
-                        image: profileImage != null
+                        image: seller.profileImage != null
                             ? DecorationImage(
                                 image: NetworkImage(
-                                  MediaUtils.resolveUrl(profileImage) ?? '',
+                                  MediaUtils.resolveUrl(seller.profileImage) ?? '',
                                 ),
                                 fit: BoxFit.cover,
                               )
@@ -80,11 +113,11 @@ class SellerInfo extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          name,
+                          seller.name,
                           style: AppTypography.bodyL,
                         ),
                         Text(
-                          username,
+                          seller.username,
                           style: AppTypography.bodyM.copyWith(
                             color: AppColors.textPrimary,
                           ),
@@ -113,7 +146,7 @@ class SellerInfo extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                l10n.usuallyShipsIn(usuallyShipsIn),
+                l10n.usuallyShipsIn(seller.usuallyShipsIn),
                 style: AppTypography.bodyM.copyWith(
                   color: AppColors.textPrimary,
                 ),
@@ -160,7 +193,7 @@ class SellerInfo extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        '$itemsSold\n${l10n.itemsSold}',
+                        '${seller.salesHistory.itemsSold}\n${l10n.itemsSold}',
                         textAlign: TextAlign.center,
                         style: AppTypography.bodyM.copyWith(
                           fontWeight: FontWeight.w700,
@@ -181,7 +214,7 @@ class SellerInfo extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        '$shipped\n${l10n.shipped}',
+                        '${seller.salesHistory.shipped}\n${l10n.shipped}',
                         textAlign: TextAlign.center,
                         style: AppTypography.bodyM.copyWith(
                           color: AppColors.textPrimary,
@@ -193,7 +226,7 @@ class SellerInfo extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: Text(
-                        '$cancelled\n${l10n.cancelled}',
+                        '${seller.salesHistory.cancelled}\n${l10n.cancelled}',
                         textAlign: TextAlign.center,
                         style: AppTypography.bodyM.copyWith(
                           color: AppColors.textPrimary,
@@ -210,3 +243,4 @@ class SellerInfo extends StatelessWidget {
     );
   }
 }
+
