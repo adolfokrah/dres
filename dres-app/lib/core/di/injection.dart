@@ -14,6 +14,8 @@ import 'package:dres/features/product_details/data/repositories/reviews_reposito
 import 'package:dres/features/product_details/data/repositories/seller_repository.dart';
 import 'package:dres/features/product_details/data/repositories/similar_variations_repository.dart';
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_bloc.dart';
+import 'package:dres/features/auth/data/repositories/auth_repository.dart';
+import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -58,6 +60,12 @@ Future<void> setupDependencies() async {
   // Similar Variations Repository
   getIt.registerLazySingleton<SimilarVariationsRepository>(() => SimilarVariationsRepository(getIt<ApiService>()));
 
+  // Auth Repository
+  getIt.registerLazySingleton<AuthRepository>(() => AuthRepository(
+    apiService: getIt<ApiService>(),
+    storageService: getIt<StorageService>(),
+  ));
+
   // ========================
   // BLoCs (Factory - new instance each time)
   // ========================
@@ -76,4 +84,7 @@ Future<void> setupDependencies() async {
 
   // Product Details Bloc
   getIt.registerFactory<ProductDetailsBloc>(() => ProductDetailsBloc(getIt<ProductDetailsRepository>()));
+
+  // Auth Bloc
+  getIt.registerFactory<AuthBloc>(() => AuthBloc(authRepository: getIt<AuthRepository>()));
 }

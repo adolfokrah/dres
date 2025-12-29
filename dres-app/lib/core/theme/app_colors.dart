@@ -22,8 +22,8 @@ class AppColors {
   static const Color textOnPrimary = Color(0xFFFFFFFF);
 
   // Status colors
-  static const Color success = Color(0xFFACF8BF);
-  static const Color error = Color(0xFFF8ACAC);
+  static const Color success = Color(0xFF4CAF50);
+  static const Color error = Color(0xFFE53935);
   static const Color warning = Color(0xFFF4D39D);
   static const Color info = Color(0xFF9DE5F4);
 

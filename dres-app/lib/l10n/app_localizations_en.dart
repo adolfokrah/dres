@@ -27,7 +27,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get password => 'Password';
 
   @override
-  String get forgotPassword => 'Forgot Password?';
+  String get forgotPassword => 'Forgotten password?';
 
   @override
   String get weLove => 'We Love';
@@ -245,4 +245,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get registerLater => 'Register later';
+
+  @override
+  String get welcomeBack => 'Welcome back!';
+
+  @override
+  String get enterYourEmail => 'Enter your email';
+
+  @override
+  String get enterYourPassword => 'Enter your password';
+
+  @override
+  String get logIn => 'Log In';
+
+  @override
+  String get or => 'Or';
+
+  @override
+  String get notYetMember => 'Not yet a member? Sign up';
+
+  @override
+  String get forgotPasswordTitle => 'Forgot password';
+
+  @override
+  String get forgotPasswordDescription =>
+      'Enter your email address and we\'ll send you a link to reset your password.';
+
+  @override
+  String get sendResetLink => 'Send reset link';
+
+  @override
+  String get backToLogin => 'Back to login';
+
+  @override
+  String get checkYourEmail => 'Check your email';
+
+  @override
+  String resetLinkSent(String email) {
+    return 'We\'ve sent a password reset link to $email';
+  }
+
+  @override
+  String get didntReceiveEmail => 'Didn\'t receive the email? Try again';
+
+  @override
+  String get joinUs => 'Join Dres';
+
+  @override
+  String get firstName => 'First name';
+
+  @override
+  String get firstNameHint => 'eg. Julie';
+
+  @override
+  String get lastName => 'Last name';
+
+  @override
+  String get lastNameHint => 'eg. Smith';
+
+  @override
+  String get shopName => 'Shop name (optional)';
+
+  @override
+  String get shopNameHint => 'eg. Julie\'s Boutique';
+
+  @override
+  String get atLeast8Characters => 'At least 8 characters';
+
+  @override
+  String get atLeast1Number => 'At least 1 number';
+
+  @override
+  String get upperAndLowerCase => 'Both upper and lower case letters';
+
+  @override
+  String get marketingConsent =>
+      'Sign up for personalised edits, exclusive offers and all the latest news from us. You can opt-out at any time.';
+
+  @override
+  String get iAcceptThe => 'I accept the ';
+
+  @override
+  String get terms => 'Terms';
+
+  @override
+  String get andIHaveReadThe => ' and I have read the ';
+
+  @override
+  String get privacyPolicyCookies => 'Privacy Policy & cookies';
+
+  @override
+  String get joinUsButton => 'Join us';
+
+  @override
+  String get alreadyMember => 'Already a member? Log in';
+
+  @override
+  String get registrationSuccessful =>
+      'Registration successful! Please log in.';
 }

@@ -8,7 +8,7 @@ export const Users: CollectionConfig = {
   slug: 'users',
   access: {
     admin: authenticated,
-    create: authenticated,
+    create: () => true, // Allow public registration
     delete: authenticated,
     read: authenticated,
     update: authenticated,
@@ -17,7 +17,13 @@ export const Users: CollectionConfig = {
     defaultColumns: ['firstName', 'lastName', 'email', 'role'],
     useAsTitle: 'email',
   },
-  auth: true,
+   auth: {
+    tokenExpiration: 31536000, // 1 year in seconds
+    verify: true, // Require email verification
+    maxLoginAttempts: 5, // Automatically lock a user out after X amount of failed logins
+    lockTime: 600 * 1000, // Time period to allow the max login attempts
+    // More options are available
+  },
   endpoints: [
     {
       path: '/:id/seller',
@@ -79,7 +85,7 @@ export const Users: CollectionConfig = {
               name: 'country',
               type: 'relationship',
               relationTo: 'countries',
-              required: true,
+              defaultValue: 'Ghana',
               admin: {
                 description: 'Your country (determines currency for products and shipping)',
               },

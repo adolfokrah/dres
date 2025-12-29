@@ -118,13 +118,13 @@ abstract class AppLocalizations {
   /// **'Sign Up'**
   String get signUp;
 
-  /// Email field label
+  /// Email label
   ///
   /// In en, this message translates to:
   /// **'Email'**
   String get email;
 
-  /// Password field label
+  /// Password label
   ///
   /// In en, this message translates to:
   /// **'Password'**
@@ -133,7 +133,7 @@ abstract class AppLocalizations {
   /// Forgot password link text
   ///
   /// In en, this message translates to:
-  /// **'Forgot Password?'**
+  /// **'Forgotten password?'**
   String get forgotPassword;
 
   /// We Love promo card title
@@ -549,6 +549,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Register later'**
   String get registerLater;
+
+  /// Login screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back!'**
+  String get welcomeBack;
+
+  /// Email input placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email'**
+  String get enterYourEmail;
+
+  /// Password input placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password'**
+  String get enterYourPassword;
+
+  /// Login button text
+  ///
+  /// In en, this message translates to:
+  /// **'Log In'**
+  String get logIn;
+
+  /// Or divider text
+  ///
+  /// In en, this message translates to:
+  /// **'Or'**
+  String get or;
+
+  /// Sign up link text
+  ///
+  /// In en, this message translates to:
+  /// **'Not yet a member? Sign up'**
+  String get notYetMember;
+
+  /// Forgot password screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password'**
+  String get forgotPasswordTitle;
+
+  /// Forgot password description text
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email address and we\'ll send you a link to reset your password.'**
+  String get forgotPasswordDescription;
+
+  /// Send reset link button text
+  ///
+  /// In en, this message translates to:
+  /// **'Send reset link'**
+  String get sendResetLink;
+
+  /// Back to login link text
+  ///
+  /// In en, this message translates to:
+  /// **'Back to login'**
+  String get backToLogin;
+
+  /// Success title after sending reset link
+  ///
+  /// In en, this message translates to:
+  /// **'Check your email'**
+  String get checkYourEmail;
+
+  /// Success message after sending reset link
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ve sent a password reset link to {email}'**
+  String resetLinkSent(String email);
+
+  /// Resend email link text
+  ///
+  /// In en, this message translates to:
+  /// **'Didn\'t receive the email? Try again'**
+  String get didntReceiveEmail;
+
+  /// Register screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Join Dres'**
+  String get joinUs;
+
+  /// First name label
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get firstName;
+
+  /// First name input placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'eg. Julie'**
+  String get firstNameHint;
+
+  /// Last name label
+  ///
+  /// In en, this message translates to:
+  /// **'Last name'**
+  String get lastName;
+
+  /// Last name input placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'eg. Smith'**
+  String get lastNameHint;
+
+  /// Shop name label
+  ///
+  /// In en, this message translates to:
+  /// **'Shop name (optional)'**
+  String get shopName;
+
+  /// Shop name input placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'eg. Julie\'s Boutique'**
+  String get shopNameHint;
+
+  /// Password requirement - minimum length
+  ///
+  /// In en, this message translates to:
+  /// **'At least 8 characters'**
+  String get atLeast8Characters;
+
+  /// Password requirement - contains number
+  ///
+  /// In en, this message translates to:
+  /// **'At least 1 number'**
+  String get atLeast1Number;
+
+  /// Password requirement - mixed case
+  ///
+  /// In en, this message translates to:
+  /// **'Both upper and lower case letters'**
+  String get upperAndLowerCase;
+
+  /// Marketing consent text
+  ///
+  /// In en, this message translates to:
+  /// **'Sign up for personalised edits, exclusive offers and all the latest news from us. You can opt-out at any time.'**
+  String get marketingConsent;
+
+  /// Terms acceptance prefix
+  ///
+  /// In en, this message translates to:
+  /// **'I accept the '**
+  String get iAcceptThe;
+
+  /// Terms link text
+  ///
+  /// In en, this message translates to:
+  /// **'Terms'**
+  String get terms;
+
+  /// Terms acceptance middle text
+  ///
+  /// In en, this message translates to:
+  /// **' and I have read the '**
+  String get andIHaveReadThe;
+
+  /// Privacy policy link text
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy & cookies'**
+  String get privacyPolicyCookies;
+
+  /// Register button text
+  ///
+  /// In en, this message translates to:
+  /// **'Join us'**
+  String get joinUsButton;
+
+  /// Login link text on register screen
+  ///
+  /// In en, this message translates to:
+  /// **'Already a member? Log in'**
+  String get alreadyMember;
+
+  /// Success message after registration
+  ///
+  /// In en, this message translates to:
+  /// **'Registration successful! Please log in.'**
+  String get registrationSuccessful;
 }
 
 class _AppLocalizationsDelegate

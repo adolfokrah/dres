@@ -321,5 +321,147 @@
   "registerLater": "Register later",
   "@registerLater": {
     "description": "Skip registration link text"
+  },
+  "welcomeBack": "Welcome back!",
+  "@welcomeBack": {
+    "description": "Login screen title"
+  },
+  "email": "Email",
+  "@email": {
+    "description": "Email label"
+  },
+  "enterYourEmail": "Enter your email",
+  "@enterYourEmail": {
+    "description": "Email input placeholder"
+  },
+  "password": "Password",
+  "@password": {
+    "description": "Password label"
+  },
+  "enterYourPassword": "Enter your password",
+  "@enterYourPassword": {
+    "description": "Password input placeholder"
+  },
+  "forgotPassword": "Forgotten password?",
+  "@forgotPassword": {
+    "description": "Forgot password link text"
+  },
+  "logIn": "Log In",
+  "@logIn": {
+    "description": "Login button text"
+  },
+  "or": "Or",
+  "@or": {
+    "description": "Or divider text"
+  },
+  "notYetMember": "Not yet a member? Sign up",
+  "@notYetMember": {
+    "description": "Sign up link text"
+  },
+  "forgotPasswordTitle": "Forgot password",
+  "@forgotPasswordTitle": {
+    "description": "Forgot password screen title"
+  },
+  "forgotPasswordDescription": "Enter your email address and we'll send you a link to reset your password.",
+  "@forgotPasswordDescription": {
+    "description": "Forgot password description text"
+  },
+  "sendResetLink": "Send reset link",
+  "@sendResetLink": {
+    "description": "Send reset link button text"
+  },
+  "backToLogin": "Back to login",
+  "@backToLogin": {
+    "description": "Back to login link text"
+  },
+  "checkYourEmail": "Check your email",
+  "@checkYourEmail": {
+    "description": "Success title after sending reset link"
+  },
+  "resetLinkSent": "We've sent a password reset link to {email}",
+  "@resetLinkSent": {
+    "description": "Success message after sending reset link",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "user@example.com"
+      }
+    }
+  },
+  "didntReceiveEmail": "Didn't receive the email? Try again",
+  "@didntReceiveEmail": {
+    "description": "Resend email link text"
+  },
+  "joinUs": "Join Dres",
+  "@joinUs": {
+    "description": "Register screen title"
+  },
+  "firstName": "First name",
+  "@firstName": {
+    "description": "First name label"
+  },
+  "firstNameHint": "eg. Julie",
+  "@firstNameHint": {
+    "description": "First name input placeholder"
+  },
+  "lastName": "Last name",
+  "@lastName": {
+    "description": "Last name label"
+  },
+  "lastNameHint": "eg. Smith",
+  "@lastNameHint": {
+    "description": "Last name input placeholder"
+  },
+  "shopName": "Shop name (optional)",
+  "@shopName": {
+    "description": "Shop name label"
+  },
+  "shopNameHint": "eg. Julie's Boutique",
+  "@shopNameHint": {
+    "description": "Shop name input placeholder"
+  },
+  "atLeast8Characters": "At least 8 characters",
+  "@atLeast8Characters": {
+    "description": "Password requirement - minimum length"
+  },
+  "atLeast1Number": "At least 1 number",
+  "@atLeast1Number": {
+    "description": "Password requirement - contains number"
+  },
+  "upperAndLowerCase": "Both upper and lower case letters",
+  "@upperAndLowerCase": {
+    "description": "Password requirement - mixed case"
+  },
+  "marketingConsent": "Sign up for personalised edits, exclusive offers and all the latest news from us. You can opt-out at any time.",
+  "@marketingConsent": {
+    "description": "Marketing consent text"
+  },
+  "iAcceptThe": "I accept the ",
+  "@iAcceptThe": {
+    "description": "Terms acceptance prefix"
+  },
+  "terms": "Terms",
+  "@terms": {
+    "description": "Terms link text"
+  },
+  "andIHaveReadThe": " and I have read the ",
+  "@andIHaveReadThe": {
+    "description": "Terms acceptance middle text"
+  },
+  "privacyPolicyCookies": "Privacy Policy & cookies",
+  "@privacyPolicyCookies": {
+    "description": "Privacy policy link text"
+  },
+  "joinUsButton": "Join us",
+  "@joinUsButton": {
+    "description": "Register button text"
+  },
+  "alreadyMember": "Already a member? Log in",
+  "@alreadyMember": {
+    "description": "Login link text on register screen"
+  },
+  "registrationSuccessful": "Registration successful! Please log in.",
+  "@registrationSuccessful": {
+    "description": "Success message after registration"
   }
 }

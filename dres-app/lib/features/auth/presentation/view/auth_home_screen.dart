@@ -129,7 +129,7 @@ class AuthHomeScreen extends StatelessWidget {
                   AppButton.outlined(
                     text: l10n.registerWithEmail,
                     onPressed: () {
-                      // TODO: Navigate to email registration
+                      context.push('/register');
                     },
                     borderColor: AppColors.textOnPrimary,
                     textColor: AppColors.textOnPrimary,
@@ -141,7 +141,7 @@ class AuthHomeScreen extends StatelessWidget {
                   // Already have account
                   TextButton(
                     onPressed: () {
-                      // TODO: Navigate to login
+                      context.push('/login');
                     },
                     child: Text(
                       l10n.alreadyHaveAccount,
