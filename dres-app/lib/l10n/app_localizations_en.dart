@@ -196,4 +196,34 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get weCoverReturnDelivery =>
       'We cover the return delivery to the seller';
+
+  @override
+  String get includeBuyerProtectionFee => 'Include Buyer Protection Fee';
+
+  @override
+  String get buyerProtectionDescription =>
+      'Our Buyer Protection is a value added optional service to every purchase you make. Buyer Protection includes our Refund Policy.';
+
+  @override
+  String get learnMore => 'Learn more';
+
+  @override
+  String get follow => 'Follow';
+
+  @override
+  String usuallyShipsIn(String hours) {
+    return 'Usually ships in $hours';
+  }
+
+  @override
+  String get salesHistory => 'Sales history';
+
+  @override
+  String get itemsSold => 'Items sold';
+
+  @override
+  String get shipped => 'Shipped';
+
+  @override
+  String get cancelled => 'Cancelled';
 }

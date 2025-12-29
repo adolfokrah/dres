@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:dres/l10n/app_localizations.dart';
 
 class BuyerProtectionFee extends StatefulWidget {
   final double fee;
@@ -20,6 +21,8 @@ class _BuyerProtectionFeeState extends State<BuyerProtectionFee> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -67,14 +70,14 @@ class _BuyerProtectionFeeState extends State<BuyerProtectionFee> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Include Buyer Protection Fee',
+                          l10n.includeBuyerProtectionFee,
                           style: AppTypography.bodyL.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          'Our Buyer Protection is a value added optional service to every purchase you make. Buyer Protection includes our Refund Policy.',
+                          l10n.buyerProtectionDescription,
                           style: AppTypography.bodyM.copyWith(
                             height: 1.2,
                             fontSize: 16
@@ -83,7 +86,7 @@ class _BuyerProtectionFeeState extends State<BuyerProtectionFee> {
 
             const SizedBox(height: 10),
             Text(
-              'Learn more',
+              l10n.learnMore,
               style: AppTypography.bodyM.copyWith(
                 fontWeight: FontWeight.w700,
                 fontSize: 16,
@@ -103,14 +106,6 @@ class _BuyerProtectionFeeState extends State<BuyerProtectionFee> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  'GHS ${widget.fee.toStringAsFixed(2)}',
-                  style: AppTypography.bodyL.copyWith(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 19
-                  ),
-                ),
-                const SizedBox(height: 20),
                 PhosphorIcon(
                   isSelected
                       ? PhosphorIconsFill.checkCircle

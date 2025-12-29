@@ -1,5 +1,6 @@
 import type { PayloadHandler } from 'payload'
 import { transformVariation } from '../utils/transformVariation'
+import { getSellerData } from '../utils/getSellerData'
 
 export const getVariation: PayloadHandler = async (req) => {
   const { payload } = req
@@ -336,6 +337,10 @@ export const getVariation: PayloadHandler = async (req) => {
       })
     )
 
+    // Get seller information
+    const seller = typeof fullStyle?.seller === 'object' ? fullStyle.seller : null
+    const sellerData = await getSellerData(payload, seller)
+
     return Response.json({
       variation: {
         ...transformed,
@@ -346,6 +351,7 @@ export const getVariation: PayloadHandler = async (req) => {
         variationsTitle,
       },
       relatedVariations: relatedVariations as any, // Custom structure with details
+      seller: sellerData,
     })
   } catch (error) {
     payload.logger.error(`Error fetching variation: ${error}`)

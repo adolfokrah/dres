@@ -247,5 +247,47 @@
   "weCoverReturnDelivery": "We cover the return delivery to the seller",
   "@weCoverReturnDelivery": {
     "description": "Return delivery coverage text"
+  },
+  "includeBuyerProtectionFee": "Include Buyer Protection Fee",
+  "@includeBuyerProtectionFee": {
+    "description": "Buyer protection fee checkbox title"
+  },
+  "buyerProtectionDescription": "Our Buyer Protection is a value added optional service to every purchase you make. Buyer Protection includes our Refund Policy.",
+  "@buyerProtectionDescription": {
+    "description": "Buyer protection description text"
+  },
+  "learnMore": "Learn more",
+  "@learnMore": {
+    "description": "Learn more link text"
+  },
+  "follow": "Follow",
+  "@follow": {
+    "description": "Follow button text"
+  },
+  "usuallyShipsIn": "Usually ships in {hours}",
+  "@usuallyShipsIn": {
+    "description": "Usually ships in text",
+    "placeholders": {
+      "hours": {
+        "type": "String",
+        "example": "24 hours"
+      }
+    }
+  },
+  "salesHistory": "Sales history",
+  "@salesHistory": {
+    "description": "Sales history section title"
+  },
+  "itemsSold": "Items sold",
+  "@itemsSold": {
+    "description": "Items sold label"
+  },
+  "shipped": "Shipped",
+  "@shipped": {
+    "description": "Shipped label"
+  },
+  "cancelled": "Cancelled",
+  "@cancelled": {
+    "description": "Cancelled label"
   }
 }

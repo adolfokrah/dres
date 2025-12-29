@@ -40,12 +40,15 @@ export const generateVariationSlug: CollectionBeforeChangeHook = async ({
       styleTitle = style?.title || ''
     }
 
-    // Get variant value names from the variants array
+    // Get variant value names from the variants array (only first 2)
     const variantValueNames: string[] = []
     const variants = data?.variants || originalDoc?.variants
 
     if (variants && Array.isArray(variants)) {
-      for (const variantItem of variants) {
+      // Only take first 2 variants for title and slug
+      const variantsToProcess = variants.slice(0, 2)
+      
+      for (const variantItem of variantsToProcess) {
         const valueId = variantItem?.value
         if (valueId) {
           const valueIdStr = typeof valueId === 'object' ? valueId.id : valueId

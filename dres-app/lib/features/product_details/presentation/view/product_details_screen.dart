@@ -15,6 +15,7 @@ import 'package:dres/features/product_details/presentation/widgets/variation_thu
 import 'package:dres/features/product_details/presentation/widgets/buyer_protection_fee.dart';
 import 'package:dres/features/product_details/presentation/widgets/price_display.dart';
 import 'package:dres/features/product_details/presentation/widgets/sku_selector.dart';
+import 'package:dres/features/product_details/presentation/widgets/seller_info.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
@@ -254,6 +255,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           ),
                         ),
 
+                       
                         // Description Accordion
                         if (variation.styleDescription != null)
                           DescriptionAccordion(
@@ -275,6 +277,28 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                         // Free Listing or Returns Accordion
                         const FreeListingReturnsAccordion(),
+
+                         const SizedBox(height: 26),
+
+                        // Seller Info
+                        if (state.productData?.seller != null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: SellerInfo(
+                              id: state.productData!.seller!.id,
+                              name: state.productData!.seller!.name,
+                              username: state.productData!.seller!.username,
+                              profileImage: state.productData!.seller!.profileImage,
+                              verified: state.productData!.seller!.verified,
+                              vacationMode: state.productData!.seller!.vacationMode,
+                              usuallyShipsIn: state.productData!.seller!.usuallyShipsIn,
+                              itemsSold: state.productData!.seller!.salesHistory.itemsSold,
+                              shipped: state.productData!.seller!.salesHistory.shipped,
+                              cancelled: state.productData!.seller!.salesHistory.cancelled,
+                              memberSince: state.productData!.seller!.memberSince,
+                            ),
+                          ),
+
                       ],
                     ),
                   ),

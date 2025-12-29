@@ -459,6 +459,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We cover the return delivery to the seller'**
   String get weCoverReturnDelivery;
+
+  /// Buyer protection fee checkbox title
+  ///
+  /// In en, this message translates to:
+  /// **'Include Buyer Protection Fee'**
+  String get includeBuyerProtectionFee;
+
+  /// Buyer protection description text
+  ///
+  /// In en, this message translates to:
+  /// **'Our Buyer Protection is a value added optional service to every purchase you make. Buyer Protection includes our Refund Policy.'**
+  String get buyerProtectionDescription;
+
+  /// Learn more link text
+  ///
+  /// In en, this message translates to:
+  /// **'Learn more'**
+  String get learnMore;
+
+  /// Follow button text
+  ///
+  /// In en, this message translates to:
+  /// **'Follow'**
+  String get follow;
+
+  /// Usually ships in text
+  ///
+  /// In en, this message translates to:
+  /// **'Usually ships in {hours}'**
+  String usuallyShipsIn(String hours);
+
+  /// Sales history section title
+  ///
+  /// In en, this message translates to:
+  /// **'Sales history'**
+  String get salesHistory;
+
+  /// Items sold label
+  ///
+  /// In en, this message translates to:
+  /// **'Items sold'**
+  String get itemsSold;
+
+  /// Shipped label
+  ///
+  /// In en, this message translates to:
+  /// **'Shipped'**
+  String get shipped;
+
+  /// Cancelled label
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get cancelled;
 }
 
 class _AppLocalizationsDelegate
