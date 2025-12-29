@@ -40,9 +40,9 @@ export const Reviews: CollectionConfig = {
       required: true,
     },
     {
-      name: 'variation',
+      name: 'style',
       type: 'relationship',
-      relationTo: 'variations',
+      relationTo: 'styles',
       required: true,
     },
     {

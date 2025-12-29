@@ -1,6 +1,7 @@
 import type { CollectionConfig, Where } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
+import { generateUsername } from './hooks/generateUsername'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -46,10 +47,21 @@ export const Users: CollectionConfig = {
               },
             },
             {
+              name: 'username',
+              type: 'text',
+              unique: true,
+              admin: {
+                description: 'Your unique username (will be auto-generated if not provided)',
+              },
+              hooks: {
+                beforeValidate: [generateUsername],
+              },
+            },
+            {
               name: 'photo',
               type: 'upload',
               relationTo: 'media',
-            },
+            }
           ],
         },
         {

@@ -266,8 +266,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             details: Map.fromEntries(
                               variation.details.map(
                                 (detail) => MapEntry(
-                                  detail.attribute.name,
-                                  detail.value.name,
+                                  detail.name,
+                                  detail.value,
                                 ),
                               ),
                             ),

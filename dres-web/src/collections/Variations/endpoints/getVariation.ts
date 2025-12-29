@@ -3,22 +3,38 @@ import { transformVariation } from '../utils/transformVariation'
 
 export const getVariation: PayloadHandler = async (req) => {
   const { payload } = req
-  const { id } = req.routeParams || {}
+  const { slug } = req.routeParams || {}
 
-  if (!id) {
+  if (!slug) {
     return Response.json(
-      { error: 'Variation ID is required' },
+      { error: 'Variation slug is required' },
       { status: 400 }
     )
   }
 
   try {
-    // Fetch the variation with full depth
-    const variation = await payload.findByID({
+    // Fetch the variation with full depth by slug or id
+    const variationResult = await payload.find({
       collection: 'variations',
-      id: id as string,
+      where: {
+        or: [
+          {
+            slug: {
+              equals: slug as string,
+            },
+          },
+          {
+            id: {
+              equals: slug as string,
+            },
+          },
+        ],
+      },
       depth: 5,
+      limit: 1,
     })
+
+    const variation = variationResult.docs[0]
 
     if (!variation) {
       return Response.json(
@@ -35,7 +51,7 @@ export const getVariation: PayloadHandler = async (req) => {
       fullStyle = await payload.findByID({
         collection: 'styles',
         id: styleId,
-        depth: 3,
+        depth: 5, // Increased depth to ensure category is populated
       })
       variation.style = fullStyle
     }
@@ -68,7 +84,7 @@ export const getVariation: PayloadHandler = async (req) => {
         where: {
           and: [
             { style: { equals: styleId } },
-            { id: { not_equals: id } }, // Exclude current variation
+            { id: { not_equals: variation.id } }, // Exclude current variation
           ]
         },
         limit: 10,
@@ -83,7 +99,7 @@ export const getVariation: PayloadHandler = async (req) => {
           const fullRelatedStyle = await payload.findByID({
             collection: 'styles',
             id: relatedStyleId,
-            depth: 3,
+            depth: 5, // Increased depth
           })
           relatedVar.style = fullRelatedStyle
         }
@@ -171,8 +187,8 @@ export const getVariation: PayloadHandler = async (req) => {
       }
     }
 
-    // Extract variant details (variation-level attributes)
-    const details = Array.isArray(variation.variants)
+    // Extract variant details (variation-level attributes) and add metadata
+    const attributeDetails = Array.isArray(variation.variants)
       ? await Promise.all(
           variation.variants.map(async (variant: any) => {
             const attributeId = typeof variant.variant === 'object' ? variant.variant.id : variant.variant
@@ -189,38 +205,85 @@ export const getVariation: PayloadHandler = async (req) => {
             })
 
             return {
-              attribute: {
-                id: attribute.id,
-                name: attribute.name,
-              },
-              value: {
-                id: value.id,
-                name: value.name,
-                slug: value.slug,
-              },
+              name: attribute.name,
+              value: value.name,
             }
           })
         )
       : []
 
-    // Create variationsTitle from first detail attribute
+    // Add department, collection, category, and brand to details
+    const details: { name: string; value: string }[] = []
+
+    // Add department
+    if (fullStyle?.department) {
+      const department = typeof fullStyle.department === 'object' ? fullStyle.department : null
+      if (department?.name) {
+        details.push({
+          name: 'Department',
+          value: department.name,
+        })
+      }
+    }
+
+    // Add category
+    if (fullStyle?.category) {
+      const category = typeof fullStyle.category === 'object' ? fullStyle.category : null
+      const categoryName = category?.category || category?.name
+      if (categoryName) {
+        details.push({
+          name: 'Category',
+          value: categoryName,
+        })
+      }
+    }
+
+    // Add collection
+    if (fullStyle?.collection) {
+      const collection = typeof fullStyle.collection === 'object' ? fullStyle.collection : null
+      if (collection?.name) {
+        details.push({
+          name: 'Collection',
+          value: collection.name,
+        })
+      }
+    }
+
+    // Add brand
+    if (fullStyle?.brand) {
+      const brand = typeof fullStyle.brand === 'object' ? fullStyle.brand : null
+      if (brand?.name) {
+        details.push({
+          name: 'Brand',
+          value: brand.name,
+        })
+      }
+    }
+
+    // Add attribute details
+    details.push(...attributeDetails)
+
+    // Create variationsTitle from first variation attribute (not metadata)
     let variationsTitle: { attribute: string; values: string[] } | null = null
-    if (details.length > 0 && relatedVariations.length > 0) {
-      const firstAttribute = details[0].attribute.name
+    if (attributeDetails.length > 0) {
+      const firstAttribute = attributeDetails[0].name
       const allValues = new Set<string>()
       
       // Add current variation's value
-      allValues.add(details[0].value.name)
+      allValues.add(attributeDetails[0].value)
       
-      // Add related variations' values for the same attribute
-      relatedVariations.forEach((related: any) => {
-        if (related.details && related.details.length > 0) {
-          const relatedFirstDetail = related.details.find((d: any) => d.attribute === firstAttribute)
-          if (relatedFirstDetail) {
-            allValues.add(relatedFirstDetail.value)
+      // Add related variations' values for the same attribute (if there are related variations)
+      if (relatedVariations.length > 0) {
+        relatedVariations.forEach((related: any) => {
+          if (related.details && Array.isArray(related.details)) {
+            // Find the matching attribute in related variation
+            const relatedFirstDetail = related.details.find((d: any) => d.attribute === firstAttribute)
+            if (relatedFirstDetail?.value) {
+              allValues.add(relatedFirstDetail.value)
+            }
           }
-        }
-      })
+        })
+      }
       
       variationsTitle = {
         attribute: firstAttribute,
@@ -232,7 +295,7 @@ export const getVariation: PayloadHandler = async (req) => {
     const skusResult = await payload.find({
       collection: 'skus',
       where: {
-        variation: { equals: id }
+        variation: { equals: variation.id }
       },
       depth: 3,
     })

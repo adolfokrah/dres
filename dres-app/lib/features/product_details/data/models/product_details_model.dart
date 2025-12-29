@@ -170,55 +170,18 @@ class ImageModel {
 }
 
 class DetailModel {
-  final AttributeModel attribute;
-  final AttributeValueModel value;
+  final String name;
+  final String value;
 
   DetailModel({
-    required this.attribute,
+    required this.name,
     required this.value,
   });
 
   factory DetailModel.fromJson(Map<String, dynamic> json) {
     return DetailModel(
-      attribute: AttributeModel.fromJson(json['attribute'] ?? {}),
-      value: AttributeValueModel.fromJson(json['value'] ?? {}),
-    );
-  }
-}
-
-class AttributeModel {
-  final String id;
-  final String name;
-
-  AttributeModel({
-    required this.id,
-    required this.name,
-  });
-
-  factory AttributeModel.fromJson(Map<String, dynamic> json) {
-    return AttributeModel(
-      id: json['id'] ?? '',
       name: json['name'] ?? '',
-    );
-  }
-}
-
-class AttributeValueModel {
-  final String id;
-  final String name;
-  final String slug;
-
-  AttributeValueModel({
-    required this.id,
-    required this.name,
-    required this.slug,
-  });
-
-  factory AttributeValueModel.fromJson(Map<String, dynamic> json) {
-    return AttributeValueModel(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-      slug: json['slug'] ?? '',
+      value: json['value'] ?? '',
     );
   }
 }

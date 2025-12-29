@@ -10,6 +10,7 @@ import { featuredVariations } from './endpoints/featured'
 import { recordView } from './endpoints/recordView'
 import { filteredVariations } from './endpoints/filtered'
 import { getVariation } from './endpoints/getVariation'
+import { getVariationSeller } from './endpoints/getVariationSeller'
 
 interface VariantItem {
   variant?: string | { id: string }
@@ -52,9 +53,14 @@ export const Variations: CollectionConfig = {
       handler: filteredVariations,
     },
     {
-      path: '/:id',
+      path: '/:slug',
       method: 'get',
       handler: getVariation,
+    },
+    {
+      path: '/:id/seller',
+      method: 'get',
+      handler: getVariationSeller,
     },
     {
       path: '/record-view',
