@@ -1,13 +1,14 @@
 import type { CollectionConfig, Where } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
+import { adminOnly } from '../../access/adminOnly'
 import { generateUsername } from './hooks/generateUsername'
 import { getSellerInfo } from './endpoints/getSellerInfo'
 
 export const Users: CollectionConfig = {
   slug: 'users',
   access: {
-    admin: authenticated,
+    admin: adminOnly, // Only admins can access the CMS
     create: () => true, // Allow public registration
     delete: authenticated,
     read: authenticated,

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_text_field.dart';
+import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,7 +19,6 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  bool _isSubmitted = false;
 
   @override
   void dispose() {
@@ -38,10 +39,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isSubmitted = true;
-      });
-      // TODO: Implement forgot password API call
+      context.read<AuthBloc>().add(AuthForgotPasswordRequested(
+        email: _emailController.text.trim(),
+      ));
     }
   }
 
@@ -49,41 +49,60 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            PhosphorIcons.caretLeft(),
-            color: AppColors.textPrimary,
-            size: 24,
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state.status == AuthStatus.error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage ?? 'Failed to send reset link'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state.status == AuthStatus.loading;
+        final isSuccess = state.forgotPasswordSuccess;
+
+        return Scaffold(
+          backgroundColor: AppColors.surface,
+          appBar: AppBar(
+            backgroundColor: AppColors.surface,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(
+                PhosphorIcons.caretLeft(),
+                color: AppColors.textPrimary,
+                size: 24,
+              ),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                }
+              },
+            ),
+            title: Text(
+              l10n.forgotPasswordTitle,
+              style: AppTypography.titleL.copyWith(
+                color: AppColors.textPrimary,
+              ),
+            ),
+            centerTitle: true,
           ),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            }
-          },
-        ),
-        title: Text(
-          l10n.forgotPasswordTitle,
-          style: AppTypography.titleL.copyWith(
-            color: AppColors.textPrimary,
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: isSuccess 
+                  ? _buildSuccessView(l10n) 
+                  : _buildFormView(l10n, isLoading),
+            ),
           ),
-        ),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: _isSubmitted ? _buildSuccessView(l10n) : _buildFormView(l10n),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildFormView(AppLocalizations l10n) {
+  Widget _buildFormView(AppLocalizations l10n, bool isLoading) {
     return Form(
       key: _formKey,
       child: Column(
@@ -116,7 +135,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           // Submit button
           AppButton.filled(
             text: l10n.sendResetLink,
-            onPressed: _handleSubmit,
+            onPressed: isLoading ? null : _handleSubmit,
+            isLoading: isLoading,
           ),
 
           const SizedBox(height: 24),
@@ -150,17 +170,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 40),
 
         // Success icon
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: AppColors.success.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            Icons.check,
-            size: 40,
-            color: AppColors.success,
+        Center(
+          child: Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.success.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check,
+              size: 40,
+              color: AppColors.success,
+            ),
           ),
         ),
 
@@ -203,11 +225,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         // Resend link
         Center(
           child: TextButton(
-            onPressed: () {
-              setState(() {
-                _isSubmitted = false;
-              });
-            },
+            onPressed: _handleSubmit,
             child: Text(
               l10n.didntReceiveEmail,
               style: AppTypography.bodyM.copyWith(
