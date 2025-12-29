@@ -4,6 +4,7 @@ import { authenticated } from '../../access/authenticated'
 import { adminOnly } from '../../access/adminOnly'
 import { generateUsername } from './hooks/generateUsername'
 import { getSellerInfo } from './endpoints/getSellerInfo'
+import { firebaseOAuth } from './endpoints/firebaseOAuth'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -30,6 +31,11 @@ export const Users: CollectionConfig = {
       path: '/:id/seller',
       method: 'get',
       handler: getSellerInfo,
+    },
+    {
+      path: '/oauth/firebase',
+      method: 'post',
+      handler: firebaseOAuth,
     },
   ],
   fields: [
@@ -86,7 +92,6 @@ export const Users: CollectionConfig = {
               name: 'country',
               type: 'relationship',
               relationTo: 'countries',
-              defaultValue: 'Ghana',
               admin: {
                 description: 'Your country (determines currency for products and shipping)',
               },
@@ -445,6 +450,28 @@ export const Users: CollectionConfig = {
       admin: {
         position: 'sidebar',
         description: 'When enabled, your products will be hidden from buyers',
+      },
+    },
+    {
+      name: 'oauthProvider',
+      type: 'select',
+      options: [
+        { label: 'Apple', value: 'apple' },
+        { label: 'Google', value: 'google' },
+      ],
+      admin: {
+        position: 'sidebar',
+        description: 'OAuth provider used for sign in',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'oauthId',
+      type: 'text',
+      admin: {
+        position: 'sidebar',
+        description: 'OAuth provider user ID',
+        readOnly: true,
       },
     },
   ],

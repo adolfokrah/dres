@@ -230,7 +230,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: photoUrl == null
                 ? Center(
                     child: Text(
-                      user != null ? user.firstName[0].toUpperCase() : '',
+                      user != null && user.fullName.isNotEmpty 
+                          ? user.fullName[0].toUpperCase() 
+                          : '?',
                       style: AppTypography.titleL.copyWith(
                         color: AppColors.textSecondary,
                         fontSize: 28,

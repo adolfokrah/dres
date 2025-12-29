@@ -21,6 +21,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthCheckStatusRequested>(_onCheckStatusRequested);
     on<AuthSetRedirect>(_onSetRedirect);
     on<AuthClearRedirect>(_onClearRedirect);
+    on<AuthAppleSignInRequested>(_onAppleSignInRequested);
+    on<AuthGoogleSignInRequested>(_onGoogleSignInRequested);
   }
 
   void _onSetRedirect(
@@ -107,6 +109,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(state.copyWith(status: AuthStatus.loading));
 
     try {
+      // Logout from social providers (Google/Apple)
+      await _authRepository.socialSignOut();
+      // Logout from backend
       await _authRepository.logout();
       emit(state.copyWith(
         status: AuthStatus.unauthenticated,
@@ -144,6 +149,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthCheckStatusRequested event,
     Emitter<AuthState> emit,
   ) async {
+    // If we already have user data and are authenticated, don't reload
+    if (state.status == AuthStatus.authenticated && state.user != null) {
+      debugPrint('🔵 AuthBloc: Already authenticated with user, skipping check');
+      return;
+    }
+    
     emit(state.copyWith(status: AuthStatus.loading));
 
     try {
@@ -157,13 +168,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             user: user,
           ));
         } else {
-          emit(state.copyWith(status: AuthStatus.unauthenticated));
+          // If we have an existing user but getCurrentUser failed, keep the existing user
+          if (state.user != null) {
+            debugPrint('🔵 AuthBloc: getCurrentUser returned null but we have existing user, keeping it');
+            emit(state.copyWith(status: AuthStatus.authenticated));
+          } else {
+            emit(state.copyWith(status: AuthStatus.unauthenticated));
+          }
         }
       } else {
         emit(state.copyWith(status: AuthStatus.unauthenticated));
       }
     } catch (e) {
-      emit(state.copyWith(status: AuthStatus.unauthenticated));
+      // If we have an existing user, keep them authenticated
+      if (state.user != null) {
+        emit(state.copyWith(status: AuthStatus.authenticated));
+      } else {
+        emit(state.copyWith(status: AuthStatus.unauthenticated));
+      }
     }
   }
 
@@ -238,5 +260,61 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
     
     return 'Something went wrong. Please try again';
+  }
+
+  Future<void> _onAppleSignInRequested(
+    AuthAppleSignInRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(status: AuthStatus.loading));
+
+    try {
+      final response = await _authRepository.signInWithApple();
+      
+      debugPrint('🍎 AuthBloc: Apple Sign In successful');
+      emit(state.copyWith(
+        status: AuthStatus.authenticated,
+        user: response.user,
+      ));
+    } catch (e) {
+      final errorMessage = e.toString();
+      // Don't show error if user cancelled
+      if (errorMessage.contains('cancelled') || errorMessage.contains('canceled')) {
+        emit(state.copyWith(status: AuthStatus.initial));
+        return;
+      }
+      emit(state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: _parseError(e),
+      ));
+    }
+  }
+
+  Future<void> _onGoogleSignInRequested(
+    AuthGoogleSignInRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(status: AuthStatus.loading));
+
+    try {
+      final response = await _authRepository.signInWithGoogle();
+      
+      debugPrint('🔵 AuthBloc: Google Sign In successful');
+      emit(state.copyWith(
+        status: AuthStatus.authenticated,
+        user: response.user,
+      ));
+    } catch (e) {
+      final errorMessage = e.toString();
+      // Don't show error if user cancelled
+      if (errorMessage.contains('cancelled') || errorMessage.contains('canceled')) {
+        emit(state.copyWith(status: AuthStatus.initial));
+        return;
+      }
+      emit(state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: _parseError(e),
+      ));
+    }
   }
 }

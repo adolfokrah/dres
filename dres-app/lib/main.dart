@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:dres/firebase_options.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/theme.dart';
 import 'package:dres/l10n/app_localizations.dart';
@@ -21,6 +23,11 @@ Future<void> main() async {
   
   // Load environment variables
   await dotenv.load(fileName: ".env");
+  
+  // Initialize Firebase with platform-specific options
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   
   // Setup dependency injection
   await setupDependencies();

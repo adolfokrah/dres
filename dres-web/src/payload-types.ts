@@ -533,11 +533,15 @@ export interface User {
    * Your shop or business name
    */
   shopName?: string | null;
+  /**
+   * Your unique username (will be auto-generated if not provided)
+   */
+  username?: string | null;
   photo?: (string | null) | Media;
   /**
    * Your country (determines currency for products and shipping)
    */
-  country: string | Country;
+  country?: (string | null) | Country;
   language?: ('en' | 'fr' | 'de' | 'es' | 'it' | 'pt' | 'nl' | 'ja' | 'zh' | 'ko') | null;
   /**
    * Shipping rates set by this seller
@@ -671,6 +675,14 @@ export interface User {
    * When enabled, your products will be hidden from buyers
    */
   vacationMode?: boolean | null;
+  /**
+   * OAuth provider used for sign in
+   */
+  oauthProvider?: ('apple' | 'google') | null;
+  /**
+   * OAuth provider user ID
+   */
+  oauthId?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -678,6 +690,8 @@ export interface User {
   resetPasswordExpiration?: string | null;
   salt?: string | null;
   hash?: string | null;
+  _verified?: boolean | null;
+  _verificationToken?: string | null;
   loginAttempts?: number | null;
   lockUntil?: string | null;
   sessions?:
@@ -862,21 +876,7 @@ export interface Style {
    */
   seller: string | User;
   title: string;
-  description?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
+  description?: string | null;
   /**
    * Whether this product is a resell from a returned item (e.g., from a thrift store)
    */
@@ -2274,7 +2274,7 @@ export interface Notification {
 export interface Review {
   id: string;
   user: string | User;
-  variation: string | Variation;
+  style: string | Style;
   /**
    * Rating from 1 to 5 stars
    */
@@ -3463,7 +3463,7 @@ export interface VariationStatsSelect<T extends boolean = true> {
  */
 export interface ReviewsSelect<T extends boolean = true> {
   user?: T;
-  variation?: T;
+  style?: T;
   rating?: T;
   review?: T;
   images?: T;
@@ -3524,6 +3524,7 @@ export interface UsersSelect<T extends boolean = true> {
   firstName?: T;
   lastName?: T;
   shopName?: T;
+  username?: T;
   photo?: T;
   country?: T;
   language?: T;
@@ -3560,6 +3561,8 @@ export interface UsersSelect<T extends boolean = true> {
   role?: T;
   accountStatus?: T;
   vacationMode?: T;
+  oauthProvider?: T;
+  oauthId?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -3567,6 +3570,8 @@ export interface UsersSelect<T extends boolean = true> {
   resetPasswordExpiration?: T;
   salt?: T;
   hash?: T;
+  _verified?: T;
+  _verificationToken?: T;
   loginAttempts?: T;
   lockUntil?: T;
   sessions?:

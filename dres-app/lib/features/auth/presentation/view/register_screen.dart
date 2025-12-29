@@ -7,8 +7,8 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_text_field.dart';
 import 'package:dres/core/widgets/app_password_field.dart';
-import 'package:dres/core/constants/app_images.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
+import 'package:dres/features/auth/presentation/widgets/social_sign_in_buttons.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
@@ -135,6 +135,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           );
           context.go('/login');
+        } else if (state.status == AuthStatus.authenticated) {
+          // Social sign in successful - redirect to home
+          final destination = state.redirectTo ?? '/home';
+          context.read<AuthBloc>().add(const AuthClearRedirect());
+          context.go(destination);
         } else if (state.status == AuthStatus.error) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -303,32 +308,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 const SizedBox(height: 32),
 
-                // Continue with Apple
-                AppButton.outlined(
-                  text: l10n.continueWithApple,
-                  onPressed: () {
-                    // TODO: Implement Apple Sign In
-                  },
-                  icon: Image.asset(
-                    AppImages.appleIcon,
-                    height: 24,
-                    width: 24,
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                // Continue with Google
-                AppButton.outlined(
-                  text: l10n.continueWithGoogle,
-                  onPressed: () {
-                    // TODO: Implement Google Sign In
-                  },
-                  icon: Image.asset(
-                    AppImages.googleIcon,
-                    height: 24,
-                    width: 24,
-                  ),
+                // Social Sign In Buttons
+                SocialSignInButtons(
+                  isLoading: isLoading,
+                  outlined: true,
                 ),
 
                 const SizedBox(height: 32),

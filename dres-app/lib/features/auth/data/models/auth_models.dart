@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class RegisterRequest {
   final String firstName;
   final String lastName;
@@ -67,6 +69,17 @@ class AuthUser {
   });
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
+    debugPrint('🔵 AuthUser.fromJson: $json');
+    
+    // Handle photo - can be a string URL, an object with url, or null
+    String? photoUrl;
+    final photo = json['photo'];
+    if (photo is String) {
+      photoUrl = photo;
+    } else if (photo is Map) {
+      photoUrl = photo['url'] as String?;
+    }
+    
     return AuthUser(
       id: json['id']?.toString() ?? '',
       email: json['email'] ?? '',
@@ -74,11 +87,22 @@ class AuthUser {
       lastName: json['lastName'] ?? '',
       shopName: json['shopName'],
       username: json['username'],
-      photo: json['photo']?['url'],
+      photo: photoUrl,
     );
   }
 
-  String get fullName => '$firstName $lastName';
+  String get fullName {
+    final first = firstName.trim();
+    final last = lastName.trim();
+    if (first.isNotEmpty && last.isNotEmpty) {
+      return '$first $last';
+    } else if (first.isNotEmpty) {
+      return first;
+    } else if (last.isNotEmpty) {
+      return last;
+    }
+    return email.split('@').first; // Fallback to email username
+  }
 }
 
 class AuthResponse {

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "322305519128",
+    "project_id": "dres-4f135",
+    "storage_bucket": "dres-4f135.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:322305519128:android:f341efb3da063f1c8b1d6d",
+        "android_client_info": {
+          "package_name": "com.example.dres"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDsUKMI5sAkvVNhyvzSx36raHI23dmTcOk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

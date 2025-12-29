@@ -11,6 +11,7 @@ import 'package:dres/features/shop/presentation/view/brands_screen.dart';
 import 'package:dres/features/shop/presentation/view/products_screen.dart';
 import 'package:dres/features/product_details/presentation/view/product_details_screen.dart';
 import 'package:dres/features/auth/presentation/view/auth_home_screen.dart';
+import 'package:dres/features/auth/presentation/view/auth_callback_screen.dart';
 import 'package:dres/features/auth/presentation/view/login_screen.dart';
 import 'package:dres/features/auth/presentation/view/register_screen.dart';
 import 'package:dres/features/auth/presentation/view/forgot_password_screen.dart';
@@ -43,6 +44,16 @@ class AppRoutes {
   static final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: splash,
+    // Handle unknown routes (like Firebase auth callbacks)
+    errorBuilder: (context, state) {
+      // If it's a Firebase auth callback URL, show the callback handler
+      final uri = state.uri.toString();
+      if (uri.contains('firebaseauth') || uri.startsWith('app-1-')) {
+        return const AuthCallbackScreen();
+      }
+      // For other unknown routes, redirect to home
+      return const SplashScreen();
+    },
     routes: [
       // Splash (outside shell)
       GoRoute(

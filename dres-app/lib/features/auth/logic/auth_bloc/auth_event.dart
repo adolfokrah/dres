@@ -68,3 +68,11 @@ class AuthSetRedirect extends AuthEvent {
 class AuthClearRedirect extends AuthEvent {
   const AuthClearRedirect();
 }
+
+class AuthAppleSignInRequested extends AuthEvent {
+  const AuthAppleSignInRequested();
+}
+
+class AuthGoogleSignInRequested extends AuthEvent {
+  const AuthGoogleSignInRequested();
+}
