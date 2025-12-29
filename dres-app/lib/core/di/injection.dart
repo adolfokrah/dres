@@ -12,6 +12,7 @@ import 'package:dres/features/shop/logic/brands_bloc/brands_bloc.dart';
 import 'package:dres/features/product_details/data/repositories/product_details_repository.dart';
 import 'package:dres/features/product_details/data/repositories/reviews_repository.dart';
 import 'package:dres/features/product_details/data/repositories/seller_repository.dart';
+import 'package:dres/features/product_details/data/repositories/similar_variations_repository.dart';
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_bloc.dart';
 
 final getIt = GetIt.instance;
@@ -53,6 +54,9 @@ Future<void> setupDependencies() async {
 
   // Seller Repository
   getIt.registerLazySingleton<SellerRepository>(() => SellerRepository(getIt<ApiService>()));
+
+  // Similar Variations Repository
+  getIt.registerLazySingleton<SimilarVariationsRepository>(() => SimilarVariationsRepository(getIt<ApiService>()));
 
   // ========================
   // BLoCs (Factory - new instance each time)

@@ -18,6 +18,7 @@ import 'package:dres/features/product_details/presentation/widgets/price_display
 import 'package:dres/features/product_details/presentation/widgets/sku_selector.dart';
 import 'package:dres/features/product_details/presentation/widgets/seller_info.dart';
 import 'package:dres/features/product_details/presentation/widgets/reviews_section.dart';
+import 'package:dres/features/product_details/presentation/widgets/similar_variations_section.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
@@ -300,6 +301,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           ReviewsSection(
                             styleId: variation.styleId!,
                           ),
+
+                        const SizedBox(height: 26),
+
+                        // Similar Variations Section
+                        SimilarVariationsSection(
+                          variationId: variation.id,
+                        ),
+
+                        const SizedBox(height: 40),
 
                       ],
                     ),

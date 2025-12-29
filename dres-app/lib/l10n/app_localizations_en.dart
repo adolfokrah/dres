@@ -226,4 +226,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cancelled => 'Cancelled';
+
+  @override
+  String get youMayAlsoLike => 'You may also like';
 }

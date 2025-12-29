@@ -11,6 +11,7 @@ import { recordView } from './endpoints/recordView'
 import { filteredVariations } from './endpoints/filtered'
 import { getVariation } from './endpoints/getVariation'
 import { getVariationSeller } from './endpoints/getVariationSeller'
+import { getSimilarVariations } from './endpoints/getSimilarVariations'
 
 interface VariantItem {
   variant?: string | { id: string }
@@ -61,6 +62,11 @@ export const Variations: CollectionConfig = {
       path: '/:id/seller',
       method: 'get',
       handler: getVariationSeller,
+    },
+    {
+      path: '/:id/similar',
+      method: 'get',
+      handler: getSimilarVariations,
     },
     {
       path: '/record-view',

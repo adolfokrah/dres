@@ -513,6 +513,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancelled'**
   String get cancelled;
+
+  /// Similar products section title
+  ///
+  /// In en, this message translates to:
+  /// **'You may also like'**
+  String get youMayAlsoLike;
 }
 
 class _AppLocalizationsDelegate
