@@ -399,6 +399,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Price'**
   String get price;
+
+  /// Free listing or returns accordion title
+  ///
+  /// In en, this message translates to:
+  /// **'FREE LISTING OR RETURNS'**
+  String get freeListingOrReturns;
+
+  /// Free relisting section title
+  ///
+  /// In en, this message translates to:
+  /// **'Free Relisting'**
+  String get freeRelisting;
+
+  /// Free relisting description text
+  ///
+  /// In en, this message translates to:
+  /// **'Relisting is free if there\'s a problem with the item. Eligible reasons (report within 6 hours):'**
+  String get freeRelistingDescription;
+
+  /// Wrong item sent reason
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong item sent'**
+  String get wrongItemSent;
+
+  /// Fake or not authentic reason
+  ///
+  /// In en, this message translates to:
+  /// **'Fake / not authentic'**
+  String get fakeNotAuthentic;
+
+  /// Item arrived damaged reason
+  ///
+  /// In en, this message translates to:
+  /// **'Item arrived damaged'**
+  String get itemArrivedDamaged;
+
+  /// Free returns section title
+  ///
+  /// In en, this message translates to:
+  /// **'Free Returns (Buyer Protection)'**
+  String get freeReturnsBuyerProtection;
+
+  /// Free returns description text
+  ///
+  /// In en, this message translates to:
+  /// **'If you add the Buyer Protection Fee to this item, you can return the item for a full refund and we\'ll cover the return delivery cost.'**
+  String get freeReturnsDescription;
+
+  /// 6 hours return policy
+  ///
+  /// In en, this message translates to:
+  /// **'Return issues must be reported within 6 hours'**
+  String get returnIssues48Hours;
+
+  /// Return delivery coverage text
+  ///
+  /// In en, this message translates to:
+  /// **'We cover the return delivery to the seller'**
+  String get weCoverReturnDelivery;
 }
 
 class _AppLocalizationsDelegate

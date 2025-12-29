@@ -162,4 +162,38 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get price => 'Price';
+
+  @override
+  String get freeListingOrReturns => 'FREE LISTING OR RETURNS';
+
+  @override
+  String get freeRelisting => 'Free Relisting';
+
+  @override
+  String get freeRelistingDescription =>
+      'Relisting is free if there\'s a problem with the item. Eligible reasons (report within 6 hours):';
+
+  @override
+  String get wrongItemSent => 'Wrong item sent';
+
+  @override
+  String get fakeNotAuthentic => 'Fake / not authentic';
+
+  @override
+  String get itemArrivedDamaged => 'Item arrived damaged';
+
+  @override
+  String get freeReturnsBuyerProtection => 'Free Returns (Buyer Protection)';
+
+  @override
+  String get freeReturnsDescription =>
+      'If you add the Buyer Protection Fee to this item, you can return the item for a full refund and we\'ll cover the return delivery cost.';
+
+  @override
+  String get returnIssues48Hours =>
+      'Return issues must be reported within 6 hours';
+
+  @override
+  String get weCoverReturnDelivery =>
+      'We cover the return delivery to the seller';
 }

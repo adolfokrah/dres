@@ -1,5 +1,6 @@
 import 'package:dres/core/widgets/simple_header.dart';
 import 'package:dres/core/widgets/badge_widget.dart';
+import 'package:dres/core/widgets/accordion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dres/core/theme/app_colors.dart';
@@ -12,6 +13,8 @@ import 'package:dres/features/product_details/logic/product_details_bloc/product
 import 'package:dres/features/product_details/presentation/widgets/product_image_carousel.dart';
 import 'package:dres/features/product_details/presentation/widgets/variation_thumbnails.dart';
 import 'package:dres/features/product_details/presentation/widgets/buyer_protection_fee.dart';
+import 'package:dres/features/product_details/presentation/widgets/price_display.dart';
+import 'package:dres/features/product_details/presentation/widgets/sku_selector.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
@@ -222,38 +225,56 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                               ),
                               const SizedBox(height: 20),
 
-                               if(variation.compareAtPrice != null)
-                              Text(
-                                'GHS ${variation.compareAtPrice!.toStringAsFixed(2)}',
-                                style: AppTypography.bodyL.copyWith(
-                                  decoration: TextDecoration.lineThrough,
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 24
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-
                               // Price
-                              Text(
-                                'GHS ${variation.price.toStringAsFixed(2)}',
-                                style: AppTypography.bodyL.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 24
-                                ),
+                              PriceDisplay(
+                                skus: variation.skus,
+                                selectedSkuId: state.selectedSkuId ?? variation.defaultSku,
                               ),
                               const SizedBox(height: 10),
 
+                      
                               // Buyer Protection Fee
                               BuyerProtectionFee(
                                 fee: 35.00,
                               ),
                               const SizedBox(height: 10),
+                               // SKU Selector (Size, Color, etc.)
+                              SkuSelector(
+                                skus: variation.skus,
+                                selectedSkuId: state.selectedSkuId ?? variation.defaultSku,
+                                onSkuSelected: (skuId) {
+                                  context.read<ProductDetailsBloc>().add(
+                                    UpdateSelectedSku(skuId: skuId),
+                                  );
+                                },
+                              ),
 
                               // TODO: Add size selector, add to bag button
                             ],
                           ),
                         ),
+
+                        // Description Accordion
+                        if (variation.styleDescription != null)
+                          DescriptionAccordion(
+                            description: variation.styleDescription,
+                          ),
+
+                        // Details Accordion
+                        if (variation.details.isNotEmpty)
+                          DetailsAccordion(
+                            details: Map.fromEntries(
+                              variation.details.map(
+                                (detail) => MapEntry(
+                                  detail.attribute.name,
+                                  detail.value.name,
+                                ),
+                              ),
+                            ),
+                          ),
+
+                        // Free Listing or Returns Accordion
+                        const FreeListingReturnsAccordion(),
                       ],
                     ),
                   ),

@@ -19,3 +19,14 @@ class FetchProductDetails extends ProductDetailsEvent {
   @override
   List<Object?> get props => [variationId, skuId];
 }
+
+class UpdateSelectedSku extends ProductDetailsEvent {
+  final String skuId;
+
+  const UpdateSelectedSku({
+    required this.skuId,
+  });
+
+  @override
+  List<Object?> get props => [skuId];
+}

@@ -8,6 +8,7 @@ class ProductDetailsBloc extends Bloc<ProductDetailsEvent, ProductDetailsState> 
 
   ProductDetailsBloc(this._repository) : super(const ProductDetailsState()) {
     on<FetchProductDetails>(_onFetchProductDetails);
+    on<UpdateSelectedSku>(_onUpdateSelectedSku);
   }
 
   Future<void> _onFetchProductDetails(
@@ -32,5 +33,12 @@ class ProductDetailsBloc extends Bloc<ProductDetailsEvent, ProductDetailsState> 
         errorMessage: error.toString(),
       ));
     }
+  }
+
+  void _onUpdateSelectedSku(
+    UpdateSelectedSku event,
+    Emitter<ProductDetailsState> emit,
+  ) {
+    emit(state.copyWith(selectedSkuId: event.skuId));
   }
 }

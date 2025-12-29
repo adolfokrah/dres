@@ -207,5 +207,45 @@
   "price": "Price",
   "@price": {
     "description": "Price filter header"
+  },
+  "freeListingOrReturns": "FREE LISTING OR RETURNS",
+  "@freeListingOrReturns": {
+    "description": "Free listing or returns accordion title"
+  },
+  "freeRelisting": "Free Relisting",
+  "@freeRelisting": {
+    "description": "Free relisting section title"
+  },
+  "freeRelistingDescription": "Relisting is free if there's a problem with the item. Eligible reasons (report within 6 hours):",
+  "@freeRelistingDescription": {
+    "description": "Free relisting description text"
+  },
+  "wrongItemSent": "Wrong item sent",
+  "@wrongItemSent": {
+    "description": "Wrong item sent reason"
+  },
+  "fakeNotAuthentic": "Fake / not authentic",
+  "@fakeNotAuthentic": {
+    "description": "Fake or not authentic reason"
+  },
+  "itemArrivedDamaged": "Item arrived damaged",
+  "@itemArrivedDamaged": {
+    "description": "Item arrived damaged reason"
+  },
+  "freeReturnsBuyerProtection": "Free Returns (Buyer Protection)",
+  "@freeReturnsBuyerProtection": {
+    "description": "Free returns section title"
+  },
+  "freeReturnsDescription": "If you add the Buyer Protection Fee to this item, you can return the item for a full refund and we'll cover the return delivery cost.",
+  "@freeReturnsDescription": {
+    "description": "Free returns description text"
+  },
+  "returnIssues48Hours": "Return issues must be reported within 6 hours",
+  "@returnIssues48Hours": {
+    "description": "6 hours return policy"
+  },
+  "weCoverReturnDelivery": "We cover the return delivery to the seller",
+  "@weCoverReturnDelivery": {
+    "description": "Return delivery coverage text"
   }
 }
