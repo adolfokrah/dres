@@ -208,7 +208,7 @@ abstract class AppLocalizations {
   /// **'Favourite'**
   String get favourite;
 
-  /// Me/Profile tab label
+  /// Profile tab label
   ///
   /// In en, this message translates to:
   /// **'Me'**
@@ -735,6 +735,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Registration successful! Please log in.'**
   String get registrationSuccessful;
+
+  /// Account preference section title
+  ///
+  /// In en, this message translates to:
+  /// **'Account Preference'**
+  String get accountPreference;
+
+  /// Shopping preference menu item
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping Preference'**
+  String get shoppingPreference;
+
+  /// Vacation mode menu item
+  ///
+  /// In en, this message translates to:
+  /// **'Vacation mode'**
+  String get vacationMode;
+
+  /// Saved searches menu item
+  ///
+  /// In en, this message translates to:
+  /// **'Saved searches'**
+  String get savedSearches;
+
+  /// Withdrawal account menu item
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawal account'**
+  String get withdrawalAccount;
+
+  /// Info section title
+  ///
+  /// In en, this message translates to:
+  /// **'Info'**
+  String get info;
+
+  /// Privacy policy menu item
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get privacyPolicy;
+
+  /// Terms of service menu item
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of service'**
+  String get termsOfService;
+
+  /// Logout menu item
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get logout;
+
+  /// Logout confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to logout?'**
+  String get logoutConfirmation;
+
+  /// Cancel button text
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// View profile link text
+  ///
+  /// In en, this message translates to:
+  /// **'View Profile'**
+  String get viewProfile;
+
+  /// Women department label
+  ///
+  /// In en, this message translates to:
+  /// **'Women'**
+  String get women;
+
+  /// Men department label
+  ///
+  /// In en, this message translates to:
+  /// **'Men'**
+  String get men;
 }
 
 class _AppLocalizationsDelegate

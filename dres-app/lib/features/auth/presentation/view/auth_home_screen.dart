@@ -61,6 +61,9 @@ class AuthHomeScreen extends StatelessWidget {
                         onPressed: () {
                           if (context.canPop()) {
                             context.pop();
+                          } else {
+                            // Navigate to home if can't pop (e.g., opened from tab navigation)
+                            context.go('/home');
                           }
                         },
                       ),

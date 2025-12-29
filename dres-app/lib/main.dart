@@ -13,6 +13,7 @@ import 'package:dres/features/home/logic/bloc/home_event.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_bloc.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_bloc.dart';
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_bloc.dart';
+import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/core/services/storage_service.dart';
 
 Future<void> main() async {
@@ -62,6 +63,11 @@ class MainApp extends StatelessWidget {
         // ProductDetailsBloc - for product details page
         BlocProvider<ProductDetailsBloc>(
           create: (_) => getIt<ProductDetailsBloc>(),
+          lazy: true,
+        ),
+        // AuthBloc - for authentication
+        BlocProvider<AuthBloc>(
+          create: (_) => getIt<AuthBloc>(),
           lazy: true,
         ),
       ],

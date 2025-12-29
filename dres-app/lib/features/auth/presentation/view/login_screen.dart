@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
@@ -6,6 +7,7 @@ import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_text_field.dart';
 import 'package:dres/core/widgets/app_password_field.dart';
 import 'package:dres/core/constants/app_images.dart';
+import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
@@ -43,15 +45,15 @@ class _LoginScreenState extends State<LoginScreen> {
     if (value == null || value.isEmpty) {
       return 'Please enter your password';
     }
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters';
-    }
     return null;
   }
 
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement login logic
+      context.read<AuthBloc>().add(AuthLoginRequested(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      ));
     }
   }
 
@@ -59,45 +61,62 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            PhosphorIcons.caretLeft(),
-            color: AppColors.textPrimary,
-            size: 24,
-          ),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            }
-          },
-        ),
-        title: Text(
-          l10n.welcomeBack,
-          style: AppTypography.titleL.copyWith(
-            color: AppColors.textPrimary,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 20),
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state.status == AuthStatus.authenticated) {
+          // Login successful - navigate to home
+          context.go('/home');
+        } else if (state.status == AuthStatus.error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage ?? 'Login failed'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state.status == AuthStatus.loading;
 
-                // Email field
-                AppTextField(
-                  controller: _emailController,
-                  label: l10n.email,
+        return Scaffold(
+          backgroundColor: AppColors.surface,
+          appBar: AppBar(
+            backgroundColor: AppColors.surface,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(
+                PhosphorIcons.caretLeft(),
+                color: AppColors.textPrimary,
+                size: 24,
+              ),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                }
+              },
+            ),
+            title: Text(
+              l10n.welcomeBack,
+              style: AppTypography.titleL.copyWith(
+                color: AppColors.textPrimary,
+              ),
+            ),
+            centerTitle: true,
+          ),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 20),
+
+                    // Email field
+                    AppTextField(
+                      controller: _emailController,
+                      label: l10n.email,
                   hintText: l10n.enterYourEmail,
                   keyboardType: TextInputType.emailAddress,
                   validator: _validateEmail,
@@ -136,7 +155,8 @@ class _LoginScreenState extends State<LoginScreen> {
               // Login button
               AppButton.filled(
                 text: l10n.logIn,
-                onPressed: _handleLogin,
+                onPressed: isLoading ? null : _handleLogin,
+                isLoading: isLoading,
               ),
 
               const SizedBox(height: 32),
@@ -219,6 +239,8 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+    );
+      },
     );
   }
 }

@@ -463,5 +463,65 @@
   "registrationSuccessful": "Registration successful! Please log in.",
   "@registrationSuccessful": {
     "description": "Success message after registration"
+  },
+  "me": "Me",
+  "@me": {
+    "description": "Profile tab label"
+  },
+  "accountPreference": "Account Preference",
+  "@accountPreference": {
+    "description": "Account preference section title"
+  },
+  "shoppingPreference": "Shopping Preference",
+  "@shoppingPreference": {
+    "description": "Shopping preference menu item"
+  },
+  "vacationMode": "Vacation mode",
+  "@vacationMode": {
+    "description": "Vacation mode menu item"
+  },
+  "savedSearches": "Saved searches",
+  "@savedSearches": {
+    "description": "Saved searches menu item"
+  },
+  "withdrawalAccount": "Withdrawal account",
+  "@withdrawalAccount": {
+    "description": "Withdrawal account menu item"
+  },
+  "info": "Info",
+  "@info": {
+    "description": "Info section title"
+  },
+  "privacyPolicy": "Privacy policy",
+  "@privacyPolicy": {
+    "description": "Privacy policy menu item"
+  },
+  "termsOfService": "Terms of service",
+  "@termsOfService": {
+    "description": "Terms of service menu item"
+  },
+  "logout": "Logout",
+  "@logout": {
+    "description": "Logout menu item"
+  },
+  "logoutConfirmation": "Are you sure you want to logout?",
+  "@logoutConfirmation": {
+    "description": "Logout confirmation message"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button text"
+  },
+  "viewProfile": "View Profile",
+  "@viewProfile": {
+    "description": "View profile link text"
+  },
+  "women": "Women",
+  "@women": {
+    "description": "Women department label"
+  },
+  "men": "Men",
+  "@men": {
+    "description": "Men department label"
   }
 }

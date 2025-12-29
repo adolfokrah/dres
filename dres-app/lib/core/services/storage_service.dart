@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dres/core/constants/storage_keys.dart';
@@ -8,6 +9,9 @@ import 'package:dres/core/constants/storage_keys.dart';
 class StorageService {
   final FlutterSecureStorage _secureStorage;
   late SharedPreferences _prefs;
+  
+  /// Notifier for department changes - listen to this to react to updates
+  final ValueNotifier<String> departmentNotifier = ValueNotifier<String>('women');
 
   StorageService() : _secureStorage = const FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true),
@@ -17,6 +21,8 @@ class StorageService {
   /// Initialize SharedPreferences (call in main.dart)
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
+    // Initialize department notifier with stored value
+    departmentNotifier.value = getUserDepartment() ?? 'women';
   }
 
   // ========================
@@ -82,6 +88,8 @@ class StorageService {
   /// Save user department preference
   Future<void> setUserDepartment(String department) async {
     await _prefs.setString(StorageKeys.userDepartment, department);
+    // Notify listeners of the change
+    departmentNotifier.value = department;
   }
 
   /// Get user department preference (men | women | kids)

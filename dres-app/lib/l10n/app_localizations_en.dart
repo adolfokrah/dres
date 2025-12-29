@@ -343,4 +343,46 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get registrationSuccessful =>
       'Registration successful! Please log in.';
+
+  @override
+  String get accountPreference => 'Account Preference';
+
+  @override
+  String get shoppingPreference => 'Shopping Preference';
+
+  @override
+  String get vacationMode => 'Vacation mode';
+
+  @override
+  String get savedSearches => 'Saved searches';
+
+  @override
+  String get withdrawalAccount => 'Withdrawal account';
+
+  @override
+  String get info => 'Info';
+
+  @override
+  String get privacyPolicy => 'Privacy policy';
+
+  @override
+  String get termsOfService => 'Terms of service';
+
+  @override
+  String get logout => 'Logout';
+
+  @override
+  String get logoutConfirmation => 'Are you sure you want to logout?';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get viewProfile => 'View Profile';
+
+  @override
+  String get women => 'Women';
+
+  @override
+  String get men => 'Men';
 }

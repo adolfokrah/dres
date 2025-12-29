@@ -8,31 +8,18 @@ import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_text_field.dart';
 import 'package:dres/core/widgets/app_password_field.dart';
 import 'package:dres/core/constants/app_images.dart';
-import 'package:dres/core/di/injection.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => getIt<AuthBloc>(),
-      child: const _RegisterScreenContent(),
-    );
-  }
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenContent extends StatefulWidget {
-  const _RegisterScreenContent();
-
-  @override
-  State<_RegisterScreenContent> createState() => _RegisterScreenContentState();
-}
-
-class _RegisterScreenContentState extends State<_RegisterScreenContent> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();

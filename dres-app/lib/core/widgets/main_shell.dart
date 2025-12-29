@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/widgets/app_bottom_nav_bar.dart';
 import 'package:dres/core/services/scroll_to_top_service.dart';
+import 'package:dres/core/services/storage_service.dart';
+import 'package:dres/core/di/injection.dart';
 import 'package:dres/routes.dart';
 
 // Notification to trigger scroll to top
@@ -21,7 +23,27 @@ class MainShell extends StatefulWidget {
 }
 
 class _MainShellState extends State<MainShell> {
-  void _onBottomNavTap(int index) {
+  // Tabs that require authentication: Sell (2), Favourite (3), Profile (4)
+  static const List<int> _protectedTabs = [2, 3, 4];
+
+  Future<bool> _isLoggedIn() async {
+    final storageService = getIt<StorageService>();
+    return await storageService.isLoggedIn();
+  }
+
+  void _onBottomNavTap(int index) async {
+    // Check if tab requires authentication
+    if (_protectedTabs.contains(index)) {
+      final isLoggedIn = await _isLoggedIn();
+      if (!isLoggedIn) {
+        // Navigate to auth screen
+        if (mounted) {
+          context.push('/auth');
+        }
+        return;
+      }
+    }
+
     final currentRoute = GoRouterState.of(context).uri.toString();
     final isSameTab = widget.navigationShell.currentIndex == index;
     
