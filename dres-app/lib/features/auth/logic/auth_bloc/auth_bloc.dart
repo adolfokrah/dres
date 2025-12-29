@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:dio/dio.dart';
@@ -18,6 +19,25 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthLogoutRequested>(_onLogoutRequested);
     on<AuthForgotPasswordRequested>(_onForgotPasswordRequested);
     on<AuthCheckStatusRequested>(_onCheckStatusRequested);
+    on<AuthSetRedirect>(_onSetRedirect);
+    on<AuthClearRedirect>(_onClearRedirect);
+  }
+
+  void _onSetRedirect(
+    AuthSetRedirect event,
+    Emitter<AuthState> emit,
+  ) {
+    debugPrint('🟡 AuthBloc: Setting redirectTo=${event.redirectTo}');
+    emit(state.copyWith(redirectTo: event.redirectTo));
+    debugPrint('🟡 AuthBloc: After emit, state.redirectTo=${state.redirectTo}');
+  }
+
+  void _onClearRedirect(
+    AuthClearRedirect event,
+    Emitter<AuthState> emit,
+  ) {
+    debugPrint('🟠 AuthBloc: Clearing redirectTo');
+    emit(state.copyWith(clearRedirect: true));
   }
 
   Future<void> _onRegisterRequested(
@@ -35,11 +55,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         password: event.password,
       );
 
-      final response = await _authRepository.register(request);
+      await _authRepository.register(request);
+      
+      // Logout the user so they need to verify email and login
+      await _authRepository.logout();
 
+      // Emit registration success (not authenticated - user needs to verify email)
       emit(state.copyWith(
-        status: AuthStatus.authenticated,
-        user: response.user,
+        status: AuthStatus.registrationSuccess,
       ));
     } catch (e) {
       emit(state.copyWith(
@@ -63,10 +86,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       final response = await _authRepository.login(request);
 
+      debugPrint('🟢 AuthBloc: Login successful, current redirectTo=${state.redirectTo}');
       emit(state.copyWith(
         status: AuthStatus.authenticated,
         user: response.user,
       ));
+      debugPrint('🟢 AuthBloc: After emit, state.redirectTo=${state.redirectTo}');
     } catch (e) {
       emit(state.copyWith(
         status: AuthStatus.error,

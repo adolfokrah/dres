@@ -62,10 +62,19 @@ class _LoginScreenState extends State<LoginScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return BlocConsumer<AuthBloc, AuthState>(
+      listenWhen: (previous, current) {
+        // Only listen when status changes, not when just clearing redirect
+        return previous.status != current.status;
+      },
       listener: (context, state) {
+        debugPrint('🔵 LoginScreen listener: status=${state.status}, redirectTo=${state.redirectTo}');
         if (state.status == AuthStatus.authenticated) {
-          // Login successful - navigate to home
-          context.go('/home');
+          // Login successful - navigate to redirect destination or home
+          final destination = state.redirectTo ?? '/home';
+          debugPrint('🟢 Login successful! Redirecting to: $destination');
+          // Clear redirect after using it
+          context.read<AuthBloc>().add(const AuthClearRedirect());
+          context.go(destination);
         } else if (state.status == AuthStatus.error) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

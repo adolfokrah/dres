@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
+import 'package:dres/core/widgets/cart_icon_button.dart';
 
 class SimpleHeader extends StatelessWidget {
   final String title;
@@ -55,14 +56,7 @@ class SimpleHeader extends StatelessWidget {
           const SizedBox(width: 16),
           
           // Cart/Bag icon
-          GestureDetector(
-            onTap: onCartTap ?? () {},
-            child: Icon(
-              PhosphorIcons.bagSimple(),
-              size: 24,
-              color: AppColors.textPrimary,
-            ),
-          ),
+          CartIconButton(onTap: onCartTap),
         ],
       ),
     );

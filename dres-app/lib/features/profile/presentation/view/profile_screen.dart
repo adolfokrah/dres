@@ -5,6 +5,7 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/services/storage_service.dart';
 import 'package:dres/core/di/injection.dart';
+import 'package:dres/core/widgets/cart_icon_button.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/auth/data/models/auth_models.dart';
 import 'package:dres/l10n/app_localizations.dart';
@@ -79,16 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(width: 16),
 
                   // Bag icon
-                  GestureDetector(
-                    onTap: () {
-                      // TODO: Navigate to orders
-                    },
-                    child: Icon(
-                      PhosphorIcons.bagSimple(),
-                      size: 24,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
+                  const CartIconButton(),
                 ],
               ),
             ),

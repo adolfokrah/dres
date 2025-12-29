@@ -55,3 +55,16 @@ class AuthForgotPasswordRequested extends AuthEvent {
 class AuthCheckStatusRequested extends AuthEvent {
   const AuthCheckStatusRequested();
 }
+
+class AuthSetRedirect extends AuthEvent {
+  final String? redirectTo;
+
+  const AuthSetRedirect(this.redirectTo);
+
+  @override
+  List<Object?> get props => [redirectTo];
+}
+
+class AuthClearRedirect extends AuthEvent {
+  const AuthClearRedirect();
+}

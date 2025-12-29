@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
+import 'package:dres/core/widgets/cart_icon_button.dart';
 import 'package:dres/l10n/app_localizations.dart';
 
 class AppHeader extends StatelessWidget {
@@ -83,11 +84,10 @@ class AppHeader extends StatelessWidget {
           
           const SizedBox(width: 12),
           
-          // Cart/bag icon
-          _HeaderIconButton(
-            icon: PhosphorIcons.bag(),
+          // Cart/bag icon with auth check
+          CartIconButton(
             onTap: onCartTap,
-            badgeCount: cartItemCount,
+            itemCount: cartItemCount,
           ),
         ],
       ),

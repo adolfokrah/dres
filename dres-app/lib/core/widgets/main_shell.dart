@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/widgets/app_bottom_nav_bar.dart';
 import 'package:dres/core/services/scroll_to_top_service.dart';
 import 'package:dres/core/services/storage_service.dart';
 import 'package:dres/core/di/injection.dart';
+import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/routes.dart';
 
 // Notification to trigger scroll to top
@@ -36,8 +38,19 @@ class _MainShellState extends State<MainShell> {
     if (_protectedTabs.contains(index)) {
       final isLoggedIn = await _isLoggedIn();
       if (!isLoggedIn) {
-        // Navigate to auth screen
+        // Get the target route for redirect after login
+        final targetRoutes = [
+          AppRoutes.home,
+          AppRoutes.discover,
+          AppRoutes.sell,
+          AppRoutes.favourite,
+          AppRoutes.profile,
+        ];
+        final redirectTo = targetRoutes[index];
+        
+        // Set redirect in bloc and navigate to auth screen
         if (mounted) {
+          context.read<AuthBloc>().add(AuthSetRedirect(redirectTo));
           context.push('/auth');
         }
         return;

@@ -125,11 +125,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state.status == AuthStatus.authenticated) {
-          // Registration successful - navigate to login page
+        if (state.status == AuthStatus.registrationSuccess) {
+          // Registration successful - navigate to login page for email verification
+          // Keep the redirectTo in bloc state for after login
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Registration successful! Please log in.'),
+              content: Text('Registration successful! Please verify your email and log in.'),
               backgroundColor: AppColors.success,
             ),
           );
