@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/quantity_selector.dart';
@@ -44,18 +45,44 @@ class CartItemTile extends StatelessWidget {
     final exceedsStock = item.exceedsAvailableStock;
     final availableStock = item.availableStock;
 
-    return Opacity(
-      opacity: isUnavailable ? 0.5 : 1.0,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product image
-          Stack(
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Delete button on left side in edit mode (always full opacity)
+        if (isEditMode)
+          GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              width: 23,
+              height: 24,
+              margin: const EdgeInsets.only(right: 10),
+              decoration: const BoxDecoration(
+                color: AppColors.error,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Icon(
+                  PhosphorIcons.minus(),
+                  size: 13,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        // Rest of item content with opacity for unavailable items
+        Expanded(
+          child: Opacity(
+            opacity: isUnavailable ? 0.5 : 1.0,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Product image
+                Stack(
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
                   color: AppColors.secondary,
                   image: imageUrl != null
                       ? DecorationImage(
@@ -195,22 +222,11 @@ class CartItemTile extends StatelessWidget {
               ],
             ),
           ),
-
-          // Remove button in edit mode
-          if (isEditMode)
-            GestureDetector(
-              onTap: onRemove,
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                child: const Icon(
-                  Icons.close,
-                  size: 20,
-                  color: AppColors.textSecondary,
-                ),
-              ),
+              ],
             ),
-        ],
-      ),
+          ),
+        ),
+      ],
     );
   }
 }

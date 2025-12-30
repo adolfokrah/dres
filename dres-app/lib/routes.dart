@@ -19,6 +19,7 @@ import 'package:dres/features/cart/presentation/view/cart_screen.dart';
 import 'package:dres/features/cart/presentation/view/checkout_screen.dart';
 import 'package:dres/features/cart/presentation/view/addresses_screen.dart';
 import 'package:dres/features/cart/presentation/view/add_address_screen.dart';
+import 'package:dres/features/cart/presentation/view/direct_shipping_info_screen.dart';
 import 'package:dres/features/cart/data/models/shipping_address.dart';
 import 'package:dres/core/widgets/main_shell.dart';
 import 'package:dres/core/models/menu_model.dart';
@@ -148,6 +149,13 @@ class AppRoutes {
           final address = state.extra as ShippingAddress?;
           return AddAddressScreen(addressToEdit: address);
         },
+      ),
+      
+      // Direct Shipping Info (outside shell, full screen)
+      GoRoute(
+        path: '/direct-shipping-info',
+        name: 'direct-shipping-info',
+        builder: (context, state) => const DirectShippingInfoScreen(),
       ),
       
       // Main shell with bottom navigation

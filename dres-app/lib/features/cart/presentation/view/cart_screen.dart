@@ -179,9 +179,19 @@ class _CartScreenState extends State<CartScreen> {
             
             // Use validation from backend
             final canProceedToCheckout = state.isValid;
+            
+            // Check if any items are currently loading (deleting/updating)
+            final hasLoadingItems = _loadingItems.values.any((v) => v);
 
             return Column(
               children: [
+                // Loading bar at top when items are being deleted/updated
+                if (hasLoadingItems)
+                  const LinearProgressIndicator(
+                    backgroundColor: AppColors.secondary,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  ),
+                
                 // Header
                 CartHeader(
                   itemCount: state.itemCount,

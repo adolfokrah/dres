@@ -239,7 +239,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     buyerProtectionFee: group.totalBuyerProtection,
                                     hasBuyerProtection: group.hasBuyerProtection,
                                     onLearnMoreTap: () {
-                                      // TODO: Show buyer protection info
+                                      context.push('/direct-shipping-info');
                                     },
                                   )),
 

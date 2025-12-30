@@ -135,17 +135,9 @@ class SellerCheckoutCard extends StatelessWidget {
             label: 'Direct shipping',
             amount: shippingFee,
           ),
-          if (hasBuyerProtection) ...[
-            const SizedBox(height: 14),
-            _FeeRow(
-              icon: PhosphorIcons.shield(),
-              label: 'Buyer protection fee',
-              amount: buyerProtectionFee,
-            ),
-          ],
           const SizedBox(height: 14),
 
-          // Learn more link
+          // Learn more link (for direct shipping info)
           GestureDetector(
             onTap: onLearnMoreTap,
             child: Text(
@@ -157,6 +149,15 @@ class SellerCheckoutCard extends StatelessWidget {
               ),
             ),
           ),
+
+          if (hasBuyerProtection) ...[
+            const SizedBox(height: 14),
+            _FeeRow(
+              icon: PhosphorIcons.shield(),
+              label: 'Buyer protection fee',
+              amount: buyerProtectionFee,
+            ),
+          ],
 
           const SizedBox(height: 14),
 

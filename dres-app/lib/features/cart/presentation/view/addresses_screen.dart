@@ -242,16 +242,24 @@ class _AddressTile extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Delete icon (only in edit mode)
+            // Delete button on left side in edit mode (red circle with minus)
             if (isEditMode) ...[
               GestureDetector(
                 onTap: () => _showDeleteConfirmation(context),
                 child: Container(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: Icon(
-                    PhosphorIcons.trash(),
-                    size: 20,
+                  width: 23,
+                  height: 24,
+                  margin: const EdgeInsets.only(right: 10),
+                  decoration: const BoxDecoration(
                     color: AppColors.error,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Icon(
+                      PhosphorIcons.minus(),
+                      size: 13,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
