@@ -14,7 +14,7 @@ export const generateUsername: FieldHook = async ({ data, req, operation, value 
     const baseName = data?.shopName || data?.firstName || 'user'
     
     // Convert to lowercase and replace spaces with dots
-    let username = baseName.toLowerCase()
+    const username = baseName.toLowerCase()
       .replace(/\s+/g, '.')
       .replace(/[^a-z0-9.]/g, '') // Remove special chars except dots
     

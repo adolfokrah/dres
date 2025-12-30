@@ -118,7 +118,7 @@ export const addToCart: PayloadHandler = async (req) => {
       depth: 0,
     })
 
-    let cart: Cart | null = existingCarts.docs[0] as Cart | null
+    const cart: Cart | null = existingCarts.docs[0] as Cart | null
 
     if (cart) {
       // User has an active cart - check if item already exists

@@ -4,14 +4,16 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
 
-/// Fixed bottom bar showing subtotal and Next button
+/// Fixed bottom bar showing item count, subtotal and Next button
 class CartSummary extends StatelessWidget {
+  final int itemCount;
   final double subtotal;
   final bool hasUnavailableItems;
   final VoidCallback? onNextPressed;
 
   const CartSummary({
     super.key,
+    required this.itemCount,
     required this.subtotal,
     this.hasUnavailableItems = false,
     this.onNextPressed,
@@ -25,6 +27,25 @@ class CartSummary extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Items count row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
+                style: AppTypography.bodyM.copyWith(
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              Text(
+                CurrencyUtils.format(subtotal),
+                style: AppTypography.bodyM.copyWith(
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           // Subtotal row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

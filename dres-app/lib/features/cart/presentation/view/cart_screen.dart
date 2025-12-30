@@ -13,7 +13,6 @@ import 'package:dres/features/cart/presentation/widgets/seller_header.dart';
 import 'package:dres/features/cart/presentation/widgets/cart_item_tile.dart';
 import 'package:dres/features/cart/presentation/widgets/seller_unavailable_message.dart';
 import 'package:dres/features/cart/presentation/widgets/cart_summary.dart';
-import 'package:dres/features/cart/presentation/widgets/cart_totals_section.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -180,7 +179,7 @@ class _CartScreenState extends State<CartScreen> {
                   onEditTap: _toggleEditMode,
                 ),
 
-                // Scrollable content: seller sections + totals
+                // Scrollable content: seller sections
                 Expanded(
                   child: ListView(
                     children: [
@@ -192,17 +191,13 @@ class _CartScreenState extends State<CartScreen> {
                         onUpdateQuantity: _updateItemQuantity,
                         onRemoveItem: _removeItem,
                       )),
-                      // Totals section (items count)
-                      CartTotalsSection(
-                        itemCount: state.itemCount,
-                        itemsTotal: itemsTotal,
-                      ),
                     ],
                   ),
                 ),
 
-                // Fixed bottom: Subtotal + Next button
+                // Fixed bottom: Item count + Subtotal + Next button
                 CartSummary(
+                  itemCount: state.itemCount,
                   subtotal: itemsTotal,
                   hasUnavailableItems: hasUnavailableItems,
                   onNextPressed: () {
