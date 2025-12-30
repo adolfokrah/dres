@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/simple_header.dart';
+import 'package:dres/core/widgets/app_search_input.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_bloc.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_event.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_state.dart';
@@ -69,36 +70,15 @@ class _BrandsScreenViewState extends State<_BrandsScreenView> {
             ),
 
             // Search Bar
-            Padding(
+            AppSearchInput(
+              controller: _searchController,
+              hintText: 'Search brands',
               padding: const EdgeInsets.all(16),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: 'Search brands',
-                  hintStyle: AppTypography.bodyM.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: AppColors.textSecondary,
-                  ),
-                  filled: true,
-                  fillColor: AppColors.secondary,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                ),
-              ),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
             ),
 
             // Brands List

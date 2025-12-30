@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { anyone } from '../../access/anyone'
 import { authenticated } from '../../access/authenticated'
+import { getRegionsByCountry } from './endpoints/getRegionsByCountry'
 
 export const Regions: CollectionConfig = {
   slug: 'regions',
@@ -17,6 +18,13 @@ export const Regions: CollectionConfig = {
     update: authenticated,
     delete: authenticated,
   },
+  endpoints: [
+    {
+      path: '/by-country',
+      method: 'get',
+      handler: getRegionsByCountry,
+    },
+  ],
   fields: [
     {
       name: 'name',

@@ -149,13 +149,20 @@ export const addToCart: PayloadHandler = async (req) => {
           buyerProtection: buyerProtection || existingItem.buyerProtection,
         }
 
-        const updatedCart = await payload.update({
+        await payload.update({
           collection: 'carts',
           id: cart.id,
           data: {
             items: updatedItems,
           },
-          depth: 2,
+          depth: 0,
+        })
+
+        // Fetch with full depth for populated data
+        const updatedCart = await payload.findByID({
+          collection: 'carts',
+          id: cart.id,
+          depth: 5,
         })
 
         return Response.json({
@@ -173,13 +180,20 @@ export const addToCart: PayloadHandler = async (req) => {
           addedAt: new Date().toISOString(),
         }
 
-        const updatedCart = await payload.update({
+        await payload.update({
           collection: 'carts',
           id: cart.id,
           data: {
             items: [...cart.items, newItem],
           },
-          depth: 2,
+          depth: 0,
+        })
+
+        // Fetch with full depth for populated data
+        const updatedCart = await payload.findByID({
+          collection: 'carts',
+          id: cart.id,
+          depth: 5,
         })
 
         return Response.json({
@@ -190,7 +204,7 @@ export const addToCart: PayloadHandler = async (req) => {
       }
     } else {
       // No active cart - create a new one
-      const newCart = await payload.create({
+      const createdCart = await payload.create({
         collection: 'carts',
         data: {
           customer: user.id,
@@ -205,7 +219,14 @@ export const addToCart: PayloadHandler = async (req) => {
             },
           ],
         },
-        depth: 2,
+        depth: 0,
+      })
+
+      // Fetch with full depth for populated data
+      const newCart = await payload.findByID({
+        collection: 'carts',
+        id: createdCart.id,
+        depth: 5,
       })
 
       return Response.json({

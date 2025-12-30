@@ -5,6 +5,7 @@ import { adminOnly } from '../../access/adminOnly'
 import { generateUsername } from './hooks/generateUsername'
 import { getSellerInfo } from './endpoints/getSellerInfo'
 import { firebaseOAuth } from './endpoints/firebaseOAuth'
+import { addAddress, deleteAddress, setDefaultAddress, updateAddress } from './endpoints/addresses'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -36,6 +37,26 @@ export const Users: CollectionConfig = {
       path: '/oauth/firebase',
       method: 'post',
       handler: firebaseOAuth,
+    },
+    {
+      path: '/addresses',
+      method: 'post',
+      handler: addAddress,
+    },
+    {
+      path: '/addresses/:index',
+      method: 'delete',
+      handler: deleteAddress,
+    },
+    {
+      path: '/addresses/:index',
+      method: 'put',
+      handler: updateAddress,
+    },
+    {
+      path: '/addresses/:index/default',
+      method: 'patch',
+      handler: setDefaultAddress,
     },
   ],
   fields: [

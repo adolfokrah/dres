@@ -76,6 +76,9 @@ class CartItemModel {
   final bool isNotInYourCountry;
   final int? stockQuantity;
   final int? availableStock;
+  // Per-item validation from backend
+  final bool valid;
+  final String? reason;
 
   CartItemModel({
     this.variationId,
@@ -93,6 +96,8 @@ class CartItemModel {
     this.isNotInYourCountry = false,
     this.stockQuantity,
     this.availableStock,
+    this.valid = true,
+    this.reason,
   });
 
   /// Check if item is unavailable (seller on vacation, out of stock, or not in your country)
@@ -140,6 +145,9 @@ class CartItemModel {
       isNotInYourCountry: json['isNotInYourCountry'] ?? false,
       stockQuantity: json['stockQuantity'],
       availableStock: json['availableStock'],
+      // Per-item validation
+      valid: json['valid'] ?? true,
+      reason: json['reason'],
     );
   }
 }

@@ -1,9 +1,12 @@
 import type { PayloadHandler } from 'payload'
 
 interface CartItem {
-  variation: string | { id: string }
+  variation: string | { id: string; style?: { seller?: string | { id: string } } }
   sku?: string | { id: string } | null
   quantity: number
+  shippingFee?: number
+  buyerProtection?: boolean
+  buyerProtectionFee?: number
 }
 
 interface Cart {
@@ -71,6 +74,7 @@ export const removeCartItem: PayloadHandler = async (req) => {
     }
 
     // Remove the item from cart
+    const removedItem = cart.items[itemIndex]
     const updatedItems = cart.items.filter((_, index) => index !== itemIndex)
 
     // If this was the last item, delete the cart instead of updating
@@ -86,13 +90,57 @@ export const removeCartItem: PayloadHandler = async (req) => {
       })
     }
 
-    const updatedCart = await payload.update({
+    // Check if the removed item had a shipping fee - if so, we need to redistribute it
+    const removedItemShippingFee = (removedItem as CartItem).shippingFee || 0
+    
+    if (removedItemShippingFee > 0) {
+      // Find which seller this item belonged to
+      const removedVariation = removedItem.variation
+      let removedSellerId: string | undefined
+      
+      if (typeof removedVariation === 'object' && removedVariation.style) {
+        const seller = removedVariation.style.seller
+        removedSellerId = typeof seller === 'object' ? seller?.id : seller
+      }
+
+      if (removedSellerId) {
+        // Find the first remaining item from the same seller and give it the shipping fee
+        for (const item of updatedItems) {
+          const variation = item.variation
+          let itemSellerId: string | undefined
+          
+          if (typeof variation === 'object' && variation.style) {
+            const seller = variation.style.seller
+            itemSellerId = typeof seller === 'object' ? seller?.id : seller
+          }
+
+          if (itemSellerId === removedSellerId) {
+            // Transfer the shipping fee to this item
+            (item as CartItem).shippingFee = removedItemShippingFee
+            // Recalculate buyer protection if enabled
+            if ((item as CartItem).buyerProtection) {
+              (item as CartItem).buyerProtectionFee = removedItemShippingFee * 0.8
+            }
+            break
+          }
+        }
+      }
+    }
+
+    await payload.update({
       collection: 'carts',
       id: cart.id,
       data: {
         items: updatedItems,
       },
-      depth: 2,
+      depth: 0,
+    })
+
+    // Fetch with full depth for populated data
+    const updatedCart = await payload.findByID({
+      collection: 'carts',
+      id: cart.id,
+      depth: 5,
     })
 
     return Response.json({

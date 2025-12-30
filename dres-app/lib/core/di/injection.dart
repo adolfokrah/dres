@@ -17,7 +17,9 @@ import 'package:dres/features/product_details/logic/product_details_bloc/product
 import 'package:dres/features/auth/data/repositories/auth_repository.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/cart/data/repositories/cart_repository.dart';
+import 'package:dres/features/cart/data/repositories/address_repository.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
+import 'package:dres/features/cart/logic/address_bloc/address_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -73,6 +75,11 @@ Future<void> setupDependencies() async {
     apiService: getIt<ApiService>(),
   ));
 
+  // Address Repository
+  getIt.registerLazySingleton<AddressRepository>(() => AddressRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
   // ========================
   // BLoCs (Factory - new instance each time)
   // ========================
@@ -97,4 +104,7 @@ Future<void> setupDependencies() async {
 
   // Cart Bloc - Singleton so cart state persists across screens
   getIt.registerLazySingleton<CartBloc>(() => CartBloc(cartRepository: getIt<CartRepository>()));
+
+  // Address Bloc - Singleton so address selection persists
+  getIt.registerLazySingleton<AddressBloc>(() => AddressBloc(addressRepository: getIt<AddressRepository>()));
 }

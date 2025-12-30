@@ -34,3 +34,13 @@ class CartAddItemRequested extends CartEvent {
 class CartCleared extends CartEvent {
   const CartCleared();
 }
+
+/// Update shipping fees based on selected city
+class CartUpdateShippingRequested extends CartEvent {
+  final String cityId;
+
+  const CartUpdateShippingRequested({required this.cityId});
+
+  @override
+  List<Object?> get props => [cityId];
+}

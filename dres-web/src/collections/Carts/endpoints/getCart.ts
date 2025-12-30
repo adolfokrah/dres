@@ -42,6 +42,9 @@ interface EnrichedCartItem extends Record<string, unknown> {
   isNotInYourCountry: boolean
   stockQuantity: number | null
   availableStock: number | null
+  // Per-item validation
+  valid: boolean
+  reason: string | null
 }
 
 export const getCart: PayloadHandler = async (req) => {
@@ -94,6 +97,8 @@ export const getCart: PayloadHandler = async (req) => {
           isNotInYourCountry: false,
           stockQuantity: null,
           availableStock: null,
+          valid: true,
+          reason: null,
         }
 
         // Check seller vacation status and enrich seller info
@@ -132,10 +137,14 @@ export const getCart: PayloadHandler = async (req) => {
               // If seller is populated, check vacation mode directly
               if (sellerInfo.vacationMode === true) {
                 enrichedItem.isSellerOnVacation = true
+                enrichedItem.valid = false
+                enrichedItem.reason = 'Seller is currently on vacation'
               }
               // Check if seller's country matches user's country
               if (userCountry.countryId && sellerCountryId && sellerCountryId !== userCountry.countryId) {
                 enrichedItem.isNotInYourCountry = true
+                enrichedItem.valid = false
+                enrichedItem.reason = 'Item not available in your country'
               }
             }
 
@@ -143,13 +152,19 @@ export const getCart: PayloadHandler = async (req) => {
             if (sellerId && !sellerInfo) {
               if (sellerCache.has(sellerId)) {
                 sellerInfo = sellerCache.get(sellerId) || null
-                enrichedItem.isSellerOnVacation = sellerInfo?.vacationMode === true
+                if (sellerInfo?.vacationMode === true) {
+                  enrichedItem.isSellerOnVacation = true
+                  enrichedItem.valid = false
+                  enrichedItem.reason = 'Seller is currently on vacation'
+                }
                 // Check country from cache
                 const cachedCountryId = typeof sellerInfo?.country === 'object' && sellerInfo.country !== null
                   ? (sellerInfo.country as { id: string }).id
                   : sellerInfo?.country as string | undefined
                 if (userCountry.countryId && cachedCountryId && cachedCountryId !== userCountry.countryId) {
                   enrichedItem.isNotInYourCountry = true
+                  enrichedItem.valid = false
+                  enrichedItem.reason = 'Item not available in your country'
                 }
               } else {
                 try {
@@ -178,10 +193,16 @@ export const getCart: PayloadHandler = async (req) => {
                       country: sellerCountry as string | { id: string } | undefined,
                     }
                     sellerCache.set(sellerId, sellerInfo)
-                    enrichedItem.isSellerOnVacation = sellerInfo.vacationMode === true
+                    if (sellerInfo.vacationMode === true) {
+                      enrichedItem.isSellerOnVacation = true
+                      enrichedItem.valid = false
+                      enrichedItem.reason = 'Seller is currently on vacation'
+                    }
                     // Check if seller's country matches user's country
                     if (userCountry.countryId && sellerCountryId && sellerCountryId !== userCountry.countryId) {
                       enrichedItem.isNotInYourCountry = true
+                      enrichedItem.valid = false
+                      enrichedItem.reason = 'Item not available in your country'
                     }
                   }
                 } catch {
@@ -211,13 +232,19 @@ export const getCart: PayloadHandler = async (req) => {
           if (isActive === false) {
             enrichedItem.isOutOfStock = true
             enrichedItem.availableStock = 0
+            enrichedItem.valid = false
+            enrichedItem.reason = 'Out of stock'
           } else if (stock !== null && stock !== undefined) {
             enrichedItem.availableStock = stock
             if (stock <= 0) {
               enrichedItem.isOutOfStock = true
+              enrichedItem.valid = false
+              enrichedItem.reason = 'Out of stock'
             } else if (stock < quantity) {
               // Not completely out of stock, but not enough for requested quantity
               enrichedItem.availableStock = stock
+              enrichedItem.valid = false
+              enrichedItem.reason = `Only ${stock} available`
             }
           }
         } else if (item.sku && typeof item.sku === 'string') {
@@ -238,12 +265,18 @@ export const getCart: PayloadHandler = async (req) => {
               if (isActive === false) {
                 enrichedItem.isOutOfStock = true
                 enrichedItem.availableStock = 0
+                enrichedItem.valid = false
+                enrichedItem.reason = 'Out of stock'
               } else if (stock !== null && stock !== undefined) {
                 enrichedItem.availableStock = stock
                 if (stock <= 0) {
                   enrichedItem.isOutOfStock = true
+                  enrichedItem.valid = false
+                  enrichedItem.reason = 'Out of stock'
                 } else if (stock < quantity) {
                   enrichedItem.availableStock = stock
+                  enrichedItem.valid = false
+                  enrichedItem.reason = `Only ${stock} available`
                 }
               }
             }
@@ -256,7 +289,28 @@ export const getCart: PayloadHandler = async (req) => {
       }
     }
 
-    // Return cart with enriched items
+    // Build validation summary from per-item validation
+    const invalidItems = enrichedItems.filter(item => !item.valid)
+    const isValid = invalidItems.length === 0
+    const validationIssues: string[] = []
+    
+    if (invalidItems.some(item => item.isOutOfStock)) {
+      validationIssues.push('Some items are out of stock')
+    }
+    if (invalidItems.some(item => item.isNotInYourCountry)) {
+      validationIssues.push('Some items are not available in your country')
+    }
+    if (invalidItems.some(item => item.isSellerOnVacation)) {
+      validationIssues.push('Some sellers are on vacation')
+    }
+    if (invalidItems.some(item => {
+      const quantity = (item as Record<string, unknown>).quantity as number || 1
+      return item.availableStock !== null && item.availableStock > 0 && quantity > item.availableStock
+    })) {
+      validationIssues.push('Some items exceed available stock')
+    }
+
+    // Return cart with enriched items and validation
     const enrichedCart = {
       ...cart,
       items: enrichedItems,
@@ -265,6 +319,10 @@ export const getCart: PayloadHandler = async (req) => {
     return Response.json({
       cart: enrichedCart,
       message: 'Cart retrieved successfully',
+      validation: {
+        valid: isValid,
+        reasons: validationIssues,
+      },
     })
   } catch (error) {
     console.error('Get cart error:', error)

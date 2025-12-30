@@ -184,7 +184,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
           // Will be handled by sort (createdAt descending)
           break
         case 'trending':
-          // Will be handled by sort (views descending) - for now same as new arrivals
+          // Will be handled by special trending sort below
           break
       }
     }
@@ -304,8 +304,52 @@ export const filteredVariations: PayloadHandler = async (req) => {
       sortField = 'styleData.boost.startDate'
       sortOrder = -1 // most recently boosted first
     } else if (filterType === 'trending') {
-      sortField = 'createdAt'
-      sortOrder = -1 // for now, sort by newest - TODO: implement view count sorting
+      sortField = 'viewCount'
+      sortOrder = -1 // most viewed first
+    }
+
+    // For trending, add view count lookup before sorting
+    if (filterType === 'trending') {
+      // Lookup variation views to count total views
+      pipeline.push({
+        $lookup: {
+          from: 'variation-views',
+          localField: '_id',
+          foreignField: 'variation',
+          as: 'viewsData',
+          pipeline: [
+            {
+              $match: {
+                // Only count views from the last 7 days
+                createdAt: {
+                  $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+                }
+              }
+            }
+          ]
+        }
+      })
+
+      // Calculate view count (sum of users array lengths)
+      pipeline.push({
+        $addFields: {
+          viewCount: {
+            $sum: {
+              $map: {
+                input: '$viewsData',
+                as: 'view',
+                in: {
+                  $cond: {
+                    if: { $isArray: '$$view.users' },
+                    then: { $size: '$$view.users' },
+                    else: 1
+                  }
+                }
+              }
+            }
+          }
+        }
+      })
     }
 
     // Add sort stage

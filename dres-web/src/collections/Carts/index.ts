@@ -10,6 +10,7 @@ import { addToCart } from './endpoints/addToCart'
 import { getCart } from './endpoints/getCart'
 import { updateCartItem } from './endpoints/updateCartItem'
 import { removeCartItem } from './endpoints/removeCartItem'
+import { updateShipping } from './endpoints/updateShipping'
 
 export const Carts: CollectionConfig = {
   slug: 'carts',
@@ -68,6 +69,11 @@ export const Carts: CollectionConfig = {
       path: '/remove-item',
       method: 'post',
       handler: removeCartItem,
+    },
+    {
+      path: '/update-shipping',
+      method: 'post',
+      handler: updateShipping,
     },
   ],
   hooks: {

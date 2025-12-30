@@ -16,6 +16,10 @@ import 'package:dres/features/auth/presentation/view/login_screen.dart';
 import 'package:dres/features/auth/presentation/view/register_screen.dart';
 import 'package:dres/features/auth/presentation/view/forgot_password_screen.dart';
 import 'package:dres/features/cart/presentation/view/cart_screen.dart';
+import 'package:dres/features/cart/presentation/view/checkout_screen.dart';
+import 'package:dres/features/cart/presentation/view/addresses_screen.dart';
+import 'package:dres/features/cart/presentation/view/add_address_screen.dart';
+import 'package:dres/features/cart/data/models/shipping_address.dart';
 import 'package:dres/core/widgets/main_shell.dart';
 import 'package:dres/core/models/menu_model.dart';
 
@@ -110,6 +114,40 @@ class AppRoutes {
         path: '/cart',
         name: 'cart',
         builder: (context, state) => const CartScreen(),
+      ),
+      
+      // Checkout (outside shell, full screen)
+      GoRoute(
+        path: '/checkout',
+        name: 'checkout',
+        builder: (context, state) => const CheckoutScreen(),
+      ),
+      
+      // Addresses (outside shell, full screen)
+      GoRoute(
+        path: '/addresses',
+        name: 'addresses',
+        builder: (context, state) {
+          final isSelecting = state.uri.queryParameters['selecting'] == 'true';
+          return AddressesScreen(isSelecting: isSelecting);
+        },
+      ),
+      
+      // Add Address (outside shell, full screen)
+      GoRoute(
+        path: '/add-address',
+        name: 'add-address',
+        builder: (context, state) => const AddAddressScreen(),
+      ),
+      
+      // Edit Address (outside shell, full screen)
+      GoRoute(
+        path: '/edit-address',
+        name: 'edit-address',
+        builder: (context, state) {
+          final address = state.extra as ShippingAddress?;
+          return AddAddressScreen(addressToEdit: address);
+        },
       ),
       
       // Main shell with bottom navigation

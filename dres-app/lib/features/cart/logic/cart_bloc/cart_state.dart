@@ -3,15 +3,44 @@ import 'package:dres/features/cart/data/repositories/cart_repository.dart';
 
 enum CartStatus { initial, loading, loaded, error }
 
+/// Validation result from backend
+class CartValidation extends Equatable {
+  final bool valid;
+  final List<String> reasons;
+
+  const CartValidation({
+    this.valid = true,
+    this.reasons = const [],
+  });
+
+  factory CartValidation.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      return const CartValidation();
+    }
+    return CartValidation(
+      valid: json['valid'] ?? true,
+      reasons: (json['reasons'] as List?)?.map((e) => e.toString()).toList() ?? [],
+    );
+  }
+
+  /// Get first reason or null
+  String? get firstReason => reasons.isNotEmpty ? reasons.first : null;
+
+  @override
+  List<Object?> get props => [valid, reasons];
+}
+
 class CartState extends Equatable {
   final CartStatus status;
   final CartModel? cart;
   final String? errorMessage;
+  final CartValidation validation;
 
   const CartState({
     this.status = CartStatus.initial,
     this.cart,
     this.errorMessage,
+    this.validation = const CartValidation(),
   });
 
   /// Get total item count in cart
@@ -23,8 +52,14 @@ class CartState extends Equatable {
   /// Check if cart has items
   bool get hasItems => itemCount > 0;
 
-  /// Check if cart has unavailable items
-  bool get hasUnavailableItems => items.any((item) => item.isUnavailable);
+  /// Check if cart is valid for checkout (from backend)
+  bool get isValid => validation.valid;
+
+  /// Get validation reason (first one)
+  String? get validationReason => validation.firstReason;
+
+  /// Check if cart has unavailable items (legacy - kept for backward compat)
+  bool get hasUnavailableItems => !validation.valid;
 
   /// Get unavailable items count
   int get unavailableItemsCount => items.where((item) => item.isUnavailable).length;
@@ -39,15 +74,17 @@ class CartState extends Equatable {
     CartStatus? status,
     CartModel? cart,
     String? errorMessage,
+    CartValidation? validation,
     bool clearCart = false,
   }) {
     return CartState(
       status: status ?? this.status,
       cart: clearCart ? null : (cart ?? this.cart),
       errorMessage: errorMessage,
+      validation: validation ?? this.validation,
     );
   }
 
   @override
-  List<Object?> get props => [status, cart, errorMessage];
+  List<Object?> get props => [status, cart, errorMessage, validation];
 }

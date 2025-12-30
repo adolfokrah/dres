@@ -8,14 +8,14 @@ import 'package:dres/core/utilities/currency_utils.dart';
 class CartSummary extends StatelessWidget {
   final int itemCount;
   final double subtotal;
-  final bool hasUnavailableItems;
+  final bool canProceed;
   final VoidCallback? onNextPressed;
 
   const CartSummary({
     super.key,
     required this.itemCount,
     required this.subtotal,
-    this.hasUnavailableItems = false,
+    this.canProceed = true,
     this.onNextPressed,
   });
 
@@ -70,7 +70,7 @@ class CartSummary extends StatelessWidget {
           // Next button
           AppButton.filled(
             text: 'NEXT',
-            onPressed: hasUnavailableItems ? null : onNextPressed,
+            onPressed: canProceed ? onNextPressed : null,
             width: double.infinity,
           ),
         ],

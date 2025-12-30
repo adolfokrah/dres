@@ -13,6 +13,18 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     on<CartFetchRequested>(_onFetchRequested);
     on<CartAddItemRequested>(_onAddItemRequested);
     on<CartCleared>(_onCleared);
+    on<CartUpdateShippingRequested>(_onUpdateShippingRequested);
+  }
+
+  /// Helper to convert CartValidationResponse to CartValidation
+  CartValidation _toCartValidation(CartValidationResponse? response) {
+    if (response == null) {
+      return const CartValidation();
+    }
+    return CartValidation(
+      valid: response.valid,
+      reasons: response.reasons,
+    );
   }
 
   Future<void> _onFetchRequested(
@@ -22,20 +34,23 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     emit(state.copyWith(status: CartStatus.loading));
 
     try {
-      final cart = await _cartRepository.getMyCart();
+      final response = await _cartRepository.getMyCart();
       
-      debugPrint('🛒 CartBloc: Fetched cart with ${cart?.itemCount ?? 0} items');
+      debugPrint('🛒 CartBloc: Fetched cart with ${response.cart?.itemCount ?? 0} items');
+      debugPrint('🛒 CartBloc: Validation valid=${response.validation?.valid}, reasons=${response.validation?.reasons}');
       
       // Explicitly clear cart if null
-      if (cart == null) {
+      if (response.cart == null) {
         emit(state.copyWith(
           status: CartStatus.loaded,
           clearCart: true,
+          validation: const CartValidation(),
         ));
       } else {
         emit(state.copyWith(
           status: CartStatus.loaded,
-          cart: cart,
+          cart: response.cart,
+          validation: _toCartValidation(response.validation),
         ));
       }
     } catch (e) {
@@ -82,5 +97,39 @@ class CartBloc extends Bloc<CartEvent, CartState> {
   ) {
     debugPrint('🛒 CartBloc: Cart cleared');
     emit(const CartState());
+  }
+
+  Future<void> _onUpdateShippingRequested(
+    CartUpdateShippingRequested event,
+    Emitter<CartState> emit,
+  ) async {
+    emit(state.copyWith(status: CartStatus.loading));
+
+    try {
+      debugPrint('🛒 CartBloc: Updating shipping for city ${event.cityId}...');
+      final response = await _cartRepository.updateShipping(cityId: event.cityId);
+
+      if (response.success && response.cart != null) {
+        debugPrint('🛒 CartBloc: Shipping updated - Total: ${response.shippingSummary?.totalShipping}');
+        debugPrint('🛒 CartBloc: Validation valid=${response.validation?.valid}');
+        emit(state.copyWith(
+          status: CartStatus.loaded,
+          cart: response.cart,
+          validation: _toCartValidation(response.validation),
+        ));
+      } else {
+        debugPrint('🛒 CartBloc: Failed to update shipping: ${response.message}');
+        emit(state.copyWith(
+          status: CartStatus.error,
+          errorMessage: response.message,
+        ));
+      }
+    } catch (e) {
+      debugPrint('🛒 CartBloc: Error updating shipping: $e');
+      emit(state.copyWith(
+        status: CartStatus.error,
+        errorMessage: e.toString(),
+      ));
+    }
   }
 }

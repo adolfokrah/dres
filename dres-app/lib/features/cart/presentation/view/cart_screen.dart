@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/di/injection.dart';
@@ -175,9 +176,9 @@ class _CartScreenState extends State<CartScreen> {
               0.0,
               (sum, group) => sum + group.totalPrice,
             );
-            final hasUnavailableItems = sellerGroups.any(
-              (group) => group.hasUnavailableItems,
-            );
+            
+            // Use validation from backend
+            final canProceedToCheckout = state.isValid;
 
             return Column(
               children: [
@@ -208,9 +209,9 @@ class _CartScreenState extends State<CartScreen> {
                 CartSummary(
                   itemCount: state.itemCount,
                   subtotal: itemsTotal,
-                  hasUnavailableItems: hasUnavailableItems,
+                  canProceed: canProceedToCheckout,
                   onNextPressed: () {
-                    // TODO: Navigate to checkout
+                    context.push('/checkout');
                   },
                 ),
               ],

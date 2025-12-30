@@ -128,13 +128,20 @@ export const updateCartItem: PayloadHandler = async (req) => {
       quantity,
     }
 
-    const updatedCart = await payload.update({
+    await payload.update({
       collection: 'carts',
       id: cart.id,
       data: {
         items: updatedItems,
       },
-      depth: 2,
+      depth: 0,
+    })
+
+    // Fetch with full depth for populated data
+    const updatedCart = await payload.findByID({
+      collection: 'carts',
+      id: cart.id,
+      depth: 5,
     })
 
     return Response.json({
