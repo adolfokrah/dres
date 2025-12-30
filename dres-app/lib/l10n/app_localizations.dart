@@ -520,6 +520,12 @@ abstract class AppLocalizations {
   /// **'You may also like'**
   String get youMayAlsoLike;
 
+  /// Recently viewed products section title
+  ///
+  /// In en, this message translates to:
+  /// **'Recently Viewed'**
+  String get recentlyViewed;
+
   /// Add to bag button text
   ///
   /// In en, this message translates to:

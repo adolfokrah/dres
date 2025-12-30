@@ -231,6 +231,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get youMayAlsoLike => 'You may also like';
 
   @override
+  String get recentlyViewed => 'Recently Viewed';
+
+  @override
   String get addToBag => 'Add to bag';
 
   @override

@@ -7,6 +7,7 @@ import { processProductMainImage } from './hooks/processProductMainImage'
 import { trendingVariations } from './endpoints/trending'
 import { newArrivals } from './endpoints/newArrivals'
 import { featuredVariations } from './endpoints/featured'
+import { recentlyViewedVariations } from './endpoints/recentlyViewed'
 import { recordView } from './endpoints/recordView'
 import { filteredVariations } from './endpoints/filtered'
 import { getVariation } from './endpoints/getVariation'
@@ -47,6 +48,11 @@ export const Variations: CollectionConfig = {
       path: '/featured',
       method: 'get',
       handler: featuredVariations,
+    },
+    {
+      path: '/recently-viewed',
+      method: 'get',
+      handler: recentlyViewedVariations,
     },
     {
       path: '/filtered',

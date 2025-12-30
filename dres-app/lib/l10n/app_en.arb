@@ -294,6 +294,10 @@
   "@youMayAlsoLike": {
     "description": "Similar products section title"
   },
+  "recentlyViewed": "Recently Viewed",
+  "@recentlyViewed": {
+    "description": "Recently viewed products section title"
+  },
   "addToBag": "Add to bag",
   "@addToBag": {
     "description": "Add to bag button text"

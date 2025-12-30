@@ -16,6 +16,7 @@ import 'package:dres/features/product_details/presentation/widgets/sku_selector.
 import 'package:dres/features/product_details/presentation/widgets/seller_info.dart';
 import 'package:dres/features/product_details/presentation/widgets/reviews_section.dart';
 import 'package:dres/features/product_details/presentation/widgets/similar_variations_section.dart';
+import 'package:dres/features/product_details/presentation/widgets/recently_viewed_section.dart';
 import 'package:dres/features/product_details/presentation/widgets/add_to_bag_button.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
@@ -323,6 +324,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         // Similar Variations Section
                         SimilarVariationsSection(
                           variationId: variation.id,
+                        ),
+
+                        const SizedBox(height: 26),
+
+                        // Recently Viewed Section
+                        RecentlyViewedSection(
+                          excludeVariationId: variation.id,
                         ),
 
                         const SizedBox(height: 40),

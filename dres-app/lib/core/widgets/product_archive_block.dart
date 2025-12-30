@@ -56,16 +56,24 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
       endpoint = newArrivals;
     } else if (widget.queryType == QueryType.featured) {
       endpoint = featuredVariations;
+    } else if (widget.queryType == QueryType.recentlyViewed) {
+      endpoint = recentlyViewedVariations;
     } else {
       return [];
     }
     
+    final queryParams = <String, dynamic>{
+      'limit': widget.limit,
+    };
+    
+    // Only add department filter for non-recentlyViewed queries
+    if (widget.queryType != QueryType.recentlyViewed) {
+      queryParams['department'] = departmentId;
+    }
+    
     final response = await apiService.dio.get(
       endpoint,
-      queryParameters: {
-        'limit': widget.limit,
-        'department': departmentId,
-      },
+      queryParameters: queryParams,
     );
     
     // Update currency from API response

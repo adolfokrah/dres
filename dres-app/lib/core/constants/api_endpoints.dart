@@ -20,6 +20,7 @@ const String pageById = '$pages/';
 const String trendingVariations = '/variations/trending';
 const String newArrivals = '/variations/new-arrivals';
 const String featuredVariations = '/variations/featured';
+const String recentlyViewedVariations = '/variations/recently-viewed';
 const String filteredVariations = '/variations/filtered';
 const String variationById = '/variations/';
 const String recordVariationView = '/variations/record-view';
