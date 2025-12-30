@@ -1,4 +1,3 @@
-import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/simple_header.dart';
 import 'package:dres/core/widgets/badge_widget.dart';
 import 'package:dres/core/widgets/accordion.dart';
@@ -6,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
-import 'package:dres/core/widgets/app_header.dart';
-import 'package:dres/core/utilities/media_utils.dart';
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_bloc.dart';
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_event.dart';
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_state.dart';
@@ -254,10 +251,23 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                 },
                               ),
                               const SizedBox(height: 10),
-                              AddToBagButton(
-                                selectedSkuId: state.selectedSkuId ?? variation.defaultSku,
-                                onAddToBag: () {
-                                  // TODO: Implement add to bag functionality
+                              Builder(
+                                builder: (context) {
+                                  // Find the selected SKU and check stock
+                                  final selectedSkuId = state.selectedSkuId ?? variation.defaultSku;
+                                  final selectedSku = variation.skus.firstWhere(
+                                    (sku) => sku.id == selectedSkuId,
+                                    orElse: () => variation.skus.first,
+                                  );
+                                  final isOutOfStock = selectedSku.stock != null && selectedSku.stock! <= 0;
+                                  
+                                  return AddToBagButton(
+                                    selectedSkuId: selectedSkuId,
+                                    isOutOfStock: isOutOfStock,
+                                    onAddToBag: () {
+                                      // TODO: Implement add to bag functionality
+                                    },
+                                  );
                                 },
                               ),
                             ],

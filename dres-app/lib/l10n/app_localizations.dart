@@ -526,6 +526,12 @@ abstract class AppLocalizations {
   /// **'Add to bag'**
   String get addToBag;
 
+  /// Out of stock button text
+  ///
+  /// In en, this message translates to:
+  /// **'Out of stock'**
+  String get outOfStock;
+
   /// Auth home registration prompt
   ///
   /// In en, this message translates to:

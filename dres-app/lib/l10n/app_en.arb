@@ -298,6 +298,10 @@
   "@addToBag": {
     "description": "Add to bag button text"
   },
+  "outOfStock": "Out of stock",
+  "@outOfStock": {
+    "description": "Out of stock button text"
+  },
   "registerDiscount": "Register today for a special discount off your first purchase",
   "@registerDiscount": {
     "description": "Auth home registration prompt"

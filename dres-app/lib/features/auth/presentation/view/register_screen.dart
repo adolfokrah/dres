@@ -376,7 +376,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: AppColors.primary,
+          activeThumbColor: AppColors.primary,
           activeTrackColor: AppColors.primary.withOpacity(0.5),
           inactiveThumbColor: AppColors.textSecondary,
           inactiveTrackColor: AppColors.border,
@@ -424,7 +424,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Switch(
           value: _acceptTerms,
           onChanged: (value) => setState(() => _acceptTerms = value),
-          activeColor: AppColors.primary,
+          activeThumbColor: AppColors.primary,
           activeTrackColor: AppColors.primary.withOpacity(0.5),
           inactiveThumbColor: AppColors.textSecondary,
           inactiveTrackColor: AppColors.border,

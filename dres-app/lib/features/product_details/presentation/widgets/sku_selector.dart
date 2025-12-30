@@ -136,7 +136,7 @@ class SkuSelector extends StatelessWidget {
                   ),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

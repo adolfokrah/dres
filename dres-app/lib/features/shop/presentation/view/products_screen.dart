@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
-import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/widgets/app_header.dart';
 import 'package:dres/core/widgets/product_card.dart';
 import 'package:dres/core/widgets/product_card_skeleton.dart';

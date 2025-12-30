@@ -355,9 +355,9 @@ class UnknownBlockModel extends BlockModel {
   UnknownBlockModel({
     super.id,
     super.blockName,
-    required String blockType,
+    required super.blockType,
     required this.data,
-  }) : super(blockType: blockType);
+  });
 
   factory UnknownBlockModel.fromJson(Map<String, dynamic> json) {
     return UnknownBlockModel(

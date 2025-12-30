@@ -8,11 +8,13 @@ import 'package:dres/l10n/app_localizations.dart';
 class AddToBagButton extends StatelessWidget {
   final String? selectedSkuId;
   final VoidCallback? onAddToBag;
+  final bool isOutOfStock;
 
   const AddToBagButton({
     super.key,
     this.selectedSkuId,
     this.onAddToBag,
+    this.isOutOfStock = false,
   });
 
   Future<void> _handleAddToBag(BuildContext context) async {
@@ -35,8 +37,8 @@ class AddToBagButton extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
 
     return AppButton.filled(
-      text: l10n.addToBag,
-      onPressed: () => _handleAddToBag(context),
+      text: isOutOfStock ? l10n.outOfStock : l10n.addToBag,
+      onPressed: isOutOfStock ? null : () => _handleAddToBag(context),
       width: double.infinity,
     );
   }

@@ -115,7 +115,7 @@ class ProductsFilterBar extends StatelessWidget {
                 isActive: hasSelection,
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );

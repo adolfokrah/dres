@@ -19,7 +19,7 @@ class AppButton extends StatelessWidget {
   final Widget? icon;
 
   const AppButton({
-    Key? key,
+    super.key,
     required this.text,
     this.onPressed,
     this.variant = AppButtonVariant.filled,
@@ -32,10 +32,10 @@ class AppButton extends StatelessWidget {
     this.textColor,
     this.borderColor,
     this.icon,
-  }) : super(key: key);
+  });
 
   const AppButton.filled({
-    Key? key,
+    super.key,
     required this.text,
     this.onPressed,
     this.isLoading = false,
@@ -47,11 +47,10 @@ class AppButton extends StatelessWidget {
     this.textColor,
     this.icon,
   })  : variant = AppButtonVariant.filled,
-        borderColor = null,
-        super(key: key);
+        borderColor = null;
 
   const AppButton.outlined({
-    Key? key,
+    super.key,
     required this.text,
     this.onPressed,
     this.isLoading = false,
@@ -63,8 +62,7 @@ class AppButton extends StatelessWidget {
     this.borderColor,
     this.icon,
   })  : variant = AppButtonVariant.outlined,
-        backgroundColor = null,
-        super(key: key);
+        backgroundColor = null;
 
   @override
   Widget build(BuildContext context) {

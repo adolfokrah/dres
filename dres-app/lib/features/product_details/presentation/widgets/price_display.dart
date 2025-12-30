@@ -1,6 +1,5 @@
 import 'package:dres/core/theme/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/features/product_details/data/models/product_details_model.dart';
 
 class PriceDisplay extends StatelessWidget {

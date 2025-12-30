@@ -20,7 +20,7 @@ class ProductArchiveBlock extends StatefulWidget {
   final Set<String> favoritedProducts;
 
   const ProductArchiveBlock({
-    Key? key,
+    super.key,
     required this.title,
     required this.queryType,
     this.seeAllLink,
@@ -29,7 +29,7 @@ class ProductArchiveBlock extends StatefulWidget {
     this.limit = 8,
     this.onFavoriteToggle,
     this.favoritedProducts = const {},
-  }) : super(key: key);
+  });
 
   @override
   State<ProductArchiveBlock> createState() => _ProductArchiveBlockState();

@@ -234,6 +234,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addToBag => 'Add to bag';
 
   @override
+  String get outOfStock => 'Out of stock';
+
+  @override
   String get registerDiscount =>
       'Register today for a special discount off your first purchase';
 
