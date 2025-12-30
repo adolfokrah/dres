@@ -24,6 +24,9 @@ class ProductDetailsBloc extends Bloc<ProductDetailsEvent, ProductDetailsState> 
     try {
       final result = await _repository.fetchProductDetails(event.variationId);
       
+      // Record the view (fire and forget - don't await)
+      _repository.recordView(event.variationId);
+      
       emit(state.copyWith(
         status: ProductDetailsStatus.success,
         productData: result,

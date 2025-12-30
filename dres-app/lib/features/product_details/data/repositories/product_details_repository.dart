@@ -15,4 +15,18 @@ class ProductDetailsRepository {
       throw Exception('Failed to fetch product details: $e');
     }
   }
+
+  /// Record a view for the variation
+  /// If user is logged in, they will be added to the users array
+  Future<void> recordView(String variationId) async {
+    try {
+      await _apiService.post(
+        api.recordVariationView,
+        data: {'variationId': variationId},
+      );
+    } catch (e) {
+      // Silent fail - don't break the user experience for analytics
+      print('Failed to record view: $e');
+    }
+  }
 }

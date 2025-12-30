@@ -4,20 +4,14 @@ import type { PayloadHandler, PayloadRequest } from 'payload'
  * POST /api/variations/record-view
  * 
  * Records a variation view for trending algorithm.
- * IP address is automatically captured from the request.
+ * - If user is logged in, adds them to the users array of the variation-view
+ * - Creates a new variation-view if one doesn't exist for this variation
  * 
  * Body:
  * - variationId: string (required)
- * - source: 'search' | 'category' | 'home' | 'recommendation' | 'direct' | 'share'
  */
 export const recordView: PayloadHandler = async (req: PayloadRequest) => {
   const { payload, user } = req
-
-  // Get IP address from request headers
-  const forwarded = req.headers.get('x-forwarded-for')
-  const ipAddress = forwarded 
-    ? forwarded.split(',')[0].trim() 
-    : req.headers.get('x-real-ip') || 'unknown'
 
   try {
     const body = await req.json?.()
@@ -29,7 +23,7 @@ export const recordView: PayloadHandler = async (req: PayloadRequest) => {
       )
     }
 
-    const { variationId, source } = body
+    const { variationId } = body
 
     // Verify variation exists
     const variation = await payload.findByID({
@@ -44,37 +38,59 @@ export const recordView: PayloadHandler = async (req: PayloadRequest) => {
       )
     }
 
-    // Check for duplicate view (within last 30 minutes)
-    const thirtyMinutesAgo = new Date()
-    thirtyMinutesAgo.setMinutes(thirtyMinutesAgo.getMinutes() - 30)
-
-    const existingView = await payload.find({
+    // Check if a variation-view record already exists for this variation
+    const existingViewRecord = await payload.find({
       collection: 'variation-views',
       where: {
         variation: { equals: variationId },
-        viewedAt: { greater_than: thirtyMinutesAgo.toISOString() },
-        ...(user 
-          ? { user: { equals: user.id } }
-          : { ipAddress: { equals: ipAddress } }
-        ),
       },
       limit: 1,
+      depth: 0,
     })
 
-    if (existingView.docs.length > 0) {
+    if (existingViewRecord.docs.length > 0) {
+      const viewRecord = existingViewRecord.docs[0]
+      
+      // If user is logged in, add them to the users array (if not already there)
+      if (user?.id) {
+        const existingUsers = (viewRecord.users as string[]) || []
+        
+        if (!existingUsers.includes(user.id)) {
+          // Add user to the array
+          await payload.update({
+            collection: 'variation-views',
+            id: viewRecord.id,
+            data: {
+              users: [...existingUsers, user.id],
+            },
+          })
+          
+          return Response.json({
+            success: true,
+            message: 'User added to view record',
+          })
+        } else {
+          return Response.json({
+            success: true,
+            message: 'User already in view record',
+            duplicate: true,
+          })
+        }
+      }
+      
+      // Anonymous view - just acknowledge (record already exists)
       return Response.json({
         success: true,
-        message: 'View already recorded recently',
-        duplicate: true,
+        message: 'View record exists',
       })
     }
 
-    // Record the view
+    // No existing record - create a new one
     await payload.create({
       collection: 'variation-views',
       data: {
         variation: variationId,
-        users: user?.id ? [user.id] : undefined,
+        users: user?.id ? [user.id] : [],
       },
     })
 
