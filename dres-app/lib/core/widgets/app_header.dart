@@ -13,7 +13,6 @@ class AppHeader extends StatelessWidget {
     this.onSearchTap,
     this.onBackTap,
     this.showBackButton = false,
-    this.cartItemCount = 0,
     this.notificationCount = 0,
   });
 
@@ -22,7 +21,6 @@ class AppHeader extends StatelessWidget {
   final VoidCallback? onSearchTap;
   final VoidCallback? onBackTap;
   final bool showBackButton;
-  final int cartItemCount;
   final int notificationCount;
 
   @override
@@ -84,10 +82,9 @@ class AppHeader extends StatelessWidget {
           
           const SizedBox(width: 12),
           
-          // Cart/bag icon with auth check
+          // Cart/bag icon with auth check (count from CartBloc)
           CartIconButton(
             onTap: onCartTap,
-            itemCount: cartItemCount,
           ),
         ],
       ),

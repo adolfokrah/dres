@@ -5,10 +5,12 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/services/storage_service.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
+import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
+import 'package:dres/features/cart/logic/cart_bloc/cart_state.dart';
 import 'package:go_router/go_router.dart';
 
 /// A reusable cart/bag icon button widget for headers
-/// Displays a bag icon and optionally shows item count badge
+/// Displays a bag icon and shows item count badge from CartBloc
 /// Checks authentication before navigating to cart
 class CartIconButton extends StatelessWidget {
   /// Optional callback when tapped. If null, navigates to cart route.
@@ -20,9 +22,6 @@ class CartIconButton extends StatelessWidget {
   /// Icon color (default: AppColors.textPrimary)
   final Color? color;
   
-  /// Number of items in cart (shows badge if > 0)
-  final int itemCount;
-  
   /// Route to redirect to after authentication (default: /cart)
   final String redirectTo;
 
@@ -31,7 +30,6 @@ class CartIconButton extends StatelessWidget {
     this.onTap,
     this.size = 24,
     this.color,
-    this.itemCount = 0,
     this.redirectTo = '/cart',
   });
 
@@ -62,43 +60,49 @@ class CartIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _handleTap(context),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Icon(
-            PhosphorIcons.bagSimple(),
-            size: size,
-            color: color ?? AppColors.textPrimary,
-          ),
-          if (itemCount > 0)
-            Positioned(
-              right: -6,
-              top: -4,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: AppColors.primary,
-                  shape: BoxShape.circle,
-                ),
-                constraints: const BoxConstraints(
-                  minWidth: 16,
-                  minHeight: 16,
-                ),
-                child: Text(
-                  itemCount > 99 ? '99+' : itemCount.toString(),
-                  style: const TextStyle(
-                    color: AppColors.textOnPrimary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+    return BlocBuilder<CartBloc, CartState>(
+      builder: (context, cartState) {
+        final itemCount = cartState.itemCount;
+        
+        return GestureDetector(
+          onTap: () => _handleTap(context),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Icon(
+                PhosphorIcons.bagSimple(),
+                size: size,
+                color: color ?? AppColors.textPrimary,
               ),
-            ),
-        ],
-      ),
+              if (itemCount > 0)
+                Positioned(
+                  right: -6,
+                  top: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      itemCount > 99 ? '99+' : itemCount.toString(),
+                      style: const TextStyle(
+                        color: AppColors.textOnPrimary,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

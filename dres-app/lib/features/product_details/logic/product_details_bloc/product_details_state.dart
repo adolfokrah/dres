@@ -8,12 +8,14 @@ class ProductDetailsState extends Equatable {
   final ProductDetailsModel? productData;
   final String? selectedSkuId;
   final String? errorMessage;
+  final bool buyerProtection;
 
   const ProductDetailsState({
     this.status = ProductDetailsStatus.initial,
     this.productData,
     this.selectedSkuId,
     this.errorMessage,
+    this.buyerProtection = true, // Default to true
   });
 
   // Convenience getters
@@ -25,15 +27,17 @@ class ProductDetailsState extends Equatable {
     ProductDetailsModel? productData,
     String? selectedSkuId,
     String? errorMessage,
+    bool? buyerProtection,
   }) {
     return ProductDetailsState(
       status: status ?? this.status,
       productData: productData ?? this.productData,
       selectedSkuId: selectedSkuId ?? this.selectedSkuId,
       errorMessage: errorMessage ?? this.errorMessage,
+      buyerProtection: buyerProtection ?? this.buyerProtection,
     );
   }
 
   @override
-  List<Object?> get props => [status, productData, selectedSkuId, errorMessage];
+  List<Object?> get props => [status, productData, selectedSkuId, errorMessage, buyerProtection];
 }

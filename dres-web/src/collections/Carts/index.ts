@@ -6,6 +6,10 @@ import { validateCartStock } from './hooks/validateCartStock'
 import { applyDiscountCode } from './hooks/applyDiscountCode'
 import { applyPointsRedemption } from './hooks/applyPointsRedemption'
 import { calculateCartTotals } from './hooks/calculateCartTotals'
+import { addToCart } from './endpoints/addToCart'
+import { getCart } from './endpoints/getCart'
+import { updateCartItem } from './endpoints/updateCartItem'
+import { removeCartItem } from './endpoints/removeCartItem'
 
 export const Carts: CollectionConfig = {
   slug: 'carts',
@@ -44,6 +48,28 @@ export const Carts: CollectionConfig = {
       return user.role === 'admin'
     },
   },
+  endpoints: [
+    {
+      path: '/add-item',
+      method: 'post',
+      handler: addToCart,
+    },
+    {
+      path: '/my-cart',
+      method: 'get',
+      handler: getCart,
+    },
+    {
+      path: '/update-item',
+      method: 'patch',
+      handler: updateCartItem,
+    },
+    {
+      path: '/remove-item',
+      method: 'delete',
+      handler: removeCartItem,
+    },
+  ],
   hooks: {
     // Validate stock before allowing items in cart
     beforeValidate: [validateCartStock],

@@ -8,6 +8,8 @@ import 'package:dres/core/widgets/app_text_field.dart';
 import 'package:dres/core/widgets/app_password_field.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/auth/presentation/widgets/social_sign_in_buttons.dart';
+import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
+import 'package:dres/features/cart/logic/cart_bloc/cart_event.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
@@ -69,7 +71,9 @@ class _LoginScreenState extends State<LoginScreen> {
       listener: (context, state) {
         debugPrint('🔵 LoginScreen listener: status=${state.status}, redirectTo=${state.redirectTo}');
         if (state.status == AuthStatus.authenticated) {
-          // Login successful - navigate to redirect destination or home
+          // Login successful - fetch user's cart
+          context.read<CartBloc>().add(const CartFetchRequested());
+          // Navigate to redirect destination or home
           final destination = state.redirectTo ?? '/home';
           debugPrint('🟢 Login successful! Redirecting to: $destination');
           // Clear redirect after using it

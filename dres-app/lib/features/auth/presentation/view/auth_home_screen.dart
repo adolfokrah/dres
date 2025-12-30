@@ -6,6 +6,8 @@ import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/constants/app_images.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/auth/presentation/widgets/social_sign_in_buttons.dart';
+import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
+import 'package:dres/features/cart/logic/cart_bloc/cart_event.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
@@ -20,7 +22,9 @@ class AuthHomeScreen extends StatelessWidget {
       listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
         if (state.status == AuthStatus.authenticated) {
-          // Social sign in successful - redirect
+          // Social sign in successful - fetch user's cart
+          context.read<CartBloc>().add(const CartFetchRequested());
+          // Redirect
           final destination = state.redirectTo ?? '/home';
           context.read<AuthBloc>().add(const AuthClearRedirect());
           context.go(destination);

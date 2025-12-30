@@ -8,6 +8,8 @@ import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/widgets/cart_icon_button.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/auth/data/models/auth_models.dart';
+import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
+import 'package:dres/features/cart/logic/cart_bloc/cart_event.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
@@ -389,6 +391,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
+                // Clear cart on logout
+                context.read<CartBloc>().add(const CartCleared());
                 context.read<AuthBloc>().add(const AuthLogoutRequested());
               },
               child: Text(

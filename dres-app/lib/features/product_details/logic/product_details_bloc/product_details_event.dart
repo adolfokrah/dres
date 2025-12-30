@@ -30,3 +30,14 @@ class UpdateSelectedSku extends ProductDetailsEvent {
   @override
   List<Object?> get props => [skuId];
 }
+
+class UpdateBuyerProtection extends ProductDetailsEvent {
+  final bool buyerProtection;
+
+  const UpdateBuyerProtection({
+    required this.buyerProtection,
+  });
+
+  @override
+  List<Object?> get props => [buyerProtection];
+}

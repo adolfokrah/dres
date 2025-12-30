@@ -9,6 +9,7 @@ class ProductDetailsBloc extends Bloc<ProductDetailsEvent, ProductDetailsState> 
   ProductDetailsBloc(this._repository) : super(const ProductDetailsState()) {
     on<FetchProductDetails>(_onFetchProductDetails);
     on<UpdateSelectedSku>(_onUpdateSelectedSku);
+    on<UpdateBuyerProtection>(_onUpdateBuyerProtection);
   }
 
   Future<void> _onFetchProductDetails(
@@ -40,5 +41,12 @@ class ProductDetailsBloc extends Bloc<ProductDetailsEvent, ProductDetailsState> 
     Emitter<ProductDetailsState> emit,
   ) {
     emit(state.copyWith(selectedSkuId: event.skuId));
+  }
+
+  void _onUpdateBuyerProtection(
+    UpdateBuyerProtection event,
+    Emitter<ProductDetailsState> emit,
+  ) {
+    emit(state.copyWith(buyerProtection: event.buyerProtection));
   }
 }

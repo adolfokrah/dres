@@ -32,7 +32,14 @@ class SimpleHeader extends StatelessWidget {
         children: [
           // Back button
           GestureDetector(
-            onTap: () => context.pop(),
+            onTap: () {
+              // Check if we can pop, otherwise go to home
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
             child: Icon(
               PhosphorIcons.caretLeft(),
               size: 24,

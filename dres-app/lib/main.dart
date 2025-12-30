@@ -16,6 +16,8 @@ import 'package:dres/features/shop/logic/products_bloc/products_bloc.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_bloc.dart';
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_bloc.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
+import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
+import 'package:dres/features/cart/logic/cart_bloc/cart_event.dart';
 import 'package:dres/core/services/storage_service.dart';
 
 Future<void> main() async {
@@ -76,6 +78,21 @@ class MainApp extends StatelessWidget {
         BlocProvider<AuthBloc>(
           create: (_) => getIt<AuthBloc>(),
           lazy: true,
+        ),
+        // CartBloc - for shopping cart (singleton, fetches on startup if logged in)
+        BlocProvider<CartBloc>(
+          create: (_) {
+            final cartBloc = getIt<CartBloc>();
+            // Fetch cart on startup if user is logged in
+            final storageService = getIt<StorageService>();
+            storageService.getToken().then((token) {
+              if (token != null && token.isNotEmpty) {
+                cartBloc.add(const CartFetchRequested());
+              }
+            });
+            return cartBloc;
+          },
+          lazy: false, // Load immediately
         ),
       ],
       child: MaterialApp.router(

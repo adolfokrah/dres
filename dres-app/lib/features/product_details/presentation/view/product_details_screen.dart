@@ -262,11 +262,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   final isOutOfStock = selectedSku.stock != null && selectedSku.stock! <= 0;
                                   
                                   return AddToBagButton(
+                                    variationId: variation.id,
                                     selectedSkuId: selectedSkuId,
                                     isOutOfStock: isOutOfStock,
-                                    onAddToBag: () {
-                                      // TODO: Implement add to bag functionality
-                                    },
+                                    buyerProtection: state.buyerProtection,
+                                    maxStock: selectedSku.stock,
                                   );
                                 },
                               ),

@@ -9,6 +9,8 @@ import 'package:dres/core/widgets/app_text_field.dart';
 import 'package:dres/core/widgets/app_password_field.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/auth/presentation/widgets/social_sign_in_buttons.dart';
+import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
+import 'package:dres/features/cart/logic/cart_bloc/cart_event.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
@@ -136,7 +138,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
           context.go('/login');
         } else if (state.status == AuthStatus.authenticated) {
-          // Social sign in successful - redirect to home
+          // Social sign in successful - fetch user's cart
+          context.read<CartBloc>().add(const CartFetchRequested());
+          // Redirect to home
           final destination = state.redirectTo ?? '/home';
           context.read<AuthBloc>().add(const AuthClearRedirect());
           context.go(destination);

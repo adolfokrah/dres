@@ -1,6 +1,7 @@
 import type { PayloadHandler } from 'payload'
 import type { User } from '@/payload-types'
 import jwt from 'jsonwebtoken'
+import crypto from 'crypto'
 
 interface FirebaseTokenPayload {
   iss: string
@@ -18,6 +19,11 @@ interface FirebaseTokenPayload {
     identities: Record<string, string[]>
     sign_in_provider: string
   }
+}
+
+// Generate a secure random password
+function generateSecurePassword(): string {
+  return crypto.randomBytes(32).toString('base64') + 'Aa1!'
 }
 
 export const firebaseOAuth: PayloadHandler = async (req) => {
@@ -82,6 +88,9 @@ export const firebaseOAuth: PayloadHandler = async (req) => {
 
     console.log('Looking up user with email:', verifiedEmail)
 
+    // Generate a new random password for this login session
+    const newPassword = generateSecurePassword()
+
     // Check if user already exists
     const existingUsers = await payload.find({
       collection: 'users',
@@ -94,29 +103,23 @@ export const firebaseOAuth: PayloadHandler = async (req) => {
     let user: User | null = null
 
     if (existingUsers.docs.length > 0) {
-      // User exists - update OAuth info if needed and log them in
+      // User exists - update password and OAuth info
       user = existingUsers.docs[0]
       console.log('Found existing user:', user.id)
       
-      // Update OAuth provider info if not set
-      if (!user.oauthProvider && provider) {
-        await payload.update({
-          collection: 'users',
-          id: user.id,
-          data: {
-            oauthProvider: provider,
-            oauthId: verifiedUid,
-          } as Partial<User>,
-        })
-      }
+      // Update password and OAuth provider info
+      await payload.update({
+        collection: 'users',
+        id: user.id,
+        data: {
+          password: newPassword,
+          oauthProvider: provider || user.oauthProvider,
+          oauthId: verifiedUid || user.oauthId,
+        } as Partial<User>,
+      })
     } else {
-      // Create new user
+      // Create new user with the random password
       console.log('Creating new user with email:', verifiedEmail)
-      
-      // Generate a random password since OAuth users don't need one
-      const randomPassword = Math.random().toString(36).slice(-16) + 
-                            Math.random().toString(36).slice(-16) + 
-                            'Aa1!'
 
       // Use verified names from token
       const userFirstName = verifiedFirstName || (provider === 'google' ? 'Google' : 'Apple')
@@ -127,7 +130,7 @@ export const firebaseOAuth: PayloadHandler = async (req) => {
         disableVerificationEmail: true, // Don't send verification email for OAuth users
         data: {
           email: verifiedEmail,
-          password: randomPassword,
+          password: newPassword,
           firstName: userFirstName,
           lastName: userLastName,
           _verified: true, // Auto-verify OAuth users
@@ -141,32 +144,30 @@ export const firebaseOAuth: PayloadHandler = async (req) => {
       console.log('Created new user:', user.id)
     }
 
-    // Generate a proper Payload token
-    // Payload expects: { id, collection, email, iat, exp }
-    const tokenPayload = {
-      id: user.id,
-      collection: 'users',
-      email: user.email,
-    }
+    // Now login with Payload's native login to get a proper session token
+    console.log('Logging in user with Payload native login...')
     
-    const token = jwt.sign(
-      tokenPayload,
-      payload.secret,
-      { expiresIn: '1y' }
-    )
+    const loginResult = await payload.login({
+      collection: 'users',
+      data: {
+        email: verifiedEmail,
+        password: newPassword,
+      },
+    })
 
     console.log('OAuth login successful for:', user.email)
 
     return Response.json({
       message: 'Login successful',
-      token,
+      token: loginResult.token,
+      exp: loginResult.exp,
       user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        shopName: user.shopName,
-        photo: user.photo,
+        id: loginResult.user.id,
+        email: loginResult.user.email,
+        firstName: loginResult.user.firstName,
+        lastName: loginResult.user.lastName,
+        shopName: loginResult.user.shopName,
+        photo: loginResult.user.photo,
       },
     })
   } catch (error) {
