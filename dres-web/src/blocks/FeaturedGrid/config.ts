@@ -44,7 +44,7 @@ export const FeaturedGrid: Block = {
           name: 'link',
           type: 'text',
           admin: {
-            description: 'URL to navigate to when clicked, e.g. "/categories/clothing"',
+            description: 'Deep link URL. Example: /discover',
           },
         },
       ],

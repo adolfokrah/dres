@@ -54,16 +54,6 @@ export const ProductArchiveBlock: Block = {
       },
     },
     {
-      name: 'seeAllLink',
-      type: 'text',
-      required: false,
-      defaultValue: '/shop',
-      admin: {
-        description: 'URL for the "See all" button',
-        condition: (data, siblingData) => siblingData?.showSeeAll === true,
-      },
-    },
-    {
       name: 'seeAllText',
       type: 'text',
       required: false,

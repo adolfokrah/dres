@@ -176,11 +176,15 @@ export const filteredVariations: PayloadHandler = async (req) => {
           matchConditions['hasOnSaleSku'] = true
           break
         case 'we-love':
+        case 'featured':
           // Variations with active style boost
           matchConditions['styleData.hasActiveBoost'] = true
           break
         case 'new-arrivals':
           // Will be handled by sort (createdAt descending)
+          break
+        case 'trending':
+          // Will be handled by sort (views descending) - for now same as new arrivals
           break
       }
     }
@@ -296,9 +300,12 @@ export const filteredVariations: PayloadHandler = async (req) => {
     } else if (filterType === 'on-sale') {
       sortField = 'createdAt'
       sortOrder = -1 // newest sales first
-    } else if (filterType === 'we-love') {
+    } else if (filterType === 'we-love' || filterType === 'featured') {
       sortField = 'styleData.boost.startDate'
       sortOrder = -1 // most recently boosted first
+    } else if (filterType === 'trending') {
+      sortField = 'createdAt'
+      sortOrder = -1 // for now, sort by newest - TODO: implement view count sorting
     }
 
     // Add sort stage

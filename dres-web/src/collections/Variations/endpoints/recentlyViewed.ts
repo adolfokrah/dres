@@ -10,6 +10,7 @@ import { getUserCountryInfo } from '../../../utilities/countryUtils'
  * 
  * Query params:
  * - limit: number of variations to return (default: 10, max: 50)
+ * - department: department ID to filter by
  * - locale: language code (default: en)
  */
 export const recentlyViewedVariations: PayloadHandler = async (req: PayloadRequest) => {
@@ -18,6 +19,7 @@ export const recentlyViewedVariations: PayloadHandler = async (req: PayloadReque
 
   // Parse query params
   const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50)
+  const department = searchParams.get('department')
   const localeParam = searchParams.get('locale') || 'en'
   const locale = (['en', 'fr', 'de', 'es', 'it'].includes(localeParam) ? localeParam : 'en') as 'en' | 'fr' | 'de' | 'es' | 'it'
 
@@ -98,6 +100,12 @@ export const recentlyViewedVariations: PayloadHandler = async (req: PayloadReque
       collection: 'variations',
       where: {
         id: { in: variationIds },
+        // Filter by department
+        ...(department ? {
+          'style.department': {
+            equals: department,
+          },
+        } : {}),
         // Filter by seller's country
         ...(userCountry.countryId ? {
           'style.seller.country': {
