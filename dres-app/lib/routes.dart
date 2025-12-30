@@ -183,19 +183,36 @@ class AppRoutes {
                         path: products,
                         name: 'products',
                         builder: (context, state) {
+                          // Support both extra data and query parameters
                           final extra = state.extra as Map<String, dynamic>?;
-                          if (extra == null) {
-                            return const Scaffold(
-                              body: Center(child: Text('No product data')),
-                            );
-                          }
+                          final queryParams = state.uri.queryParameters;
+                          
+                          // Query params take priority, then extra data
+                          final departmentId = queryParams['departmentId'] ?? 
+                              queryParams['department'] ?? 
+                              extra?['departmentId'] as String?;
+                          final categoryId = queryParams['categoryId'] ?? 
+                              queryParams['category'] ?? 
+                              extra?['categoryId'] as String?;
+                          final collectionId = queryParams['collectionId'] ?? 
+                              queryParams['collection'] ?? 
+                              extra?['collectionId'] as String?;
+                          final brandId = queryParams['brandId'] ?? 
+                              queryParams['brand'] ?? 
+                              extra?['brandId'] as String?;
+                          final filterType = queryParams['filterType'] ?? 
+                              extra?['filterType'] as String?;
+                          final title = queryParams['title'] ?? 
+                              extra?['title'] as String? ?? 
+                              'Products';
+                          
                           return ProductsScreen(
-                            departmentId: extra['departmentId'] as String?,
-                            categoryId: extra['categoryId'] as String?,
-                            collectionId: extra['collectionId'] as String?,
-                            brandId: extra['brandId'] as String?,
-                            filterType: extra['filterType'] as String?,
-                            title: extra['title'] as String,
+                            departmentId: departmentId,
+                            categoryId: categoryId,
+                            collectionId: collectionId,
+                            brandId: brandId,
+                            filterType: filterType,
+                            title: title,
                           );
                         },
                       ),

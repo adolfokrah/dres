@@ -84,6 +84,7 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
   }
 
   void _onScroll() {
+    // Load more when near bottom
     if (_isBottom) {
       context.read<ProductsBloc>().add(const LoadMoreProducts());
     }
@@ -100,181 +101,192 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            // Header with back button
-            AppHeader(
-              showBackButton: true,
-              onBackTap: () => context.pop(),
-            ),
-
-            // Products Header (Title and Save Search)
-            BlocBuilder<ProductsBloc, ProductsState>(
-              builder: (context, state) {
-                return ProductsHeader(
-                  title: widget.title,
-                  itemCount: state.totalDocs,
-                  onSaveSearch: () {
-                    // TODO: Save search functionality
-                  },
-                );
-              },
-            ),
-
-            // Filter Bar
-            BlocBuilder<ProductsBloc, ProductsState>(
-              builder: (context, state) {
-                return ProductsFilterBar(
-                  selectedSort: state.sortBy == 'oldest' 
-                      ? SortOption.oldest 
-                      : SortOption.latest,
-                  selectedPrice: state.sortPrice == null
-                      ? PriceOption.all
-                      : state.sortPrice == 'desc' 
-                          ? PriceOption.highToLow 
-                          : PriceOption.lowToHigh,
-                  filters: state.filters,
-                  selectedAttributes: state.selectedAttributes,
-                  minPrice: state.minPrice,
-                  maxPrice: state.maxPrice,
-                  onSortChanged: (sortOption) {
-                    final sortBy = sortOption == SortOption.oldest ? 'oldest' : 'latest';
-                    context.read<ProductsBloc>().add(ChangeSortOption(sortBy));
-                  },
-                  onPriceChanged: (priceOption) {
-                    final sortPrice = priceOption == PriceOption.all 
-                        ? null 
-                        : priceOption == PriceOption.highToLow 
-                            ? 'desc' 
-                            : 'asc';
-                    context.read<ProductsBloc>().add(ChangePriceSort(sortPrice));
-                  },
-                  onAttributeFilterChanged: (attributeId, optionIds) {
-                    context.read<ProductsBloc>().add(
-                      ChangeAttributeFilter(
-                        attributeId: attributeId,
-                        optionIds: optionIds,
-                      ),
-                    );
-                  },
-                  onPriceRangeChanged: (min, max) {
-                    context.read<ProductsBloc>().add(
-                      ChangePriceRange(
-                        minPrice: min,
-                        maxPrice: max,
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-
-            // Products Grid
-            Expanded(
-              child: BlocBuilder<ProductsBloc, ProductsState>(
-                builder: (context, state) {
-                  if (state.status == ProductsStatus.loading) {
-                    return Padding(
-                      padding: const EdgeInsets.all(15),
-                      child: GridView.builder(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.55,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 20,
-                        ),
-                        itemCount: 6, // Show 6 skeleton cards
-                        itemBuilder: (context, index) {
-                          return const ProductCardSkeleton();
-                        },
-                      ),
-                    );
-                  }
-
-                  if (state.status == ProductsStatus.failure) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56),
+        child: SafeArea(
+          child: AppHeader(
+            showBackButton: true,
+            onBackTap: () => context.pop(),
+          ),
+        ),
+      ),
+      body: BlocBuilder<ProductsBloc, ProductsState>(
+          builder: (context, state) {
+            return NestedScrollView(
+              controller: _scrollController,
+              headerSliverBuilder: (context, innerBoxIsScrolled) {
+                return [
+                 
+                  // Collapsible Title and Filters
+                  SliverAppBar(
+                    floating: true,
+                    snap: true,
+                    pinned: false,
+                    automaticallyImplyLeading: false,
+                    backgroundColor: AppColors.background,
+                    surfaceTintColor: Colors.transparent,
+                    elevation: 0,
+                    toolbarHeight: 0,
+                    expandedHeight: _getExpandedHeight(state),
+                    flexibleSpace: FlexibleSpaceBar(
+                      background: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            AppLocalizations.of(context)!.failedToLoadProducts,
-                            style: AppTypography.bodyL,
-                          ),
-                          const SizedBox(height: 8),
-                          TextButton(
-                            onPressed: () {
-                              context.read<ProductsBloc>().add(const RefreshProducts());
+                          // Products Header (Title and Save Search)
+                          ProductsHeader(
+                            title: widget.title,
+                            itemCount: state.totalDocs,
+                            onSaveSearch: () {
+                              // TODO: Save search functionality
                             },
-                            child: Text(AppLocalizations.of(context)!.retry),
+                          ),
+
+                          // Filter Bar
+                          ProductsFilterBar(
+                            selectedSort: state.sortBy == 'oldest' 
+                                ? SortOption.oldest 
+                                : SortOption.latest,
+                            selectedPrice: state.sortPrice == null
+                                ? PriceOption.all
+                                : state.sortPrice == 'desc' 
+                                    ? PriceOption.highToLow 
+                                    : PriceOption.lowToHigh,
+                            filters: state.filters,
+                            selectedAttributes: state.selectedAttributes,
+                            minPrice: state.minPrice,
+                            maxPrice: state.maxPrice,
+                            onSortChanged: (sortOption) {
+                              final sortBy = sortOption == SortOption.oldest ? 'oldest' : 'latest';
+                              context.read<ProductsBloc>().add(ChangeSortOption(sortBy));
+                            },
+                            onPriceChanged: (priceOption) {
+                              final sortPrice = priceOption == PriceOption.all 
+                                  ? null 
+                                  : priceOption == PriceOption.highToLow 
+                                      ? 'desc' 
+                                      : 'asc';
+                              context.read<ProductsBloc>().add(ChangePriceSort(sortPrice));
+                            },
+                            onAttributeFilterChanged: (attributeId, optionIds) {
+                              context.read<ProductsBloc>().add(
+                                ChangeAttributeFilter(
+                                  attributeId: attributeId,
+                                  optionIds: optionIds,
+                                ),
+                              );
+                            },
+                            onPriceRangeChanged: (min, max) {
+                              context.read<ProductsBloc>().add(
+                                ChangePriceRange(
+                                  minPrice: min,
+                                  maxPrice: max,
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),
-                    );
-                  }
-
-                  if (state.products.isEmpty) {
-                    return const ProductsEmptyState();
-                  }
-
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      context.read<ProductsBloc>().add(const RefreshProducts());
-                      await Future.delayed(const Duration(milliseconds: 500));
-                    },
-                    child: CustomScrollView(
-                      controller: _scrollController,
-                      slivers: [
-                        SliverPadding(
-                          padding: const EdgeInsets.all(16),
-                          sliver: SliverGrid(
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              childAspectRatio: 0.5, // Taller cards to accommodate all content
-                            ),
-                            delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                                if (index >= state.products.length) {
-                                  return const Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                }
-
-                                final product = state.products[index];
-                                return ProductCard(
-                                  id: product.id,
-                                  thumbnail: product.thumbnail,
-                                  brand: product.brand ?? '',
-                                  category: product.category ?? '',
-                                  title: product.title,
-                                  price: product.price,
-                                  compareAtPrice: product.compareAtPrice,
-                                  currencyCode: CurrencyUtils.currentCode,
-                                  currencySymbol: CurrencyUtils.currentSymbol,
-                                  slug: product.slug,
-                                  isFavorited: false,
-                                  isBoosted: product.isBoosted,
-                                  showLeftBorder: index % 2 == 0,
-                                  showTopBorder: index < 2, // Only show top border for first row (index 0 and 1)
-                                  onFavoriteToggle: (id, isFavorited) {
-                                    // TODO: Toggle favorite
-                                  },
-                                );
-                              },
-                              childCount: state.products.length +
-                                  (state.status == ProductsStatus.loadingMore ? 1 : 0),
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
-                  );
-                },
-              ),
+                  ),
+                ];
+              },
+              body: _buildBody(state),
+            );
+          },
+        ),
+    );
+  }
+
+  double _getExpandedHeight(ProductsState state) {
+    // Base height for ProductsHeader + FilterBar
+    // Adjust based on your actual widget heights
+    return 120.0;
+  }
+
+  Widget _buildBody(ProductsState state) {
+    if (state.status == ProductsStatus.loading) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 15),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.55,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 20,
+          ),
+          itemCount: 6,
+          itemBuilder: (context, index) {
+            return const ProductCardSkeleton();
+          },
+        ),
+      );
+    }
+
+    if (state.status == ProductsStatus.failure) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              AppLocalizations.of(context)!.failedToLoadProducts,
+              style: AppTypography.bodyL,
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () {
+                context.read<ProductsBloc>().add(const RefreshProducts());
+              },
+              child: Text(AppLocalizations.of(context)!.retry),
             ),
           ],
         ),
+      );
+    }
+
+    if (state.products.isEmpty) {
+      return const ProductsEmptyState();
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<ProductsBloc>().add(const RefreshProducts());
+        await Future.delayed(const Duration(milliseconds: 500));
+      },
+      child: GridView.builder(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.5,
+        ),
+        itemCount: state.products.length +
+            (state.status == ProductsStatus.loadingMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index >= state.products.length) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          final product = state.products[index];
+          return ProductCard(
+            id: product.id,
+            thumbnail: product.thumbnail,
+            brand: product.brand ?? '',
+            category: product.category ?? '',
+            title: product.title,
+            price: product.price,
+            compareAtPrice: product.compareAtPrice,
+            currencyCode: CurrencyUtils.currentCode,
+            currencySymbol: CurrencyUtils.currentSymbol,
+            slug: product.slug,
+            isFavorited: false,
+            isBoosted: product.isBoosted,
+            showLeftBorder: index % 2 == 0,
+            showTopBorder: index < 2,
+            onFavoriteToggle: (id, isFavorited) {
+              // TODO: Toggle favorite
+            },
+          );
+        },
       ),
     );
   }

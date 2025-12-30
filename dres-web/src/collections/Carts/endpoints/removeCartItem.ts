@@ -73,6 +73,19 @@ export const removeCartItem: PayloadHandler = async (req) => {
     // Remove the item from cart
     const updatedItems = cart.items.filter((_, index) => index !== itemIndex)
 
+    // If this was the last item, delete the cart instead of updating
+    if (updatedItems.length === 0) {
+      await payload.delete({
+        collection: 'carts',
+        id: cart.id,
+      })
+
+      return Response.json({
+        message: 'Cart deleted - last item removed',
+        cart: null,
+      })
+    }
+
     const updatedCart = await payload.update({
       collection: 'carts',
       id: cart.id,

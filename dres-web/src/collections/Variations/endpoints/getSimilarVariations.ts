@@ -1,5 +1,6 @@
 import type { PayloadHandler } from 'payload'
 import { transformVariations } from '../utils/transformVariation'
+import { getUserCountryInfo } from '../../../utilities/countryUtils'
 
 /**
  * GET /api/variations/:id/similar
@@ -9,6 +10,9 @@ export const getSimilarVariations: PayloadHandler = async (req) => {
   const { payload } = req
   const { id } = req.routeParams || {}
   const limit = parseInt(req.query?.limit as string) || 20
+
+  // Get user's country for currency and filtering
+  const userCountry = await getUserCountryInfo(req)
 
   if (!id) {
     return Response.json(
@@ -103,9 +107,19 @@ export const getSimilarVariations: PayloadHandler = async (req) => {
     const similarVariations = await payload.find({
       collection: 'variations',
       where: {
-        style: {
-          in: styleIds,
-        },
+        and: [
+          {
+            style: {
+              in: styleIds,
+            },
+          },
+          // Filter by seller's country
+          ...(userCountry.countryId ? [{
+            'style.seller.country': {
+              equals: userCountry.countryId,
+            },
+          }] : []),
+        ],
       },
       limit,
       depth: 5,
@@ -118,6 +132,10 @@ export const getSimilarVariations: PayloadHandler = async (req) => {
     return Response.json({
       variations: transformed,
       total: similarVariations.totalDocs,
+      currency: {
+        code: userCountry.currencyCode,
+        symbol: userCountry.currencySymbol,
+      },
     })
   } catch (error: any) {
     payload.logger.error(`Error fetching similar variations: ${error}`)

@@ -13,6 +13,7 @@ import 'package:dres/features/cart/presentation/widgets/seller_header.dart';
 import 'package:dres/features/cart/presentation/widgets/cart_item_tile.dart';
 import 'package:dres/features/cart/presentation/widgets/seller_unavailable_message.dart';
 import 'package:dres/features/cart/presentation/widgets/cart_summary.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -126,13 +127,14 @@ class _CartScreenState extends State<CartScreen> {
       );
 
       if (mounted) {
+        // Refresh cart - BlocListener will handle state changes
         context.read<CartBloc>().add(const CartFetchRequested());
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to remove item'),
+            content: const Text('Failed to remove item'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -149,8 +151,15 @@ class _CartScreenState extends State<CartScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: BlocBuilder<CartBloc, CartState>(
-          builder: (context, state) {
+        child: BlocListener<CartBloc, CartState>(
+          listener: (context, state) {
+            // Reset edit mode when cart becomes empty
+            if ((state.cart == null || state.items.isEmpty) && _isEditMode) {
+              setState(() => _isEditMode = false);
+            }
+          },
+          child: BlocBuilder<CartBloc, CartState>(
+            builder: (context, state) {
             if (state.status == CartStatus.loading && state.cart == null) {
               return const Center(child: CircularProgressIndicator());
             }
@@ -206,7 +215,8 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ],
             );
-          },
+            },
+          ),
         ),
       ),
     );
@@ -224,15 +234,33 @@ class _EmptyCart extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.shopping_bag_outlined,
-                  size: 64,
-                  color: AppColors.textSecondary,
+                Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withOpacity(0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    PhosphorIcons.shoppingBag(
+                      PhosphorIconsStyle.thin,
+                    ),
+                    size: 124,
+                    color: AppColors.textSecondary.withValues(alpha: 0.5),
+                  ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 Text(
                   'Your bag is empty',
-                  style: AppTypography.bodyL.copyWith(
+                  style: AppTypography.titleL.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Add items to get started',
+                  style: AppTypography.bodyM.copyWith(
                     color: AppColors.textSecondary,
                   ),
                 ),

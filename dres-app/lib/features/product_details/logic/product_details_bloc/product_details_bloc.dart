@@ -27,9 +27,13 @@ class ProductDetailsBloc extends Bloc<ProductDetailsEvent, ProductDetailsState> 
       // Record the view (fire and forget - don't await)
       _repository.recordView(event.variationId);
       
+      // Use the provided skuId or fallback to the default SKU from the variation
+      final skuToSelect = event.skuId ?? result.variation.defaultSku;
+      
       emit(state.copyWith(
         status: ProductDetailsStatus.success,
         productData: result,
+        selectedSkuId: skuToSelect,
       ));
     } catch (error) {
       emit(state.copyWith(

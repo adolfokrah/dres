@@ -22,96 +22,99 @@ class CallToActionBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.black,
-      ),
-      child: Row(
-        children: [
-          // Left: Image
-          if (imageUrl != null)
-            Container(
-              width: 128,
-              height: 172,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage(
-                    MediaUtils.resolveUrl(imageUrl) ?? '',
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black,
+        ),
+        child: Row(
+          children: [
+            // Left: Image
+            if (imageUrl != null)
+              Container(
+                width: 128,
+                height: 172,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(
+                      MediaUtils.resolveUrl(imageUrl) ?? '',
+                    ),
+                    fit: BoxFit.cover,
                   ),
-                  fit: BoxFit.cover,
+                ),
+              ),
+            
+            // Right: Content with Black Background
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 32,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    // Title
+                    Text(
+                      title,
+                      style: AppTypography.titleXL.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w400,
+                        fontSize: 34
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    
+                    // Button
+                    GestureDetector(
+                      onTap: () async {
+                        // Toggle department based on current preference
+                        final storageService = getIt<StorageService>();
+                        final currentDepartment = storageService.getUserDepartment();
+                        
+                        // Toggle between men and women (default to men if not set)
+                        String newDepartment;
+                        if (currentDepartment == 'men' || currentDepartment == null) {
+                          newDepartment = 'women';
+                        } else {
+                          newDepartment = 'men';
+                        }
+                        
+                        // Save new department
+                        await storageService.setUserDepartment(newDepartment);
+                        
+                        // Trigger navigation via callback
+                        // The parent will handle the actual navigation
+                        onDepartmentChanged?.call();
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            buttonText,
+                            style: AppTypography.bodyL.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 19
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.arrow_forward,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          
-          // Right: Content with Black Background
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 18,
-                vertical: 32,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  // Title
-                  Text(
-                    title,
-                    style: AppTypography.titleXL.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 34
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  
-                  // Button
-                  GestureDetector(
-                    onTap: () async {
-                      // Toggle department based on current preference
-                      final storageService = getIt<StorageService>();
-                      final currentDepartment = storageService.getUserDepartment();
-                      
-                      // Toggle between men and women (default to men if not set)
-                      String newDepartment;
-                      if (currentDepartment == 'men' || currentDepartment == null) {
-                        newDepartment = 'women';
-                      } else {
-                        newDepartment = 'men';
-                      }
-                      
-                      // Save new department
-                      await storageService.setUserDepartment(newDepartment);
-                      
-                      // Trigger navigation via callback
-                      // The parent will handle the actual navigation
-                      onDepartmentChanged?.call();
-                    },
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          buttonText,
-                          style: AppTypography.bodyL.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 19
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Icon(
-                          Icons.arrow_forward,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

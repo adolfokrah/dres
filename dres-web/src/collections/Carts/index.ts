@@ -66,7 +66,7 @@ export const Carts: CollectionConfig = {
     },
     {
       path: '/remove-item',
-      method: 'delete',
+      method: 'post',
       handler: removeCartItem,
     },
   ],

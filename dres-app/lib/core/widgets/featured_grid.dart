@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:dres/core/models/block_model.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
@@ -11,14 +12,12 @@ class FeaturedGrid extends StatelessWidget {
     required this.items,
     this.columns = 3,
     this.aspectRatio = 1.0,
-    this.onItemTap,
   });
 
   final String title;
   final List<FeaturedGridItemModel> items;
   final int columns;
   final double aspectRatio;
-  final void Function(FeaturedGridItemModel item)? onItemTap;
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +52,9 @@ class FeaturedGrid extends StatelessWidget {
                 imageUrl: MediaUtils.getSquareUrl(item.image),
                 width: 150,
                 aspectRatio: aspectRatio,
-                onTap: onItemTap != null ? () => onItemTap!(item) : null,
+                onTap: item.link != null && item.link!.isNotEmpty
+                    ? () => context.push(item.link!)
+                    : null,
               );
             },
           ),

@@ -57,29 +57,28 @@ class _ShopScreenState extends State<ShopScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56),
+        child: SafeArea(
+          child: AppHeader(
+            onNotificationTap: () {
+              // TODO: Navigate to notifications
+            },
+            onSearchTap: () {
+              // TODO: Navigate to search/discover
+            },
+          ),
+        ),
+      ),
       body: SafeArea(
         bottom: false,
-        child: Column(
-          children: [
-            // Header
-            AppHeader(
-              onNotificationTap: () {
-                // TODO: Navigate to notifications
-              },
-              onSearchTap: () {
-                // TODO: Navigate to search/discover
-              },
-            ),
-
-            // Content
-            Expanded(
-              child: BlocBuilder<MenuBloc, MenuState>(
-                builder: (context, state) {
-                  if (state.status == MenuStatus.loading) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
+        child: BlocBuilder<MenuBloc, MenuState>(
+          builder: (context, state) {
+            if (state.status == MenuStatus.loading) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
 
                   if (state.status == MenuStatus.failure) {
                     return Center(
@@ -134,9 +133,6 @@ class _ShopScreenState extends State<ShopScreen> {
                 },
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 

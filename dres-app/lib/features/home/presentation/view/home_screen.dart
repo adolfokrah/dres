@@ -75,29 +75,28 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56),
+        child: SafeArea(
+          child: AppHeader(
+            onNotificationTap: () {
+              // TODO: Navigate to notifications
+            },
+            onSearchTap: () {
+              // TODO: Navigate to search/discover
+            },
+          ),
+        ),
+      ),
       body: SafeArea(
         bottom: false,
-        child: Column(
-          children: [
-            // Header
-            AppHeader(
-              onNotificationTap: () {
-                // TODO: Navigate to notifications
-              },
-              onSearchTap: () {
-                // TODO: Navigate to search/discover
-              },
-            ),
-
-            // Content
-            Expanded(
-              child: BlocBuilder<HomeBloc, HomeState>(
-                builder: (context, state) {
-                  if (state.status == HomeStatus.loading) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
+        child: BlocBuilder<HomeBloc, HomeState>(
+          builder: (context, state) {
+            if (state.status == HomeStatus.loading) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
 
                   if (state.status == HomeStatus.failure) {
                     return Center(
@@ -148,9 +147,6 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                 },
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -174,19 +170,20 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
           items: featuredGrid.items,
           columns: int.tryParse(featuredGrid.columns ?? '3') ?? 3,
           aspectRatio: _getAspectRatio(featuredGrid.aspectRatio),
-          onItemTap: (item) {
-            // TODO: Handle item tap navigation
-          },
         );
       case 'productArchive':
         final productArchive = block as ProductArchiveBlockModel;
+        // Use block department or fall back to user's selected department
+        final storageService = getIt<StorageService>();
+        final userDepartment = storageService.getUserDepartment();
+        final departmentId = productArchive.department ?? 
+            (userDepartment == 'women' ? '694eee871a36e6d75fbb15b1' : '694eee871a36e6d75fbb15af');
         return ProductArchiveBlock(
           title: productArchive.title,
           queryType: _getQueryType(productArchive.queryType),
           showSeeAll: productArchive.showSeeAll,
-          seeAllLink: productArchive.seeAllLink,
           seeAllText: productArchive.seeAllText ?? 'See all',
-          department: productArchive.department,
+          department: departmentId,
           limit: productArchive.limit ?? 8,
         );
       case 'cta':

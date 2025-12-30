@@ -374,7 +374,6 @@ class ProductArchiveBlockModel extends BlockModel {
   final String title;
   final String queryType;
   final bool showSeeAll;
-  final String? seeAllLink;
   final String? seeAllText;
   final String? department;
   final int? limit;
@@ -385,7 +384,6 @@ class ProductArchiveBlockModel extends BlockModel {
     required this.title,
     required this.queryType,
     this.showSeeAll = true,
-    this.seeAllLink,
     this.seeAllText,
     this.department,
     this.limit,
@@ -398,7 +396,6 @@ class ProductArchiveBlockModel extends BlockModel {
       title: json['title'] as String? ?? 'Products',
       queryType: json['queryType'] as String? ?? 'trending',
       showSeeAll: json['showSeeAll'] as bool? ?? true,
-      seeAllLink: json['seeAllLink'] as String?,
       seeAllText: json['seeAllText'] as String?,
       department: json['department'] as String?,
       limit: json['limit'] as int?,

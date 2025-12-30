@@ -26,10 +26,18 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       
       debugPrint('🛒 CartBloc: Fetched cart with ${cart?.itemCount ?? 0} items');
       
-      emit(state.copyWith(
-        status: CartStatus.loaded,
-        cart: cart,
-      ));
+      // Explicitly clear cart if null
+      if (cart == null) {
+        emit(state.copyWith(
+          status: CartStatus.loaded,
+          clearCart: true,
+        ));
+      } else {
+        emit(state.copyWith(
+          status: CartStatus.loaded,
+          cart: cart,
+        ));
+      }
     } catch (e) {
       debugPrint('🛒 CartBloc: Error fetching cart: $e');
       emit(state.copyWith(

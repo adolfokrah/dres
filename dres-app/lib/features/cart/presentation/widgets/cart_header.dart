@@ -67,14 +67,17 @@ class CartHeader extends StatelessWidget {
 
           const Spacer(),
 
-          // Edit button
-          GestureDetector(
-            onTap: onEditTap,
-            child: Text(
-              isEditMode ? 'DONE' : 'EDIT',
-              style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
-            ),
-          ),
+          // Edit button - only show when there are items
+          if (itemCount > 0 && onEditTap != null)
+            GestureDetector(
+              onTap: onEditTap,
+              child: Text(
+                isEditMode ? 'DONE' : 'EDIT',
+                style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+              ),
+            )
+          else
+            const SizedBox(width: 40), // Maintain spacing
         ],
       ),
     );

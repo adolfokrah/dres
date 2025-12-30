@@ -50,7 +50,7 @@ class CartRepository {
     required String variationId,
     required String skuId,
   }) async {
-    await _apiService.delete(
+    await _apiService.post(
       '/carts/remove-item',
       data: {
         'variationId': variationId,
