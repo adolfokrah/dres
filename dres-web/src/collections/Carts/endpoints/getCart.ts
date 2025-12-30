@@ -1,4 +1,5 @@
 import type { PayloadHandler } from 'payload'
+import { getUserCountryInfo } from '../../../utilities/countryUtils'
 
 interface SellerInfo {
   id: string
@@ -10,6 +11,7 @@ interface SellerInfo {
   photo?: { url?: string } | string
   vacationMode?: boolean
   isTrusted?: boolean
+  country?: string | { id: string }
 }
 
 interface CartItem {
@@ -37,6 +39,7 @@ interface CartItem {
 interface EnrichedCartItem extends Record<string, unknown> {
   isSellerOnVacation: boolean
   isOutOfStock: boolean
+  isNotInYourCountry: boolean
   stockQuantity: number | null
   availableStock: number | null
 }
@@ -75,6 +78,9 @@ export const getCart: PayloadHandler = async (req) => {
     const cart = carts.docs[0]
     const items = cart.items as CartItem[] | undefined
 
+    // Get user's country for comparison
+    const userCountry = await getUserCountryInfo(req)
+
     // Enrich items with availability flags and seller info
     const enrichedItems: EnrichedCartItem[] = []
     const sellerCache: Map<string, SellerInfo> = new Map() // Cache seller info
@@ -85,6 +91,7 @@ export const getCart: PayloadHandler = async (req) => {
           ...item,
           isSellerOnVacation: false,
           isOutOfStock: false,
+          isNotInYourCountry: false,
           stockQuantity: null,
           availableStock: null,
         }
@@ -103,6 +110,11 @@ export const getCart: PayloadHandler = async (req) => {
               sellerId = seller.id
               // Transform the populated seller data
               const sellerData = seller as unknown as Record<string, unknown>
+              const sellerCountry = sellerData.country
+              const sellerCountryId = typeof sellerCountry === 'object' && sellerCountry !== null 
+                ? (sellerCountry as { id: string }).id 
+                : sellerCountry as string | undefined
+              
               sellerInfo = {
                 id: seller.id,
                 displayName: sellerData.shopName as string | undefined || 
@@ -113,12 +125,17 @@ export const getCart: PayloadHandler = async (req) => {
                 photo: sellerData.photo as { url?: string } | string | undefined,
                 vacationMode: sellerData.vacationMode as boolean | undefined,
                 isTrusted: sellerData.isTrusted as boolean | undefined,
+                country: sellerCountry as string | { id: string } | undefined,
               }
               // Cache it
               sellerCache.set(sellerId, sellerInfo)
               // If seller is populated, check vacation mode directly
               if (sellerInfo.vacationMode === true) {
                 enrichedItem.isSellerOnVacation = true
+              }
+              // Check if seller's country matches user's country
+              if (userCountry.countryId && sellerCountryId && sellerCountryId !== userCountry.countryId) {
+                enrichedItem.isNotInYourCountry = true
               }
             }
 
@@ -127,15 +144,27 @@ export const getCart: PayloadHandler = async (req) => {
               if (sellerCache.has(sellerId)) {
                 sellerInfo = sellerCache.get(sellerId) || null
                 enrichedItem.isSellerOnVacation = sellerInfo?.vacationMode === true
+                // Check country from cache
+                const cachedCountryId = typeof sellerInfo?.country === 'object' && sellerInfo.country !== null
+                  ? (sellerInfo.country as { id: string }).id
+                  : sellerInfo?.country as string | undefined
+                if (userCountry.countryId && cachedCountryId && cachedCountryId !== userCountry.countryId) {
+                  enrichedItem.isNotInYourCountry = true
+                }
               } else {
                 try {
                   const sellerDoc = await payload.findByID({
                     collection: 'users',
                     id: sellerId,
-                    depth: 1, // Get photo
+                    depth: 1, // Get photo and country
                   })
                   if (sellerDoc) {
                     const sellerData = sellerDoc as unknown as Record<string, unknown>
+                    const sellerCountry = sellerData.country
+                    const sellerCountryId = typeof sellerCountry === 'object' && sellerCountry !== null 
+                      ? (sellerCountry as { id: string }).id 
+                      : sellerCountry as string | undefined
+                    
                     sellerInfo = {
                       id: sellerDoc.id,
                       displayName: sellerData.shopName as string | undefined || 
@@ -146,9 +175,14 @@ export const getCart: PayloadHandler = async (req) => {
                       photo: sellerData.photo as { url?: string } | string | undefined,
                       vacationMode: sellerData.vacationMode as boolean | undefined,
                       isTrusted: sellerData.isTrusted as boolean | undefined,
+                      country: sellerCountry as string | { id: string } | undefined,
                     }
                     sellerCache.set(sellerId, sellerInfo)
                     enrichedItem.isSellerOnVacation = sellerInfo.vacationMode === true
+                    // Check if seller's country matches user's country
+                    if (userCountry.countryId && sellerCountryId && sellerCountryId !== userCountry.countryId) {
+                      enrichedItem.isNotInYourCountry = true
+                    }
                   }
                 } catch {
                   // Seller not found, leave as is

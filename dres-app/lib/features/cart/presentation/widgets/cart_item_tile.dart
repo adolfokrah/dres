@@ -37,13 +37,15 @@ class CartItemTile extends StatelessWidget {
     final compareAtPrice = sku?.compareAtPrice;
     final hasDiscount = sku?.hasDiscount ?? false;
 
-    // Check stock status
+    // Check availability status
     final isOutOfStock = item.isOutOfStock;
+    final isNotInYourCountry = item.isNotInYourCountry;
+    final isUnavailable = item.isUnavailable;
     final exceedsStock = item.exceedsAvailableStock;
     final availableStock = item.availableStock;
 
     return Opacity(
-      opacity: isOutOfStock ? 0.5 : 1.0,
+      opacity: isUnavailable ? 0.5 : 1.0,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -63,19 +65,17 @@ class CartItemTile extends StatelessWidget {
                       : null,
                 ),
               ),
-              // Out of stock overlay
-              if (isOutOfStock)
+              // Unavailable overlay
+              if (isUnavailable)
                 Container(
                   width: 56,
                   height: 56,
                   color: Colors.black.withOpacity(0.5),
                   alignment: Alignment.center,
-                  child: Text(
-                    'OUT OF STOCK ',
-                    style: AppTypography.titleL.copyWith(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Icon(
+                    isNotInYourCountry ? Icons.location_off : Icons.remove_shopping_cart,
+                    color: Colors.white,
+                    size: 20,
                   ),
                 ),
             ],
@@ -149,8 +149,17 @@ class CartItemTile extends StatelessWidget {
                       ),
                   ],
                 ),
-                // Stock warning
-                if (isOutOfStock) ...[
+                // Availability warnings
+                if (isNotInYourCountry) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Item no longer available in your country',
+                    style: AppTypography.bodyS.copyWith(
+                      color: AppColors.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ] else if (isOutOfStock) ...[
                   const SizedBox(height: 8),
                   Text(
                     'Out of stock',
@@ -170,8 +179,8 @@ class CartItemTile extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 16),
-                // Quantity selector (disabled if out of stock)
-                if (!isOutOfStock)
+                // Quantity selector (disabled if unavailable)
+                if (!isUnavailable)
                   SizedBox(
                     width: 143,
                     child: QuantitySelector(

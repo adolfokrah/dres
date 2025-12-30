@@ -73,6 +73,7 @@ class CartItemModel {
   // Availability flags
   final bool isSellerOnVacation;
   final bool isOutOfStock;
+  final bool isNotInYourCountry;
   final int? stockQuantity;
   final int? availableStock;
 
@@ -89,12 +90,13 @@ class CartItemModel {
     this.sku,
     this.isSellerOnVacation = false,
     this.isOutOfStock = false,
+    this.isNotInYourCountry = false,
     this.stockQuantity,
     this.availableStock,
   });
 
-  /// Check if item is unavailable (seller on vacation or out of stock)
-  bool get isUnavailable => isSellerOnVacation || isOutOfStock;
+  /// Check if item is unavailable (seller on vacation, out of stock, or not in your country)
+  bool get isUnavailable => isSellerOnVacation || isOutOfStock || isNotInYourCountry;
 
   /// Check if quantity exceeds available stock
   bool get exceedsAvailableStock =>
@@ -135,6 +137,7 @@ class CartItemModel {
       // Availability flags
       isSellerOnVacation: json['isSellerOnVacation'] ?? false,
       isOutOfStock: json['isOutOfStock'] ?? false,
+      isNotInYourCountry: json['isNotInYourCountry'] ?? false,
       stockQuantity: json['stockQuantity'],
       availableStock: json['availableStock'],
     );
