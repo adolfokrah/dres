@@ -6,6 +6,7 @@ import '../di/injection.dart';
 import '../services/api_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
+import '../utilities/currency_utils.dart';
 
 enum QueryType { trending, newArrivals, recentlyViewed, featured }
 
@@ -66,6 +67,13 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
         'department': departmentId,
       },
     );
+    
+    // Update currency from API response
+    if (response.data['currency'] != null) {
+      CurrencyUtils.updateFromResponse(
+        Map<String, dynamic>.from(response.data['currency']),
+      );
+    }
     
     return (response.data['docs'] as List)
         .map((p) => ProductCardData.fromJson(p))
@@ -226,6 +234,11 @@ class ProductCardData {
   });
 
   factory ProductCardData.fromJson(Map<String, dynamic> json) {
+    // Use currency from variation if available, otherwise use global currency
+    final currencyData = json['currency'];
+    final currencyCode = currencyData?['code'] ?? CurrencyUtils.currentCode;
+    final currencySymbol = currencyData?['symbol'] ?? CurrencyUtils.currentSymbol;
+    
     return ProductCardData(
       id: json['id'],
       thumbnail: json['thumbnail'],
@@ -236,8 +249,8 @@ class ProductCardData {
       compareAtPrice: json['compareAtPrice'] != null
           ? (json['compareAtPrice'] as num).toDouble()
           : null,
-      currencyCode: json['currency']?['code'] ?? 'GHS',
-      currencySymbol: json['currency']?['symbol'] ?? '₵',
+      currencyCode: currencyCode,
+      currencySymbol: currencySymbol,
       slug: json['slug'],
       isBoosted: json['isBoosted'] ?? false,
     );

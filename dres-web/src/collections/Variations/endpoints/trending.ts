@@ -1,5 +1,6 @@
 import type { PayloadHandler, PayloadRequest, Where } from 'payload'
 import { transformVariations } from '../utils/transformVariation'
+import { getUserCountryInfo } from '../../../utilities/countryUtils'
 
 type SupportedLocale = 'en' | 'fr' | 'de' | 'es' | 'it'
 
@@ -7,6 +8,7 @@ type SupportedLocale = 'en' | 'fr' | 'de' | 'es' | 'it'
  * GET /api/variations/trending
  * 
  * Fetches trending variations based on view counts within a time period.
+ * Filters by seller's country matching the user's country (default: Ghana)
  * 
  * Query params:
  * - limit: number of variations to return (default: 10, max: 50)
@@ -25,12 +27,22 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
   const localeParam = searchParams.get('locale') || 'en'
   const locale = (['en', 'fr', 'de', 'es', 'it'].includes(localeParam) ? localeParam : 'en') as SupportedLocale
 
+  // Get user's country for filtering sellers
+  const userCountry = await getUserCountryInfo(req)
+
   try {
     // Build where clause for filtering variations
     const variationsWhere: Where = {
       // Filter by time period - only variations updated within the days
       updatedAt: {
         greater_than: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    }
+
+    // Filter by seller's country
+    if (userCountry.countryId) {
+      variationsWhere['style.seller.country'] = {
+        equals: userCountry.countryId
       }
     }
 
@@ -199,6 +211,10 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
       totalPages: 1,
       hasNextPage: false,
       hasPrevPage: false,
+      currency: {
+        code: userCountry.currencyCode,
+        symbol: userCountry.currencySymbol,
+      },
     })
   } catch (error) {
     console.error('Error fetching trending variations:', error)

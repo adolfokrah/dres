@@ -1,10 +1,15 @@
 import type { PayloadHandler } from 'payload'
 import { Types } from 'mongoose'
 import { transformVariation } from '../utils/transformVariation'
+import { getUserCountryInfo } from '../../../utilities/countryUtils'
 
 export const filteredVariations: PayloadHandler = async (req) => {
   const { payload } = req
   const { department, category, collection, brand, filterType, sortBy, sortPrice, attributes, minPrice, maxPrice, limit = 20, page = 1 } = req.query
+
+  // Get user's country for filtering sellers
+  const userCountry = await getUserCountryInfo(req)
+  payload.logger.info(`Filtering variations for country: ${userCountry.countryCode} (${userCountry.countryId})`)
 
   // Parse attribute filters from query params
   // Format: attributes=attributeId:optionId1,optionId2|attributeId2:optionId3,optionId4
@@ -28,7 +33,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
     // Build the aggregation pipeline
     const pipeline: any[] = []
 
-    // Lookup style information
+    // Lookup style information with seller
     pipeline.push({
       $lookup: {
         from: 'styles',
@@ -69,6 +74,32 @@ export const filteredVariations: PayloadHandler = async (req) => {
     pipeline.push({
       $unwind: '$styleData'
     })
+
+    // Lookup seller information to filter by country
+    pipeline.push({
+      $lookup: {
+        from: 'users',
+        localField: 'styleData.seller',
+        foreignField: '_id',
+        as: 'sellerData'
+      }
+    })
+
+    pipeline.push({
+      $unwind: {
+        path: '$sellerData',
+        preserveNullAndEmptyArrays: false // Exclude variations without seller
+      }
+    })
+
+    // Filter by seller's country (must match user's country)
+    if (userCountry.countryId) {
+      pipeline.push({
+        $match: {
+          'sellerData.country': new Types.ObjectId(userCountry.countryId)
+        }
+      })
+    }
 
     // Lookup SKUs to check for on-sale items
     pipeline.push({
@@ -399,6 +430,10 @@ export const filteredVariations: PayloadHandler = async (req) => {
       hasNextPage: currentPage < totalPages,
       hasPrevPage: currentPage > 1,
       filters,
+      currency: {
+        code: userCountry.currencyCode,
+        symbol: userCountry.currencySymbol,
+      },
     })
   } catch (error) {
     payload.logger.error(`Error fetching filtered variations: ${error}`)

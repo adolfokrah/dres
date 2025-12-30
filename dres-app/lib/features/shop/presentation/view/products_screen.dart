@@ -6,6 +6,7 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_header.dart';
 import 'package:dres/core/widgets/product_card.dart';
 import 'package:dres/core/widgets/product_card_skeleton.dart';
+import 'package:dres/core/utilities/currency_utils.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_bloc.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_event.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_state.dart';
@@ -107,8 +108,6 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
             AppHeader(
               showBackButton: true,
               onBackTap: () => context.pop(),
-              onCartTap: () {},
-              onSearchTap: () {},
             ),
 
             // Products Header (Title and Save Search)
@@ -251,8 +250,8 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                                   title: product.title,
                                   price: product.price,
                                   compareAtPrice: product.compareAtPrice,
-                                  currencyCode: 'GHS',
-                                  currencySymbol: 'GHS',
+                                  currencyCode: CurrencyUtils.currentCode,
+                                  currencySymbol: CurrencyUtils.currentSymbol,
                                   slug: product.slug,
                                   isFavorited: false,
                                   isBoosted: product.isBoosted,

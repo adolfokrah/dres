@@ -84,9 +84,6 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
               onNotificationTap: () {
                 // TODO: Navigate to notifications
               },
-              onCartTap: () {
-                // TODO: Navigate to cart
-              },
               onSearchTap: () {
                 // TODO: Navigate to search/discover
               },

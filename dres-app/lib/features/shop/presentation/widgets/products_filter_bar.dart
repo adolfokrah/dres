@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
+import 'package:dres/core/utilities/currency_utils.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/models/attribute_filter_model.dart';
 import 'package:dres/l10n/app_localizations.dart';
@@ -80,7 +81,7 @@ class ProductsFilterBar extends StatelessWidget {
           _buildFilterButton(
             context: context,
             label: (minPrice != null || maxPrice != null)
-                ? 'GH₵${minPrice?.toStringAsFixed(0) ?? '0'} - GH₵${maxPrice?.toStringAsFixed(0) ?? '∞'}'
+                ? '${CurrencyUtils.currentSymbol}${minPrice?.toStringAsFixed(0) ?? '0'} - ${CurrencyUtils.currentSymbol}${maxPrice?.toStringAsFixed(0) ?? '∞'}'
                 : AppLocalizations.of(context)!.priceRange,
             isWide: true,
             onTap: () => _showPriceRangeDialog(context),
@@ -528,7 +529,7 @@ class ProductsFilterBar extends StatelessWidget {
                           labelStyle: AppTypography.bodyM.copyWith(
                             color: AppColors.textSecondary,
                           ),
-                          prefixText: 'GH₵ ',
+                          prefixText: '${CurrencyUtils.currentSymbol} ',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.zero,
                             borderSide: BorderSide(color: AppColors.textSecondary),
@@ -555,7 +556,7 @@ class ProductsFilterBar extends StatelessWidget {
                           labelStyle: AppTypography.bodyM.copyWith(
                             color: AppColors.textSecondary,
                           ),
-                          prefixText: 'GH₵ ',
+                          prefixText: '${CurrencyUtils.currentSymbol} ',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.zero,
                             borderSide: BorderSide(color: AppColors.textSecondary),

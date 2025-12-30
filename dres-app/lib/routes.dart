@@ -15,6 +15,7 @@ import 'package:dres/features/auth/presentation/view/auth_callback_screen.dart';
 import 'package:dres/features/auth/presentation/view/login_screen.dart';
 import 'package:dres/features/auth/presentation/view/register_screen.dart';
 import 'package:dres/features/auth/presentation/view/forgot_password_screen.dart';
+import 'package:dres/features/cart/presentation/view/cart_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
 import 'package:dres/core/models/menu_model.dart';
 
@@ -102,6 +103,13 @@ class AppRoutes {
             skuId: skuId,
           );
         },
+      ),
+      
+      // Cart (outside shell, full screen)
+      GoRoute(
+        path: '/cart',
+        name: 'cart',
+        builder: (context, state) => const CartScreen(),
       ),
       
       // Main shell with bottom navigation

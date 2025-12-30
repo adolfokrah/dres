@@ -66,9 +66,6 @@ class _ShopScreenState extends State<ShopScreen> {
               onNotificationTap: () {
                 // TODO: Navigate to notifications
               },
-              onCartTap: () {
-                // TODO: Navigate to cart
-              },
               onSearchTap: () {
                 // TODO: Navigate to search/discover
               },

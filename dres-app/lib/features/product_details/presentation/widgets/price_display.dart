@@ -1,6 +1,7 @@
 import 'package:dres/core/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:dres/features/product_details/data/models/product_details_model.dart';
+import 'package:dres/core/utilities/currency_utils.dart';
 
 class PriceDisplay extends StatelessWidget {
   final List<SkuModel> skus;
@@ -32,7 +33,7 @@ class PriceDisplay extends StatelessWidget {
         // Compare at price (if available)
         if (sku.compareAtPrice != null) ...[
           Text(
-            'GHS ${sku.compareAtPrice!.toStringAsFixed(2)}',
+            CurrencyUtils.format(sku.compareAtPrice!),
             style: AppTypography.bodyL.copyWith(
               decoration: TextDecoration.lineThrough,
               color: AppColors.textHint,
@@ -45,7 +46,7 @@ class PriceDisplay extends StatelessWidget {
 
         // Current price
         Text(
-          'GHS ${sku.price.toStringAsFixed(2)}',
+          CurrencyUtils.format(sku.price),
           style: AppTypography.bodyL.copyWith(
             fontWeight: FontWeight.w700,
             fontSize: 24,

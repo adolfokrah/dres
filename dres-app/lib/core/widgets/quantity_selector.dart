@@ -4,7 +4,8 @@ import 'package:dres/core/theme/app_typography.dart';
 
 /// A quantity selector widget with decrement, quantity display, and increment buttons
 /// Used in product details and cart screens
-class QuantitySelector extends StatelessWidget {
+/// Supports optimistic updates - updates UI immediately while syncing with server
+class QuantitySelector extends StatefulWidget {
   final int quantity;
   final bool isLoading;
   final int? maxStock;
@@ -19,16 +20,61 @@ class QuantitySelector extends StatelessWidget {
     this.maxStock,
     this.onDecrement,
     this.onIncrement,
-    this.height = 45, // Same as AppButton
+    this.height = 45,
   });
 
   @override
+  State<QuantitySelector> createState() => _QuantitySelectorState();
+}
+
+class _QuantitySelectorState extends State<QuantitySelector> {
+  late int _displayQuantity;
+
+  @override
+  void initState() {
+    super.initState();
+    _displayQuantity = widget.quantity;
+  }
+
+  @override
+  void didUpdateWidget(QuantitySelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Sync with external quantity when it changes (e.g., from server response)
+    if (widget.quantity != oldWidget.quantity) {
+      _displayQuantity = widget.quantity;
+    }
+  }
+
+  void _handleDecrement() {
+    if (_displayQuantity > 1) {
+      // Optimistic update
+      setState(() {
+        _displayQuantity--;
+      });
+      // Trigger actual update
+      widget.onDecrement?.call();
+    }
+  }
+
+  void _handleIncrement() {
+    final canIncrement = widget.maxStock == null || _displayQuantity < widget.maxStock!;
+    if (canIncrement) {
+      // Optimistic update
+      setState(() {
+        _displayQuantity++;
+      });
+      // Trigger actual update
+      widget.onIncrement?.call();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final canDecrement = quantity > 1;
-    final canIncrement = maxStock == null || quantity < maxStock!;
+    final canDecrement = _displayQuantity > 1;
+    final canIncrement = widget.maxStock == null || _displayQuantity < widget.maxStock!;
 
     return Container(
-      height: height,
+      height: widget.height,
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.textPrimary, width: 1),
       ),
@@ -37,11 +83,11 @@ class QuantitySelector extends StatelessWidget {
           // Decrement button
           Expanded(
             child: InkWell(
-              onTap: isLoading || !canDecrement ? null : onDecrement,
+              onTap: widget.isLoading || !canDecrement ? null : _handleDecrement,
               child: Container(
                 height: double.infinity,
                 alignment: Alignment.center,
-                child: isLoading
+                child: widget.isLoading
                     ? const SizedBox(
                         width: 20,
                         height: 20,
@@ -71,7 +117,7 @@ class QuantitySelector extends StatelessWidget {
             child: Container(
               alignment: Alignment.center,
               child: Text(
-                '$quantity',
+                '$_displayQuantity',
                 style: AppTypography.bodyL.copyWith(
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
@@ -90,7 +136,7 @@ class QuantitySelector extends StatelessWidget {
           // Increment button
           Expanded(
             child: InkWell(
-              onTap: isLoading || !canIncrement ? null : onIncrement,
+              onTap: widget.isLoading || !canIncrement ? null : _handleIncrement,
               child: Container(
                 height: double.infinity,
                 alignment: Alignment.center,

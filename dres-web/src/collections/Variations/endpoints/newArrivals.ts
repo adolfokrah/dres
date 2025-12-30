@@ -1,5 +1,6 @@
 import type { PayloadHandler, PayloadRequest, Where } from 'payload'
 import { transformVariations } from '../utils/transformVariation'
+import { getUserCountryInfo } from '../../../utilities/countryUtils'
 
 type SupportedLocale = 'en' | 'fr' | 'de' | 'es' | 'it'
 
@@ -7,6 +8,7 @@ type SupportedLocale = 'en' | 'fr' | 'de' | 'es' | 'it'
  * GET /api/variations/new-arrivals
  * 
  * Fetches newly added variations sorted by creation date.
+ * Filters by seller's country matching the user's country (default: Ghana)
  * 
  * Query params:
  * - limit: number of variations to return (default: 10, max: 50)
@@ -24,9 +26,19 @@ export const newArrivals: PayloadHandler = async (req: PayloadRequest) => {
   const localeParam = searchParams.get('locale') || 'en'
   const locale = (['en', 'fr', 'de', 'es', 'it'].includes(localeParam) ? localeParam : 'en') as SupportedLocale
 
+  // Get user's country for filtering sellers
+  const userCountry = await getUserCountryInfo(req)
+
   try {
     // Build where clause for filtering
     const where: Where = {}
+
+    // Filter by seller's country
+    if (userCountry.countryId) {
+      where['style.seller.country'] = {
+        equals: userCountry.countryId
+      }
+    }
 
     // Add department filter if provided
     if (department) {
@@ -143,6 +155,10 @@ export const newArrivals: PayloadHandler = async (req: PayloadRequest) => {
       totalPages: newArrivalsResult.totalPages,
       hasNextPage: newArrivalsResult.hasNextPage,
       hasPrevPage: newArrivalsResult.hasPrevPage,
+      currency: {
+        code: userCountry.currencyCode,
+        symbol: userCountry.currencySymbol,
+      },
     })
   } catch (error) {
     console.error('Error fetching new arrivals:', error)

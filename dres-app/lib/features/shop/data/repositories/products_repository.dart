@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:dres/core/models/variation_model.dart';
 import 'package:dres/core/constants/api_endpoints.dart' as api;
+import 'package:dres/core/utilities/currency_utils.dart';
 
 class ProductsRepository {
   final Dio _dio;
@@ -57,6 +58,13 @@ class ProductsRepository {
         endpoint,
         queryParameters: queryParams,
       );
+
+      // Update currency from API response
+      if (response.data['currency'] != null) {
+        CurrencyUtils.updateFromResponse(
+          Map<String, dynamic>.from(response.data['currency']),
+        );
+      }
 
       final variations = (response.data['variations'] as List)
           .map((v) => VariationModel.fromJson(v))

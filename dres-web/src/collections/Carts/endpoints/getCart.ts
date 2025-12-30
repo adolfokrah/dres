@@ -1,17 +1,35 @@
 import type { PayloadHandler } from 'payload'
 
+interface SellerInfo {
+  id: string
+  displayName?: string
+  shopName?: string
+  firstName?: string
+  lastName?: string
+  name?: string
+  photo?: { url?: string } | string
+  vacationMode?: boolean
+  isTrusted?: boolean
+}
+
 interface CartItem {
   variation?: {
     id: string
+    title?: string
+    images?: Array<{ image?: { url?: string } }>
+    brand?: string | { name?: string }
     style?: {
       id: string
-      seller?: string | { id: string; vacationMode?: boolean }
+      seller?: string | SellerInfo
     }
   } | string
   sku?: {
     id: string
     stock?: number | null
     isActive?: boolean
+    price?: number
+    discountedPrice?: number
+    options?: Array<{ option?: string; value?: string }>
   } | string
   quantity?: number
 }
@@ -43,7 +61,7 @@ export const getCart: PayloadHandler = async (req) => {
         status: { equals: 'active' },
       },
       limit: 1,
-      depth: 4, // Deep populate to get seller info
+      depth: 5, // Deep populate to get seller info
     })
 
     if (carts.docs.length === 0) {
@@ -57,9 +75,9 @@ export const getCart: PayloadHandler = async (req) => {
     const cart = carts.docs[0]
     const items = cart.items as CartItem[] | undefined
 
-    // Enrich items with availability flags
+    // Enrich items with availability flags and seller info
     const enrichedItems: EnrichedCartItem[] = []
-    const sellerCache: Map<string, boolean> = new Map() // Cache seller vacation status
+    const sellerCache: Map<string, SellerInfo> = new Map() // Cache seller info
 
     if (items && Array.isArray(items)) {
       for (const item of items) {
@@ -71,45 +89,82 @@ export const getCart: PayloadHandler = async (req) => {
           availableStock: null,
         }
 
-        // Check seller vacation status
+        // Check seller vacation status and enrich seller info
         if (item.variation && typeof item.variation === 'object') {
           const style = item.variation.style
           if (style && typeof style === 'object') {
             const seller = style.seller
             let sellerId: string | null = null
+            let sellerInfo: SellerInfo | null = null
             
             if (typeof seller === 'string') {
               sellerId = seller
             } else if (seller && typeof seller === 'object') {
               sellerId = seller.id
+              // Transform the populated seller data
+              const sellerData = seller as unknown as Record<string, unknown>
+              sellerInfo = {
+                id: seller.id,
+                displayName: sellerData.shopName as string | undefined || 
+                  `${sellerData.firstName || ''} ${sellerData.lastName || ''}`.trim() || undefined,
+                shopName: sellerData.shopName as string | undefined,
+                firstName: sellerData.firstName as string | undefined,
+                lastName: sellerData.lastName as string | undefined,
+                photo: sellerData.photo as { url?: string } | string | undefined,
+                vacationMode: sellerData.vacationMode as boolean | undefined,
+                isTrusted: sellerData.isTrusted as boolean | undefined,
+              }
+              // Cache it
+              sellerCache.set(sellerId, sellerInfo)
               // If seller is populated, check vacation mode directly
-              if (seller.vacationMode === true) {
+              if (sellerInfo.vacationMode === true) {
                 enrichedItem.isSellerOnVacation = true
               }
             }
 
             // If seller wasn't fully populated, fetch from cache or DB
-            if (sellerId && !enrichedItem.isSellerOnVacation) {
+            if (sellerId && !sellerInfo) {
               if (sellerCache.has(sellerId)) {
-                enrichedItem.isSellerOnVacation = sellerCache.get(sellerId) || false
+                sellerInfo = sellerCache.get(sellerId) || null
+                enrichedItem.isSellerOnVacation = sellerInfo?.vacationMode === true
               } else {
                 try {
                   const sellerDoc = await payload.findByID({
                     collection: 'users',
                     id: sellerId,
-                    depth: 0,
+                    depth: 1, // Get photo
                   })
-                  const isOnVacation = sellerDoc?.vacationMode === true
-                  sellerCache.set(sellerId, isOnVacation)
-                  enrichedItem.isSellerOnVacation = isOnVacation
+                  if (sellerDoc) {
+                    const sellerData = sellerDoc as unknown as Record<string, unknown>
+                    sellerInfo = {
+                      id: sellerDoc.id,
+                      displayName: sellerData.shopName as string | undefined || 
+                        `${sellerData.firstName || ''} ${sellerData.lastName || ''}`.trim() || undefined,
+                      shopName: sellerData.shopName as string | undefined,
+                      firstName: sellerData.firstName as string | undefined,
+                      lastName: sellerData.lastName as string | undefined,
+                      photo: sellerData.photo as { url?: string } | string | undefined,
+                      vacationMode: sellerData.vacationMode as boolean | undefined,
+                      isTrusted: sellerData.isTrusted as boolean | undefined,
+                    }
+                    sellerCache.set(sellerId, sellerInfo)
+                    enrichedItem.isSellerOnVacation = sellerInfo.vacationMode === true
+                  }
                 } catch {
-                  // Seller not found, leave as false
+                  // Seller not found, leave as is
                 }
+              }
+            }
+
+            // Ensure seller info is attached to the variation
+            if (sellerInfo && item.variation && typeof item.variation === 'object') {
+              const enrichedVariation = enrichedItem.variation as Record<string, unknown>
+              if (enrichedVariation && enrichedVariation.style && typeof enrichedVariation.style === 'object') {
+                (enrichedVariation.style as Record<string, unknown>).seller = sellerInfo
               }
             }
           }
         }
-
         // Check SKU stock status
         if (item.sku && typeof item.sku === 'object') {
           const stock = item.sku.stock
