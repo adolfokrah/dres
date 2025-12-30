@@ -62,7 +62,7 @@ class _ProductImageCarouselState extends State<ProductImageCarousel> {
                     image: NetworkImage(
                       MediaUtils.resolveUrl(image.url) ?? '',
                     ),
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
                   ),
                 ),
               );

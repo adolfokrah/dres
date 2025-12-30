@@ -183,6 +183,7 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
         return ProductArchiveBlock(
           title: productArchive.title,
           queryType: _getQueryType(productArchive.queryType),
+          showSeeAll: productArchive.showSeeAll,
           seeAllLink: productArchive.seeAllLink,
           seeAllText: productArchive.seeAllText ?? 'See all',
           department: productArchive.department,

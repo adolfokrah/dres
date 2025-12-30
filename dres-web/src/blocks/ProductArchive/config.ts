@@ -45,12 +45,22 @@ export const ProductArchiveBlock: Block = {
       },
     },
     {
+      name: 'showSeeAll',
+      type: 'checkbox',
+      required: false,
+      defaultValue: true,
+      admin: {
+        description: 'Show the "See all" button',
+      },
+    },
+    {
       name: 'seeAllLink',
       type: 'text',
       required: false,
       defaultValue: '/shop',
       admin: {
         description: 'URL for the "See all" button',
+        condition: (data, siblingData) => siblingData?.showSeeAll === true,
       },
     },
     {
@@ -60,6 +70,7 @@ export const ProductArchiveBlock: Block = {
       defaultValue: 'See all',
       admin: {
         description: 'Text for the "See all" button',
+        condition: (data, siblingData) => siblingData?.showSeeAll === true,
       },
     },
     {

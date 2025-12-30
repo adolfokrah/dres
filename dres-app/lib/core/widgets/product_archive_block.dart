@@ -13,6 +13,7 @@ enum QueryType { trending, newArrivals, recentlyViewed, featured }
 class ProductArchiveBlock extends StatefulWidget {
   final String title;
   final QueryType queryType;
+  final bool showSeeAll;
   final String? seeAllLink;
   final String seeAllText;
   final String? department;
@@ -24,6 +25,7 @@ class ProductArchiveBlock extends StatefulWidget {
     super.key,
     required this.title,
     required this.queryType,
+    this.showSeeAll = true,
     this.seeAllLink,
     this.seeAllText = 'See all',
     this.department,
@@ -182,32 +184,33 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
               );
             },
           ),
-          // See All Button - only show if there are more than 2 items
-          FutureBuilder<List<ProductCardData>>(
-            future: _productsFuture,
-            builder: (context, snapshot) {
-              final products = snapshot.data ?? [];
-              if (widget.seeAllLink != null && products.length > 2) {
-                return Column(
-                  children: [
-                    const SizedBox(height: 24),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: AppButton.outlined(
-                        text: widget.seeAllText,
-                        isFullWidth: true,
-                        onPressed: () {
-                          // Navigate to see all page
-                          // Navigator.pushNamed(context, widget.seeAllLink!);
-                        },
+          // See All Button - only show if enabled and there are products
+          if (widget.showSeeAll)
+            FutureBuilder<List<ProductCardData>>(
+              future: _productsFuture,
+              builder: (context, snapshot) {
+                final products = snapshot.data ?? [];
+                if (products.isNotEmpty) {
+                  return Column(
+                    children: [
+                      const SizedBox(height: 24),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: AppButton.outlined(
+                          text: widget.seeAllText,
+                          isFullWidth: true,
+                          onPressed: () {
+                            // Navigate to see all page
+                            // Navigator.pushNamed(context, widget.seeAllLink!);
+                          },
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
+                    ],
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
         ],
       ),
     );
