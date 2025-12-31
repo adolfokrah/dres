@@ -23,18 +23,14 @@ class PurchasesList extends StatefulWidget {
 
 class _PurchasesListState extends State<PurchasesList> {
   late final PurchasesBloc _purchasesBloc;
-  bool _initialLoadDone = false;
 
   @override
   void initState() {
     super.initState();
     _purchasesBloc = getIt<PurchasesBloc>();
     
-    // Only fetch if no purchases loaded yet (first time)
-    if (_purchasesBloc.state.purchases.isEmpty && !_initialLoadDone) {
-      _purchasesBloc.add(PurchasesFetchRequested(statusFilter: _purchasesBloc.state.statusFilter));
-      _initialLoadDone = true;
-    }
+    // Always fetch purchases when this widget is shown
+    _purchasesBloc.add(PurchasesFetchRequested(statusFilter: _purchasesBloc.state.statusFilter));
   }
 
   @override

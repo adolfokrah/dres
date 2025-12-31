@@ -25,7 +25,7 @@ interface OrderItem {
   statusLogs?: StatusLogEntry[]
 }
 
-export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = async ({ data, operation, originalDoc, req }) => {
+export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = async ({ data, operation, originalDoc }) => {
   // Generate order ID on create
   if (operation === 'create' && !data?.orderId) {
     data.orderId = generateOrderId()
@@ -124,6 +124,12 @@ export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = async (
 
     const itemStatuses = items.map((item: OrderItem) => item.shippingStatus)
 
+    console.log('📦 Order status calculation:', {
+      orderId: data.orderId,
+      currentStatus: currentStatus,
+      itemStatuses,
+    })
+
     if (itemStatuses.length > 0) {
       const allPlaced = itemStatuses.every((status) => status === 'placed')
       const allCancelled = itemStatuses.every(
@@ -134,6 +140,14 @@ export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = async (
       )
       const hasOutForDelivery = itemStatuses.some((status) => status === 'out_for_delivery')
       const hasReturnInProgress = itemStatuses.some((status) => status === 'return_in_progress')
+
+      console.log('📦 Status checks:', {
+        allPlaced,
+        allCancelled,
+        allFinished,
+        hasOutForDelivery,
+        hasReturnInProgress,
+      })
 
       if (allPlaced) {
         // All items are still placed - order is placed
@@ -151,6 +165,8 @@ export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = async (
         // Mixed statuses - order is in progress
         data.status = 'in_progress'
       }
+
+      console.log('📦 Final status:', data.status)
     }
   }
 

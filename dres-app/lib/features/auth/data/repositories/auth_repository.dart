@@ -61,22 +61,54 @@ class AuthRepository {
   /// Get current user info
   Future<AuthUser?> getCurrentUser() async {
     try {
-      final response = await _apiService.get('/users/me');
+      // Use depth=1 to get join fields like followers, following
+      final response = await _apiService.get('/users/me?depth=1');
       final data = response.data;
-      debugPrint('🔵 getCurrentUser response: $data');
+      debugPrint('🔵 getCurrentUser response keys: ${data is Map ? data.keys.toList() : 'not a map'}');
       
       // Payload CMS returns the user object directly, or wrapped in 'user' key
       if (data is Map<String, dynamic>) {
+        Map<String, dynamic>? userData;
+        
         // Check if it's the user object directly (has 'id' and 'email')
         if (data.containsKey('id') && data.containsKey('email')) {
-          final user = AuthUser.fromJson(data);
-          debugPrint('🟢 getCurrentUser parsed user directly: id=${user.id}');
-          return user;
+          userData = data;
         }
         // Check if wrapped in 'user' key
-        if (data['user'] != null && data['user'] is Map<String, dynamic>) {
-          final user = AuthUser.fromJson(data['user']);
-          debugPrint('🟢 getCurrentUser parsed user from wrapper: id=${user.id}');
+        else if (data['user'] != null && data['user'] is Map<String, dynamic>) {
+          userData = data['user'];
+        }
+        
+        if (userData != null) {
+          // Count followers and following from join fields
+          final followers = userData['followers'];
+          final following = userData['following'];
+          
+          int followersCount = 0;
+          int followingCount = 0;
+          
+          // Handle followers - can be array or object with docs
+          if (followers is List) {
+            followersCount = followers.length;
+          } else if (followers is Map && followers['docs'] is List) {
+            followersCount = (followers['docs'] as List).length;
+          }
+          
+          // Handle following - can be array or object with docs
+          if (following is List) {
+            followingCount = following.length;
+          } else if (following is Map && following['docs'] is List) {
+            followingCount = (following['docs'] as List).length;
+          }
+          
+          userData['followersCount'] = followersCount;
+          userData['followingCount'] = followingCount;
+          userData['reviewsCount'] = 0; // TODO: Add reviews join if needed
+          
+          debugPrint('🟢 Followers: $followersCount, Following: $followingCount');
+          
+          final user = AuthUser.fromJson(userData);
+          debugPrint('🟢 getCurrentUser parsed user: id=${user.id}, followers=${user.followersCount}, following=${user.followingCount}');
           return user;
         }
       }

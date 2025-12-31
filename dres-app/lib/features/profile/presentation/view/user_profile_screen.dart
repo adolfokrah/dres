@@ -40,6 +40,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     ProfileTab(label: 'Transactions'),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    // Refresh user data (including stats) when profile screen opens
+    getIt<AuthBloc>().add(const AuthCheckStatusRequested());
+  }
+
   Future<void> _fetchSellerInfo(String userId) async {
     if (_loadedUserId == userId || _isLoadingSeller) return;
     
@@ -134,7 +141,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         return Scaffold(
           backgroundColor: AppColors.background,
           appBar: _buildAppBar(context, displayName),
-          body: _buildContent(),
+          body: _buildContent(authState),
         );
       },
     );
@@ -221,7 +228,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(AuthState authState) {
     final seller = _seller;
     final displayName = seller?.name ?? 'User';
     final username = seller?.username ?? '';
@@ -233,7 +240,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           SliverOverlapAbsorber(
             handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
             sliver: SliverToBoxAdapter(
-              child: _buildShopHeader(seller, displayName, username),
+              child: _buildShopHeader(seller, displayName, username, authState),
             ),
           ),
 
@@ -262,7 +269,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildShopHeader(SellerModel? seller, String displayName, String username) {
+  Widget _buildShopHeader(SellerModel? seller, String displayName, String username, AuthState authState) {
     final photoUrl = seller?.profileImage != null 
         ? MediaUtils.resolveUrl(seller!.profileImage) 
         : null;
@@ -315,11 +322,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Stats card - using sales history from seller info
+          // Stats card - using followers/following from auth user
           ProfileStatsCard(
-            followers: int.tryParse(seller?.salesHistory.itemsSold ?? '0') ?? 0,
-            following: int.tryParse(seller?.salesHistory.shipped ?? '0') ?? 0,
-            reviews: int.tryParse(seller?.salesHistory.cancelled ?? '0') ?? 0,
+            followers: authState.user?.followersCount ?? 0,
+            following: authState.user?.followingCount ?? 0,
+            reviews: authState.user?.reviewsCount ?? 0,
             onFollowersTap: () {
               // TODO: Navigate to followers
             },
