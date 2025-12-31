@@ -69,13 +69,18 @@ class AuthRepository {
       if (data is Map<String, dynamic>) {
         // Check if it's the user object directly (has 'id' and 'email')
         if (data.containsKey('id') && data.containsKey('email')) {
-          return AuthUser.fromJson(data);
+          final user = AuthUser.fromJson(data);
+          debugPrint('🟢 getCurrentUser parsed user directly: id=${user.id}');
+          return user;
         }
         // Check if wrapped in 'user' key
         if (data['user'] != null && data['user'] is Map<String, dynamic>) {
-          return AuthUser.fromJson(data['user']);
+          final user = AuthUser.fromJson(data['user']);
+          debugPrint('🟢 getCurrentUser parsed user from wrapper: id=${user.id}');
+          return user;
         }
       }
+      debugPrint('🔴 getCurrentUser: Could not parse user from response');
       return null;
     } catch (e) {
       debugPrint('❌ getCurrentUser error: $e');

@@ -119,10 +119,23 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
       let variationImage = ''
       if (variation.images && Array.isArray(variation.images) && variation.images.length > 0) {
         const firstImage = variation.images[0]
-        if (typeof firstImage === 'object' && firstImage.url) {
-          variationImage = firstImage.url
+        // Handle both populated media object and raw ID
+        if (typeof firstImage === 'object' && firstImage !== null) {
+          variationImage = firstImage.url || ''
+        } else if (typeof firstImage === 'string') {
+          // If it's just an ID, we need to fetch the media
+          try {
+            const media = await payload.findByID({
+              collection: 'media',
+              id: firstImage,
+            })
+            variationImage = media?.url || ''
+          } catch {
+            // Ignore errors
+          }
         }
       }
+      payload.logger.info(`Variation ${variation.slug} image: ${variationImage}`)
 
       // Get price, original price, and SKU title from SKU
       let itemPrice = item.price || 0

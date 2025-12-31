@@ -6,6 +6,7 @@ import { generateUsername } from './hooks/generateUsername'
 import { getSellerInfo } from './endpoints/getSellerInfo'
 import { firebaseOAuth } from './endpoints/firebaseOAuth'
 import { addAddress, deleteAddress, setDefaultAddress, updateAddress } from './endpoints/addresses'
+import { getUserPurchases } from './endpoints/getPurchases'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -32,6 +33,11 @@ export const Users: CollectionConfig = {
       path: '/:id/seller',
       method: 'get',
       handler: getSellerInfo,
+    },
+    {
+      path: '/:id/purchases',
+      method: 'get',
+      handler: getUserPurchases,
     },
     {
       path: '/oauth/firebase',

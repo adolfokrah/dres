@@ -258,7 +258,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 6),
                 GestureDetector(
                   onTap: () {
-                    // TODO: Navigate to view profile
+                    context.push('/user-profile');
                   },
                   child: Text(
                     l10n.viewProfile,

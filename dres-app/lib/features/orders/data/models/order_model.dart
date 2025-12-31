@@ -240,7 +240,16 @@ class OrderVariationModel {
     this.style,
   });
 
-  factory OrderVariationModel.fromJson(Map<String, dynamic> json) {
+  factory OrderVariationModel.fromJson(dynamic json) {
+    // Handle String type (non-populated reference)
+    if (json is String) {
+      return OrderVariationModel(id: json);
+    }
+    
+    if (json == null || json is! Map<String, dynamic>) {
+      return OrderVariationModel(id: '');
+    }
+    
     return OrderVariationModel(
       id: json['id'] ?? '',
       title: json['title'],
@@ -267,7 +276,16 @@ class OrderStyleModel {
     this.brand,
   });
 
-  factory OrderStyleModel.fromJson(Map<String, dynamic> json) {
+  factory OrderStyleModel.fromJson(dynamic json) {
+    // Handle String type (non-populated reference)
+    if (json is String) {
+      return OrderStyleModel(id: json);
+    }
+    
+    if (json == null || json is! Map<String, dynamic>) {
+      return OrderStyleModel(id: '');
+    }
+    
     return OrderStyleModel(
       id: json['id'] ?? '',
       name: json['name'],
@@ -288,7 +306,16 @@ class OrderBrandModel {
     this.name,
   });
 
-  factory OrderBrandModel.fromJson(Map<String, dynamic> json) {
+  factory OrderBrandModel.fromJson(dynamic json) {
+    // Handle String type (non-populated reference)
+    if (json is String) {
+      return OrderBrandModel(id: json);
+    }
+    
+    if (json == null || json is! Map<String, dynamic>) {
+      return OrderBrandModel(id: '');
+    }
+    
     return OrderBrandModel(
       id: json['id'] ?? '',
       name: json['name'],
@@ -342,6 +369,7 @@ class OrderShippingAddress {
   final String fullName;
   final String phone;
   final String? city;
+  final String? region;
   final String? address;
 
   OrderShippingAddress({
@@ -349,14 +377,24 @@ class OrderShippingAddress {
     required this.fullName,
     required this.phone,
     this.city,
+    this.region,
     this.address,
   });
 
   factory OrderShippingAddress.fromJson(Map<String, dynamic> json) {
     String? cityName;
+    String? regionName;
+    
     if (json['city'] != null) {
       if (json['city'] is Map) {
         cityName = json['city']['name'];
+        // Get region from city object
+        final region = json['city']['region'];
+        if (region is Map) {
+          regionName = region['name'];
+        } else if (region is String) {
+          regionName = region;
+        }
       } else if (json['city'] is String) {
         cityName = json['city'];
       }
@@ -367,8 +405,17 @@ class OrderShippingAddress {
       fullName: json['fullName'] ?? '',
       phone: json['phone'] ?? '',
       city: cityName,
+      region: regionName,
       address: json['address'],
     );
+  }
+
+  /// Get city and region formatted as "City - Region"
+  String get cityRegion {
+    if (city != null && region != null) {
+      return '$city - $region';
+    }
+    return city ?? region ?? '';
   }
 
   /// Format address for display

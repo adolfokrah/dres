@@ -23,15 +23,26 @@ class OrdersRepository {
   }
 
   /// Fetch user's orders
-  Future<List<OrderModel>> getOrders({int page = 1, int limit = 10}) async {
+  Future<List<OrderModel>> getOrders({
+    int page = 1,
+    int limit = 10,
+    String? statusFilter,
+  }) async {
+    final queryParameters = <String, dynamic>{
+      'page': page,
+      'limit': limit,
+      'sort': '-createdAt',
+      'depth': 2,
+    };
+
+    // Add status filter if provided
+    if (statusFilter != null && statusFilter.isNotEmpty) {
+      queryParameters['where[status][equals]'] = statusFilter;
+    }
+
     final response = await _apiService.get(
       '/orders',
-      queryParameters: {
-        'page': page,
-        'limit': limit,
-        'sort': '-createdAt',
-        'depth': 2,
-      },
+      queryParameters: queryParameters,
     );
     final docs = response.data['docs'] as List<dynamic>? ?? [];
     return docs.map((json) => OrderModel.fromJson(json)).toList();

@@ -159,27 +159,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     try {
       final isLoggedIn = await _authRepository.isLoggedIn();
+      debugPrint('🔵 AuthBloc: isLoggedIn = $isLoggedIn');
       
       if (isLoggedIn) {
         final user = await _authRepository.getCurrentUser();
+        debugPrint('🔵 AuthBloc: getCurrentUser returned user: ${user?.id}');
         if (user != null) {
+          debugPrint('🟢 AuthBloc: Emitting authenticated state with user: ${user.id}');
           emit(state.copyWith(
             status: AuthStatus.authenticated,
             user: user,
           ));
+          debugPrint('🟢 AuthBloc: State emitted, current user: ${state.user?.id}');
         } else {
           // If we have an existing user but getCurrentUser failed, keep the existing user
           if (state.user != null) {
             debugPrint('🔵 AuthBloc: getCurrentUser returned null but we have existing user, keeping it');
             emit(state.copyWith(status: AuthStatus.authenticated));
           } else {
+            debugPrint('🔴 AuthBloc: No user found, emitting unauthenticated');
             emit(state.copyWith(status: AuthStatus.unauthenticated));
           }
         }
       } else {
+        debugPrint('🔴 AuthBloc: Not logged in, emitting unauthenticated');
         emit(state.copyWith(status: AuthStatus.unauthenticated));
       }
     } catch (e) {
+      debugPrint('🔴 AuthBloc: Error checking auth: $e');
       // If we have an existing user, keep them authenticated
       if (state.user != null) {
         emit(state.copyWith(status: AuthStatus.authenticated));

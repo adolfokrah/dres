@@ -57,6 +57,9 @@ class AuthUser {
   final String? shopName;
   final String? username;
   final String? photo;
+  final int followersCount;
+  final int followingCount;
+  final int reviewsCount;
 
   AuthUser({
     required this.id,
@@ -66,6 +69,9 @@ class AuthUser {
     this.shopName,
     this.username,
     this.photo,
+    this.followersCount = 0,
+    this.followingCount = 0,
+    this.reviewsCount = 0,
   });
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
@@ -88,6 +94,9 @@ class AuthUser {
       shopName: json['shopName'],
       username: json['username'],
       photo: photoUrl,
+      followersCount: json['followersCount'] ?? 0,
+      followingCount: json['followingCount'] ?? 0,
+      reviewsCount: json['reviewsCount'] ?? 0,
     );
   }
 

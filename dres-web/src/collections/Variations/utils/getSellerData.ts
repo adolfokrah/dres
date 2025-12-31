@@ -45,10 +45,15 @@ export async function getSellerData(payload: Payload, sellerId: string | null) {
     }
   })
 
+  // Build full name
+  const firstName = (seller as any).firstName || ''
+  const lastName = (seller as any).lastName || ''
+  const fullName = [firstName, lastName].filter(Boolean).join(' ') || 'User'
+
   return {
     id: seller.id,
-    name: (seller as any).shopName || (seller as any).firstName || '',
-    username: `@${(seller as any).username || 'user'}`,
+    name: (seller as any).shopName || fullName,
+    username: (seller as any).username || 'user',
     profileImage: typeof (seller as any).photo === 'object' ? (seller as any).photo?.url || null : null,
     verified: true,
     vacationMode: (seller as any).vacationMode || false,

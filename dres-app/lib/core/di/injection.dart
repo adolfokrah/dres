@@ -23,6 +23,8 @@ import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
 import 'package:dres/features/cart/logic/address_bloc/address_bloc.dart';
 import 'package:dres/features/orders/data/repositories/orders_repository.dart';
 import 'package:dres/features/orders/logic/order_details_bloc/order_details_bloc.dart';
+import 'package:dres/features/profile/data/repositories/purchases_repository.dart';
+import 'package:dres/features/profile/logic/purchases_bloc/purchases_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -112,8 +114,8 @@ Future<void> setupDependencies() async {
   // Product Details Bloc
   getIt.registerFactory<ProductDetailsBloc>(() => ProductDetailsBloc(getIt<ProductDetailsRepository>()));
 
-  // Auth Bloc
-  getIt.registerFactory<AuthBloc>(() => AuthBloc(authRepository: getIt<AuthRepository>()));
+  // Auth Bloc - Singleton so auth state persists across screens
+  getIt.registerLazySingleton<AuthBloc>(() => AuthBloc(authRepository: getIt<AuthRepository>()));
 
   // Cart Bloc - Singleton so cart state persists across screens
   getIt.registerLazySingleton<CartBloc>(() => CartBloc(
@@ -127,5 +129,15 @@ Future<void> setupDependencies() async {
   // Order Details Bloc - Factory for each order view
   getIt.registerFactory<OrderDetailsBloc>(() => OrderDetailsBloc(
     ordersRepository: getIt<OrdersRepository>(),
+  ));
+
+  // Purchases Repository
+  getIt.registerLazySingleton<PurchasesRepository>(() => PurchasesRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Purchases Bloc - Singleton so filter state persists across tab switches
+  getIt.registerLazySingleton<PurchasesBloc>(() => PurchasesBloc(
+    purchasesRepository: getIt<PurchasesRepository>(),
   ));
 }
