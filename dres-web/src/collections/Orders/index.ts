@@ -11,6 +11,7 @@ import { restoreStockOnReturn } from './hooks/restoreStockOnReturn'
 import { restoreStockOnCancel } from './hooks/restoreStockOnCancel'
 import { awardPointsOnDelivery } from './hooks/awardPointsOnDelivery'
 import { notifySellersOnOrderPlaced } from './hooks/notifySellersOnOrderPlaced'
+import { returnItem } from './endpoints/returnItem'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -20,6 +21,13 @@ export const Orders: CollectionConfig = {
     defaultColumns: ['orderId', 'user', 'status', 'totalItems', 'totalAmount', 'createdAt'],
     description: 'Customer orders',
   },
+  endpoints: [
+    {
+      path: '/:id/return-item',
+      method: 'post',
+      handler: returnItem,
+    },
+  ],
   access: {
     // Users can only read their own orders
     read: ({ req: { user } }) => {

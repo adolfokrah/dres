@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:dres/core/services/api_service.dart';
 import 'package:dres/features/orders/data/models/order_model.dart';
 import 'package:dres/features/orders/data/models/verify_payment_response.dart';
@@ -52,5 +54,37 @@ class OrdersRepository {
   Future<OrderModel> getOrderById(String id) async {
     final response = await _apiService.get('/orders/$id?depth=3');
     return OrderModel.fromJson(response.data);
+  }
+
+  /// Request a return for an order item
+  Future<void> requestReturn({
+    required String orderId,
+    required String itemId,
+    required String reason,
+    required File image,
+  }) async {
+    // First upload the image to media collection
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(
+        image.path,
+        filename: 'return_evidence_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      ),
+    });
+
+    final uploadResponse = await _apiService.post(
+      '/media',
+      data: formData,
+    );
+    final mediaId = uploadResponse.data['doc']['id'];
+
+    // Then submit the return request
+    await _apiService.post(
+      '/orders/$orderId/return-item',
+      data: {
+        'itemId': itemId,
+        'reason': reason,
+        'returnImage': mediaId,
+      },
+    );
   }
 }

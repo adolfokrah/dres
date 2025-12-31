@@ -56,5 +56,11 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>DRES needs access to your photo library to select images for product listings and returns.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>DRES needs access to your camera to take photos of products.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>DRES needs access to your microphone for video recording.</string>
 </dict>
 </plist>

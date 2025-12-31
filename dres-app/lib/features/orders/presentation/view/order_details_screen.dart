@@ -146,13 +146,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       onLearnMoreTap: () {
                         // TODO: Show direct shipping info
                       },
-                      onReturnItemTap: (item) {
-                        // TODO: Handle return item
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Return item feature coming soon'),
-                          ),
+                      onReturnItemTap: (item) async {
+                        final result = await context.push<bool>(
+                          '/orders/${widget.orderId}/return/${item.id}',
                         );
+                        // Refresh order if return was successful
+                        if (result == true && mounted) {
+                          _orderDetailsBloc.add(OrderDetailsFetchRequested(orderId: widget.orderId));
+                        }
                       },
                       onResellItemTap: (item) {
                         // TODO: Handle resell item

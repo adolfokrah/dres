@@ -160,21 +160,7 @@ class OrderSellerCard extends StatelessWidget {
             label: 'Buyer protection fee',
             amount: _buyerProtectionFee,
           ),
-          const SizedBox(height: 14),
-
-          // Learn more link
-          GestureDetector(
-            onTap: onLearnMoreTap,
-            child: Text(
-              'Learn More',
-              style: AppTypography.bodyM.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-                decoration: TextDecoration.underline,
-              ),
-            ),
-          ),
-
+        
           const SizedBox(height: 14),
 
           // Total row
