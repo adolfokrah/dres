@@ -21,6 +21,7 @@ import 'package:dres/features/cart/presentation/view/addresses_screen.dart';
 import 'package:dres/features/cart/presentation/view/add_address_screen.dart';
 import 'package:dres/features/cart/presentation/view/direct_shipping_info_screen.dart';
 import 'package:dres/features/cart/data/models/shipping_address.dart';
+import 'package:dres/features/orders/presentation/view/order_details_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
 import 'package:dres/core/models/menu_model.dart';
 
@@ -122,6 +123,16 @@ class AppRoutes {
         path: '/checkout',
         name: 'checkout',
         builder: (context, state) => const CheckoutScreen(),
+      ),
+      
+      // Order Details (outside shell, full screen)
+      GoRoute(
+        path: '/orders/:id',
+        name: 'order-details',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return OrderDetailsScreen(orderId: id);
+        },
       ),
       
       // Addresses (outside shell, full screen)

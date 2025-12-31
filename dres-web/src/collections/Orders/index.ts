@@ -10,6 +10,7 @@ import { reduceStockOnOrder } from './hooks/reduceStockOnOrder'
 import { restoreStockOnReturn } from './hooks/restoreStockOnReturn'
 import { restoreStockOnCancel } from './hooks/restoreStockOnCancel'
 import { awardPointsOnDelivery } from './hooks/awardPointsOnDelivery'
+import { notifySellersOnOrderPlaced } from './hooks/notifySellersOnOrderPlaced'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -50,8 +51,8 @@ export const Orders: CollectionConfig = {
   },
   hooks: {
     beforeChange: [calculateOrderTotalsAndStatus],
-    // Reduce stock on order creation, restore stock on return/cancel, create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats, award points, then calculate commission
-    afterChange: [reduceStockOnOrder, restoreStockOnReturn, restoreStockOnCancel, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats, awardPointsOnDelivery, calculateTotalCommission],
+    // Reduce stock on order creation, restore stock on return/cancel, notify sellers, create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats, award points, then calculate commission
+    afterChange: [reduceStockOnOrder, restoreStockOnReturn, restoreStockOnCancel, notifySellersOnOrderPlaced, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats, awardPointsOnDelivery, calculateTotalCommission],
   },
   fields: [
     {

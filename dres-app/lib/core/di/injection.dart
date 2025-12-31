@@ -22,6 +22,7 @@ import 'package:dres/features/cart/data/repositories/promo_repository.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
 import 'package:dres/features/cart/logic/address_bloc/address_bloc.dart';
 import 'package:dres/features/orders/data/repositories/orders_repository.dart';
+import 'package:dres/features/orders/logic/order_details_bloc/order_details_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -122,4 +123,9 @@ Future<void> setupDependencies() async {
 
   // Address Bloc - Singleton so address selection persists
   getIt.registerLazySingleton<AddressBloc>(() => AddressBloc(addressRepository: getIt<AddressRepository>()));
+
+  // Order Details Bloc - Factory for each order view
+  getIt.registerFactory<OrderDetailsBloc>(() => OrderDetailsBloc(
+    ordersRepository: getIt<OrdersRepository>(),
+  ));
 }
