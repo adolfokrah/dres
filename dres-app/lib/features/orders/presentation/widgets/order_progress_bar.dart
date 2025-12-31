@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dres/core/theme/app_colors.dart';
-import 'package:dres/core/theme/app_typography.dart';
+import 'package:dres/core/widgets/status_badge.dart';
 import 'package:dres/features/orders/data/models/order_model.dart';
 
 /// Progress bar showing order status
@@ -36,7 +36,11 @@ class OrderProgressBar extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           // Status badge
-          _StatusBadge(status: status),
+          StatusBadge(
+            status: status.value,
+            type: StatusBadgeType.order,
+            displayText: status.displayName,
+          ),
         ],
       ),
     );
@@ -56,44 +60,6 @@ class _ProgressSegment extends StatelessWidget {
         decoration: BoxDecoration(
           color: isActive ? const Color(0xFFACF8BF) : AppColors.gray,
           borderRadius: BorderRadius.circular(2),
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  final OrderStatus status;
-
-  const _StatusBadge({required this.status});
-
-  Color get _backgroundColor {
-    switch (status) {
-      case OrderStatus.completed:
-        return const Color(0xFFACF8BF);
-      case OrderStatus.cancelled:
-        return AppColors.gray;
-      case OrderStatus.inProgress:
-        return AppColors.info;
-      case OrderStatus.placed:
-        return AppColors.info;
-      case OrderStatus.newOrder:
-        return AppColors.warning;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-      decoration: BoxDecoration(
-        color: _backgroundColor,
-        borderRadius: BorderRadius.circular(2),
-      ),
-      child: Text(
-        status.displayName,
-        style: AppTypography.bodyS.copyWith(
-          color: AppColors.textPrimary,
         ),
       ),
     );

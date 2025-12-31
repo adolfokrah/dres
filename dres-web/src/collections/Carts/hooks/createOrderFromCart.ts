@@ -23,7 +23,6 @@ interface OrderItem {
   variationImage: string
   sku: string | null
   skuTitle: string | null
-  sellerName: string
   price: number
   originalPrice: number
   quantity: number
@@ -114,6 +113,8 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         typeof seller === 'object'
           ? seller.shopName || `${seller.firstName || ''} ${seller.lastName || ''}`.trim() || 'Unknown Seller'
           : 'Unknown Seller'
+      
+      
 
       // Get variation image URL (first image)
       let variationImage = ''
@@ -229,11 +230,10 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
       orderItems.push({
         variation: variationId,
         seller: sellerId || '',
-        variationTitle: variation.slug || 'Unknown Variation',
+        variationTitle: variation.title || 'Unknown Variation',
         variationImage,
         sku: skuId,
         skuTitle,
-        sellerName,
         price: itemPrice,
         originalPrice,
         quantity: item.quantity || 1,

@@ -170,16 +170,6 @@ class AppRoutes {
         builder: (context, state) => const DirectShippingInfoScreen(),
       ),
       
-      // User Profile (outside shell, full screen)
-      GoRoute(
-        path: '/user-profile',
-        name: 'user-profile',
-        builder: (context, state) {
-          final userId = state.uri.queryParameters['userId'];
-          return UserProfileScreen(userId: userId);
-        },
-      ),
-      
       // Main shell with bottom navigation
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -323,6 +313,17 @@ class AppRoutes {
                 path: profile,
                 name: 'profile',
                 builder: (context, state) => const ProfileScreen(),
+                routes: [
+                  // User Profile (nested under profile tab)
+                  GoRoute(
+                    path: 'user',
+                    name: 'user-profile',
+                    builder: (context, state) {
+                      final userId = state.uri.queryParameters['userId'];
+                      return UserProfileScreen(userId: userId);
+                    },
+                  ),
+                ],
               ),
             ],
           ),

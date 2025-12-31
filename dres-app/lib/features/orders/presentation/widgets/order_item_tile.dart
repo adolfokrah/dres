@@ -2,25 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
+import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/features/orders/data/models/order_model.dart';
 import 'package:dres/features/orders/presentation/widgets/shipping_status_badge.dart';
 
 /// Order item tile widget
 class OrderItemTile extends StatelessWidget {
   final OrderItemModel item;
+  final void Function(OrderItemModel item)? onReturnItemTap;
+  final void Function(OrderItemModel item)? onResellItemTap;
 
   const OrderItemTile({
     super.key,
     required this.item,
+    this.onReturnItemTap,
+    this.onResellItemTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Get brand name
+    // Get brand name from variation > style > brand
     final brandName = item.variation?.style?.brand?.name ?? '';
     
-    // Product title contains the full description
-    final productTitle = item.productTitle;
+    // Get variation title from orders collection (stored at time of purchase)
+    final variationTitle = item.variationTitle ?? '';
+    
+    // Get SKU option value from skuTitle (middle part of "Pink / 44 / ₵ 233")
+    final optionValue = item.skuOptionValue ?? '';
+
+    // Get image URL (prefers variationImage stored at purchase time)
+    final imageUrl = item.imageUrl;
+
+    // Check if item is delivered
+    final isDelivered = item.shippingStatus == ShippingStatus.delivered;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,12 +48,10 @@ class OrderItemTile extends StatelessWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: AppColors.secondary,
-                borderRadius: BorderRadius.circular(4),
-                image: item.imageUrl != null
+                image: imageUrl != null
                     ? DecorationImage(
-                        image: NetworkImage(item.imageUrl!),
-                        fit: BoxFit.cover,
+                        image: NetworkImage(imageUrl),
+                        fit: BoxFit.contain,
                       )
                     : null,
               ),
@@ -50,6 +62,7 @@ class OrderItemTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Brand
                   if (brandName.isNotEmpty)
                     Text(
                       brandName.toUpperCase(),
@@ -58,13 +71,24 @@ class OrderItemTile extends StatelessWidget {
                         color: AppColors.textPrimary,
                       ),
                     ),
-                  Text(
-                    productTitle,
-                    style: AppTypography.bodyM.copyWith(
-                      color: AppColors.textPrimary,
+                  // Variation title
+                  if (variationTitle.isNotEmpty)
+                    Text(
+                      variationTitle.toUpperCase(),
+                      style: AppTypography.bodyM.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  // SKU option value x quantity
+                  Text(
+                    optionValue.isNotEmpty 
+                        ? '$optionValue x${item.quantity}'
+                        : 'x${item.quantity}',
+                    style: AppTypography.bodyM.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -82,6 +106,33 @@ class OrderItemTile extends StatelessWidget {
         const SizedBox(height: 8),
         // Status badge
         ShippingStatusBadge(status: item.shippingStatus),
+
+        // Action buttons for delivered items only
+        if (isDelivered) ...[
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              // Show Return Item only if within 6 hour window of delivery
+              if (item.canReturn) ...[
+                Expanded(
+                  child: AppButton.outlined(
+                    text: 'Return Item',
+                    onPressed: () => onReturnItemTap?.call(item),
+                    height: 44,
+                  ),
+                ),
+                const SizedBox(width: 16),
+              ],
+              Expanded(
+                child: AppButton.filled(
+                  text: 'Resell Item',
+                  onPressed: () => onResellItemTap?.call(item),
+                  height: 44,
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }

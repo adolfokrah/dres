@@ -96,6 +96,11 @@ class OrderItemModel {
   final String id;
   final OrderSellerModel seller;
   final String productTitle;
+  final String? variationTitle;
+  final String? variationImage;
+  final String? skuTitle;
+  final String? sellerName;
+  final String? sellerImage;
   final OrderVariationModel? variation;
   final String? variationId;
   final int quantity;
@@ -109,6 +114,11 @@ class OrderItemModel {
     required this.id,
     required this.seller,
     required this.productTitle,
+    this.variationTitle,
+    this.variationImage,
+    this.skuTitle,
+    this.sellerName,
+    this.sellerImage,
     this.variation,
     this.variationId,
     required this.quantity,
@@ -124,6 +134,11 @@ class OrderItemModel {
       id: json['id'] ?? '',
       seller: OrderSellerModel.fromJson(json['seller'] ?? {}),
       productTitle: json['productTitle'] ?? '',
+      variationTitle: json['variationTitle'],
+      variationImage: json['variationImage'],
+      skuTitle: json['skuTitle'],
+      sellerName: json['sellerName'],
+      sellerImage: json['sellerImage'],
       variation: json['variation'] != null
           ? OrderVariationModel.fromJson(json['variation'])
           : null,
@@ -140,8 +155,29 @@ class OrderItemModel {
     );
   }
 
-  /// Get the display image URL for this item
+  /// Get display seller name (prefer stored sellerName, fallback to seller relation)
+  String get displaySellerName {
+    if (sellerName != null && sellerName!.isNotEmpty) {
+      return sellerName!;
+    }
+    return seller.displayName;
+  }
+
+  /// Get display seller image (prefer stored sellerImage, fallback to seller relation)
+  String? get displaySellerImage {
+    if (sellerImage != null && sellerImage!.isNotEmpty) {
+      return MediaUtils.resolveUrl(sellerImage);
+    }
+    return seller.resolvedProfilePhoto;
+  }
+
+  /// Get the display image URL for this item (prefer variationImage, fallback to variation.images)
   String? get imageUrl {
+    // First try variationImage (stored at time of purchase)
+    if (variationImage != null && variationImage!.isNotEmpty) {
+      return MediaUtils.resolveUrl(variationImage);
+    }
+    // Fallback to variation.images
     final images = variation?.images;
     if (images != null && images.isNotEmpty) {
       return MediaUtils.resolveUrl(images.first.imageUrl);
@@ -152,8 +188,47 @@ class OrderItemModel {
   /// Total for this item (price * quantity)
   double get itemTotal => price * quantity;
 
-  /// Can request return (only delivered items)
-  bool get canReturn => shippingStatus == ShippingStatus.delivered;
+  /// Get the SKU option value (middle part of "Pink / 44 / ₵ 233")
+  String? get skuOptionValue {
+    if (skuTitle == null || skuTitle!.isEmpty) return null;
+    
+    final parts = skuTitle!.split(' / ');
+    if (parts.length >= 2) {
+      // Return the middle part(s) - everything except first (color) and last (price)
+      if (parts.length == 3) {
+        return parts[1]; // e.g., "44" from "Pink / 44 / ₵ 233"
+      } else if (parts.length > 3) {
+        // Multiple option values, join all except first and last
+        return parts.sublist(1, parts.length - 1).join(' / ');
+      }
+    }
+    return null;
+  }
+
+  /// Get the timestamp when item was delivered (if delivered)
+  DateTime? get deliveredAt {
+    if (shippingStatus != ShippingStatus.delivered) return null;
+    
+    // Find the delivered status log
+    final deliveredLog = statusLogs.cast<StatusLog?>().firstWhere(
+      (log) => log?.status == 'delivered',
+      orElse: () => null,
+    );
+    return deliveredLog?.timestamp;
+  }
+
+  /// Check if return window is still open (within 6 hours of delivery)
+  bool get isWithinReturnWindow {
+    final delivered = deliveredAt;
+    if (delivered == null) return false;
+    
+    final now = DateTime.now();
+    final hoursSinceDelivery = now.difference(delivered).inHours;
+    return hoursSinceDelivery < 6;
+  }
+
+  /// Can request return (only delivered items within 6 hour window)
+  bool get canReturn => shippingStatus == ShippingStatus.delivered && isWithinReturnWindow;
 
   /// Can resell (only delivered items)
   bool get canResell => shippingStatus == ShippingStatus.delivered;

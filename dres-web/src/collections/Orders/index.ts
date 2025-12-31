@@ -188,6 +188,13 @@ export const Orders: CollectionConfig = {
                   ],
                 },
                 {
+                  name: 'sellerImage',
+                  type: 'text',
+                  admin: {
+                    description: 'URL to seller profile photo at time of purchase',
+                  },
+                },
+                {
                   name: 'variationImage',
                   type: 'text',
                   admin: {

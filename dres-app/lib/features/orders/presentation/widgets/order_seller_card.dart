@@ -3,7 +3,6 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
-import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/features/orders/data/models/order_model.dart';
 import 'package:dres/features/orders/presentation/widgets/order_item_tile.dart';
 
@@ -39,13 +38,26 @@ class OrderSellerCard extends StatelessWidget {
 
   double get _total => _itemsTotal + _shippingFee + _buyerProtectionFee;
 
-  /// Check if any item can show action buttons
-  bool get _hasDeliveredItems {
-    return items.any((item) => item.canReturn || item.canResell);
+  /// Get seller display name from first item (stored at purchase time)
+  String get _sellerDisplayName {
+    if (items.isNotEmpty) {
+      return items.first.displaySellerName;
+    }
+    return seller.displayName;
+  }
+
+  /// Get seller image from first item (stored at purchase time)
+  String? get _sellerImage {
+    if (items.isNotEmpty) {
+      return items.first.displaySellerImage;
+    }
+    return seller.resolvedProfilePhoto;
   }
 
   @override
   Widget build(BuildContext context) {
+    final sellerPhotoUrl = _sellerImage;
+    
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
@@ -70,18 +82,18 @@ class OrderSellerCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.secondary,
-                  image: seller.resolvedProfilePhoto != null
+                  image: sellerPhotoUrl != null
                       ? DecorationImage(
-                          image: NetworkImage(seller.resolvedProfilePhoto!),
+                          image: NetworkImage(sellerPhotoUrl),
                           fit: BoxFit.cover,
                         )
                       : null,
                 ),
-                child: seller.resolvedProfilePhoto == null
+                child: sellerPhotoUrl == null
                     ? Center(
                         child: Text(
-                          seller.displayName.isNotEmpty
-                              ? seller.displayName[0].toUpperCase()
+                          _sellerDisplayName.isNotEmpty
+                              ? _sellerDisplayName[0].toUpperCase()
                               : 'S',
                           style: AppTypography.titleL.copyWith(
                             color: AppColors.textSecondary,
@@ -97,7 +109,7 @@ class OrderSellerCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    seller.displayName,
+                    _sellerDisplayName,
                     style: AppTypography.bodyL.copyWith(
                       color: AppColors.textPrimary,
                     ),
@@ -126,48 +138,15 @@ class OrderSellerCard extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Items
+          // Items with action buttons for delivered items
           ...items.map((item) => Padding(
                 padding: const EdgeInsets.only(bottom: 13),
-                child: OrderItemTile(item: item),
+                child: OrderItemTile(
+                  item: item,
+                  onReturnItemTap: onReturnItemTap,
+                  onResellItemTap: onResellItemTap,
+                ),
               )),
-
-          // Action buttons for delivered items
-          if (_hasDeliveredItems) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: AppButton.outlined(
-                    text: 'Return Item',
-                    onPressed: () {
-                      final deliveredItem = items.firstWhere(
-                        (item) => item.canReturn,
-                        orElse: () => items.first,
-                      );
-                      onReturnItemTap?.call(deliveredItem);
-                    },
-                    height: 44,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: AppButton.filled(
-                    text: 'Resell Item',
-                    onPressed: () {
-                      final deliveredItem = items.firstWhere(
-                        (item) => item.canResell,
-                        orElse: () => items.first,
-                      );
-                      onResellItemTap?.call(deliveredItem);
-                    },
-                    height: 44,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
 
           // Fees section
           _FeeRow(

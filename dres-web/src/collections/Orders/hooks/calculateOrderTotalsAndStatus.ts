@@ -9,16 +9,23 @@ const generateOrderId = (): string => {
   return `ORD-${dateStr}-${timestamp}-${random}`
 }
 
+interface StatusLogEntry {
+  status: string
+  timestamp: string
+}
+
 interface OrderItem {
+  id?: string
   quantity?: number
   price?: number
   shippingFee?: number
   buyerProtectionFee?: number
   shippingStatus?: string
   seller?: string | { id: string }
+  statusLogs?: StatusLogEntry[]
 }
 
-export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = ({ data, operation }) => {
+export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = async ({ data, operation, originalDoc, req }) => {
   // Generate order ID on create
   if (operation === 'create' && !data?.orderId) {
     data.orderId = generateOrderId()
@@ -27,6 +34,30 @@ export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = ({ data
   // Calculate totals from ALL items (not just delivered)
   if (data?.items && Array.isArray(data.items)) {
     const items = data.items as OrderItem[]
+    const originalItems = (originalDoc?.items as OrderItem[]) || []
+
+    // Add status log entries when shippingStatus changes
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      const originalItem = originalItems.find((oi) => oi.id === item.id)
+      
+      // Initialize statusLogs if not present
+      if (!item.statusLogs) {
+        item.statusLogs = []
+      }
+
+      // Check if this is a new item (on create) or status changed (on update)
+      const isNewItem = operation === 'create' || !originalItem
+      const statusChanged = originalItem && originalItem.shippingStatus !== item.shippingStatus
+
+      if (isNewItem || statusChanged) {
+        // Add new status log entry
+        item.statusLogs.push({
+          status: item.shippingStatus || 'placed',
+          timestamp: new Date().toISOString(),
+        })
+      }
+    }
     
     // Exclude returned/return_in_progress/not_available items from totals
     const activeItems = items.filter((item) => 

@@ -23,7 +23,6 @@ class PurchasesList extends StatefulWidget {
 
 class _PurchasesListState extends State<PurchasesList> {
   late final PurchasesBloc _purchasesBloc;
-  final ScrollController _scrollController = ScrollController();
   bool _initialLoadDone = false;
 
   @override
@@ -36,21 +35,20 @@ class _PurchasesListState extends State<PurchasesList> {
       _purchasesBloc.add(PurchasesFetchRequested(statusFilter: _purchasesBloc.state.statusFilter));
       _initialLoadDone = true;
     }
-
-    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
     // Don't close bloc - it's a singleton
     super.dispose();
   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      _purchasesBloc.add(const PurchasesLoadMoreRequested());
+  void _onScroll(ScrollNotification notification) {
+    if (notification is ScrollEndNotification) {
+      final metrics = notification.metrics;
+      if (metrics.pixels >= metrics.maxScrollExtent - 200) {
+        _purchasesBloc.add(const PurchasesLoadMoreRequested());
+      }
     }
   }
 
@@ -59,26 +57,32 @@ class _PurchasesListState extends State<PurchasesList> {
     return BlocBuilder<PurchasesBloc, PurchasesState>(
       bloc: _purchasesBloc,
       builder: (context, state) {
-        return CustomScrollView(
-          slivers: [
-            // Inject overlap from NestedScrollView header
-            SliverOverlapInjector(
-              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(widget.parentContext),
-            ),
-
-            // Filter chips - fixed at top of tab content
-            SliverToBoxAdapter(
-              child: StatusFilterChips(
-                selectedFilter: state.statusFilter,
-                onFilterChanged: (filter) {
-                  _purchasesBloc.add(PurchasesFilterChanged(statusFilter: filter));
-                },
+        return NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            _onScroll(notification);
+            return false; // Allow notification to bubble up to NestedScrollView
+          },
+          child: CustomScrollView(
+            slivers: [
+              // Inject overlap from NestedScrollView header
+              SliverOverlapInjector(
+                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(widget.parentContext),
               ),
-            ),
 
-            // Purchases content
-            _buildSliverContent(state),
-          ],
+              // Filter chips - fixed at top of tab content
+              SliverToBoxAdapter(
+                child: StatusFilterChips(
+                  selectedFilter: state.statusFilter,
+                  onFilterChanged: (filter) {
+                    _purchasesBloc.add(PurchasesFilterChanged(statusFilter: filter));
+                  },
+                ),
+              ),
+
+              // Purchases content
+              _buildSliverContent(state),
+            ],
+          ),
         );
       },
     );
