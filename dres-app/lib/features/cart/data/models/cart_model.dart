@@ -29,6 +29,7 @@ class CartModel {
   final double grandTotal;
   final double discountAmount;
   final double pointsDiscount;
+  final DiscountCodeInfo? discountCode;
 
   CartModel({
     required this.id,
@@ -39,6 +40,7 @@ class CartModel {
     required this.grandTotal,
     required this.discountAmount,
     required this.pointsDiscount,
+    this.discountCode,
   });
 
   factory CartModel.fromJson(Map<String, dynamic> json) {
@@ -54,6 +56,33 @@ class CartModel {
       grandTotal: (json['grandTotal'] ?? 0).toDouble(),
       discountAmount: (json['discountAmount'] ?? 0).toDouble(),
       pointsDiscount: (json['pointsDiscount'] ?? 0).toDouble(),
+      discountCode: json['discountCode'] != null && json['discountCode'] is Map
+          ? DiscountCodeInfo.fromJson(json['discountCode'])
+          : null,
+    );
+  }
+}
+
+/// Discount code info from cart
+class DiscountCodeInfo {
+  final String id;
+  final String code;
+  final String type;
+  final double value;
+
+  DiscountCodeInfo({
+    required this.id,
+    required this.code,
+    required this.type,
+    required this.value,
+  });
+
+  factory DiscountCodeInfo.fromJson(Map<String, dynamic> json) {
+    return DiscountCodeInfo(
+      id: json['id']?.toString() ?? '',
+      code: json['code'] ?? '',
+      type: json['type'] ?? 'fixed',
+      value: (json['value'] ?? 0).toDouble(),
     );
   }
 }

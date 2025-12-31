@@ -44,3 +44,18 @@ class CartUpdateShippingRequested extends CartEvent {
   @override
   List<Object?> get props => [cityId];
 }
+
+/// Apply promo code to cart
+class CartApplyPromoRequested extends CartEvent {
+  final String code;
+
+  const CartApplyPromoRequested({required this.code});
+
+  @override
+  List<Object?> get props => [code];
+}
+
+/// Remove promo code from cart
+class CartRemovePromoRequested extends CartEvent {
+  const CartRemovePromoRequested();
+}

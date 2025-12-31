@@ -35,13 +35,19 @@ class CartState extends Equatable {
   final CartModel? cart;
   final String? errorMessage;
   final CartValidation validation;
+  final String? promoMessage; // Success message when promo is applied
+  final String? promoError; // Error message when promo fails
+  final String? _manualPromoCode; // Promo code set manually (from apply response)
 
   const CartState({
     this.status = CartStatus.initial,
     this.cart,
     this.errorMessage,
     this.validation = const CartValidation(),
-  });
+    this.promoMessage,
+    this.promoError,
+    String? appliedPromoCode,
+  }) : _manualPromoCode = appliedPromoCode;
 
   /// Get total item count in cart
   int get itemCount => cart?.itemCount ?? 0;
@@ -70,21 +76,38 @@ class CartState extends Equatable {
   /// Get grand total
   double get grandTotal => cart?.grandTotal ?? 0;
 
+  /// Get discount amount
+  double get discountAmount => cart?.discountAmount ?? 0;
+
+  /// Get applied promo code (from manual set or from cart's discountCode)
+  String? get appliedPromoCode => _manualPromoCode ?? cart?.discountCode?.code;
+
+  /// Check if promo is applied
+  bool get hasPromoApplied => discountAmount > 0 && appliedPromoCode != null;
+
   CartState copyWith({
     CartStatus? status,
     CartModel? cart,
     String? errorMessage,
     CartValidation? validation,
+    String? promoMessage,
+    String? promoError,
+    String? appliedPromoCode,
     bool clearCart = false,
+    bool clearPromoMessage = false,
+    bool clearPromoError = false,
   }) {
     return CartState(
       status: status ?? this.status,
       cart: clearCart ? null : (cart ?? this.cart),
       errorMessage: errorMessage,
       validation: validation ?? this.validation,
+      promoMessage: clearPromoMessage ? null : (promoMessage ?? this.promoMessage),
+      promoError: clearPromoError ? null : (promoError ?? this.promoError),
+      appliedPromoCode: appliedPromoCode ?? _manualPromoCode,
     );
   }
 
   @override
-  List<Object?> get props => [status, cart, errorMessage, validation];
+  List<Object?> get props => [status, cart, errorMessage, validation, promoMessage, promoError, _manualPromoCode];
 }

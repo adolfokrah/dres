@@ -16,6 +16,7 @@ import 'package:dres/features/cart/presentation/widgets/shipping_section.dart';
 import 'package:dres/features/cart/presentation/widgets/seller_checkout_card.dart';
 import 'package:dres/features/cart/presentation/widgets/promo_code_section.dart';
 import 'package:dres/features/cart/presentation/widgets/order_summary_section.dart';
+import 'package:dres/features/cart/presentation/widgets/checkout_bottom_bar.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -26,8 +27,6 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final TextEditingController _promoController = TextEditingController();
-  String? _appliedPromoCode;
-  double _discountAmount = 0.0;
   String? _lastShippingCityId; // Track last city we calculated shipping for
 
   @override
@@ -49,26 +48,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _applyPromoCode() {
-    final code = _promoController.text.trim().toLowerCase();
-    if (code == 'welcome') {
-      setState(() {
-        _appliedPromoCode = code;
-        _discountAmount = 90.0; // Example discount
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Promo code applied successfully!'),
-          backgroundColor: AppColors.success,
-        ),
-      );
-    } else if (code.isNotEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid promo code'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
+    final code = _promoController.text.trim();
+    if (code.isEmpty) return;
+    
+    // Use CartBloc to apply promo code
+    getIt<CartBloc>().add(CartApplyPromoRequested(code: code));
   }
 
   void _placeOrder() {
@@ -133,6 +117,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 getIt<CartBloc>().add(CartUpdateShippingRequested(cityId: selectedAddress.cityId!));
               }
             },
+            child: BlocListener<CartBloc, CartState>(
+            listenWhen: (previous, current) {
+              // Only listen when promo message or error changes
+              return previous.promoMessage != current.promoMessage ||
+                     previous.promoError != current.promoError;
+            },
+            listener: (context, cartState) {
+              // Show promo success message (only once)
+              if (cartState.promoMessage != null) {
+                ScaffoldMessenger.of(context).clearSnackBars();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(cartState.promoMessage!),
+                    backgroundColor: AppColors.success,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              }
+              // Show promo error message (only once)
+              if (cartState.promoError != null) {
+                ScaffoldMessenger.of(context).clearSnackBars();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(cartState.promoError!),
+                    backgroundColor: AppColors.error,
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              }
+            },
             child: BlocBuilder<CartBloc, CartState>(
             builder: (context, cartState) {
               if (cartState.status == CartStatus.loading && cartState.cart == null) {
@@ -164,10 +178,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 0.0,
                 (sum, group) => sum + group.totalBuyerProtection,
               );
-              final subtotal = itemsTotal +
+              // Use discount from cart state (from backend)
+              final discountAmount = cartState.discountAmount;
+              final grandTotal = itemsTotal +
                   totalShipping +
                   totalBuyerProtection -
-                  _discountAmount;
+                  discountAmount;
 
               return BlocBuilder<AddressBloc, AddressState>(
                 builder: (context, addressState) {
@@ -214,7 +230,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     ? 'Loading...' 
                                     : (selectedAddress?.fullName ?? 'Select address'),
                                 address: isLoadingAddress 
-                                    ? 'Fetching addresses...' 
+                                    ? 'Fetching addresses...'
                                     : (selectedAddress?.locationDisplay ?? 'Tap to add shipping address'),
                                 phone: isLoadingAddress ? null : selectedAddress?.phone,
                                 onTap: isLoadingAddress ? null : () async {
@@ -247,29 +263,40 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               PromoCodeSection(
                                 controller: _promoController,
                                 onApply: _applyPromoCode,
-                                appliedCode: _appliedPromoCode,
+                                appliedCode: cartState.appliedPromoCode,
+                                discountAmount: discountAmount,
+                                isLoading: cartState.status == CartStatus.loading,
                               ),
 
-                              // Order summary
+                              // Order summary breakdown
                               OrderSummarySection(
                                 itemCount: cartState.itemCount,
                                 itemsTotal: itemsTotal,
-                                discount: _discountAmount,
+                                discount: discountAmount,
                                 shipping: totalShipping,
                                 buyerProtection: totalBuyerProtection,
-                                subtotal: subtotal,
-                                onPlaceOrder: _placeOrder,
-                                canPlaceOrder: selectedAddress != null && hasValidItems,
+                                items: cartState.items,
                               ),
+                              
+                              // Bottom spacing for the sticky bar
+                              const SizedBox(height: 20),
                             ],
                           ),
                         ),
+                      ),
+                      
+                      // Sticky bottom bar with grand total and place order button
+                      CheckoutBottomBar(
+                        grandTotal: grandTotal,
+                        onPlaceOrder: _placeOrder,
+                        canPlaceOrder: selectedAddress != null && hasValidItems,
                       ),
                     ],
                   );
                 },
               );
             },
+            ),
           ),
           ),
         ),
