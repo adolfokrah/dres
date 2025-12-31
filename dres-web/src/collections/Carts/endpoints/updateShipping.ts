@@ -224,7 +224,7 @@ export const updateShipping: PayloadHandler = async (req) => {
     // Build validation (reusing items data - validation based on original fetch)
     const validationIssues: string[] = []
     let hasUnavailableItems = false
-    let hasExceedsStock = false
+    let hasExceedsStock = false // eslint-disable-line prefer-const
 
     for (const item of items) {
       const variation = item.variation
