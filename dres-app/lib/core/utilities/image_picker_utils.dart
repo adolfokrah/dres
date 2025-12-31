@@ -8,6 +8,31 @@ import 'package:dres/core/theme/app_colors.dart';
 class ImagePickerUtils {
   ImagePickerUtils._();
 
+  /// Get theme for the picker - using dark theme for better visibility
+  static ThemeData get _pickerTheme => ThemeData.dark().copyWith(
+        primaryColor: AppColors.textPrimary,
+        colorScheme: ColorScheme.dark(
+          primary: AppColors.textPrimary,
+          secondary: AppColors.textPrimary,
+          surface: Colors.grey[900]!,
+          onPrimary: Colors.white,
+          onSecondary: Colors.white,
+          onSurface: Colors.white,
+        ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.grey[900],
+          foregroundColor: Colors.white,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.white,
+          ),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+      );
+
   /// Pick a single image from gallery or camera
   /// Returns the selected File or null if cancelled
   static Future<File?> pickSingleImage(BuildContext context) async {
@@ -16,7 +41,7 @@ class ImagePickerUtils {
       pickerConfig: AssetPickerConfig(
         maxAssets: 1,
         requestType: RequestType.image,
-        themeColor: AppColors.textPrimary,
+        pickerTheme: _pickerTheme,
         textDelegate: const EnglishAssetPickerTextDelegate(),
         specialItems: [
           SpecialItem(
@@ -28,7 +53,7 @@ class ImagePickerUtils {
                     context,
                     pickerConfig: CameraPickerConfig(
                       textDelegate: const EnglishCameraPickerTextDelegate(),
-                      theme: CameraPicker.themeData(AppColors.textPrimary),
+                      theme: _pickerTheme,
                     ),
                   );
                   if (result != null && context.mounted) {
@@ -36,7 +61,7 @@ class ImagePickerUtils {
                   }
                 },
                 child: Container(
-                  color: Colors.grey[900],
+                  color: Colors.grey[850],
                   child: const Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -75,7 +100,7 @@ class ImagePickerUtils {
         maxAssets: maxAssets,
         selectedAssets: selectedAssets,
         requestType: RequestType.image,
-        themeColor: AppColors.textPrimary,
+        pickerTheme: _pickerTheme,
         textDelegate: const EnglishAssetPickerTextDelegate(),
         specialItems: [
           SpecialItem(
@@ -87,7 +112,7 @@ class ImagePickerUtils {
                     context,
                     pickerConfig: CameraPickerConfig(
                       textDelegate: const EnglishCameraPickerTextDelegate(),
-                      theme: CameraPicker.themeData(AppColors.textPrimary),
+                      theme: _pickerTheme,
                     ),
                   );
                   if (result != null && context.mounted) {
@@ -95,7 +120,7 @@ class ImagePickerUtils {
                   }
                 },
                 child: Container(
-                  color: Colors.grey[900],
+                  color: Colors.grey[850],
                   child: const Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -135,7 +160,7 @@ class ImagePickerUtils {
       pickerConfig: AssetPickerConfig(
         maxAssets: 1,
         requestType: RequestType.common, // Images and videos
-        themeColor: AppColors.textPrimary,
+        pickerTheme: _pickerTheme,
         textDelegate: const EnglishAssetPickerTextDelegate(),
       ),
     );
@@ -152,7 +177,7 @@ class ImagePickerUtils {
       context,
       pickerConfig: CameraPickerConfig(
         textDelegate: const EnglishCameraPickerTextDelegate(),
-        theme: CameraPicker.themeData(AppColors.textPrimary),
+        theme: _pickerTheme,
       ),
     );
 

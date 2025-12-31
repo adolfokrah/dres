@@ -280,7 +280,7 @@ class _ReturnItemScreenState extends State<ReturnItemScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'You have 24 hours to package and ship the products. Failure to ship within 24 hours will result in the item being marked as delivered and refund will not be made.',
+                    'You have 6 hours to package and ship the products. Failure to ship within 6 hours will result in the item being marked as delivered and refund will not be made.',
                     style: AppTypography.bodyM.copyWith(
                       color: AppColors.textPrimary,
                     ),

@@ -62,10 +62,13 @@ export const returnItem: PayloadHandler = async (req) => {
     // Find the item in the order
     const items = order.items as Array<{
       id: string
+      seller: string | { id: string }
       shippingStatus: string
       statusLogs?: Array<{ status: string; timestamp: string }>
       returnReason?: string
       returnImage?: string
+      productTitle?: string
+      variationImage?: string
     }>
 
     const itemIndex = items.findIndex((item) => item.id === itemId)
@@ -110,6 +113,30 @@ export const returnItem: PayloadHandler = async (req) => {
         items: items as unknown as typeof order.items,
       },
     })
+
+    // Notify seller about the return request
+    const sellerId = typeof item.seller === 'object' ? item.seller.id : item.seller
+    if (sellerId) {
+      const reasonLabels: Record<string, string> = {
+        wrong_item: 'Wrong item sent',
+        fake_item: 'Fake / Not Authentic',
+        damaged: 'Item arrived damaged',
+        not_as_described: 'Item not as described',
+      }
+      
+      await payload.create({
+        collection: 'notifications',
+        data: {
+          user: sellerId,
+          message: `Return requested for order #${order.orderId}. Reason: ${reasonLabels[reason] || reason}`,
+          path: `/sold/${orderId}`,
+          image: item.variationImage || undefined,
+          read: false,
+        },
+      })
+      
+      payload.logger.info(`📬 Return notification sent to seller ${sellerId} for order ${order.orderId}`)
+    }
 
     // Log the return request
     payload.logger.info(`Return requested for order ${orderId}, item ${itemId}, reason: ${reason}`)

@@ -132,18 +132,22 @@ export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = async (
 
     if (itemStatuses.length > 0) {
       const allPlaced = itemStatuses.every((status) => status === 'placed')
-      const allCancelled = itemStatuses.every(
-        (status) => status === 'returned' || status === 'not_available' || status === 'cancelled',
+      const allReturned = itemStatuses.every(
+        (status) => status === 'returned',
+      )
+      const allNotAvailable = itemStatuses.every(
+        (status) => status === 'not_available',
       )
       const allFinished = itemStatuses.every(
-        (status) => status === 'delivered' || status === 'returned' || status === 'not_available' || status === 'cancelled',
+        (status) => status === 'delivered' || status === 'returned' || status === 'not_available',
       )
       const hasOutForDelivery = itemStatuses.some((status) => status === 'out_for_delivery')
       const hasReturnInProgress = itemStatuses.some((status) => status === 'return_in_progress')
 
       console.log('📦 Status checks:', {
         allPlaced,
-        allCancelled,
+        allReturned,
+        allNotAvailable,
         allFinished,
         hasOutForDelivery,
         hasReturnInProgress,
@@ -152,11 +156,12 @@ export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = async (
       if (allPlaced) {
         // All items are still placed - order is placed
         data.status = 'placed'
-      } else if (allCancelled) {
-        // All items returned or not available - order is cancelled (full refund)
+      } else if (allNotAvailable) {
+        // All items not available - order is cancelled (items were never shipped)
         data.status = 'cancelled'
       } else if (allFinished) {
         // All items are either delivered, returned, or not available - order is completed
+        // This includes when all items are returned (refund processed, order complete)
         data.status = 'completed'
       } else if (hasOutForDelivery || hasReturnInProgress) {
         // Some items are in transit - order is in progress
