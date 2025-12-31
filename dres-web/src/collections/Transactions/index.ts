@@ -1,6 +1,8 @@
 import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
+import { paystackWebhook } from './endpoints/paystackWebhook'
+import { checkTransactionStatus } from './endpoints/checkStatus'
 
 // Generate unique transaction ID: TXN-YYYYMMDD-XXXXXX-XXXX
 const generateTransactionId = (): string => {
@@ -19,6 +21,18 @@ export const Transactions: CollectionConfig = {
     defaultColumns: ['transactionId', 'user', 'order', 'amount', 'status', 'createdAt'],
     description: 'Payment transactions',
   },
+  endpoints: [
+    {
+      path: '/webhooks/paystack',
+      method: 'post',
+      handler: paystackWebhook,
+    },
+    {
+      path: '/check-status',
+      method: 'get',
+      handler: checkTransactionStatus,
+    },
+  ],
   access: {
     // Admins can read all, users can read their own transactions
     read: ({ req: { user } }) => {

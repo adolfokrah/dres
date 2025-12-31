@@ -1,24 +1,27 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:dres/core/di/injection.dart';
+import 'package:dres/features/orders/data/repositories/orders_repository.dart';
 
 /// Result from payment webview
 enum PaymentResult {
-  success,
-  cancelled,
-  failed,
+  success, // Payment completed successfully
+  failed, // Payment failed
+  closed, // User closed the WebView manually (will verify)
 }
 
 /// In-app browser screen for Paystack payment
 class PaymentWebViewScreen extends StatefulWidget {
   final String paymentUrl;
-  final String? callbackUrl;
   final String? orderId;
+  final String? transactionId;
 
   const PaymentWebViewScreen({
     super.key,
     required this.paymentUrl,
-    this.callbackUrl,
     this.orderId,
+    this.transactionId,
   });
 
   @override
@@ -28,11 +31,53 @@ class PaymentWebViewScreen extends StatefulWidget {
 class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
   late final WebViewController _controller;
   bool _isLoading = true;
+  bool _hasHandledResult = false;
+  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
     _initWebView();
+    // Start polling for transaction status
+    if (widget.transactionId != null) {
+      _startPolling();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Poll to check transaction status from database
+  void _startPolling() {
+    _pollTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      if (_hasHandledResult) {
+        timer.cancel();
+        return;
+      }
+
+      try {
+        final response = await getIt<OrdersRepository>().checkTransactionStatus(
+          reference: widget.transactionId!,
+        );
+
+        debugPrint('🔄 Poll: status=${response.status}, success=${response.success}');
+
+        if (!_hasHandledResult) {
+          if (response.isPaymentSuccessful) {
+            _closeWithResult(PaymentResult.success);
+          } else if (response.isPaymentFailed) {
+            _closeWithResult(PaymentResult.failed);
+          }
+          // Keep polling if pending
+        }
+      } catch (e) {
+        debugPrint('🔄 Poll error: $e');
+        // Continue polling on error
+      }
+    });
   }
 
   void _initWebView() {
@@ -42,94 +87,56 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
+            debugPrint('🌐 WebView navigating to: $url');
             setState(() {
               _isLoading = true;
             });
-            _checkPaymentStatus(url);
           },
           onPageFinished: (String url) {
+            debugPrint('🌐 WebView finished loading: $url');
             setState(() {
               _isLoading = false;
             });
           },
-          onNavigationRequest: (NavigationRequest request) {
-            // Check if this is a callback/redirect URL indicating payment completion
-            if (_isPaymentCallback(request.url)) {
-              _handlePaymentCallback(request.url);
-              return NavigationDecision.prevent;
-            }
-            return NavigationDecision.navigate;
-          },
           onWebResourceError: (WebResourceError error) {
-            debugPrint('WebView error: ${error.description}');
+            debugPrint('🌐 WebView error: ${error.description}');
           },
         ),
       )
       ..loadRequest(Uri.parse(widget.paymentUrl));
   }
 
-  bool _isPaymentCallback(String url) {
-    // Check for common Paystack callback patterns
-    final uri = Uri.tryParse(url);
-    if (uri == null) return false;
-
-    // Check if URL contains payment reference or trxref
-    final hasReference = uri.queryParameters.containsKey('reference') ||
-        uri.queryParameters.containsKey('trxref');
-
-    // Check if it's a callback URL (your app's domain or localhost)
-    final isCallback = url.contains('callback') ||
-        url.contains('verify') ||
-        url.contains('payment-complete') ||
-        (widget.callbackUrl != null && url.startsWith(widget.callbackUrl!));
-
-    return hasReference || isCallback;
-  }
-
-  void _checkPaymentStatus(String url) {
-    // Check URL for payment status indicators
-    final uri = Uri.tryParse(url);
-    if (uri == null) return;
-
-    // Paystack typically redirects with reference parameter on success
-    if (uri.queryParameters.containsKey('reference') ||
-        uri.queryParameters.containsKey('trxref')) {
-      _handlePaymentCallback(url);
+  void _closeWithResult(PaymentResult result) {
+    if (_hasHandledResult) return;
+    _hasHandledResult = true;
+    _pollTimer?.cancel();
+    debugPrint('🌐 Closing with result: $result');
+    if (mounted) {
+      Navigator.of(context).pop(result);
     }
   }
 
-  void _handlePaymentCallback(String url) {
-    final uri = Uri.tryParse(url);
-    if (uri == null) return;
-
-    final reference = uri.queryParameters['reference'] ??
-        uri.queryParameters['trxref'];
-
-    debugPrint('Payment callback received. Reference: $reference');
-
-    // Close webview and return success with reference
-    Navigator.of(context).pop(PaymentResult.success);
-  }
-
   void _onClose() {
+    if (_hasHandledResult) return;
+    
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel Payment?'),
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Close Payment?'),
         content: const Text(
-          'Are you sure you want to cancel this payment? Your order will remain pending.',
+          'Are you sure you want to close? We\'ll check your payment status.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Continue Payment'),
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Continue Paying'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(PaymentResult.cancelled); // Close webview
+              Navigator.of(dialogContext).pop(); // Close dialog
+              _closeWithResult(PaymentResult.closed);
             },
-            child: const Text('Cancel'),
+            child: const Text('Close'),
           ),
         ],
       ),
@@ -184,15 +191,15 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
 Future<PaymentResult?> openPaymentWebView(
   BuildContext context, {
   required String paymentUrl,
-  String? callbackUrl,
   String? orderId,
+  String? transactionId,
 }) async {
   return Navigator.of(context).push<PaymentResult>(
     MaterialPageRoute(
       builder: (context) => PaymentWebViewScreen(
         paymentUrl: paymentUrl,
-        callbackUrl: callbackUrl,
         orderId: orderId,
+        transactionId: transactionId,
       ),
     ),
   );

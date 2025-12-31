@@ -8,6 +8,7 @@ import { calculateTotalCommission } from './hooks/calculateTotalCommission'
 import { updateSalesStats } from './hooks/updateSalesStats'
 import { reduceStockOnOrder } from './hooks/reduceStockOnOrder'
 import { restoreStockOnReturn } from './hooks/restoreStockOnReturn'
+import { restoreStockOnCancel } from './hooks/restoreStockOnCancel'
 import { awardPointsOnDelivery } from './hooks/awardPointsOnDelivery'
 
 export const Orders: CollectionConfig = {
@@ -49,8 +50,8 @@ export const Orders: CollectionConfig = {
   },
   hooks: {
     beforeChange: [calculateOrderTotalsAndStatus],
-    // Reduce stock on order creation, restore stock on return, create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats, award points, then calculate commission
-    afterChange: [reduceStockOnOrder, restoreStockOnReturn, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats, awardPointsOnDelivery, calculateTotalCommission],
+    // Reduce stock on order creation, restore stock on return/cancel, create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats, award points, then calculate commission
+    afterChange: [reduceStockOnOrder, restoreStockOnReturn, restoreStockOnCancel, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats, awardPointsOnDelivery, calculateTotalCommission],
   },
   fields: [
     {
@@ -288,6 +289,7 @@ export const Orders: CollectionConfig = {
                     { label: 'Return in Progress', value: 'return_in_progress' },
                     { label: 'Returned', value: 'returned' },
                     { label: 'Not Available', value: 'not_available' },
+                    { label: 'Cancelled', value: 'cancelled' },
                   ],
                   admin: {
                     description: 'Shipping status for this item',

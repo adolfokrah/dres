@@ -21,6 +21,7 @@ import 'package:dres/features/cart/data/repositories/address_repository.dart';
 import 'package:dres/features/cart/data/repositories/promo_repository.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
 import 'package:dres/features/cart/logic/address_bloc/address_bloc.dart';
+import 'package:dres/features/orders/data/repositories/orders_repository.dart';
 
 final getIt = GetIt.instance;
 
@@ -83,6 +84,11 @@ Future<void> setupDependencies() async {
 
   // Promo Repository
   getIt.registerLazySingleton<PromoRepository>(() => PromoRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Orders Repository
+  getIt.registerLazySingleton<OrdersRepository>(() => OrdersRepository(
     apiService: getIt<ApiService>(),
   ));
 

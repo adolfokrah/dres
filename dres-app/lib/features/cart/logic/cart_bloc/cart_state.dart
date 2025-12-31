@@ -5,6 +5,8 @@ enum CartStatus { initial, loading, loaded, error }
 
 enum PlaceOrderStatus { initial, loading, success, error }
 
+enum PromoStatus { initial, loading, success, error }
+
 /// Validation result from backend
 class CartValidation extends Equatable {
   final bool valid;
@@ -37,6 +39,7 @@ class CartState extends Equatable {
   final CartModel? cart;
   final String? errorMessage;
   final CartValidation validation;
+  final PromoStatus promoStatus; // Separate status for promo operations
   final String? promoMessage; // Success message when promo is applied
   final String? promoError; // Error message when promo fails
   final String? _manualPromoCode; // Promo code set manually (from apply response)
@@ -51,6 +54,7 @@ class CartState extends Equatable {
     this.cart,
     this.errorMessage,
     this.validation = const CartValidation(),
+    this.promoStatus = PromoStatus.initial,
     this.promoMessage,
     this.promoError,
     String? appliedPromoCode,
@@ -103,6 +107,7 @@ class CartState extends Equatable {
     CartModel? cart,
     String? errorMessage,
     CartValidation? validation,
+    PromoStatus? promoStatus,
     String? promoMessage,
     String? promoError,
     String? appliedPromoCode,
@@ -119,6 +124,7 @@ class CartState extends Equatable {
       cart: clearCart ? null : (cart ?? this.cart),
       errorMessage: errorMessage,
       validation: validation ?? this.validation,
+      promoStatus: promoStatus ?? this.promoStatus,
       promoMessage: clearPromoMessage ? null : (promoMessage ?? this.promoMessage),
       promoError: clearPromoError ? null : (promoError ?? this.promoError),
       appliedPromoCode: appliedPromoCode ?? _manualPromoCode,
@@ -129,5 +135,5 @@ class CartState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, cart, errorMessage, validation, promoMessage, promoError, _manualPromoCode, placeOrderStatus, placeOrderResponse, placeOrderError];
+  List<Object?> get props => [status, cart, errorMessage, validation, promoStatus, promoMessage, promoError, _manualPromoCode, placeOrderStatus, placeOrderResponse, placeOrderError];
 }

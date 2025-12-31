@@ -146,7 +146,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     CartApplyPromoRequested event,
     Emitter<CartState> emit,
   ) async {
-    emit(state.copyWith(status: CartStatus.loading));
+    emit(state.copyWith(promoStatus: PromoStatus.loading));
 
     try {
       debugPrint('🛒 CartBloc: Applying promo code ${event.code}...');
@@ -155,7 +155,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       if (response.success && response.cart != null) {
         debugPrint('🛒 CartBloc: Promo applied - Discount: ${response.discount?.discountAmount}');
         emit(state.copyWith(
-          status: CartStatus.loaded,
+          promoStatus: PromoStatus.success,
           cart: response.cart,
           promoMessage: response.message,
           appliedPromoCode: response.discount?.code ?? event.code,
@@ -164,7 +164,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       } else {
         debugPrint('🛒 CartBloc: Failed to apply promo: ${response.error ?? response.message}');
         emit(state.copyWith(
-          status: CartStatus.loaded,
+          promoStatus: PromoStatus.error,
           promoError: response.error ?? response.message,
           clearPromoMessage: true,
         ));
@@ -180,7 +180,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
         }
       }
       emit(state.copyWith(
-        status: CartStatus.loaded,
+        promoStatus: PromoStatus.error,
         promoError: errorMessage,
         clearPromoMessage: true,
       ));

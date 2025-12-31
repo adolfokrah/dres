@@ -18,6 +18,7 @@ import 'package:dres/features/cart/presentation/widgets/seller_checkout_card.dar
 import 'package:dres/features/cart/presentation/widgets/promo_code_section.dart';
 import 'package:dres/features/cart/presentation/widgets/order_summary_section.dart';
 import 'package:dres/features/cart/presentation/widgets/checkout_bottom_bar.dart';
+import 'package:dres/features/orders/data/repositories/orders_repository.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -81,39 +82,47 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     if (state.placeOrderStatus == PlaceOrderStatus.success) {
       final paymentUrl = state.paymentUrl;
       final orderId = state.placeOrderResponse?.order?.orderId;
+      final orderDocId = state.placeOrderResponse?.order?.id;
+      final transactionId = state.placeOrderResponse?.payment?.transactionId;
       
-      if (paymentUrl != null) {
-        // Open payment webview
+      if (paymentUrl != null && transactionId != null) {
+        // Open payment webview with long polling
         final result = await openPaymentWebView(
           context,
           paymentUrl: paymentUrl,
           orderId: orderId,
+          transactionId: transactionId,
         );
         
+        if (!mounted) return;
+        
+        // Handle result from WebView
         if (result == PaymentResult.success) {
-          // Payment completed - clear cart and navigate
+          // Payment successful - clear cart and navigate to order
           getIt<CartBloc>().add(const CartCleared());
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Payment successful! Your order has been placed.'),
-                backgroundColor: AppColors.success,
-              ),
-            );
-            // Navigate to orders or home
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Payment successful! Your order has been placed.'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+          if (orderDocId != null) {
+            context.go('/orders/$orderDocId');
+          } else {
             context.go('/orders');
           }
-        } else if (result == PaymentResult.cancelled) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Payment cancelled. Your order is still pending.'),
-                backgroundColor: AppColors.warning,
-              ),
-            );
-            // Go back to cart - user can try again or view pending order
-            context.go('/cart');
-          }
+        } else if (result == PaymentResult.failed) {
+          // Payment failed
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Payment failed. Please try again.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          context.go('/cart');
+        } else {
+          // User closed manually - verify status
+          await _verifyPaymentAndNavigate(transactionId, orderDocId);
         }
       }
     } else if (state.placeOrderStatus == PlaceOrderStatus.error) {
@@ -123,6 +132,88 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           backgroundColor: AppColors.error,
         ),
       );
+    }
+  }
+
+  Future<void> _verifyPaymentAndNavigate(String transactionId, String? orderId) async {
+    if (!mounted) return;
+    
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+    
+    try {
+      final response = await getIt<OrdersRepository>().checkTransactionStatus(
+        reference: transactionId,
+      );
+      
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Close loading dialog
+      
+      if (response.isPaymentSuccessful) {
+        // Payment successful - clear cart and navigate to order
+        getIt<CartBloc>().add(const CartCleared());
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment successful! Your order has been placed.'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+        // Navigate to order details
+        final orderIdToNavigate = response.order?.id ?? orderId;
+        if (orderIdToNavigate != null) {
+          context.go('/orders/$orderIdToNavigate');
+        } else {
+          context.go('/orders');
+        }
+      } else if (response.isPaymentFailed) {
+        // Payment failed
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response.message.isNotEmpty 
+                ? response.message 
+                : 'Payment failed. Please try again.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+        context.go('/cart');
+      } else if (response.isPaymentPending) {
+        // Still processing
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Payment is still processing. Please check your orders.'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+        context.go('/orders');
+      } else {
+        // Unknown status - check orders
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please check your orders for payment status.'),
+            backgroundColor: AppColors.warning,
+          ),
+        );
+        context.go('/orders');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Close loading dialog
+      
+      debugPrint('Error verifying payment: $e');
+      // On error, still navigate to orders so user can check
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not verify payment. Please check your orders.'),
+          backgroundColor: AppColors.warning,
+        ),
+      );
+      context.go('/orders');
     }
   }
 
@@ -346,7 +437,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 onApply: _applyPromoCode,
                                 appliedCode: cartState.appliedPromoCode,
                                 discountAmount: discountAmount,
-                                isLoading: cartState.status == CartStatus.loading,
+                                isLoading: cartState.promoStatus == PromoStatus.loading,
                               ),
 
                               // Order summary breakdown
@@ -370,7 +461,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       CheckoutBottomBar(
                         grandTotal: grandTotal,
                         onPlaceOrder: _placeOrder,
-                        canPlaceOrder: selectedAddress != null && hasValidItems,
+                        canPlaceOrder: selectedAddress != null && hasValidItems && cartState.status != CartStatus.loading,
                         isLoading: cartState.placeOrderStatus == PlaceOrderStatus.loading,
                       ),
                     ],

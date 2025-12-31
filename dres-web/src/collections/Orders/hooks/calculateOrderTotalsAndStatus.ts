@@ -84,9 +84,10 @@ export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = ({ data
 
     // Auto-update order status based on item statuses (all items)
     // Skip if order is 'new' (awaiting payment) - status will be updated after payment verification
+    // Skip if order is 'cancelled' - don't override manual cancellation
     const currentStatus = data.status
-    if (currentStatus === 'new') {
-      // Don't auto-update status for new orders awaiting payment
+    if (currentStatus === 'new' || currentStatus === 'cancelled') {
+      // Don't auto-update status for new orders awaiting payment or cancelled orders
       return data
     }
 
@@ -95,10 +96,10 @@ export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = ({ data
     if (itemStatuses.length > 0) {
       const allPlaced = itemStatuses.every((status) => status === 'placed')
       const allCancelled = itemStatuses.every(
-        (status) => status === 'returned' || status === 'not_available',
+        (status) => status === 'returned' || status === 'not_available' || status === 'cancelled',
       )
       const allFinished = itemStatuses.every(
-        (status) => status === 'delivered' || status === 'returned' || status === 'not_available',
+        (status) => status === 'delivered' || status === 'returned' || status === 'not_available' || status === 'cancelled',
       )
       const hasOutForDelivery = itemStatuses.some((status) => status === 'out_for_delivery')
       const hasReturnInProgress = itemStatuses.some((status) => status === 'return_in_progress')
