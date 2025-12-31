@@ -34,17 +34,35 @@ interface OrderItem {
   statusLogs: StatusLog[]
 }
 
+interface ShippingAddressContext {
+  fullName: string
+  phone: string
+  address: string
+  city: string
+  cityId?: string
+  region: string
+  regionId?: string
+  country: string
+  countryId?: string
+  postalCode: string
+  deliveryNotes: string
+}
+
 export const createOrderFromCart: CollectionAfterChangeHook = async ({
   doc,
   previousDoc,
   req,
   operation,
+  context,
 }) => {
   // Only trigger when status changes to 'converted'
   if (doc.status !== 'converted') return doc
   if (operation === 'update' && previousDoc?.status === 'converted') return doc
 
   const payload = req.payload
+
+  // Get shipping address from context (passed by placeOrder endpoint)
+  const shippingAddress = context?.shippingAddress as ShippingAddressContext | undefined
 
   try {
     // Get cart customer details for shipping/billing
@@ -297,9 +315,10 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
       collection: 'orders',
       data: {
         orderId: generateOrderId(),
+        cart: doc.id,
         customer: typeof doc.customer === 'object' ? doc.customer.id : doc.customer,
         sellers: uniqueSellerIds,
-        status: 'placed',
+        status: 'new',
         items: orderItems,
         totalItems,
         subtotal,
@@ -311,14 +330,14 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
         pointsDiscount: doc.pointsDiscount || 0,
         currency: currencyId || undefined,
         shippingDetails: {
-          fullName: `${cartCustomer?.firstName || ''} ${cartCustomer?.lastName || ''}`.trim() || '',
-          phone: '',
-          address: '',
-          city: '',
-          region: '',
-          postalCode: '',
-          country: countryId || undefined,
-          deliveryNotes: '',
+          fullName: shippingAddress?.fullName || `${cartCustomer?.firstName || ''} ${cartCustomer?.lastName || ''}`.trim() || '',
+          phone: shippingAddress?.phone || '',
+          address: shippingAddress?.address || '',
+          city: shippingAddress?.city || '',
+          region: shippingAddress?.region || '',
+          postalCode: shippingAddress?.postalCode || '',
+          country: shippingAddress?.countryId || countryId || undefined,
+          deliveryNotes: shippingAddress?.deliveryNotes || '',
         },
         billingDetails: {
           accountName: `${cartCustomer?.firstName || ''} ${cartCustomer?.lastName || ''}`.trim() || '',

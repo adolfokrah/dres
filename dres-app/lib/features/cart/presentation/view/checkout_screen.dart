@@ -5,6 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_button.dart';
+import 'package:dres/core/widgets/payment_webview_screen.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/features/cart/data/models/seller_group.dart';
 import 'package:dres/features/cart/data/models/shipping_address.dart';
@@ -56,13 +57,73 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _placeOrder() {
-    // TODO: Implement order placement logic
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Processing your order...'),
-        backgroundColor: AppColors.primary,
-      ),
-    );
+    // Get selected address from AddressBloc
+    final addressState = getIt<AddressBloc>().state;
+    final selectedAddress = addressState.selectedAddress;
+    
+    if (selectedAddress?.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a shipping address'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+    
+    // Dispatch place order event
+    getIt<CartBloc>().add(CartPlaceOrderRequested(
+      shippingAddressId: selectedAddress!.id!,
+    ));
+  }
+
+  void _handlePlaceOrderResult(CartState state) async {
+    if (state.placeOrderStatus == PlaceOrderStatus.success) {
+      final paymentUrl = state.paymentUrl;
+      final orderId = state.placeOrderResponse?.order?.orderId;
+      
+      if (paymentUrl != null) {
+        // Open payment webview
+        final result = await openPaymentWebView(
+          context,
+          paymentUrl: paymentUrl,
+          orderId: orderId,
+        );
+        
+        if (result == PaymentResult.success) {
+          // Payment completed - clear cart and navigate
+          getIt<CartBloc>().add(const CartCleared());
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Payment successful! Your order has been placed.'),
+                backgroundColor: AppColors.success,
+              ),
+            );
+            // Navigate to orders or home
+            context.go('/orders');
+          }
+        } else if (result == PaymentResult.cancelled) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Payment cancelled. Your order is still pending.'),
+                backgroundColor: AppColors.warning,
+              ),
+            );
+            // Go back to cart - user can try again or view pending order
+            context.go('/cart');
+          }
+        }
+      }
+    } else if (state.placeOrderStatus == PlaceOrderStatus.error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(state.placeOrderError ?? 'Failed to place order'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
   }
 
   @override
@@ -119,12 +180,32 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             },
             child: BlocListener<CartBloc, CartState>(
             listenWhen: (previous, current) {
-              // Only listen when promo message or error changes
-              return previous.promoMessage != current.promoMessage ||
-                     previous.promoError != current.promoError;
+              // Listen for place order status changes
+              if (previous.placeOrderStatus != current.placeOrderStatus) {
+                return true;
+              }
+              // Only listen for promo changes when NOT placing order AND when message actually changed
+              if (current.placeOrderStatus == PlaceOrderStatus.initial) {
+                final promoMessageChanged = previous.promoMessage != current.promoMessage && current.promoMessage != null;
+                final promoErrorChanged = previous.promoError != current.promoError && current.promoError != null;
+                return promoMessageChanged || promoErrorChanged;
+              }
+              return false;
             },
             listener: (context, cartState) {
-              // Show promo success message (only once)
+              // Handle place order result
+              if (cartState.placeOrderStatus == PlaceOrderStatus.success ||
+                  cartState.placeOrderStatus == PlaceOrderStatus.error) {
+                _handlePlaceOrderResult(cartState);
+                return;
+              }
+              
+              // Don't show promo messages during place order flow (loading state)
+              if (cartState.placeOrderStatus != PlaceOrderStatus.initial) {
+                return;
+              }
+              
+              // Show promo success message
               if (cartState.promoMessage != null) {
                 ScaffoldMessenger.of(context).clearSnackBars();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -135,7 +216,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 );
               }
-              // Show promo error message (only once)
+              // Show promo error message
               if (cartState.promoError != null) {
                 ScaffoldMessenger.of(context).clearSnackBars();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -290,6 +371,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         grandTotal: grandTotal,
                         onPlaceOrder: _placeOrder,
                         canPlaceOrder: selectedAddress != null && hasValidItems,
+                        isLoading: cartState.placeOrderStatus == PlaceOrderStatus.loading,
                       ),
                     ],
                   );

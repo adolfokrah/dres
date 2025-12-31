@@ -83,6 +83,13 @@ export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = ({ data
     data.totalAmount = data.grandTotal // Keep totalAmount in sync
 
     // Auto-update order status based on item statuses (all items)
+    // Skip if order is 'new' (awaiting payment) - status will be updated after payment verification
+    const currentStatus = data.status
+    if (currentStatus === 'new') {
+      // Don't auto-update status for new orders awaiting payment
+      return data
+    }
+
     const itemStatuses = items.map((item: OrderItem) => item.shippingStatus)
 
     if (itemStatuses.length > 0) {

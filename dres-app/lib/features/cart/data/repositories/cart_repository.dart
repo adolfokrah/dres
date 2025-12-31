@@ -1,9 +1,11 @@
 import 'package:dres/core/services/api_service.dart';
 import 'package:dres/features/cart/data/models/cart_model.dart';
 import 'package:dres/features/cart/data/models/cart_response.dart';
+import 'package:dres/features/cart/data/models/place_order_response.dart';
 
 export 'package:dres/features/cart/data/models/cart_model.dart';
 export 'package:dres/features/cart/data/models/cart_response.dart';
+export 'package:dres/features/cart/data/models/place_order_response.dart';
 
 class CartRepository {
   final ApiService _apiService;
@@ -97,5 +99,20 @@ class CartRepository {
       data: {'cityId': cityId},
     );
     return UpdateShippingResponse.fromJson(response.data);
+  }
+
+  /// Place order from cart
+  Future<PlaceOrderResponse> placeOrder({
+    required String cartId,
+    required String shippingAddressId,
+  }) async {
+    final response = await _apiService.post(
+      '/carts/place-order',
+      data: {
+        'cartId': cartId,
+        'shippingAddressId': shippingAddressId,
+      },
+    );
+    return PlaceOrderResponse.fromJson(response.data);
   }
 }

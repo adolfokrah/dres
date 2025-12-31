@@ -22,6 +22,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     on<CartUpdateShippingRequested>(_onUpdateShippingRequested);
     on<CartApplyPromoRequested>(_onApplyPromoRequested);
     on<CartRemovePromoRequested>(_onRemovePromoRequested);
+    on<CartPlaceOrderRequested>(_onPlaceOrderRequested);
   }
 
   /// Helper to convert CartValidationResponse to CartValidation
@@ -216,6 +217,56 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       emit(state.copyWith(
         status: CartStatus.error,
         errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onPlaceOrderRequested(
+    CartPlaceOrderRequested event,
+    Emitter<CartState> emit,
+  ) async {
+    emit(state.copyWith(placeOrderStatus: PlaceOrderStatus.loading));
+
+    try {
+      final cartId = state.cart?.id;
+      if (cartId == null) {
+        emit(state.copyWith(
+          placeOrderStatus: PlaceOrderStatus.error,
+          placeOrderError: 'No cart found',
+        ));
+        return;
+      }
+
+      debugPrint('🛒 CartBloc: Placing order for cart $cartId...');
+      final response = await _cartRepository.placeOrder(
+        cartId: cartId,
+        shippingAddressId: event.shippingAddressId,
+      );
+
+      if (response.success && response.payment != null) {
+        debugPrint('🛒 CartBloc: Order placed! Payment URL: ${response.payment?.authorizationUrl}');
+        emit(state.copyWith(
+          placeOrderStatus: PlaceOrderStatus.success,
+          placeOrderResponse: response,
+          // Don't clear cart yet - wait for payment confirmation
+        ));
+      } else {
+        debugPrint('🛒 CartBloc: Failed to place order: ${response.error ?? response.message}');
+        emit(state.copyWith(
+          placeOrderStatus: PlaceOrderStatus.error,
+          placeOrderError: response.error ?? response.message,
+        ));
+      }
+    } catch (e) {
+      debugPrint('🛒 CartBloc: Error placing order: $e');
+      String errorMessage = 'Failed to place order';
+      if (e is DioException && e.response?.data != null) {
+        final data = e.response!.data;
+        errorMessage = data['error'] ?? data['message'] ?? errorMessage;
+      }
+      emit(state.copyWith(
+        placeOrderStatus: PlaceOrderStatus.error,
+        placeOrderError: errorMessage,
       ));
     }
   }

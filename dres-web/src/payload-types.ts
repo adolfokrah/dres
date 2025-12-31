@@ -1368,9 +1368,17 @@ export interface Order {
    */
   orderId: string;
   /**
-   * Auto-calculated: Placed (all placed), In Progress (items in transit), Completed (all delivered/returned), Cancelled (all returned)
+   * New (awaiting payment), Placed (payment received), In Progress (items in transit), Completed (all delivered/returned), Cancelled (payment failed or all returned)
    */
-  status: 'placed' | 'in_progress' | 'completed' | 'cancelled';
+  status: 'new' | 'placed' | 'in_progress' | 'completed' | 'cancelled';
+  /**
+   * The cart this order was created from
+   */
+  cart?: (string | null) | Cart;
+  /**
+   * The payment transaction for this order
+   */
+  paymentTransaction?: (string | null) | Transaction;
   /**
    * The customer who placed this order
    */

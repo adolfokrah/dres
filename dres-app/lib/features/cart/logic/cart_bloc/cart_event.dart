@@ -59,3 +59,13 @@ class CartApplyPromoRequested extends CartEvent {
 class CartRemovePromoRequested extends CartEvent {
   const CartRemovePromoRequested();
 }
+
+/// Place order from cart
+class CartPlaceOrderRequested extends CartEvent {
+  final String shippingAddressId;
+
+  const CartPlaceOrderRequested({required this.shippingAddressId});
+
+  @override
+  List<Object?> get props => [shippingAddressId];
+}

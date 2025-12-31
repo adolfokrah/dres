@@ -12,6 +12,7 @@ import { updateCartItem } from './endpoints/updateCartItem'
 import { removeCartItem } from './endpoints/removeCartItem'
 import { updateShipping } from './endpoints/updateShipping'
 import { applyPromoCode, removePromoCode } from './endpoints/applyPromoCode'
+import { placeOrder } from './endpoints/placeOrder'
 
 export const Carts: CollectionConfig = {
   slug: 'carts',
@@ -85,6 +86,11 @@ export const Carts: CollectionConfig = {
       path: '/remove-promo',
       method: 'post',
       handler: removePromoCode,
+    },
+    {
+      path: '/place-order',
+      method: 'post',
+      handler: placeOrder,
     },
   ],
   hooks: {

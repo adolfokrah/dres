@@ -71,15 +71,16 @@ export const Orders: CollectionConfig = {
           name: 'status',
           type: 'select',
           required: true,
-          defaultValue: 'placed',
+          defaultValue: 'new',
           options: [
+            { label: 'New (Awaiting Payment)', value: 'new' },
             { label: 'Placed', value: 'placed' },
             { label: 'In Progress', value: 'in_progress' },
             { label: 'Completed', value: 'completed' },
             { label: 'Cancelled', value: 'cancelled' },
           ],
           admin: {
-            description: 'Auto-calculated: Placed (all placed), In Progress (items in transit), Completed (all delivered/returned), Cancelled (all returned)',
+            description: 'New (awaiting payment), Placed (payment received), In Progress (items in transit), Completed (all delivered/returned), Cancelled (payment failed or all returned)',
             width: '50%',
             components: {
               Cell: '@/collections/Orders/OrderStatusCell#OrderStatusCell',
@@ -87,6 +88,24 @@ export const Orders: CollectionConfig = {
           },
         },
       ],
+    },
+    {
+      name: 'cart',
+      type: 'relationship',
+      relationTo: 'carts',
+      admin: {
+        description: 'The cart this order was created from',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'paymentTransaction',
+      type: 'relationship',
+      relationTo: 'transactions',
+      admin: {
+        description: 'The payment transaction for this order',
+        readOnly: true,
+      },
     },
     {
       name: 'customer',

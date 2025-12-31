@@ -3,6 +3,8 @@ import 'package:dres/features/cart/data/repositories/cart_repository.dart';
 
 enum CartStatus { initial, loading, loaded, error }
 
+enum PlaceOrderStatus { initial, loading, success, error }
+
 /// Validation result from backend
 class CartValidation extends Equatable {
   final bool valid;
@@ -38,6 +40,11 @@ class CartState extends Equatable {
   final String? promoMessage; // Success message when promo is applied
   final String? promoError; // Error message when promo fails
   final String? _manualPromoCode; // Promo code set manually (from apply response)
+  
+  // Place order state
+  final PlaceOrderStatus placeOrderStatus;
+  final PlaceOrderResponse? placeOrderResponse;
+  final String? placeOrderError;
 
   const CartState({
     this.status = CartStatus.initial,
@@ -47,6 +54,9 @@ class CartState extends Equatable {
     this.promoMessage,
     this.promoError,
     String? appliedPromoCode,
+    this.placeOrderStatus = PlaceOrderStatus.initial,
+    this.placeOrderResponse,
+    this.placeOrderError,
   }) : _manualPromoCode = appliedPromoCode;
 
   /// Get total item count in cart
@@ -85,6 +95,9 @@ class CartState extends Equatable {
   /// Check if promo is applied
   bool get hasPromoApplied => discountAmount > 0 && appliedPromoCode != null;
 
+  /// Get payment URL for checkout
+  String? get paymentUrl => placeOrderResponse?.payment?.authorizationUrl;
+
   CartState copyWith({
     CartStatus? status,
     CartModel? cart,
@@ -96,6 +109,10 @@ class CartState extends Equatable {
     bool clearCart = false,
     bool clearPromoMessage = false,
     bool clearPromoError = false,
+    PlaceOrderStatus? placeOrderStatus,
+    PlaceOrderResponse? placeOrderResponse,
+    String? placeOrderError,
+    bool clearPlaceOrder = false,
   }) {
     return CartState(
       status: status ?? this.status,
@@ -105,9 +122,12 @@ class CartState extends Equatable {
       promoMessage: clearPromoMessage ? null : (promoMessage ?? this.promoMessage),
       promoError: clearPromoError ? null : (promoError ?? this.promoError),
       appliedPromoCode: appliedPromoCode ?? _manualPromoCode,
+      placeOrderStatus: clearPlaceOrder ? PlaceOrderStatus.initial : (placeOrderStatus ?? this.placeOrderStatus),
+      placeOrderResponse: clearPlaceOrder ? null : (placeOrderResponse ?? this.placeOrderResponse),
+      placeOrderError: clearPlaceOrder ? null : (placeOrderError ?? this.placeOrderError),
     );
   }
 
   @override
-  List<Object?> get props => [status, cart, errorMessage, validation, promoMessage, promoError, _manualPromoCode];
+  List<Object?> get props => [status, cart, errorMessage, validation, promoMessage, promoError, _manualPromoCode, placeOrderStatus, placeOrderResponse, placeOrderError];
 }

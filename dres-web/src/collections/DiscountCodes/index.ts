@@ -210,7 +210,7 @@ export const DiscountCodes: CollectionConfig = {
       type: 'array',
       admin: {
         description: 'Users who have used this code',
-        readOnly: true,
+        readOnly: false,
       },
       fields: [
         {
