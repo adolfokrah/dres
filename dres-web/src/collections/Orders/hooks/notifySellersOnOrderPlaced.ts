@@ -61,16 +61,11 @@ export const notifySellersOnOrderPlaced: CollectionAfterChangeHook = async ({
 
     // Create notification for each seller
     for (const [sellerId, data] of sellerItems) {
-      const itemCount = data.productTitles.length
-      const itemsText = itemCount === 1 
-        ? data.productTitles[0] 
-        : `${itemCount} items`
-
       await payload.create({
         collection: 'notifications',
         data: {
           user: sellerId,
-          message: `New order received! ${itemsText} waiting to be shipped.`,
+          message: `New order received! #${doc.orderId} waiting to be shipped.`,
           path: `/sold/${doc.id}`,
           image: data.image || undefined,
           read: false,
