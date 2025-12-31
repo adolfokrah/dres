@@ -108,6 +108,22 @@ enum PurchaseStatus {
         return 'Cancelled';
     }
   }
+
+  /// Get API value string for the status
+  String get apiValue {
+    switch (this) {
+      case PurchaseStatus.newOrder:
+        return 'new';
+      case PurchaseStatus.placed:
+        return 'placed';
+      case PurchaseStatus.inProgress:
+        return 'in_progress';
+      case PurchaseStatus.completed:
+        return 'completed';
+      case PurchaseStatus.cancelled:
+        return 'cancelled';
+    }
+  }
 }
 
 /// Purchase order model

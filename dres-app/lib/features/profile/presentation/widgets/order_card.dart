@@ -3,23 +3,8 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/media_utils.dart';
+import 'package:dres/core/widgets/status_badge.dart';
 import 'package:dres/features/profile/data/models/purchase_model.dart';
-
-/// Status badge colors
-Color _getStatusColor(PurchaseStatus status) {
-  switch (status) {
-    case PurchaseStatus.completed:
-      return const Color(0xFFACF8BF);
-    case PurchaseStatus.cancelled:
-      return AppColors.gray;
-    case PurchaseStatus.inProgress:
-      return AppColors.info;
-    case PurchaseStatus.placed:
-      return AppColors.info;
-    case PurchaseStatus.newOrder:
-      return AppColors.warning;
-  }
-}
 
 /// Purchase card widget for purchases list
 class PurchaseCard extends StatelessWidget {
@@ -45,15 +30,6 @@ class PurchaseCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-          border: Border(
-            bottom: BorderSide(
-              color: AppColors.secondary,
-              width: 1,
-            ),
-          ),
-        ),
         child: Row(
           children: [
             // Left content
@@ -102,7 +78,11 @@ class PurchaseCard extends StatelessWidget {
                   const SizedBox(height: 6),
 
                   // Status badge
-                  _StatusBadge(status: purchase.status),
+                  StatusBadge(
+                    status: purchase.status.apiValue,
+                    type: StatusBadgeType.order,
+                    displayText: purchase.status.displayName,
+                  ),
                 ],
               ),
             ),
@@ -160,37 +140,12 @@ class _ProductImage extends StatelessWidget {
       width: 43,
       height: 43,
       decoration: BoxDecoration(
-        color: AppColors.secondary,
-        borderRadius: BorderRadius.circular(4),
         image: imageUrl != null
             ? DecorationImage(
                 image: NetworkImage(imageUrl!),
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
               )
             : null,
-      ),
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  final PurchaseStatus status;
-
-  const _StatusBadge({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-      decoration: BoxDecoration(
-        color: _getStatusColor(status),
-        borderRadius: BorderRadius.circular(2),
-      ),
-      child: Text(
-        status.displayName,
-        style: AppTypography.bodyS.copyWith(
-          color: AppColors.textPrimary,
-        ),
       ),
     );
   }

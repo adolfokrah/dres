@@ -24,6 +24,7 @@ class PurchasesState extends Equatable {
     PurchasesStatus? status,
     List<PurchaseModel>? purchases,
     String? statusFilter,
+    bool clearStatusFilter = false,
     int? currentPage,
     bool? hasMore,
     String? error,
@@ -31,7 +32,7 @@ class PurchasesState extends Equatable {
     return PurchasesState(
       status: status ?? this.status,
       purchases: purchases ?? this.purchases,
-      statusFilter: statusFilter,
+      statusFilter: clearStatusFilter ? null : (statusFilter ?? this.statusFilter),
       currentPage: currentPage ?? this.currentPage,
       hasMore: hasMore ?? this.hasMore,
       error: error,

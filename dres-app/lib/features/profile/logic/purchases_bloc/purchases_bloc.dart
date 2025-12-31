@@ -28,9 +28,11 @@ class PurchasesBloc extends Bloc<PurchasesEvent, PurchasesState> {
     PurchasesFetchRequested event,
     Emitter<PurchasesState> emit,
   ) async {
+    // Use clearStatusFilter when explicitly setting to null (All filter)
     emit(state.copyWith(
       status: PurchasesStatus.loading,
       statusFilter: event.statusFilter,
+      clearStatusFilter: event.statusFilter == null,
       currentPage: 1,
     ));
 

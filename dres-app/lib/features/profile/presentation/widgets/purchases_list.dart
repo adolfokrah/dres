@@ -10,7 +10,12 @@ import 'package:dres/features/profile/presentation/widgets/status_filter_chips.d
 
 /// Purchases list tab content
 class PurchasesList extends StatefulWidget {
-  const PurchasesList({super.key});
+  final BuildContext parentContext;
+
+  const PurchasesList({
+    super.key,
+    required this.parentContext,
+  });
 
   @override
   State<PurchasesList> createState() => _PurchasesListState();
@@ -54,95 +59,94 @@ class _PurchasesListState extends State<PurchasesList> {
     return BlocBuilder<PurchasesBloc, PurchasesState>(
       bloc: _purchasesBloc,
       builder: (context, state) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Filter chips
-            StatusFilterChips(
-              selectedFilter: state.statusFilter,
-              onFilterChanged: (filter) {
-                _purchasesBloc.add(PurchasesFilterChanged(statusFilter: filter));
-              },
+        return CustomScrollView(
+          slivers: [
+            // Inject overlap from NestedScrollView header
+            SliverOverlapInjector(
+              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(widget.parentContext),
             ),
 
-            // Purchases list
-            Expanded(
-              child: _buildContent(state),
+            // Filter chips - fixed at top of tab content
+            SliverToBoxAdapter(
+              child: StatusFilterChips(
+                selectedFilter: state.statusFilter,
+                onFilterChanged: (filter) {
+                  _purchasesBloc.add(PurchasesFilterChanged(statusFilter: filter));
+                },
+              ),
             ),
+
+            // Purchases content
+            _buildSliverContent(state),
           ],
         );
       },
     );
   }
 
-  Widget _buildContent(PurchasesState state) {
+  Widget _buildSliverContent(PurchasesState state) {
     if (state.status == PurchasesStatus.loading && state.purchases.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(),
+      return const SliverFillRemaining(
+        child: Center(child: CircularProgressIndicator()),
       );
     }
 
     if (state.status == PurchasesStatus.error && state.purchases.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Failed to load purchases',
-                style: AppTypography.bodyL.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              if (state.error != null) ...[
-                const SizedBox(height: 8),
+      return SliverFillRemaining(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
                 Text(
-                  state.error!,
-                  style: AppTypography.bodyS.copyWith(
-                    color: AppColors.textHint,
+                  'Failed to load purchases',
+                  style: AppTypography.bodyL.copyWith(
+                    color: AppColors.textSecondary,
                   ),
-                  textAlign: TextAlign.center,
+                ),
+                if (state.error != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    state.error!,
+                    style: AppTypography.bodyS.copyWith(
+                      color: AppColors.textHint,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () {
+                    _purchasesBloc.add(PurchasesFetchRequested(
+                      statusFilter: state.statusFilter,
+                    ));
+                  },
+                  child: const Text('Retry'),
                 ),
               ],
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () {
-                  _purchasesBloc.add(PurchasesFetchRequested(
-                    statusFilter: state.statusFilter,
-                  ));
-                },
-                child: const Text('Retry'),
-              ),
-            ],
+            ),
           ),
         ),
       );
     }
 
     if (state.purchases.isEmpty) {
-      return Center(
-        child: Text(
-          'No purchases found',
-          style: AppTypography.bodyL.copyWith(
-            color: AppColors.textSecondary,
+      return SliverFillRemaining(
+        child: Center(
+          child: Text(
+            'No purchases found',
+            style: AppTypography.bodyL.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
         ),
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        _purchasesBloc.add(PurchasesFetchRequested(
-          statusFilter: state.statusFilter,
-        ));
-      },
-      child: ListView.builder(
-        controller: _scrollController,
-        physics: const NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        itemCount: state.purchases.length + (state.hasMore ? 1 : 0),
-        itemBuilder: (context, index) {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
           if (index >= state.purchases.length) {
             return const Padding(
               padding: EdgeInsets.all(20),
@@ -151,13 +155,19 @@ class _PurchasesListState extends State<PurchasesList> {
           }
 
           final purchase = state.purchases[index];
-          return PurchaseCard(
-            purchase: purchase,
-            onTap: () {
-              context.push('/orders/${purchase.id}');
-            },
+          return Column(
+            children: [
+              PurchaseCard(
+                purchase: purchase,
+                onTap: () {
+                  context.push('/orders/${purchase.id}');
+                },
+              ),
+              const Divider(height: 1),
+            ],
           );
         },
+        childCount: state.purchases.length + (state.hasMore ? 1 : 0),
       ),
     );
   }

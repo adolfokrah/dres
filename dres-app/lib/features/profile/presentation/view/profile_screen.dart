@@ -6,6 +6,7 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/services/storage_service.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/widgets/cart_icon_button.dart';
+import 'package:dres/core/widgets/profile_avatar.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/auth/data/models/auth_models.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
@@ -216,32 +217,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Row(
         children: [
           // Profile Image
-          Container(
-            width: 75,
-            height: 75,
-            decoration: BoxDecoration(
-              color: AppColors.secondary,
-              shape: BoxShape.circle,
-              image: photoUrl != null
-                  ? DecorationImage(
-                      image: NetworkImage(photoUrl),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
-            ),
-            child: photoUrl == null
-                ? Center(
-                    child: Text(
-                      user != null && user.fullName.isNotEmpty 
-                          ? user.fullName[0].toUpperCase() 
-                          : '?',
-                      style: AppTypography.titleL.copyWith(
-                        color: AppColors.textSecondary,
-                        fontSize: 28,
-                      ),
-                    ),
-                  )
-                : null,
+          ProfileAvatar(
+            photoUrl: photoUrl,
+            displayName: user?.fullName ?? '',
+            size: 70,
           ),
           const SizedBox(width: 20),
           // Profile Info

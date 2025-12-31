@@ -6,6 +6,7 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/media_utils.dart';
 import 'package:dres/core/di/injection.dart';
+import 'package:dres/core/widgets/profile_avatar.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/product_details/data/repositories/seller_repository.dart';
 import 'package:dres/features/product_details/data/models/seller_model.dart';
@@ -228,9 +229,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return NestedScrollView(
       headerSliverBuilder: (context, innerBoxIsScrolled) {
         return [
-          // Profile header (avatar, name, stats) - scrolls away
-          SliverToBoxAdapter(
-            child: _buildShopHeader(seller, displayName, username),
+          // Wrap header in SliverOverlapAbsorber for proper coordination
+          SliverOverlapAbsorber(
+            handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+            sliver: SliverToBoxAdapter(
+              child: _buildShopHeader(seller, displayName, username),
+            ),
           ),
 
           // Tabs bar - pinned (sticks to top)
@@ -250,7 +254,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ];
       },
-      body: _buildTabContent(),
+      body: Builder(
+        builder: (context) {
+          return _buildTabContent(context);
+        },
+      ),
     );
   }
 
@@ -273,32 +281,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           Row(
             children: [
               // Avatar
-              Container(
-                width: 97,
-                height: 97,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.secondary,
-                  image: photoUrl != null
-                      ? DecorationImage(
-                          image: NetworkImage(photoUrl),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: photoUrl == null
-                    ? Center(
-                        child: Text(
-                          displayName.isNotEmpty
-                              ? displayName[0].toUpperCase()
-                              : '?',
-                          style: AppTypography.titleL.copyWith(
-                            color: AppColors.textSecondary,
-                            fontSize: 32,
-                          ),
-                        ),
-                      )
-                    : null,
+              ProfileAvatar(
+                photoUrl: photoUrl,
+                displayName: displayName,
+                size: 70,
               ),
               const SizedBox(width: 20),
               // Name and username
@@ -349,29 +335,38 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildTabContent() {
+  Widget _buildTabContent(BuildContext context) {
     switch (_selectedTabIndex) {
       case 0:
-        return _buildPlaceholder('Products');
+        return _buildPlaceholder(context, 'Products');
       case 1:
-        return _buildPlaceholder('Incoming orders');
+        return _buildPlaceholder(context, 'Incoming orders');
       case 2:
-        return const PurchasesList();
+        return PurchasesList(parentContext: context);
       case 3:
-        return _buildPlaceholder('Transactions');
+        return _buildPlaceholder(context, 'Transactions');
       default:
         return const SizedBox.shrink();
     }
   }
 
-  Widget _buildPlaceholder(String title) {
-    return Center(
-      child: Text(
-        '$title coming soon',
-        style: AppTypography.bodyL.copyWith(
-          color: AppColors.textSecondary,
+  Widget _buildPlaceholder(BuildContext context, String title) {
+    return CustomScrollView(
+      slivers: [
+        SliverOverlapInjector(
+          handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
         ),
-      ),
+        SliverFillRemaining(
+          child: Center(
+            child: Text(
+              '$title coming soon',
+              style: AppTypography.bodyL.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
