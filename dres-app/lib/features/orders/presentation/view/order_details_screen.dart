@@ -48,8 +48,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             if (context.canPop()) {
               context.pop();
             } else {
-              // After checkout, navigate to profile (which shows purchases)
-              context.go('/profile');
+              // After checkout, navigate to profile user screen (which shows purchases by default)
+              context.go('/profile/user');
             }
           },
         ),

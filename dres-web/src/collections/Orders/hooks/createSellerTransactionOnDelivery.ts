@@ -195,11 +195,8 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
       // Platform fees = selling price - original price (the markup)
       const platformFees = totalSellingPrice - totalOriginalPrice
 
-      // Paystack transfer fee = 1 cedi flat fee per transfer
-      const paystackFeesAmount = 1
-
-      // Commission = platform fees - paystack fees
-      const commissionFees = platformFees - paystackFeesAmount
+      // Note: Paystack transfer fee (1 cedi) only applies when we do actual 'transfer' payouts
+      // For order_payment, we don't charge paystack fees yet
 
       // Create ONE bulk transaction for this seller (order_payment type)
       await payload.create({
@@ -213,8 +210,8 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
           itemId: itemIds.join(','), // Store all item IDs
           amount: Math.round(sellerPayout * 100) / 100,
           fees: platformFees > 0 ? Math.round(platformFees * 100) / 100 : 0,
-          paystackFees: Math.round(paystackFeesAmount * 100) / 100,
-          commissionFees: commissionFees > 0 ? Math.round(commissionFees * 100) / 100 : 0,
+          paystackFees: 0, // Paystack fee only applies to 'transfer' type
+          commissionFees: platformFees > 0 ? Math.round(platformFees * 100) / 100 : 0,
           billingDetails: {
             accountName:
               withdrawalAccount?.accountName ||
@@ -229,7 +226,7 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
       })
 
       payload.logger.info(
-        `Created BULK order_payment transaction for ${deliveredItems.length} delivered items. Seller: ${seller?.shopName || sellerId}, Payout: ${sellerPayout} (Products: ${totalOriginalPrice}, Shipping: ${shippingFee}), Fees: ${platformFees}, Commission: ${commissionFees}`,
+        `Created BULK order_payment transaction for ${deliveredItems.length} delivered items. Seller: ${seller?.shopName || sellerId}, Payout: ${sellerPayout} (Products: ${totalOriginalPrice}, Shipping: ${shippingFee}), Fees: ${platformFees}`,
       )
     }
   } catch (error) {

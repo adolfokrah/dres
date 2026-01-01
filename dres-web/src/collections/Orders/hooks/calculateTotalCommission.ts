@@ -35,22 +35,29 @@ export const calculateTotalCommission: CollectionAfterChangeHook = async ({
     const discountAmount = doc?.discountAmount || 0
     const pointsDiscount = doc?.pointsDiscount || 0
 
-    // Get all transactions for this order
+    // Get all non-cancelled transactions for this order
     const transactions = await payload.find({
       collection: 'transactions',
       where: {
-        order: { equals: orderId },
+        and: [
+          { order: { equals: orderId } },
+          { status: { not_equals: 'cancelled' } },
+        ],
       },
       limit: 100,
     })
 
-    // Sum up fees and paystack fees from all transactions
+    // Sum up fees from all non-cancelled transactions
     const totalTransactionFees = transactions.docs.reduce((sum, txn) => {
       return sum + (txn.fees || 0)
     }, 0)
 
+    // Sum up paystack fees only from 'transfer' type transactions (actual payouts)
     const totalPaystackFees = transactions.docs.reduce((sum, txn) => {
-      return sum + (txn.paystackFees || 0)
+      if (txn.type === 'transfer') {
+        return sum + (txn.paystackFees || 0)
+      }
+      return sum
     }, 0)
 
     // Calculate total buyer protection fees from ALL items (non-refundable)
