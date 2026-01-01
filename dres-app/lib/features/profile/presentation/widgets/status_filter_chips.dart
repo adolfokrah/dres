@@ -14,7 +14,7 @@ class FilterOption {
   });
 }
 
-/// Status filter chips for orders
+/// Status filter chips for orders (purchases)
 class StatusFilterChips extends StatelessWidget {
   final String? selectedFilter;
   final ValueChanged<String?> onFilterChanged;
@@ -31,6 +31,55 @@ class StatusFilterChips extends StatelessWidget {
     FilterOption(value: 'cancelled', label: 'Cancelled'),
     FilterOption(value: 'completed', label: 'Completed'),
   ];
+
+  @override
+  Widget build(BuildContext context) {
+    return _FilterChipsRow(
+      filters: filters,
+      selectedFilter: selectedFilter,
+      onFilterChanged: onFilterChanged,
+    );
+  }
+}
+
+/// Status filter chips for incoming orders (seller view)
+class IncomingOrdersFilterChips extends StatelessWidget {
+  final String? selectedFilter;
+  final ValueChanged<String?> onFilterChanged;
+
+  const IncomingOrdersFilterChips({
+    super.key,
+    this.selectedFilter,
+    required this.onFilterChanged,
+  });
+
+  static const List<FilterOption> filters = [
+    FilterOption(value: null, label: 'All'),
+    FilterOption(value: 'new', label: 'New'),
+    FilterOption(value: 'cancelled', label: 'Cancelled'),
+    FilterOption(value: 'completed', label: 'Completed'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return _FilterChipsRow(
+      filters: filters,
+      selectedFilter: selectedFilter,
+      onFilterChanged: onFilterChanged,
+    );
+  }
+}
+
+class _FilterChipsRow extends StatelessWidget {
+  final List<FilterOption> filters;
+  final String? selectedFilter;
+  final ValueChanged<String?> onFilterChanged;
+
+  const _FilterChipsRow({
+    required this.filters,
+    this.selectedFilter,
+    required this.onFilterChanged,
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
+import 'package:dres/core/utilities/media_utils.dart';
 
 /// A reusable circular profile avatar widget.
 /// Shows the user's photo if available, otherwise shows their initial.
@@ -28,6 +29,8 @@ class ProfileAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fontSize = initialFontSize ?? size * 0.35;
+    // Resolve relative URLs to absolute URLs
+    final resolvedPhotoUrl = MediaUtils.resolveUrl(photoUrl);
 
     return Container(
       width: size,
@@ -35,24 +38,32 @@ class ProfileAvatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: AppColors.secondary,
-        image: photoUrl != null
-            ? DecorationImage(
-                image: NetworkImage(photoUrl!),
-                fit: BoxFit.cover,
-              )
-            : null,
       ),
-      child: photoUrl == null
-          ? Center(
-              child: Text(
-                displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
-                style: AppTypography.titleL.copyWith(
-                  color: AppColors.textSecondary,
-                  fontSize: fontSize,
-                ),
+      child: resolvedPhotoUrl != null
+          ? ClipOval(
+              child: Image.network(
+                resolvedPhotoUrl,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return _buildInitial(fontSize);
+                },
               ),
             )
-          : null,
+          : _buildInitial(fontSize),
+    );
+  }
+
+  Widget _buildInitial(double fontSize) {
+    return Center(
+      child: Text(
+        displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+        style: AppTypography.titleL.copyWith(
+          color: AppColors.textSecondary,
+          fontSize: fontSize,
+        ),
+      ),
     );
   }
 }

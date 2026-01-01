@@ -13,6 +13,7 @@ import 'package:dres/features/product_details/data/models/seller_model.dart';
 import 'package:dres/features/profile/presentation/widgets/profile_stats_card.dart';
 import 'package:dres/features/profile/presentation/widgets/profile_tabs_bar.dart';
 import 'package:dres/features/profile/presentation/widgets/purchases_list.dart';
+import 'package:dres/features/profile/presentation/widgets/incoming_orders_list.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String? userId;
@@ -347,7 +348,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       case 0:
         return _buildPlaceholder(context, 'Products');
       case 1:
-        return _buildPlaceholder(context, 'Incoming orders');
+        return IncomingOrdersList(parentContext: context);
       case 2:
         return PurchasesList(parentContext: context);
       case 3:

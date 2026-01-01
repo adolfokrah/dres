@@ -4,16 +4,16 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/media_utils.dart';
 import 'package:dres/core/widgets/status_badge.dart';
-import 'package:dres/features/profile/data/models/purchase_model.dart';
+import 'package:dres/features/profile/data/models/incoming_order_model.dart';
 
-/// Purchase card widget for purchases list
-class PurchaseCard extends StatelessWidget {
-  final PurchaseModel purchase;
+/// Incoming order card widget for seller's incoming orders list
+class IncomingOrderCard extends StatelessWidget {
+  final IncomingOrderModel order;
   final VoidCallback? onTap;
 
-  const PurchaseCard({
+  const IncomingOrderCard({
     super.key,
-    required this.purchase,
+    required this.order,
     this.onTap,
   });
 
@@ -21,7 +21,7 @@ class PurchaseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // Get one image per item (up to 3)
     final images = _getProductImages();
-    final moreCount = purchase.items.length - 3;
+    final moreCount = order.items.length - 3;
 
     // Get location from shipping address (city - region)
     final location = _getLocationText();
@@ -60,7 +60,7 @@ class PurchaseCard extends StatelessWidget {
 
                   // Order ID and location
                   Text(
-                    '#${purchase.orderId}',
+                    '#${order.orderId}',
                     style: AppTypography.bodyM.copyWith(
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
@@ -79,9 +79,9 @@ class PurchaseCard extends StatelessWidget {
 
                   // Status badge
                   StatusBadge(
-                    status: purchase.status.apiValue,
+                    status: order.status.apiValue,
                     type: StatusBadgeType.order,
-                    displayText: purchase.status.displayName,
+                    displayText: order.status.displayName,
                   ),
                 ],
               ),
@@ -102,7 +102,7 @@ class PurchaseCard extends StatelessWidget {
   /// Get one image per item (variation image) - if no images, return nulls for placeholder
   List<String?> _getProductImages() {
     final images = <String?>[];
-    for (final item in purchase.items) {
+    for (final item in order.items) {
       final imageUrl = item.imageUrl;
       if (imageUrl != null && imageUrl.isNotEmpty) {
         // Resolve relative URLs to full URLs
@@ -114,7 +114,7 @@ class PurchaseCard extends StatelessWidget {
       if (images.length >= 3) break;
     }
     // Ensure at least 1 item if we have items
-    if (images.isEmpty && purchase.items.isNotEmpty) {
+    if (images.isEmpty && order.items.isNotEmpty) {
       images.add(null);
     }
     return images;
@@ -122,7 +122,7 @@ class PurchaseCard extends StatelessWidget {
 
   /// Get location text from shipping address (city - region format)
   String _getLocationText() {
-    final address = purchase.shippingAddress;
+    final address = order.shippingAddress;
     if (address == null) return '';
     
     // Use cityRegion getter for "City - Region" format

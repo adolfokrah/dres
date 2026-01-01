@@ -24,7 +24,9 @@ import 'package:dres/features/cart/logic/address_bloc/address_bloc.dart';
 import 'package:dres/features/orders/data/repositories/orders_repository.dart';
 import 'package:dres/features/orders/logic/order_details_bloc/order_details_bloc.dart';
 import 'package:dres/features/profile/data/repositories/purchases_repository.dart';
+import 'package:dres/features/profile/data/repositories/incoming_orders_repository.dart';
 import 'package:dres/features/profile/logic/purchases_bloc/purchases_bloc.dart';
+import 'package:dres/features/profile/logic/incoming_orders_bloc/incoming_orders_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -136,8 +138,18 @@ Future<void> setupDependencies() async {
     apiService: getIt<ApiService>(),
   ));
 
+  // Incoming Orders Repository
+  getIt.registerLazySingleton<IncomingOrdersRepository>(() => IncomingOrdersRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
   // Purchases Bloc - Singleton so filter state persists across tab switches
   getIt.registerLazySingleton<PurchasesBloc>(() => PurchasesBloc(
     purchasesRepository: getIt<PurchasesRepository>(),
+  ));
+
+  // Incoming Orders Bloc - Singleton so filter state persists across tab switches
+  getIt.registerLazySingleton<IncomingOrdersBloc>(() => IncomingOrdersBloc(
+    incomingOrdersRepository: getIt<IncomingOrdersRepository>(),
   ));
 }

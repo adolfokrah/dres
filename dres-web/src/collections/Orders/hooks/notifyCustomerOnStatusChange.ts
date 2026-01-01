@@ -2,8 +2,7 @@ import type { CollectionAfterChangeHook } from 'payload'
 
 interface OrderItem {
   id?: string
-  productTitle: string
-  productImage?: string
+  variationTitle?: string
   variation?: string | { id: string }
   variationOptions?: Record<string, string> | null
   shippingStatus: string
@@ -11,8 +10,8 @@ interface OrderItem {
 
 /**
  * Send notifications to customer when order item status changes
- * - out_for_delivery: "Your item {productTitle} ({variation}) is out for delivery"
- * - delivered: "Your item {productTitle} ({variation}) has been delivered"
+ * - out_for_delivery: "Your item {variationTitle} ({variation}) is out for delivery"
+ * - delivered: "Your item {variationTitle} ({variation}) has been delivered"
  */
 export const notifyCustomerOnStatusChange: CollectionAfterChangeHook = async ({
   doc,
@@ -45,9 +44,11 @@ export const notifyCustomerOnStatusChange: CollectionAfterChangeHook = async ({
           ? Object.values(currentItem.variationOptions).join(' / ')
           : ''
         
+        // Use variationTitle as the item name
+        const itemTitle = currentItem.variationTitle || 'item'
         const itemDescription = variationStr 
-          ? `${currentItem.productTitle} (${variationStr})`
-          : currentItem.productTitle
+          ? `${itemTitle} (${variationStr})`
+          : itemTitle
 
         // Get image ID from variation
         let imageId: string | undefined
@@ -105,7 +106,7 @@ export const notifyCustomerOnStatusChange: CollectionAfterChangeHook = async ({
         })
 
         payload.logger.info(
-          `Notification sent to customer for ${currentItem.productTitle}: ${newStatus}`,
+          `Notification sent to customer for ${currentItem.variationTitle || 'item'}: ${newStatus}`,
         )
       }
     }

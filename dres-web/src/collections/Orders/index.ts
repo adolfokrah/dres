@@ -185,23 +185,8 @@ export const Orders: CollectionConfig = {
                         description: 'Variation title at time of purchase',
                         width: '50%',
                       },
-                    },
-                    {
-                      name: 'sellerName',
-                      type: 'text',
-                      admin: {
-                        description: 'Seller name at time of purchase',
-                        width: '50%',
-                      },
-                    },
+                    }
                   ],
-                },
-                {
-                  name: 'sellerImage',
-                  type: 'text',
-                  admin: {
-                    description: 'URL to seller profile photo at time of purchase',
-                  },
                 },
                 {
                   name: 'variationImage',

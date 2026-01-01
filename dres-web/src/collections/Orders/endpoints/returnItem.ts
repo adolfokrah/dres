@@ -134,7 +134,6 @@ export const returnItem: PayloadHandler = async (req) => {
             const variation = await payload.findByID({
               collection: 'variations',
               id: variationId,
-
               depth: 0,
             })
             if (variation?.images && Array.isArray(variation.images) && variation.images.length > 0) {

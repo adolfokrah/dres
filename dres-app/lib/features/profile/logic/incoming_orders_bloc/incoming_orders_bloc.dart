@@ -1,0 +1,97 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dres/core/di/injection.dart';
+import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
+import 'package:dres/features/profile/data/repositories/incoming_orders_repository.dart';
+import 'incoming_orders_event.dart';
+import 'incoming_orders_state.dart';
+
+export 'incoming_orders_event.dart';
+export 'incoming_orders_state.dart';
+
+class IncomingOrdersBloc extends Bloc<IncomingOrdersEvent, IncomingOrdersState> {
+  final IncomingOrdersRepository _incomingOrdersRepository;
+  static const int _pageSize = 10;
+
+  IncomingOrdersBloc({
+    required IncomingOrdersRepository incomingOrdersRepository,
+  })  : _incomingOrdersRepository = incomingOrdersRepository,
+        super(const IncomingOrdersState()) {
+    on<IncomingOrdersFetchRequested>(_onFetchRequested);
+    on<IncomingOrdersLoadMoreRequested>(_onLoadMoreRequested);
+    on<IncomingOrdersFilterChanged>(_onFilterChanged);
+  }
+
+  String get _userId => getIt<AuthBloc>().state.user?.id ?? '';
+
+  Future<void> _onFetchRequested(
+    IncomingOrdersFetchRequested event,
+    Emitter<IncomingOrdersState> emit,
+  ) async {
+    // Use clearStatusFilter when explicitly setting to null (All filter)
+    emit(state.copyWith(
+      status: IncomingOrdersStatus.loading,
+      statusFilter: event.statusFilter,
+      clearStatusFilter: event.statusFilter == null,
+      currentPage: 1,
+    ));
+
+    try {
+      debugPrint('📦 Fetching incoming orders for userId: $_userId with filter: ${event.statusFilter}');
+      final response = await _incomingOrdersRepository.getIncomingOrders(
+        userId: _userId,
+        page: 1,
+        limit: _pageSize,
+        statusFilter: event.statusFilter,
+      );
+      debugPrint('📦 Fetched ${response.docs.length} incoming orders');
+
+      emit(state.copyWith(
+        status: IncomingOrdersStatus.success,
+        orders: response.docs,
+        hasMore: response.hasNextPage,
+        currentPage: response.page,
+      ));
+    } catch (e, stackTrace) {
+      debugPrint('📦 Error fetching incoming orders: $e');
+      debugPrint('📦 Stack trace: $stackTrace');
+      emit(state.copyWith(
+        status: IncomingOrdersStatus.error,
+        error: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onLoadMoreRequested(
+    IncomingOrdersLoadMoreRequested event,
+    Emitter<IncomingOrdersState> emit,
+  ) async {
+    if (!state.hasMore || state.status == IncomingOrdersStatus.loading) return;
+
+    try {
+      final nextPage = state.currentPage + 1;
+      final response = await _incomingOrdersRepository.getIncomingOrders(
+        userId: _userId,
+        page: nextPage,
+        limit: _pageSize,
+        statusFilter: state.statusFilter,
+      );
+
+      emit(state.copyWith(
+        orders: [...state.orders, ...response.docs],
+        hasMore: response.hasNextPage,
+        currentPage: response.page,
+      ));
+    } catch (e) {
+      // Silently fail on load more
+      debugPrint('📦 Error loading more incoming orders: $e');
+    }
+  }
+
+  Future<void> _onFilterChanged(
+    IncomingOrdersFilterChanged event,
+    Emitter<IncomingOrdersState> emit,
+  ) async {
+    add(IncomingOrdersFetchRequested(statusFilter: event.statusFilter));
+  }
+}
