@@ -63,6 +63,7 @@ export const returnItem: PayloadHandler = async (req) => {
     const items = order.items as Array<{
       id: string
       seller: string | { id: string }
+      variation?: string | { id: string }
       shippingStatus: string
       statusLogs?: Array<{ status: string; timestamp: string }>
       returnReason?: string
@@ -133,6 +134,7 @@ export const returnItem: PayloadHandler = async (req) => {
             const variation = await payload.findByID({
               collection: 'variations',
               id: variationId,
+
               depth: 0,
             })
             if (variation?.images && Array.isArray(variation.images) && variation.images.length > 0) {
