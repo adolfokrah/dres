@@ -54,9 +54,10 @@ export const Notifications: CollectionConfig = {
     },
     {
       name: 'image',
-      type: 'text',
+      type: 'upload',
+      relationTo: 'media',
       admin: {
-        description: 'URL to the notification image/icon',
+        description: 'Notification image (e.g., product/variation image)',
       },
     },
     {

@@ -50,10 +50,14 @@ export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = async (
       const isNewItem = operation === 'create' || !originalItem
       const statusChanged = originalItem && originalItem.shippingStatus !== item.shippingStatus
 
-      if (isNewItem || statusChanged) {
+      // Check if this status is already logged (avoid duplicates)
+      const currentStatus = item.shippingStatus || 'placed'
+      const statusAlreadyLogged = item.statusLogs.some((log) => log.status === currentStatus)
+
+      if ((isNewItem || statusChanged) && !statusAlreadyLogged) {
         // Add new status log entry
         item.statusLogs.push({
-          status: item.shippingStatus || 'placed',
+          status: currentStatus,
           timestamp: new Date().toISOString(),
         })
       }

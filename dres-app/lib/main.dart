@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -113,6 +114,18 @@ class MainApp extends StatelessWidget {
         
         // GoRouter
         routerConfig: AppRoutes.router,
+        
+        // Wrap with SafeArea on Android
+        builder: (context, child) {
+          if (Platform.isAndroid) {
+            return SafeArea(
+              top: false,
+              bottom: true,
+              child: child ?? const SizedBox.shrink(),
+            );
+          }
+          return child ?? const SizedBox.shrink();
+        },
       ),
     );
   }

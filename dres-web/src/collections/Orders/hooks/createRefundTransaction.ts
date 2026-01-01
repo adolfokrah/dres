@@ -30,7 +30,14 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
   const payload = req.payload
 
   try {
-    const currentItems = (doc.items || []) as OrderItem[]
+    // Fetch the full order with relationships populated
+    const fullOrder = await payload.findByID({
+      collection: 'orders',
+      id: doc.id,
+      depth: 1,
+    })
+    
+    const currentItems = (fullOrder.items || []) as OrderItem[]
     const previousItems = (previousDoc?.items || []) as OrderItem[]
 
     // Find items that changed to 'returned' or 'not_available'
@@ -130,6 +137,56 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
         payload.logger.info(
           `Created refund transaction for returned item: ${currentItem.productTitle} - Amount: ${refundTotal} (Product: ${sellingPriceTotal}${hasBuyerProtection ? `, Shipping: ${shippingFee}, Protection: ${buyerProtectionFee}` : ' - No buyer protection'})`,
         )
+
+        // Create return charge transaction for seller (negative amount = platform's 10% fee)
+        const sellerData = currentItem.seller
+        payload.logger.info(`Seller data type: ${typeof sellerData}, value: ${JSON.stringify(sellerData)}`)
+        
+        const sellerId = typeof sellerData === 'object' && sellerData !== null ? (sellerData as any).id : sellerData
+        const platformFee = Math.round(((currentItem.price * currentItem.quantity) - (currentItem.originalPrice * currentItem.quantity)) * 100) / 100 // Round to 2 decimal places
+        
+        payload.logger.info(
+          `Return charge check - Seller ID: ${sellerId}, Platform Fee: ${platformFee}, Price: ${currentItem.price}, OriginalPrice: ${currentItem.originalPrice}, Qty: ${currentItem.quantity}`,
+        )
+
+        // Check if a return charge transaction already exists for this seller/item
+        const existingReturnCharge = await payload.find({
+          collection: 'transactions',
+          where: {
+            and: [
+              { order: { equals: doc.id } },
+              { type: { equals: 'return_charge' } },
+              { itemId: { equals: itemId } },
+            ],
+          },
+          limit: 1,
+        })
+
+        // Create return charge if it doesn't exist and there's a fee to charge
+        if (existingReturnCharge.docs.length === 0 && sellerId && platformFee > 0) {
+          await payload.create({
+            collection: 'transactions',
+            data: {
+              transactionId: generateTransactionId(),
+              type: 'return_charge',
+              status: 'completed',
+              user: sellerId,
+              order: doc.id,
+              itemId: itemId,
+              amount: -platformFee, // Negative amount - seller owes this to platform
+              fees: platformFee,
+              notes: `Return charge for "${currentItem.productTitle}" (Qty: ${currentItem.quantity}). Platform fee: ${platformFee}`,
+            },
+          })
+
+          payload.logger.info(
+            `Created return charge transaction for seller: ${currentItem.sellerName || sellerId} - Fee: ${platformFee}`,
+          )
+        } else if (existingReturnCharge.docs.length > 0) {
+          payload.logger.info(
+            `Return charge already exists for ${currentItem.productTitle} - skipping`,
+          )
+        }
       }
     }
   } catch (error) {

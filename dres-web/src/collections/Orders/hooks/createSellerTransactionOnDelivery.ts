@@ -189,22 +189,22 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
       // Seller payout = total original prices + ONE shipping fee
       const sellerPayout = totalOriginalPrice + shippingFee
 
-      // Platform fees = selling price - original price (the 10% markup)
+      // Platform fees = selling price - original price (the markup)
       const platformFees = totalSellingPrice - totalOriginalPrice
 
-      // Paystack fees = 1.95% of selling price + 1 cedi transfer fee
-      const paystackFeesAmount = (0.0195 * totalSellingPrice) + 1
+      // Paystack transfer fee = 1 cedi flat fee per transfer
+      const paystackFeesAmount = 1
 
       // Commission = platform fees - paystack fees
       const commissionFees = platformFees - paystackFeesAmount
 
-      // Create ONE bulk transaction for this seller
+      // Create ONE bulk transaction for this seller (order_payment type)
       await payload.create({
         collection: 'transactions',
         data: {
           transactionId: generateTransactionId(),
-          type: 'transfer',
-          status: 'pending',
+          type: 'order_payment',
+          status: 'completed',
           user: sellerId,
           order: doc.id,
           itemId: itemIds.join(','), // Store all item IDs
@@ -226,7 +226,7 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
       })
 
       payload.logger.info(
-        `Created BULK seller transaction for ${deliveredItems.length} delivered items. Seller: ${seller?.shopName || sellerId}, Payout: ${sellerPayout} (Products: ${totalOriginalPrice}, Shipping: ${shippingFee}), Fees: ${platformFees}, Commission: ${commissionFees}`,
+        `Created BULK order_payment transaction for ${deliveredItems.length} delivered items. Seller: ${seller?.shopName || sellerId}, Payout: ${sellerPayout} (Products: ${totalOriginalPrice}, Shipping: ${shippingFee}), Fees: ${platformFees}, Commission: ${commissionFees}`,
       )
     }
   } catch (error) {

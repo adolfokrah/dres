@@ -384,17 +384,25 @@ class _TabsBarDelegate extends SliverPersistentHeaderDelegate {
 
   _TabsBarDelegate({required this.child});
 
-  @override
-  double get minExtent => 44;
+  // Use a consistent height that matches the ProfileTabsBar
+  // (vertical padding: 10*2 = 20) + (text ~16) + (border: 1) = ~37
+  // Use 42 to give some buffer and avoid geometry issues
+  static const double _height = 42.0;
 
   @override
-  double get maxExtent => 44;
+  double get minExtent => _height;
+
+  @override
+  double get maxExtent => _height;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: AppColors.background,
-      child: child,
+    return SizedBox(
+      height: _height,
+      child: Container(
+        color: AppColors.background,
+        child: child,
+      ),
     );
   }
 

@@ -11,6 +11,7 @@ import { restoreStockOnReturn } from './hooks/restoreStockOnReturn'
 import { restoreStockOnCancel } from './hooks/restoreStockOnCancel'
 import { awardPointsOnDelivery } from './hooks/awardPointsOnDelivery'
 import { notifySellersOnOrderPlaced } from './hooks/notifySellersOnOrderPlaced'
+import { notifyCustomerOnStatusChange } from './hooks/notifyCustomerOnStatusChange'
 import { returnItem } from './endpoints/returnItem'
 
 export const Orders: CollectionConfig = {
@@ -59,8 +60,8 @@ export const Orders: CollectionConfig = {
   },
   hooks: {
     beforeChange: [calculateOrderTotalsAndStatus],
-    // Reduce stock on order creation, restore stock on return/cancel, notify sellers, create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats, award points, then calculate commission
-    afterChange: [reduceStockOnOrder, restoreStockOnReturn, restoreStockOnCancel, notifySellersOnOrderPlaced, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats, awardPointsOnDelivery, calculateTotalCommission],
+    // Reduce stock on order creation, restore stock on return/cancel, notify sellers, create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats, award points, notify customer, then calculate commission
+    afterChange: [reduceStockOnOrder, restoreStockOnReturn, restoreStockOnCancel, notifySellersOnOrderPlaced, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats, awardPointsOnDelivery, notifyCustomerOnStatusChange, calculateTotalCommission],
   },
   fields: [
     {
@@ -469,13 +470,53 @@ export const Orders: CollectionConfig = {
               ],
             },
             {
-              name: 'totalCommission',
-              type: 'number',
-              defaultValue: 0,
+              name: 'commissionBreakdownTable',
+              type: 'ui',
               admin: {
-                description: 'Grand Total - Seller Payout - Paystack Fee - Transfer Fees + Buyer Protection',
-                readOnly: true,
+                components: {
+                  Field: '@/collections/Orders/components/CommissionBreakdownTable',
+                },
               },
+            },
+            {
+              type: 'group',
+              name: 'commissionBreakdown',
+              label: ' ',
+              admin: {
+                condition: () => false, // Hide from UI, only used for data storage
+              },
+              fields: [
+                {
+                  name: 'totalTransactionFees',
+                  type: 'number',
+                  defaultValue: 0,
+                },
+                {
+                  name: 'totalPaystackFees',
+                  type: 'number',
+                  defaultValue: 0,
+                },
+                {
+                  name: 'totalBuyerProtectionFees',
+                  type: 'number',
+                  defaultValue: 0,
+                },
+                {
+                  name: 'discountAmount',
+                  type: 'number',
+                  defaultValue: 0,
+                },
+                {
+                  name: 'pointsDiscount',
+                  type: 'number',
+                  defaultValue: 0,
+                },
+                {
+                  name: 'totalCommission',
+                  type: 'number',
+                  defaultValue: 0,
+                },
+              ],
             },
           ],
         },

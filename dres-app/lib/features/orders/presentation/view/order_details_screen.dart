@@ -44,7 +44,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             PhosphorIcons.caretLeft(),
             color: AppColors.textPrimary,
           ),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              // After checkout, navigate to profile (which shows purchases)
+              context.go('/profile');
+            }
+          },
         ),
         title: BlocBuilder<OrderDetailsBloc, OrderDetailsState>(
           bloc: _orderDetailsBloc,

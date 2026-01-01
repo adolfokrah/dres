@@ -138,9 +138,11 @@ export const Transactions: CollectionConfig = {
           required: true,
           defaultValue: 'transfer',
           options: [
-            { label: 'Transfer (Seller Payout)', value: 'transfer' },
+            { label: 'Order Payment (Seller Payout)', value: 'order_payment' },
+            { label: 'Transfer', value: 'transfer' },
             { label: 'Deposit (Customer Payment)', value: 'deposit' },
             { label: 'Refund', value: 'refund' },
+            { label: 'Return Charge (Seller Fee)', value: 'return_charge' },
           ],
           admin: {
             description: 'Type of transaction',
@@ -197,9 +199,9 @@ export const Transactions: CollectionConfig = {
           name: 'amount',
           type: 'number',
           required: true,
-          min: 0,
+          // No min: 0 - allow negative amounts for return_charge transactions
           admin: {
-            description: 'Transaction amount (seller payout)',
+            description: 'Transaction amount (can be negative for return charges)',
             width: '50%',
           },
         },
@@ -223,9 +225,8 @@ export const Transactions: CollectionConfig = {
           type: 'number',
           min: 0,
           defaultValue: 0,
-          label: 'Paystack Fees (1.95% of selling price) + 1 cedi transfer fee',
+          label: 'Paystack Fees ',
           admin: {
-            description: 'Calculated: 1.95% × selling price',
             width: '50%',
           },
         },

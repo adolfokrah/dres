@@ -1,21 +1,19 @@
 import type { CollectionAfterChangeHook } from 'payload'
 
 interface OrderItem {
-  price?: number
-  quantity?: number
   buyerProtectionFee?: number
-  shippingStatus?: string
 }
 
 /**
- * Calculate platform commission using simple formula:
- * Total Commission = Platform Fee (10% of subtotal) + Buyer Protection Fees - Discount Amount - Points Discount
+ * Calculate platform commission from transactions:
+ * Total Commission = Total Transaction Fees - Total Paystack Fees + Total Buyer Protection Fees - Discount Amount - Points Discount
  * 
  * Where:
- * - Platform Fee = 10% of subtotal from active items (excludes returned/return_in_progress/not_available)
- * - Buyer Protection Fees = Sum of buyer protection fees from active items
- * - Discount Amount = Discount applied to the order
- * - Points Discount = Points redeemed as discount
+ * - Total Transaction Fees = sum of 'fees' from all transactions for this order
+ * - Total Paystack Fees = sum of 'paystackFees' from all transactions for this order
+ * - Total Buyer Protection Fees = sum of buyer protection fees from ALL order items (non-refundable)
+ * - Discount Amount = discount applied to the order
+ * - Points Discount = points redeemed as discount
  * 
  * This runs AFTER order changes
  */
@@ -37,38 +35,63 @@ export const calculateTotalCommission: CollectionAfterChangeHook = async ({
     const discountAmount = doc?.discountAmount || 0
     const pointsDiscount = doc?.pointsDiscount || 0
 
-    // Get active items (exclude returned/return_in_progress/not_available)
-    const activeItems = items.filter((item) => 
-      item.shippingStatus !== 'returned' && 
-      item.shippingStatus !== 'return_in_progress' &&
-      item.shippingStatus !== 'not_available'
-    )
+    // Get all transactions for this order
+    const transactions = await payload.find({
+      collection: 'transactions',
+      where: {
+        order: { equals: orderId },
+      },
+      limit: 100,
+    })
 
-    // Calculate subtotal from active items
-    const subtotal = activeItems.reduce((sum, item) => {
-      return sum + ((item.price || 0) * (item.quantity || 0))
+    // Sum up fees and paystack fees from all transactions
+    const totalTransactionFees = transactions.docs.reduce((sum, txn) => {
+      return sum + (txn.fees || 0)
     }, 0)
 
-    // Platform fee = 10% of subtotal
-    const platformFee = subtotal * 0.1
+    const totalPaystackFees = transactions.docs.reduce((sum, txn) => {
+      return sum + (txn.paystackFees || 0)
+    }, 0)
 
-    // Calculate total buyer protection fees from active items
-    const totalBuyerProtectionFee = activeItems.reduce((sum, item) => {
+    // Calculate total buyer protection fees from ALL items (non-refundable)
+    const totalBuyerProtectionFees = items.reduce((sum, item) => {
       return sum + (item.buyerProtectionFee || 0)
     }, 0)
 
-    // Total Commission = Platform Fee + Buyer Protection Fees - Discount Amount - Points Discount
-    // Can be negative (for accounting purposes)
-    const totalCommission = platformFee + totalBuyerProtectionFee - discountAmount - pointsDiscount
+    // Total Commission = Total Transaction Fees - Total Paystack Fees + Buyer Protection Fees - Discounts
+    const totalCommission = totalTransactionFees - totalPaystackFees + totalBuyerProtectionFees - discountAmount - pointsDiscount
+    
+    // Round all values
+    const roundedTransactionFees = Math.round(totalTransactionFees * 100) / 100
+    const roundedPaystackFees = Math.round(totalPaystackFees * 100) / 100
+    const roundedBuyerProtectionFees = Math.round(totalBuyerProtectionFees * 100) / 100
+    const roundedDiscountAmount = Math.round(discountAmount * 100) / 100
+    const roundedPointsDiscount = Math.round(pointsDiscount * 100) / 100
     const roundedCommission = Math.round(totalCommission * 100) / 100
 
-    // Only update if commission has changed
-    if (doc.totalCommission !== roundedCommission) {
+    // Check if any values have changed
+    const currentBreakdown = doc.commissionBreakdown || {}
+    const hasChanged = 
+      currentBreakdown.totalTransactionFees !== roundedTransactionFees ||
+      currentBreakdown.totalPaystackFees !== roundedPaystackFees ||
+      currentBreakdown.totalBuyerProtectionFees !== roundedBuyerProtectionFees ||
+      currentBreakdown.discountAmount !== roundedDiscountAmount ||
+      currentBreakdown.pointsDiscount !== roundedPointsDiscount ||
+      currentBreakdown.totalCommission !== roundedCommission
+
+    if (hasChanged) {
       await payload.update({
         collection: 'orders',
         id: orderId,
         data: {
-          totalCommission: roundedCommission,
+          commissionBreakdown: {
+            totalTransactionFees: roundedTransactionFees,
+            totalPaystackFees: roundedPaystackFees,
+            totalBuyerProtectionFees: roundedBuyerProtectionFees,
+            discountAmount: roundedDiscountAmount,
+            pointsDiscount: roundedPointsDiscount,
+            totalCommission: roundedCommission,
+          },
         },
         // Prevent infinite loop - don't trigger hooks
         context: {
@@ -77,7 +100,7 @@ export const calculateTotalCommission: CollectionAfterChangeHook = async ({
       })
 
       payload.logger.info(
-        `Order commission updated: Platform Fee (10%): ${platformFee.toFixed(2)}, Buyer Protection: ${totalBuyerProtectionFee}, Discount: ${discountAmount}, Points Discount: ${pointsDiscount}, Total: ${roundedCommission}`,
+        `Order commission updated: Transaction Fees: ${roundedTransactionFees}, Paystack Fees: ${roundedPaystackFees}, Buyer Protection: ${roundedBuyerProtectionFees}, Discount: ${roundedDiscountAmount}, Points: ${roundedPointsDiscount}, Total: ${roundedCommission}`,
       )
     }
   } catch (error) {
