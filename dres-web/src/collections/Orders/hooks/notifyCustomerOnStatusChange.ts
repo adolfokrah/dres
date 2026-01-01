@@ -3,7 +3,8 @@ import type { CollectionAfterChangeHook } from 'payload'
 interface OrderItem {
   id?: string
   productTitle: string
-  productImage?: string | { id: string }
+  productImage?: string
+  variation?: string | { id: string }
   variationOptions?: Record<string, string> | null
   shippingStatus: string
 }
@@ -48,10 +49,26 @@ export const notifyCustomerOnStatusChange: CollectionAfterChangeHook = async ({
           ? `${currentItem.productTitle} (${variationStr})`
           : currentItem.productTitle
 
-        // Get image ID (first image from variation/product)
-        const imageId = typeof currentItem.productImage === 'object' 
-          ? currentItem.productImage.id 
-          : currentItem.productImage
+        // Get image ID from variation
+        let imageId: string | undefined
+        const variationId = typeof currentItem.variation === 'object' 
+          ? currentItem.variation.id 
+          : currentItem.variation
+        
+        if (variationId) {
+          try {
+            const variation = await payload.findByID({
+              collection: 'variations',
+              id: variationId,
+              depth: 0,
+            })
+            if (variation?.images && Array.isArray(variation.images) && variation.images.length > 0) {
+              imageId = typeof variation.images[0] === 'object' ? variation.images[0].id : variation.images[0]
+            }
+          } catch (e) {
+            // Ignore - image is optional
+          }
+        }
 
         let message = ''
         

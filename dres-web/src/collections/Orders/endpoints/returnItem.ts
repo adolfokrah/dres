@@ -124,13 +124,33 @@ export const returnItem: PayloadHandler = async (req) => {
         not_as_described: 'Item not as described',
       }
       
+      // Get the variation's first image ID if available
+      let imageId: string | undefined
+      if (item.variation) {
+        const variationId = typeof item.variation === 'object' ? item.variation.id : item.variation
+        if (variationId) {
+          try {
+            const variation = await payload.findByID({
+              collection: 'variations',
+              id: variationId,
+              depth: 0,
+            })
+            if (variation?.images && Array.isArray(variation.images) && variation.images.length > 0) {
+              imageId = typeof variation.images[0] === 'object' ? variation.images[0].id : variation.images[0]
+            }
+          } catch (e) {
+            // Ignore - image is optional
+          }
+        }
+      }
+      
       await payload.create({
         collection: 'notifications',
         data: {
           user: sellerId,
           message: `Return requested for order #${order.orderId}. Reason: ${reasonLabels[reason] || reason}`,
           path: `/sold/${orderId}`,
-          image: item.variationImage || undefined,
+          image: imageId || undefined,
           read: false,
         },
       })

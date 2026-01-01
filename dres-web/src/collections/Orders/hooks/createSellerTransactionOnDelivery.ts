@@ -38,7 +38,7 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
     const currentItems = (doc.items || []) as OrderItem[]
     const previousItems = (previousDoc?.items || []) as OrderItem[]
 
-    // FIRST: Check if any item changed to 'return_in_progress' - delete seller's transaction
+    // FIRST: Check if any item changed to 'return_in_progress' - cancel seller's order_payment transaction
     for (let i = 0; i < currentItems.length; i++) {
       const currentItem = currentItems[i]
       const previousItem = previousItems[i]
@@ -53,30 +53,33 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
           : currentItem.seller
 
         if (sellerId) {
-          // Find the seller's transaction for this order
+          // Find the seller's order_payment transaction for this order
           const existingTransaction = await payload.find({
             collection: 'transactions',
             where: {
               and: [
                 { order: { equals: doc.id } },
-                { type: { equals: 'transfer' } },
+                { type: { equals: 'order_payment' } },
                 { user: { equals: sellerId } },
-                { status: { not_equals: 'completed' } }, // Only if not already completed
+                { status: { not_equals: 'cancelled' } },
               ],
             },
             limit: 1,
           })
 
-          // Delete transaction if found (will be recreated when all items reach final status)
+          // Cancel transaction if found (will be recreated when all items reach final status)
           if (existingTransaction.docs.length > 0) {
             const tx = existingTransaction.docs[0]
-            await payload.delete({
+            await payload.update({
               collection: 'transactions',
               id: tx.id,
+              data: {
+                status: 'cancelled',
+              },
             })
 
             payload.logger.info(
-              `Transaction ${tx.id} deleted - item "${currentItem.productTitle}" return in progress. Will be recreated when all items reach final status.`,
+              `Order payment transaction ${tx.id} cancelled - item "${currentItem.productTitle}" return in progress. Will be recreated when all items reach final status.`,
             )
           }
         }
