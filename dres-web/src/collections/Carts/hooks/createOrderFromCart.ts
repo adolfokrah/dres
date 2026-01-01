@@ -117,11 +117,13 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
       
 
       // Get variation image URL (first image)
+      // images is a hasMany upload to media, so it's an array of media objects or IDs
       let variationImage = ''
       if (variation.images && Array.isArray(variation.images) && variation.images.length > 0) {
         const firstImage = variation.images[0]
         // Handle both populated media object and raw ID
         if (typeof firstImage === 'object' && firstImage !== null) {
+          // Direct media object with url
           variationImage = firstImage.url || ''
         } else if (typeof firstImage === 'string') {
           // If it's just an ID, we need to fetch the media

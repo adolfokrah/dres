@@ -240,6 +240,7 @@ class OrderSellerModel {
   final String? firstName;
   final String? lastName;
   final String? username;
+  final String? shopName;
   final String? profilePhoto;
   final bool isTrustedSeller;
 
@@ -248,6 +249,7 @@ class OrderSellerModel {
     this.firstName,
     this.lastName,
     this.username,
+    this.shopName,
     this.profilePhoto,
     this.isTrustedSeller = false,
   });
@@ -268,11 +270,17 @@ class OrderSellerModel {
     }
 
     String? profilePhotoUrl;
-    if (json['profilePhoto'] != null) {
-      if (json['profilePhoto'] is Map) {
-        profilePhotoUrl = json['profilePhoto']['url'];
-      } else if (json['profilePhoto'] is String) {
-        profilePhotoUrl = json['profilePhoto'];
+    // The field is named 'photo' in the Users collection, not 'profilePhoto'
+    final photo = json['photo'];
+    if (photo != null) {
+      if (photo is Map) {
+        // Could be {url: '...'} or nested structure
+        profilePhotoUrl = photo['url'] ?? photo['image']?['url'];
+      } else if (photo is String) {
+        // If it's a string that looks like a URL path, use it
+        if (photo.startsWith('/') || photo.startsWith('http')) {
+          profilePhotoUrl = photo;
+        }
       }
     }
 
@@ -281,18 +289,25 @@ class OrderSellerModel {
       firstName: json['firstName'],
       lastName: json['lastName'],
       username: json['username'],
+      shopName: json['shopName'],
       profilePhoto: profilePhotoUrl,
       isTrustedSeller: json['isTrustedSeller'] ?? false,
     );
   }
 
-  /// Display name (username or first name)
+  /// Display name (prefer shopName, then full name, then username)
   String get displayName {
-    if (username != null && username!.isNotEmpty) {
-      return username!;
+    if (shopName != null && shopName!.isNotEmpty) {
+      return shopName!;
     }
     if (firstName != null && firstName!.isNotEmpty) {
-      return firstName!;
+      final name = lastName != null && lastName!.isNotEmpty
+          ? '$firstName $lastName'
+          : firstName!;
+      return name;
+    }
+    if (username != null && username!.isNotEmpty) {
+      return username!;
     }
     return 'Seller';
   }
@@ -404,15 +419,35 @@ class VariationImage {
 
   VariationImage({this.imageUrl});
 
-  factory VariationImage.fromJson(Map<String, dynamic> json) {
+  factory VariationImage.fromJson(dynamic json) {
     String? url;
-    if (json['image'] != null) {
-      if (json['image'] is Map) {
-        url = json['image']['url'];
-      } else if (json['image'] is String) {
-        url = json['image'];
+    
+    // Handle direct media object (hasMany upload relationship)
+    if (json is Map<String, dynamic>) {
+      // Direct media object with url field
+      if (json['url'] != null) {
+        url = json['url'];
+      }
+      // Or nested {image: {url: ...}} structure
+      else if (json['image'] != null) {
+        if (json['image'] is Map) {
+          url = json['image']['url'];
+        } else if (json['image'] is String) {
+          // Could be a path or ID
+          final imageStr = json['image'] as String;
+          if (imageStr.startsWith('/') || imageStr.startsWith('http')) {
+            url = imageStr;
+          }
+        }
       }
     }
+    // Handle string (could be URL or media ID)
+    else if (json is String) {
+      if (json.startsWith('/') || json.startsWith('http')) {
+        url = json;
+      }
+    }
+    
     return VariationImage(imageUrl: url);
   }
 }

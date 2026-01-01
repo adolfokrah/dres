@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:dres/core/services/api_service.dart';
 import 'package:dres/features/profile/data/models/incoming_order_model.dart';
+import 'package:dres/features/profile/data/models/incoming_order_details_model.dart';
 
 export 'package:dres/features/profile/data/models/incoming_order_model.dart';
+export 'package:dres/features/profile/data/models/incoming_order_details_model.dart';
 
 class IncomingOrdersRepository {
   final ApiService _apiService;
@@ -43,5 +45,82 @@ class IncomingOrdersRepository {
     }
     
     return result;
+  }
+
+  /// Fetch incoming order details (seller's view of a specific order)
+  Future<IncomingOrderDetailsModel> getIncomingOrderDetails({
+    required String userId,
+    required String orderId,
+  }) async {
+    final response = await _apiService.get(
+      '/users/$userId/incoming-orders/$orderId',
+    );
+    
+    debugPrint('🔵 IncomingOrdersRepository: Raw order details: ${response.data}');
+    
+    final result = IncomingOrderDetailsModel.fromJson(response.data);
+    
+    debugPrint('🟢 IncomingOrdersRepository: Parsed order ${result.orderId} with ${result.items.length} items');
+    
+    return result;
+  }
+
+  /// Mark item as not available
+  Future<void> markItemNotAvailable({
+    required String userId,
+    required String orderId,
+    required String itemId,
+  }) async {
+    await _apiService.post(
+      '/users/$userId/incoming-orders/$orderId/update-item-status',
+      data: {
+        'action': 'not_available',
+        'itemId': itemId,
+      },
+    );
+    debugPrint('🟢 IncomingOrdersRepository: Marked item $itemId as not available');
+  }
+
+  /// Mark item as out for delivery
+  Future<void> markItemOutForDelivery({
+    required String userId,
+    required String orderId,
+    required String itemId,
+  }) async {
+    await _apiService.post(
+      '/users/$userId/incoming-orders/$orderId/update-item-status',
+      data: {
+        'action': 'out_for_delivery',
+        'itemId': itemId,
+      },
+    );
+    debugPrint('🟢 IncomingOrdersRepository: Marked item $itemId as out for delivery');
+  }
+
+  /// Accept return for an item
+  Future<void> acceptReturn({
+    required String userId,
+    required String orderId,
+    required String itemId,
+  }) async {
+    await _apiService.post(
+      '/users/$userId/incoming-orders/$orderId/update-item-status',
+      data: {
+        'action': 'accept_return',
+        'itemId': itemId,
+      },
+    );
+    debugPrint('🟢 IncomingOrdersRepository: Accepted return for item $itemId');
+  }
+
+  /// Mark all seller's items as out for delivery
+  Future<void> markAllOutForDelivery({
+    required String userId,
+    required String orderId,
+  }) async {
+    await _apiService.post(
+      '/users/$userId/incoming-orders/$orderId/mark-all-out-for-delivery',
+    );
+    debugPrint('🟢 IncomingOrdersRepository: Marked all items as out for delivery');
   }
 }

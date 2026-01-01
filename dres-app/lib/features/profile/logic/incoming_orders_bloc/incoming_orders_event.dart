@@ -22,6 +22,11 @@ class IncomingOrdersLoadMoreRequested extends IncomingOrdersEvent {
   const IncomingOrdersLoadMoreRequested();
 }
 
+/// Refresh incoming orders (re-fetch with current filter)
+class IncomingOrdersRefreshRequested extends IncomingOrdersEvent {
+  const IncomingOrdersRefreshRequested();
+}
+
 /// Change status filter
 class IncomingOrdersFilterChanged extends IncomingOrdersEvent {
   final String? statusFilter;

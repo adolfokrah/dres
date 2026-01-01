@@ -160,7 +160,8 @@ class _IncomingOrdersListState extends State<IncomingOrdersList> {
               IncomingOrderCard(
                 order: order,
                 onTap: () {
-                  context.push('/orders/${order.id}');
+                  // Navigate to incoming order details (seller's view)
+                  context.push('/incoming-orders/${order.id}');
                 },
               ),
               const Divider(height: 1),

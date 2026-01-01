@@ -19,6 +19,7 @@ class IncomingOrdersBloc extends Bloc<IncomingOrdersEvent, IncomingOrdersState> 
         super(const IncomingOrdersState()) {
     on<IncomingOrdersFetchRequested>(_onFetchRequested);
     on<IncomingOrdersLoadMoreRequested>(_onLoadMoreRequested);
+    on<IncomingOrdersRefreshRequested>(_onRefreshRequested);
     on<IncomingOrdersFilterChanged>(_onFilterChanged);
   }
 
@@ -93,5 +94,13 @@ class IncomingOrdersBloc extends Bloc<IncomingOrdersEvent, IncomingOrdersState> 
     Emitter<IncomingOrdersState> emit,
   ) async {
     add(IncomingOrdersFetchRequested(statusFilter: event.statusFilter));
+  }
+
+  Future<void> _onRefreshRequested(
+    IncomingOrdersRefreshRequested event,
+    Emitter<IncomingOrdersState> emit,
+  ) async {
+    // Refresh with current filter
+    add(IncomingOrdersFetchRequested(statusFilter: state.statusFilter));
   }
 }

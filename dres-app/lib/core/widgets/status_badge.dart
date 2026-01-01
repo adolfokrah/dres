@@ -92,5 +92,6 @@ class StatusBadge extends StatelessWidget {
     'return_in_progress': 'Return in Progress',
     'returned': 'Returned',
     'not_available': 'Not Available',
+    'cancelled': 'Cancelled',
   };
 }

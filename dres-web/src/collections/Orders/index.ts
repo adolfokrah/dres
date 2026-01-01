@@ -199,6 +199,27 @@ export const Orders: CollectionConfig = {
                   type: 'row',
                   fields: [
                     {
+                      name: 'sellerName',
+                      type: 'text',
+                      admin: {
+                        description: 'Seller shop name at time of purchase',
+                        width: '50%',
+                      },
+                    },
+                    {
+                      name: 'sellerImage',
+                      type: 'text',
+                      admin: {
+                        description: 'URL to seller profile photo at time of purchase',
+                        width: '50%',
+                      },
+                    },
+                  ],
+                },
+                {
+                  type: 'row',
+                  fields: [
+                    {
                       name: 'sku',
                       type: 'relationship',
                       relationTo: 'skus',

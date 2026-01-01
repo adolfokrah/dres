@@ -57,6 +57,8 @@ class StatusColors {
         return orange;
       case 'not_available':
         return gray;
+      case 'cancelled':
+        return red;
       case 'placed':
       default:
         return purple;
