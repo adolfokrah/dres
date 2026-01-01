@@ -187,35 +187,8 @@ class IncomingOrderItemModel {
       shippingStatus == IncomingItemStatus.returnInProgress ||
       shippingStatus == IncomingItemStatus.returned;
 
-  /// Get return reason as display label (e.g., "fake_item" -> "Fake item")
-  String? get returnReasonLabel {
-    if (returnReason == null || returnReason!.isEmpty) return null;
-    
-    // Map of known return reason values to labels
-    const reasonLabels = {
-      'wrong_item': 'Wrong item sent',
-      'fake_item': 'Fake item',
-      'damaged_item': 'Damaged item',
-      'not_as_described': 'Not as described',
-      'missing_parts': 'Missing parts',
-      'size_issue': 'Size issue',
-      'quality_issue': 'Quality issue',
-      'other': 'Other',
-    };
-    
-    // Check if we have a label for this reason
-    if (reasonLabels.containsKey(returnReason)) {
-      return reasonLabels[returnReason];
-    }
-    
-    // Otherwise convert snake_case to Title Case
-    return returnReason!
-        .split('_')
-        .map((word) => word.isNotEmpty 
-            ? '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}'
-            : '')
-        .join(' ');
-  }
+  /// Get return reason display label (backend returns label directly)
+  String? get returnReasonLabel => returnReason;
 }
 
 /// Incoming order shipping info

@@ -33,7 +33,11 @@ interface IncomingOrder {
  * Fetch seller's incoming orders (orders where user is the seller of items)
  * 
  * Query params:
- * - status: Filter by order status (optional)
+ * - status: Filter by status (optional)
+ *   - 'new' or 'placed': Show orders with items in 'placed' shippingStatus (pending items)
+ *   - 'in_progress': Show orders with items in 'out_for_delivery' status
+ *   - 'completed': Show completed orders
+ *   - 'cancelled': Show cancelled orders
  * - page: Page number (default: 1)
  * - limit: Items per page (default: 10)
  */
@@ -73,10 +77,15 @@ export const getUserIncomingOrders: PayloadHandler = async (req) => {
       sellers: { contains: id },
     }
 
-    // Add status filter if provided
-    if (status) {
-      where.status = { equals: status }
+    // Map filter status to order-level status for initial query
+    // We'll do additional filtering by item shippingStatus after fetching
+    if (status === 'completed') {
+      where.status = { equals: 'completed' }
+    } else if (status === 'cancelled') {
+      where.status = { equals: 'cancelled' }
     }
+    // For 'new'/'placed' and 'in_progress', we need to fetch all non-completed orders
+    // and filter by item shippingStatus
 
     // Fetch orders with populated relationships
     const ordersResult = await payload.find({
@@ -84,13 +93,13 @@ export const getUserIncomingOrders: PayloadHandler = async (req) => {
       where,
       sort: '-createdAt',
       page,
-      limit,
+      limit: status === 'new' || status === 'placed' || status === 'in_progress' ? 100 : limit, // Fetch more for post-filtering
       depth: 3, // Get nested relationships
     })
 
     // Transform orders to simplified incoming order format
     // Only include items where the user is the seller
-    const incomingOrders: IncomingOrder[] = ordersResult.docs.map((order: any) => {
+    let incomingOrders: IncomingOrder[] = ordersResult.docs.map((order: any) => {
       // Extract shipping address info from shippingDetails
       let shippingAddress = null
       if (order.shippingDetails) {
@@ -101,12 +110,26 @@ export const getUserIncomingOrders: PayloadHandler = async (req) => {
       }
 
       // Filter and transform items - only include items where user is the seller
-      const items: IncomingOrderItem[] = (order.items || [])
+      let filteredItems = (order.items || [])
         .filter((item: any) => {
           const sellerId = typeof item.seller === 'object' ? item.seller?.id : item.seller
           return sellerId === id
         })
-        .map((item: any) => {
+
+      // Apply item-level status filter
+      if (status === 'new' || status === 'placed') {
+        // Show only items with 'placed' shippingStatus (new/pending items)
+        filteredItems = filteredItems.filter((item: any) => 
+          item.shippingStatus === 'placed' || item.shippingStatus === 'new'
+        )
+      } else if (status === 'in_progress') {
+        // Show only items that are out for delivery
+        filteredItems = filteredItems.filter((item: any) => 
+          item.shippingStatus === 'out_for_delivery'
+        )
+      }
+
+      const items: IncomingOrderItem[] = filteredItems.map((item: any) => {
           // Get variation details
           const variation = item.variation
           let imageUrl = item.variationImage || null // Use stored image URL first
@@ -168,14 +191,37 @@ export const getUserIncomingOrders: PayloadHandler = async (req) => {
       }
     }).filter((order: IncomingOrder) => order.items.length > 0) // Only include orders with seller's items
 
+    // Apply pagination for post-filtered results
+    const needsPostFilterPagination = status === 'new' || status === 'placed' || status === 'in_progress'
+    let paginatedOrders = incomingOrders
+    let totalDocs = incomingOrders.length
+    let totalPages = Math.ceil(totalDocs / limit)
+    let currentPage = page
+    let hasNextPage = false
+    let hasPrevPage = page > 1
+
+    if (needsPostFilterPagination) {
+      const startIndex = (page - 1) * limit
+      const endIndex = startIndex + limit
+      paginatedOrders = incomingOrders.slice(startIndex, endIndex)
+      hasNextPage = endIndex < totalDocs
+    } else {
+      paginatedOrders = incomingOrders
+      totalDocs = ordersResult.totalDocs
+      totalPages = ordersResult.totalPages
+      currentPage = ordersResult.page
+      hasNextPage = ordersResult.hasNextPage
+      hasPrevPage = ordersResult.hasPrevPage
+    }
+
     return Response.json({
-      docs: incomingOrders,
-      totalDocs: ordersResult.totalDocs,
-      totalPages: ordersResult.totalPages,
-      page: ordersResult.page,
-      limit: ordersResult.limit,
-      hasNextPage: ordersResult.hasNextPage,
-      hasPrevPage: ordersResult.hasPrevPage,
+      docs: paginatedOrders,
+      totalDocs,
+      totalPages,
+      page: currentPage,
+      limit,
+      hasNextPage,
+      hasPrevPage,
     })
   } catch (error: any) {
     payload.logger.error(`Error fetching incoming orders: ${error}`)

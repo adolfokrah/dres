@@ -112,6 +112,15 @@ export const getIncomingOrderDetails: PayloadHandler = async (req) => {
         returnImageUrl = typeof returnImg === 'object' ? returnImg.url : returnImg
       }
 
+      // Map return reason value to label
+      const returnReasonLabels: Record<string, string> = {
+        'wrong_item': 'Wrong item sent',
+        'fake_item': 'Fake / Not Authentic',
+        'damaged': 'Item arrived damaged',
+        'not_as_described': 'Item not as described',
+      }
+      const returnReasonLabel = item.returnReason ? returnReasonLabels[item.returnReason] || item.returnReason : null
+
       return {
         id: item.id,
         variationId: typeof variation === 'object' ? variation.id : variation,
@@ -124,7 +133,7 @@ export const getIncomingOrderDetails: PayloadHandler = async (req) => {
         quantity: item.quantity || 1,
         shippingFee: item.shippingFee || 0,
         shippingStatus: item.shippingStatus || 'placed',
-        returnReason: item.returnReason || null,
+        returnReason: returnReasonLabel,
         returnImage: returnImageUrl,
         statusLogs: item.statusLogs || [],
       }
