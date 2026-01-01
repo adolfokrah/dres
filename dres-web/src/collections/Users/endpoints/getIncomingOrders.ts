@@ -207,11 +207,11 @@ export const getUserIncomingOrders: PayloadHandler = async (req) => {
       hasNextPage = endIndex < totalDocs
     } else {
       paginatedOrders = incomingOrders
-      totalDocs = ordersResult.totalDocs
-      totalPages = ordersResult.totalPages
-      currentPage = ordersResult.page
-      hasNextPage = ordersResult.hasNextPage
-      hasPrevPage = ordersResult.hasPrevPage
+      totalDocs = ordersResult.totalDocs ?? incomingOrders.length
+      totalPages = ordersResult.totalPages ?? 1
+      currentPage = ordersResult.page ?? page
+      hasNextPage = ordersResult.hasNextPage ?? false
+      hasPrevPage = ordersResult.hasPrevPage ?? page > 1
     }
 
     return Response.json({
