@@ -8,8 +8,8 @@ import 'package:dres/core/utilities/currency_utils.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/status_badge.dart';
-import 'package:dres/features/profile/logic/incoming_order_details_bloc/incoming_order_details_bloc.dart';
-import 'package:dres/features/profile/data/models/incoming_order_details_model.dart';
+import 'package:dres/features/orders/logic/incoming_order_details_bloc/incoming_order_details_bloc.dart';
+import 'package:dres/features/orders/data/models/incoming_order_details_model.dart';
 import 'package:dres/features/profile/presentation/widgets/incoming_order_item_tile.dart';
 
 /// Incoming order details screen (seller's view)
@@ -142,8 +142,8 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Warning banner
-                _buildWarningBanner(),
+                // Warning banner - only show when there are placed items
+                if (order.hasPlacedItems) _buildWarningBanner(),
 
                 // Progress bar with status
                 _buildProgressBar(order),

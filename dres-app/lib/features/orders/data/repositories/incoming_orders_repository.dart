@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:dres/core/services/api_service.dart';
-import 'package:dres/features/profile/data/models/incoming_order_model.dart';
-import 'package:dres/features/profile/data/models/incoming_order_details_model.dart';
+import 'package:dres/features/orders/data/models/incoming_order_model.dart';
+import 'package:dres/features/orders/data/models/incoming_order_details_model.dart';
 
-export 'package:dres/features/profile/data/models/incoming_order_model.dart';
-export 'package:dres/features/profile/data/models/incoming_order_details_model.dart';
+export 'package:dres/features/orders/data/models/incoming_order_model.dart';
+export 'package:dres/features/orders/data/models/incoming_order_details_model.dart';
 
 class IncomingOrdersRepository {
   final ApiService _apiService;

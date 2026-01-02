@@ -10,8 +10,8 @@ class OrderDetailsBloc extends Bloc<OrderDetailsEvent, OrderDetailsState> {
   final OrdersRepository _ordersRepository;
 
   OrderDetailsBloc({required OrdersRepository ordersRepository})
-      : _ordersRepository = ordersRepository,
-        super(const OrderDetailsState()) {
+    : _ordersRepository = ordersRepository,
+      super(const OrderDetailsState()) {
     on<OrderDetailsFetchRequested>(_onFetchRequested);
     on<OrderDetailsRefreshRequested>(_onRefreshRequested);
   }
@@ -20,22 +20,28 @@ class OrderDetailsBloc extends Bloc<OrderDetailsEvent, OrderDetailsState> {
     OrderDetailsFetchRequested event,
     Emitter<OrderDetailsState> emit,
   ) async {
-    emit(state.copyWith(
-      status: OrderDetailsStatus.loading,
-      currentOrderId: event.orderId,
-    ));
+    emit(
+      state.copyWith(
+        status: OrderDetailsStatus.loading,
+        currentOrderId: event.orderId,
+      ),
+    );
 
     try {
-      final order = await _ordersRepository.getOrderById(event.orderId);
-      emit(state.copyWith(
-        status: OrderDetailsStatus.success,
-        order: order,
-      ));
+      final purchaseDetails = await _ordersRepository.getPurchaseDetails(
+        event.orderId,
+      );
+
+      emit(
+        state.copyWith(
+          status: OrderDetailsStatus.success,
+          purchaseDetails: purchaseDetails,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        status: OrderDetailsStatus.error,
-        error: e.toString(),
-      ));
+      emit(
+        state.copyWith(status: OrderDetailsStatus.error, error: e.toString()),
+      );
     }
   }
 
@@ -46,16 +52,19 @@ class OrderDetailsBloc extends Bloc<OrderDetailsEvent, OrderDetailsState> {
     if (state.currentOrderId == null) return;
 
     try {
-      final order = await _ordersRepository.getOrderById(state.currentOrderId!);
-      emit(state.copyWith(
-        status: OrderDetailsStatus.success,
-        order: order,
-      ));
+      final purchaseDetails = await _ordersRepository.getPurchaseDetails(
+        state.currentOrderId!,
+      );
+
+      emit(
+        state.copyWith(
+          status: OrderDetailsStatus.success,
+          purchaseDetails: purchaseDetails,
+        ),
+      );
     } catch (e) {
-      // Keep existing order on refresh error
-      emit(state.copyWith(
-        error: e.toString(),
-      ));
+      // Keep existing data on refresh error
+      emit(state.copyWith(error: e.toString()));
     }
   }
 }

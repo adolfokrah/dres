@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
-import 'package:dres/features/profile/data/repositories/purchases_repository.dart';
+import 'package:dres/features/orders/data/repositories/purchases_repository.dart';
 import 'purchases_event.dart';
 import 'purchases_state.dart';
 

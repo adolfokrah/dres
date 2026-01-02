@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/di/injection.dart';
-import 'package:dres/features/profile/logic/incoming_orders_bloc/incoming_orders_bloc.dart';
+import 'package:dres/features/orders/logic/incoming_orders_bloc/incoming_orders_bloc.dart';
 import 'package:dres/features/profile/presentation/widgets/incoming_order_card.dart';
 import 'package:dres/features/profile/presentation/widgets/status_filter_chips.dart';
 

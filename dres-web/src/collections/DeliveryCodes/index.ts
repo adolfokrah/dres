@@ -10,7 +10,7 @@ export const DeliveryCodes: CollectionConfig = {
   admin: {
     useAsTitle: 'code',
     group: 'Orders',
-    defaultColumns: ['code', 'order', 'seller', 'buyer', 'status', 'createdAt'],
+    defaultColumns: ['code', 'order', 'buyer', 'createdAt'],
     description: 'Delivery confirmation codes for courier USSD verification',
   },
   access: {
@@ -18,9 +18,9 @@ export const DeliveryCodes: CollectionConfig = {
     read: ({ req: { user } }) => {
       if (!user) return false
       if (user.role === 'admin') return true
-      // Users can read their own codes (as buyer or seller)
+      // Users can read their own codes (as buyer)
       return {
-        or: [{ buyer: { equals: user.id } }, { seller: { equals: user.id } }],
+        buyer: { equals: user.id },
       } as any
     },
     create: ({ req: { user } }) => user?.role === 'admin',
@@ -47,29 +47,14 @@ export const DeliveryCodes: CollectionConfig = {
       },
     },
     {
-      type: 'row',
-      fields: [
-        {
-          name: 'order',
-          type: 'relationship',
-          relationTo: 'orders',
-          required: true,
-          admin: {
-            description: 'The order this code belongs to',
-            width: '50%',
-          },
-        },
-        {
-          name: 'seller',
-          type: 'relationship',
-          relationTo: 'users',
-          required: true,
-          admin: {
-            description: 'The seller whose items this code covers',
-            width: '50%',
-          },
-        },
-      ],
+      name: 'order',
+      type: 'relationship',
+      relationTo: 'orders',
+      required: true,
+      unique: true, // One code per order
+      admin: {
+        description: 'The order this code belongs to',
+      },
     },
     {
       name: 'buyer',
@@ -79,20 +64,6 @@ export const DeliveryCodes: CollectionConfig = {
       admin: {
         description: 'The customer who will provide this code to courier',
       },
-    },
-    {
-      name: 'items',
-      type: 'array',
-      admin: {
-        description: 'Item IDs covered by this delivery code',
-      },
-      fields: [
-        {
-          name: 'itemId',
-          type: 'text',
-          required: true,
-        },
-      ],
     },
     {
       name: 'expiresAt',

@@ -5,7 +5,7 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/image_viewer.dart';
 import 'package:dres/core/widgets/status_badge.dart';
-import 'package:dres/features/profile/data/models/incoming_order_details_model.dart';
+import 'package:dres/features/orders/data/models/incoming_order_details_model.dart';
 
 /// Incoming order item tile widget (seller's view)
 class IncomingOrderItemTile extends StatefulWidget {
@@ -89,22 +89,24 @@ class _IncomingOrderItemTileState extends State<IncomingOrderItemTile> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    // SKU option (e.g., "Size: L/2")
-                    if (widget.item.skuOptionValue != null && widget.item.skuOptionValue!.isNotEmpty)
-                      Text(
-                        'Size: ${widget.item.skuOptionValue}',
-                        style: AppTypography.bodyM.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    // Quantity
+                    // SKU option and Quantity (e.g., "Size: L/2 x2")
                     Text(
-                      'Qty: ${widget.item.quantity}',
+                      widget.item.skuOptionValue != null && widget.item.skuOptionValue!.isNotEmpty
+                          ? '${widget.item.skuOptionValue} x${widget.item.quantity}'
+                          : 'x${widget.item.quantity}',
                       style: AppTypography.bodyM.copyWith(
                         color: AppColors.textSecondary,
                       ),
                     ),
                   ],
+                ),
+              ),
+              // Price at far right
+              Text(
+                '₵${(widget.item.originalPrice * widget.item.quantity).toStringAsFixed(2)}',
+                style: AppTypography.bodyL.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],

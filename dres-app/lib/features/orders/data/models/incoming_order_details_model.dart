@@ -277,6 +277,7 @@ class IncomingOrderDetailsModel {
   final IncomingOrderDetailsStatus status;
   final List<IncomingOrderItemModel> items;
   final IncomingOrderShipping? shipping;
+  final int itemCount;
   final double itemsTotal;
   final double shippingFee;
   final double subtotal;
@@ -288,6 +289,7 @@ class IncomingOrderDetailsModel {
     required this.status,
     required this.items,
     this.shipping,
+    required this.itemCount,
     required this.itemsTotal,
     required this.shippingFee,
     required this.subtotal,
@@ -306,6 +308,7 @@ class IncomingOrderDetailsModel {
       shipping: json['shipping'] != null
           ? IncomingOrderShipping.fromJson(json['shipping'])
           : null,
+      itemCount: json['itemCount'] ?? 0,
       itemsTotal: (json['itemsTotal'] ?? 0).toDouble(),
       shippingFee: (json['shippingFee'] ?? 0).toDouble(),
       subtotal: (json['subtotal'] ?? 0).toDouble(),
@@ -335,7 +338,4 @@ class IncomingOrderDetailsModel {
         item.shippingStatus == IncomingItemStatus.placed ||
         item.shippingStatus == IncomingItemStatus.newItem);
   }
-
-  /// Number of items
-  int get itemCount => items.length;
 }

@@ -23,11 +23,11 @@ import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
 import 'package:dres/features/cart/logic/address_bloc/address_bloc.dart';
 import 'package:dres/features/orders/data/repositories/orders_repository.dart';
 import 'package:dres/features/orders/logic/order_details_bloc/order_details_bloc.dart';
-import 'package:dres/features/profile/data/repositories/purchases_repository.dart';
-import 'package:dres/features/profile/data/repositories/incoming_orders_repository.dart';
-import 'package:dres/features/profile/logic/purchases_bloc/purchases_bloc.dart';
-import 'package:dres/features/profile/logic/incoming_orders_bloc/incoming_orders_bloc.dart';
-import 'package:dres/features/profile/logic/incoming_order_details_bloc/incoming_order_details_bloc.dart';
+import 'package:dres/features/orders/data/repositories/purchases_repository.dart';
+import 'package:dres/features/orders/data/repositories/incoming_orders_repository.dart';
+import 'package:dres/features/orders/logic/purchases_bloc/purchases_bloc.dart';
+import 'package:dres/features/orders/logic/incoming_orders_bloc/incoming_orders_bloc.dart';
+import 'package:dres/features/orders/logic/incoming_order_details_bloc/incoming_order_details_bloc.dart';
 
 final getIt = GetIt.instance;
 

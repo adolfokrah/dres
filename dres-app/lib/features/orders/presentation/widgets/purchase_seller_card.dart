@@ -3,61 +3,26 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
-import 'package:dres/features/orders/data/models/order_model.dart';
-import 'package:dres/features/orders/presentation/widgets/order_item_tile.dart';
+import 'package:dres/features/orders/data/models/purchase_details_model.dart';
+import 'package:dres/features/orders/presentation/widgets/purchase_item_tile.dart';
 
-/// Card showing a seller's items in an order with fees and totals
-class OrderSellerCard extends StatelessWidget {
-  final OrderSellerModel seller;
-  final List<OrderItemModel> items;
-  final VoidCallback? onLearnMoreTap;
-  final void Function(OrderItemModel item)? onReturnItemTap;
-  final void Function(OrderItemModel item)? onResellItemTap;
+/// Card showing a seller's items in a purchase with fees and totals
+class PurchaseSellerCard extends StatelessWidget {
+  final SellerGroupModel sellerGroup;
+  final String orderId;
+  final void Function(PurchaseItemModel item)? onReturnItemTap;
+  final void Function(PurchaseItemModel item)? onResellItemTap;
 
-  const OrderSellerCard({
+  const PurchaseSellerCard({
     super.key,
-    required this.seller,
-    required this.items,
-    this.onLearnMoreTap,
+    required this.sellerGroup,
+    required this.orderId,
     this.onReturnItemTap,
     this.onResellItemTap,
   });
 
-  double get _shippingFee {
-    // One shipping fee per seller (from first item)
-    return items.isNotEmpty ? items.first.shippingFee : 0;
-  }
-
-  double get _buyerProtectionFee {
-    return items.fold(0.0, (sum, item) => sum + item.buyerProtectionFee);
-  }
-
-  double get _itemsTotal {
-    return items.fold(0.0, (sum, item) => sum + item.itemTotal);
-  }
-
-  double get _total => _itemsTotal + _shippingFee + _buyerProtectionFee;
-
-  /// Get seller display name from first item (stored at purchase time)
-  String get _sellerDisplayName {
-    if (items.isNotEmpty) {
-      return items.first.displaySellerName;
-    }
-    return seller.displayName;
-  }
-
-  /// Get seller image from first item (stored at purchase time)
-  String? get _sellerImage {
-    if (items.isNotEmpty) {
-      return items.first.displaySellerImage;
-    }
-    return seller.resolvedProfilePhoto;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final sellerPhotoUrl = _sellerImage;
-
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
@@ -79,18 +44,18 @@ class OrderSellerCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.secondary,
-                  image: sellerPhotoUrl != null
+                  image: sellerGroup.sellerImage != null
                       ? DecorationImage(
-                          image: NetworkImage(sellerPhotoUrl),
+                          image: NetworkImage(sellerGroup.sellerImage!),
                           fit: BoxFit.cover,
                         )
                       : null,
                 ),
-                child: sellerPhotoUrl == null
+                child: sellerGroup.sellerImage == null
                     ? Center(
                         child: Text(
-                          _sellerDisplayName.isNotEmpty
-                              ? _sellerDisplayName[0].toUpperCase()
+                          sellerGroup.sellerName.isNotEmpty
+                              ? sellerGroup.sellerName[0].toUpperCase()
                               : 'S',
                           style: AppTypography.titleL.copyWith(
                             color: AppColors.textSecondary,
@@ -106,12 +71,12 @@ class OrderSellerCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    _sellerDisplayName,
+                    sellerGroup.sellerName,
                     style: AppTypography.bodyL.copyWith(
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  if (seller.isTrustedSeller)
+                  if (sellerGroup.isTrustedSeller)
                     Row(
                       children: [
                         Icon(
@@ -136,10 +101,10 @@ class OrderSellerCard extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Items with action buttons for delivered items
-          ...items.map(
+          ...sellerGroup.items.map(
             (item) => Padding(
               padding: const EdgeInsets.only(bottom: 13),
-              child: OrderItemTile(
+              child: PurchaseItemTile(
                 item: item,
                 onReturnItemTap: onReturnItemTap,
                 onResellItemTap: onResellItemTap,
@@ -151,13 +116,13 @@ class OrderSellerCard extends StatelessWidget {
           _FeeRow(
             icon: PhosphorIcons.truck(),
             label: 'Direct shipping',
-            amount: _shippingFee,
+            amount: sellerGroup.shippingFee,
           ),
           const SizedBox(height: 14),
           _FeeRow(
             icon: PhosphorIcons.shield(),
             label: 'Buyer protection fee',
-            amount: _buyerProtectionFee,
+            amount: sellerGroup.buyerProtectionFee,
           ),
 
           const SizedBox(height: 14),
@@ -173,7 +138,7 @@ class OrderSellerCard extends StatelessWidget {
                 ),
               ),
               Text(
-                CurrencyUtils.format(_total),
+                CurrencyUtils.format(sellerGroup.total),
                 style: AppTypography.bodyM.copyWith(
                   color: AppColors.textPrimary,
                 ),

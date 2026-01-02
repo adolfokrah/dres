@@ -99,6 +99,7 @@ export interface Config {
     transactions: Transaction;
     users: User;
     'user-points': UserPoint;
+    'delivery-codes': DeliveryCode;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -185,6 +186,7 @@ export interface Config {
     transactions: TransactionsSelect<false> | TransactionsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'user-points': UserPointsSelect<false> | UserPointsSelect<true>;
+    'delivery-codes': DeliveryCodesSelect<false> | DeliveryCodesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -1401,14 +1403,6 @@ export interface Order {
      */
     variationImage?: string | null;
     /**
-     * Seller shop name at time of purchase
-     */
-    sellerName?: string | null;
-    /**
-     * URL to seller profile photo at time of purchase
-     */
-    sellerImage?: string | null;
-    /**
      * Reference to the SKU
      */
     sku?: (string | null) | Skus;
@@ -2359,6 +2353,33 @@ export interface UserPoint {
   createdAt: string;
 }
 /**
+ * Delivery confirmation codes for courier USSD verification
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "delivery-codes".
+ */
+export interface DeliveryCode {
+  id: string;
+  /**
+   * 4-digit delivery confirmation code
+   */
+  code: string;
+  /**
+   * The order this code belongs to
+   */
+  order: string | Order;
+  /**
+   * The customer who will provide this code to courier
+   */
+  buyer: string | User;
+  /**
+   * When this code expires (optional)
+   */
+  expiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
@@ -2675,6 +2696,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'user-points';
         value: string | UserPoint;
+      } | null)
+    | ({
+        relationTo: 'delivery-codes';
+        value: string | DeliveryCode;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -3388,8 +3413,6 @@ export interface OrdersSelect<T extends boolean = true> {
         seller?: T;
         variationTitle?: T;
         variationImage?: T;
-        sellerName?: T;
-        sellerImage?: T;
         sku?: T;
         skuTitle?: T;
         price?: T;
@@ -3628,6 +3651,18 @@ export interface UserPointsSelect<T extends boolean = true> {
         createdAt?: T;
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "delivery-codes_select".
+ */
+export interface DeliveryCodesSelect<T extends boolean = true> {
+  code?: T;
+  order?: T;
+  buyer?: T;
+  expiresAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

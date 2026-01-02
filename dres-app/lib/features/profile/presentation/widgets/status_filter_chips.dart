@@ -55,7 +55,7 @@ class IncomingOrdersFilterChips extends StatelessWidget {
 
   static const List<FilterOption> filters = [
     FilterOption(value: null, label: 'All'),
-    FilterOption(value: 'new', label: 'New'),
+    FilterOption(value: 'placed', label: 'Placed'),
     FilterOption(value: 'in_progress', label: 'In progress'),
     FilterOption(value: 'completed', label: 'Completed'),
     FilterOption(value: 'cancelled', label: 'Cancelled'),

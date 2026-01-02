@@ -10,7 +10,6 @@ interface SellerGroup {
   buyerProtectionFee: number
   itemsTotal: number
   total: number
-  deliveryCode: string | null
 }
 
 interface PurchaseDetails {
@@ -31,6 +30,7 @@ interface PurchaseDetails {
     totalDiscount: number
     grandTotal: number
   }
+  deliveryCode: string | null
 }
 
 /**
@@ -67,23 +67,18 @@ export const getPurchaseDetails: PayloadHandler = async (req) => {
       return Response.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Fetch all delivery codes for this order
-    const deliveryCodes = await payload.find({
+    // Fetch delivery code for this order (one per order)
+    const deliveryCodeResult = await payload.find({
       collection: 'delivery-codes' as any,
       where: {
         order: { equals: orderId },
       },
+      limit: 1,
       depth: 0,
     })
-
-    // Create a map of sellerId -> code
-    const codesBySeller: Record<string, string> = {}
-    for (const doc of deliveryCodes.docs as any[]) {
-      const sellerId = typeof doc.seller === 'object' ? doc.seller.id : doc.seller
-      if (sellerId) {
-        codesBySeller[sellerId] = doc.code
-      }
-    }
+    const deliveryCode = deliveryCodeResult.docs.length > 0 
+      ? (deliveryCodeResult.docs[0] as any).code 
+      : null
 
     // Group items by seller
     const items = (order.items || []) as any[]
@@ -110,7 +105,6 @@ export const getPurchaseDetails: PayloadHandler = async (req) => {
           buyerProtectionFee: 0,
           itemsTotal: 0,
           total: 0,
-          deliveryCode: codesBySeller[sellerId] || null,
         })
       }
 
@@ -163,6 +157,7 @@ export const getPurchaseDetails: PayloadHandler = async (req) => {
       shippingAddress: (order as any).shippingAddress || null,
       sellerGroups,
       summary,
+      deliveryCode,
     }
 
     return Response.json(purchaseDetails)

@@ -29,6 +29,7 @@ interface IncomingOrderDetails {
     region: string | null
     phone: string | null
   } | null
+  itemCount: number
   itemsTotal: number
   shippingFee: number
   subtotal: number
@@ -139,10 +140,18 @@ export const getIncomingOrderDetails: PayloadHandler = async (req) => {
       }
     })
 
-    // Calculate totals for seller's items only
-    const itemsTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-    // Only count shipping fee once (from first item)
-    const shippingFee = items.length > 0 ? items[0].shippingFee : 0
+    // Calculate totals for seller's items only (only placed, delivered, out_for_delivery)
+    // Use originalPrice (seller's price) not selling price for incoming orders
+    const eligibleItems = items.filter(item => 
+      item.shippingStatus === 'placed' || 
+      item.shippingStatus === 'new' ||
+      item.shippingStatus === 'delivered' || 
+      item.shippingStatus === 'out_for_delivery'
+    )
+    const itemCount = eligibleItems.length
+    const itemsTotal = eligibleItems.reduce((sum, item) => sum + (item.originalPrice * item.quantity), 0)
+    // Only count shipping fee once (from first eligible item)
+    const shippingFee = eligibleItems.length > 0 ? eligibleItems[0].shippingFee : 0
     const subtotal = itemsTotal + shippingFee
 
     // Get shipping details
@@ -164,6 +173,7 @@ export const getIncomingOrderDetails: PayloadHandler = async (req) => {
       status: order.status as string,
       items,
       shipping,
+      itemCount,
       itemsTotal: Math.round(itemsTotal * 100) / 100,
       shippingFee: Math.round(shippingFee * 100) / 100,
       subtotal: Math.round(subtotal * 100) / 100,

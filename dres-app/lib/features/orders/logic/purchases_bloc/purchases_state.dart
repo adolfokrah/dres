@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:dres/features/profile/data/models/purchase_model.dart';
+import 'package:dres/features/orders/data/models/purchase_model.dart';
 
 enum PurchasesStatus { initial, loading, success, error }
 

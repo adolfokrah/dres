@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
-import 'package:dres/features/profile/data/repositories/incoming_orders_repository.dart';
-import 'package:dres/features/profile/logic/incoming_orders_bloc/incoming_orders_bloc.dart';
+import 'package:dres/features/orders/data/repositories/incoming_orders_repository.dart';
+import 'package:dres/features/orders/logic/incoming_orders_bloc/incoming_orders_bloc.dart';
 import 'incoming_order_details_event.dart';
 import 'incoming_order_details_state.dart';
 

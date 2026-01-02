@@ -5,24 +5,23 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/di/injection.dart';
+import 'package:dres/features/orders/data/models/purchase_details_model.dart';
 import 'package:dres/features/orders/logic/order_details_bloc/order_details_bloc.dart';
 import 'package:dres/features/orders/presentation/widgets/order_progress_bar.dart';
-import 'package:dres/features/orders/presentation/widgets/order_seller_card.dart';
+import 'package:dres/features/orders/presentation/widgets/purchase_seller_card.dart';
 import 'package:dres/features/orders/presentation/widgets/order_summary_card.dart';
+import 'package:dres/features/orders/presentation/widgets/delivery_code_card.dart';
 
-class OrderDetailsScreen extends StatefulWidget {
+class PurchaseDetailsScreen extends StatefulWidget {
   final String orderId;
 
-  const OrderDetailsScreen({
-    super.key,
-    required this.orderId,
-  });
+  const PurchaseDetailsScreen({super.key, required this.orderId});
 
   @override
-  State<OrderDetailsScreen> createState() => _OrderDetailsScreenState();
+  State<PurchaseDetailsScreen> createState() => _PurchaseDetailsScreenState();
 }
 
-class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
+class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
   late final OrderDetailsBloc _orderDetailsBloc;
 
   @override
@@ -40,10 +39,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            PhosphorIcons.caretLeft(),
-            color: AppColors.textPrimary,
-          ),
+          icon: Icon(PhosphorIcons.caretLeft(), color: AppColors.textPrimary),
           onPressed: () {
             if (context.canPop()) {
               context.pop();
@@ -56,31 +52,26 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         title: BlocBuilder<OrderDetailsBloc, OrderDetailsState>(
           bloc: _orderDetailsBloc,
           builder: (context, state) {
-            final displayOrderId = state.order?.orderId ?? '';
+            final displayOrderId = state.purchaseDetails?.order.orderId ?? '';
             return Text(
-              displayOrderId.isNotEmpty ? 'Order #$displayOrderId' : 'Order Details',
-              style: AppTypography.bodyL.copyWith(
-                color: AppColors.textPrimary,
-              ),
+              displayOrderId.isNotEmpty
+                  ? 'Order #$displayOrderId'
+                  : 'Order Details',
+              style: AppTypography.bodyL.copyWith(color: AppColors.textPrimary),
             );
           },
         ),
         centerTitle: true,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(
-            height: 1,
-            color: AppColors.secondary,
-          ),
+          child: Container(height: 1, color: AppColors.secondary),
         ),
       ),
       body: BlocBuilder<OrderDetailsBloc, OrderDetailsState>(
         bloc: _orderDetailsBloc,
         builder: (context, state) {
           if (state.status == OrderDetailsStatus.loading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (state.status == OrderDetailsStatus.error) {
@@ -114,14 +105,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             );
           }
 
-          final order = state.order;
-          if (order == null) {
-            return const Center(
-              child: Text('Order not found'),
-            );
+          final purchaseDetails = state.purchaseDetails;
+          if (purchaseDetails == null) {
+            return const Center(child: Text('Order not found'));
           }
-
-          final itemsBySeller = order.itemsBySeller;
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -132,34 +119,35 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Delivery code at the top (show when any item is out for delivery)
+                  if (purchaseDetails.hasItemsOutForDelivery &&
+                      purchaseDetails.deliveryCode != null)
+                    DeliveryCodeCard(code: purchaseDetails.deliveryCode!),
+
                   // Progress bar
                   OrderProgressBar(
-                    status: order.status,
-                    progressValue: order.overallProgress,
+                    status: purchaseDetails.order.status,
+                    progressValue: _calculateOverallProgress(purchaseDetails),
                   ),
 
                   // Shipping address section
-                  if (order.shippingAddress != null)
-                    _ShippingSection(address: order.shippingAddress!),
+                  if (purchaseDetails.shippingAddress != null)
+                    _ShippingSection(address: purchaseDetails.shippingAddress!),
 
                   // Seller cards with items
-                  ...itemsBySeller.entries.map((entry) {
-                    final seller = order.items
-                        .firstWhere((item) => item.seller.id == entry.key)
-                        .seller;
-                    return OrderSellerCard(
-                      seller: seller,
-                      items: entry.value,
-                      onLearnMoreTap: () {
-                        // TODO: Show direct shipping info
-                      },
+                  ...purchaseDetails.sellerGroups.map((sellerGroup) {
+                    return PurchaseSellerCard(
+                      sellerGroup: sellerGroup,
+                      orderId: widget.orderId,
                       onReturnItemTap: (item) async {
                         final result = await context.push<bool>(
                           '/orders/${widget.orderId}/return/${item.id}',
                         );
                         // Refresh order if return was successful
                         if (result == true && mounted) {
-                          _orderDetailsBloc.add(OrderDetailsFetchRequested(orderId: widget.orderId));
+                          _orderDetailsBloc.add(
+                            OrderDetailsFetchRequested(orderId: widget.orderId),
+                          );
                         }
                       },
                       onResellItemTap: (item) {
@@ -174,7 +162,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   }),
 
                   // Order summary
-                  OrderSummaryCard(order: order),
+                  OrderSummaryCard(summary: purchaseDetails.summary),
 
                   const SizedBox(height: 40),
                 ],
@@ -184,6 +172,20 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         },
       ),
     );
+  }
+
+  /// Calculate overall progress from all items in all seller groups
+  int _calculateOverallProgress(PurchaseDetailsModel purchaseDetails) {
+    int maxProgress = 0;
+    for (final group in purchaseDetails.sellerGroups) {
+      for (final item in group.items) {
+        final itemProgress = item.shippingStatus.progressValue;
+        if (itemProgress > maxProgress) {
+          maxProgress = itemProgress;
+        }
+      }
+    }
+    return maxProgress;
   }
 }
 
@@ -198,10 +200,7 @@ class _ShippingSection extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: const BoxDecoration(
         border: Border(
-          bottom: BorderSide(
-            color: AppColors.secondary,
-            width: 1,
-          ),
+          bottom: BorderSide(color: AppColors.secondary, width: 1),
         ),
       ),
       child: Column(

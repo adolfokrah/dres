@@ -21,10 +21,10 @@ import 'package:dres/features/cart/presentation/view/addresses_screen.dart';
 import 'package:dres/features/cart/presentation/view/add_address_screen.dart';
 import 'package:dres/features/cart/presentation/view/direct_shipping_info_screen.dart';
 import 'package:dres/features/cart/data/models/shipping_address.dart';
-import 'package:dres/features/orders/presentation/view/order_details_screen.dart';
+import 'package:dres/features/orders/presentation/view/purchase_details_screen.dart';
 import 'package:dres/features/orders/presentation/view/return_item_screen.dart';
 import 'package:dres/features/profile/presentation/view/user_profile_screen.dart';
-import 'package:dres/features/profile/presentation/view/incoming_order_details_screen.dart';
+import 'package:dres/features/orders/presentation/view/incoming_order_details_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
 import 'package:dres/core/models/menu_model.dart';
 
@@ -134,7 +134,7 @@ class AppRoutes {
         name: 'order-details',
         builder: (context, state) {
           final id = state.pathParameters['id']!;
-          return OrderDetailsScreen(orderId: id);
+          return PurchaseDetailsScreen(orderId: id);
         },
       ),
       

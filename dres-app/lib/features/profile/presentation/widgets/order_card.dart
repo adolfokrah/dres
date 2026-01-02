@@ -4,7 +4,7 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/media_utils.dart';
 import 'package:dres/core/widgets/status_badge.dart';
-import 'package:dres/features/profile/data/models/purchase_model.dart';
+import 'package:dres/features/orders/data/models/purchase_model.dart';
 
 /// Purchase card widget for purchases list
 class PurchaseCard extends StatelessWidget {

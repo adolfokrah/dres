@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:dres/features/profile/data/models/incoming_order_model.dart';
+import 'package:dres/features/orders/data/models/incoming_order_model.dart';
 
 enum IncomingOrdersStatus { initial, loading, success, error }
 

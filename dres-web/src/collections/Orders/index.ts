@@ -15,6 +15,7 @@ import { notifyCustomerOnStatusChange } from './hooks/notifyCustomerOnStatusChan
 import { createDeliveryCodeOnOutForDelivery } from './hooks/createDeliveryCodeOnOutForDelivery'
 import { returnItem } from './endpoints/returnItem'
 import { getPurchaseDetails } from './endpoints/getPurchaseDetails'
+import { getPurchases } from './endpoints/getPurchases'
 import { getIncomingOrders } from './endpoints/getIncomingOrders'
 import { getIncomingOrderDetails } from './endpoints/getIncomingOrderDetails'
 import {
@@ -40,6 +41,12 @@ export const Orders: CollectionConfig = {
       path: '/:id/purchase-details',
       method: 'get',
       handler: getPurchaseDetails,
+    },
+    // Purchases endpoint (for buyers)
+    {
+      path: '/purchases/:userId',
+      method: 'get',
+      handler: getPurchases,
     },
     // Incoming orders endpoints (for sellers)
     {

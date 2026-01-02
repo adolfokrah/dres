@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
-import 'package:dres/features/orders/data/models/order_model.dart';
+import 'package:dres/features/orders/data/models/purchase_details_model.dart';
 
 /// Order summary section showing totals
 class OrderSummaryCard extends StatelessWidget {
-  final OrderModel order;
+  final PurchaseSummary summary;
 
   const OrderSummaryCard({
     super.key,
-    required this.order,
+    required this.summary,
   });
 
   @override
@@ -23,16 +23,17 @@ class OrderSummaryCard extends StatelessWidget {
         children: [
           // Items count and subtotal
           _SummaryRow(
-            label: '${order.totalItems} item${order.totalItems != 1 ? 's' : ''}',
-            value: CurrencyUtils.format(order.subtotal),
+            label:
+                '${summary.totalItems} item${summary.totalItems != 1 ? 's' : ''}',
+            value: CurrencyUtils.format(summary.subtotal),
           ),
           const SizedBox(height: 8),
 
           // Discount
-          if (order.totalDiscount > 0) ...[
+          if (summary.totalDiscount > 0) ...[
             _SummaryRow(
               label: 'Discount',
-              value: '-${CurrencyUtils.format(order.totalDiscount)}',
+              value: '-${CurrencyUtils.format(summary.totalDiscount)}',
             ),
             const SizedBox(height: 8),
           ],
@@ -40,14 +41,14 @@ class OrderSummaryCard extends StatelessWidget {
           // Shipping
           _SummaryRow(
             label: 'Shipping',
-            value: CurrencyUtils.format(order.totalShipping),
+            value: CurrencyUtils.format(summary.totalShipping),
           ),
           const SizedBox(height: 8),
 
           // Buyer protection
           _SummaryRow(
             label: 'Buyer Protection',
-            value: CurrencyUtils.format(order.totalBuyerProtection),
+            value: CurrencyUtils.format(summary.totalBuyerProtection),
           ),
 
           const SizedBox(height: 24),
@@ -64,7 +65,7 @@ class OrderSummaryCard extends StatelessWidget {
                 ),
               ),
               Text(
-                CurrencyUtils.format(order.grandTotal),
+                CurrencyUtils.format(summary.grandTotal),
                 style: AppTypography.bodyL.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,

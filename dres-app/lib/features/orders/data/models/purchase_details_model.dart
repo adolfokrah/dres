@@ -7,12 +7,14 @@ class PurchaseDetailsModel {
   final OrderShippingAddress? shippingAddress;
   final List<SellerGroupModel> sellerGroups;
   final PurchaseSummary summary;
+  final String? deliveryCode;
 
   PurchaseDetailsModel({
     required this.order,
     this.shippingAddress,
     required this.sellerGroups,
     required this.summary,
+    this.deliveryCode,
   });
 
   factory PurchaseDetailsModel.fromJson(Map<String, dynamic> json) {
@@ -26,7 +28,13 @@ class PurchaseDetailsModel {
               .toList() ??
           [],
       summary: PurchaseSummary.fromJson(json['summary'] ?? {}),
+      deliveryCode: json['deliveryCode'],
     );
+  }
+
+  /// Check if any item is out for delivery (show delivery code)
+  bool get hasItemsOutForDelivery {
+    return sellerGroups.any((group) => group.hasItemsOutForDelivery);
   }
 }
 
@@ -57,7 +65,7 @@ class PurchaseOrderInfo {
   }
 }
 
-/// Seller group with items and delivery code
+/// Seller group with items
 class SellerGroupModel {
   final String sellerId;
   final String sellerName;
@@ -68,7 +76,6 @@ class SellerGroupModel {
   final double buyerProtectionFee;
   final double itemsTotal;
   final double total;
-  final String? deliveryCode;
 
   SellerGroupModel({
     required this.sellerId,
@@ -80,7 +87,6 @@ class SellerGroupModel {
     required this.buyerProtectionFee,
     required this.itemsTotal,
     required this.total,
-    this.deliveryCode,
   });
 
   factory SellerGroupModel.fromJson(Map<String, dynamic> json) {
@@ -99,11 +105,10 @@ class SellerGroupModel {
       buyerProtectionFee: (json['buyerProtectionFee'] ?? 0).toDouble(),
       itemsTotal: (json['itemsTotal'] ?? 0).toDouble(),
       total: (json['total'] ?? 0).toDouble(),
-      deliveryCode: json['deliveryCode'],
     );
   }
 
-  /// Check if any item is out for delivery (show delivery code)
+  /// Check if any item is out for delivery
   bool get hasItemsOutForDelivery {
     return items.any((item) => item.shippingStatus == ShippingStatus.outForDelivery);
   }
