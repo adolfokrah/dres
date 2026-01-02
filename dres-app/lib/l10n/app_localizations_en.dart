@@ -211,6 +211,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get follow => 'Follow';
 
   @override
+  String get following => 'Following';
+
+  @override
   String usuallyShipsIn(String hours) {
     return 'Usually ships in $hours';
   }

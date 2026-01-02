@@ -484,6 +484,12 @@ abstract class AppLocalizations {
   /// **'Follow'**
   String get follow;
 
+  /// Following button text (when already following)
+  ///
+  /// In en, this message translates to:
+  /// **'Following'**
+  String get following;
+
   /// Usually ships in text
   ///
   /// In en, this message translates to:

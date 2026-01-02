@@ -36,6 +36,8 @@ import 'package:dres/features/profile/data/repositories/seller_reviews_repositor
 import 'package:dres/features/profile/logic/seller_reviews_bloc/seller_reviews_bloc.dart';
 import 'package:dres/features/favorites/data/repositories/favorites_repository.dart';
 import 'package:dres/features/favorites/logic/favorites_bloc/favorites_bloc.dart';
+import 'package:dres/features/follows/data/repositories/follows_repository.dart';
+import 'package:dres/features/follows/logic/follows_bloc/follows_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -205,5 +207,15 @@ Future<void> setupDependencies() async {
   // Favorites Bloc - Singleton so favorites state persists
   getIt.registerLazySingleton<FavoritesBloc>(() => FavoritesBloc(
     favoritesRepository: getIt<FavoritesRepository>(),
+  ));
+
+  // Follows Repository
+  getIt.registerLazySingleton<FollowsRepository>(() => FollowsRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Follows Bloc - Singleton so follow state persists
+  getIt.registerLazySingleton<FollowsBloc>(() => FollowsBloc(
+    followsRepository: getIt<FollowsRepository>(),
   ));
 }

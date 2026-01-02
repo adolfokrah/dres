@@ -264,6 +264,10 @@
   "@follow": {
     "description": "Follow button text"
   },
+  "following": "Following",
+  "@following": {
+    "description": "Following button text (when already following)"
+  },
   "usuallyShipsIn": "Usually ships in {hours}",
   "@usuallyShipsIn": {
     "description": "Usually ships in text",

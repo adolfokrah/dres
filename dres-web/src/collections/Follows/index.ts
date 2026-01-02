@@ -2,6 +2,10 @@ import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
 import { getUserFollows } from './endpoints/getUserFollows'
+import { followUser } from './endpoints/followUser'
+import { unfollowUser } from './endpoints/unfollowUser'
+import { checkFollowing } from './endpoints/checkFollowing'
+import { getFollowCounts } from './endpoints/getFollowCounts'
 
 export const Follows: CollectionConfig = {
   slug: 'follows',
@@ -15,6 +19,26 @@ export const Follows: CollectionConfig = {
       path: '/user-follows/:userId',
       method: 'get',
       handler: getUserFollows,
+    },
+    {
+      path: '/follow',
+      method: 'post',
+      handler: followUser,
+    },
+    {
+      path: '/unfollow',
+      method: 'post',
+      handler: unfollowUser,
+    },
+    {
+      path: '/check/:userId',
+      method: 'get',
+      handler: checkFollowing,
+    },
+    {
+      path: '/counts/:userId',
+      method: 'get',
+      handler: getFollowCounts,
     },
   ],
   access: {

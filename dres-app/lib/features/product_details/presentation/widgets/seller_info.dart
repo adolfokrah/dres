@@ -3,7 +3,7 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:dres/core/utilities/media_utils.dart';
-import 'package:dres/core/widgets/app_button.dart';
+import 'package:dres/core/widgets/follow_button.dart';
 import 'package:dres/features/product_details/data/repositories/seller_repository.dart';
 import 'package:dres/features/product_details/data/models/seller_model.dart';
 import 'package:dres/core/di/injection.dart';
@@ -128,13 +128,9 @@ class _SellerInfoState extends State<SellerInfo> {
                 ),
                 
                 // Follow button
-                AppButton.outlined(
-                  text: l10n.follow,
-                  height: 32,
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  onPressed: () {
-                    // TODO: Implement follow functionality
-                  },
+                FollowButton(
+                  userId: seller.id,
+                  outlined: true,
                 ),
               ],
             ),
