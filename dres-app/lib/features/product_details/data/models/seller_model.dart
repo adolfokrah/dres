@@ -1,7 +1,7 @@
 class SellerModel {
   final String id;
   final String name;
-  final String username;
+  final String? username;
   final String? profileImage;
   final bool verified;
   final bool vacationMode;
@@ -12,7 +12,7 @@ class SellerModel {
   SellerModel({
     required this.id,
     required this.name,
-    required this.username,
+    this.username,
     this.profileImage,
     required this.verified,
     required this.vacationMode,
@@ -25,7 +25,7 @@ class SellerModel {
     return SellerModel(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
-      username: json['username'] ?? '',
+      username: json['username'],
       profileImage: json['profileImage'],
       verified: json['verified'] ?? false,
       vacationMode: json['vacationMode'] ?? false,

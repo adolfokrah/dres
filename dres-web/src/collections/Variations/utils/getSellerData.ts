@@ -53,7 +53,7 @@ export async function getSellerData(payload: Payload, sellerId: string | null) {
   return {
     id: seller.id,
     name: (seller as any).shopName || fullName,
-    username: (seller as any).username || 'user',
+    username: (seller as any).username || null,
     profileImage: typeof (seller as any).photo === 'object' ? (seller as any).photo?.url || null : null,
     verified: true,
     vacationMode: (seller as any).vacationMode || false,

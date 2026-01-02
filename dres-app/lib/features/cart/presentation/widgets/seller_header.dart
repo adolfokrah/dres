@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
-import 'package:dres/core/utilities/media_utils.dart';
+import 'package:dres/core/widgets/profile_avatar.dart';
 
 class SellerHeader extends StatelessWidget {
   final String sellerName;
@@ -18,34 +18,13 @@ class SellerHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolvedPhotoUrl = MediaUtils.resolveUrl(sellerPhotoUrl);
-    
     return Row(
       children: [
         // Seller avatar
-        Container(
-          width: 57,
-          height: 57,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.secondary,
-            image: resolvedPhotoUrl != null
-                ? DecorationImage(
-                    image: NetworkImage(resolvedPhotoUrl),
-                    fit: BoxFit.cover,
-                  )
-                : null,
-          ),
-          child: resolvedPhotoUrl == null
-              ? Center(
-                  child: Text(
-                    sellerName.isNotEmpty ? sellerName[0].toUpperCase() : 'S',
-                    style: AppTypography.titleL.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                )
-              : null,
+        ProfileAvatar(
+          photoUrl: sellerPhotoUrl,
+          displayName: sellerName,
+          size: 57,
         ),
         const SizedBox(width: 7),
         // Seller info

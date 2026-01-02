@@ -25,6 +25,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   // Filter state
   SortOption _selectedSort = SortOption.latest;
   PriceOption _selectedPrice = PriceOption.all;
+  double? _minPrice;
+  double? _maxPrice;
 
   @override
   void initState() {
@@ -79,19 +81,25 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 ProductsFilterBar(
                   selectedSort: _selectedSort,
                   selectedPrice: _selectedPrice,
+                  minPrice: _minPrice,
+                  maxPrice: _maxPrice,
                   filters: const [], // No attribute filters for favorites
                   selectedAttributes: const {},
                   onSortChanged: (sort) {
                     setState(() {
                       _selectedSort = sort;
                     });
-                    // TODO: Re-sort favorites locally
                   },
                   onPriceChanged: (price) {
                     setState(() {
                       _selectedPrice = price;
                     });
-                    // TODO: Re-sort favorites locally by price
+                  },
+                  onPriceRangeChanged: (min, max) {
+                    setState(() {
+                      _minPrice = min;
+                      _maxPrice = max;
+                    });
                   },
                 ),
 
@@ -145,21 +153,39 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       return _buildEmptyState();
     }
 
-    // Sort items locally based on filter state
-    var sortedItems = List.of(state.items);
+    // Filter and sort items locally based on filter state
+    var filteredItems = List.of(state.items);
+    
+    // Apply price range filter
+    if (_minPrice != null || _maxPrice != null) {
+      filteredItems = filteredItems.where((item) {
+        if (_minPrice != null && item.price < _minPrice!) {
+          return false;
+        }
+        if (_maxPrice != null && item.price > _maxPrice!) {
+          return false;
+        }
+        return true;
+      }).toList();
+    }
     
     // Apply sort
     if (_selectedSort == SortOption.oldest) {
-      sortedItems.sort((a, b) => a.favoritedAt.compareTo(b.favoritedAt));
+      filteredItems.sort((a, b) => a.favoritedAt.compareTo(b.favoritedAt));
     } else {
-      sortedItems.sort((a, b) => b.favoritedAt.compareTo(a.favoritedAt));
+      filteredItems.sort((a, b) => b.favoritedAt.compareTo(a.favoritedAt));
     }
     
     // Apply price sort
     if (_selectedPrice == PriceOption.lowToHigh) {
-      sortedItems.sort((a, b) => a.price.compareTo(b.price));
+      filteredItems.sort((a, b) => a.price.compareTo(b.price));
     } else if (_selectedPrice == PriceOption.highToLow) {
-      sortedItems.sort((a, b) => b.price.compareTo(a.price));
+      filteredItems.sort((a, b) => b.price.compareTo(a.price));
+    }
+
+    // Show empty state if all items filtered out
+    if (filteredItems.isEmpty) {
+      return _buildNoResultsState();
     }
 
     return RefreshIndicator(
@@ -173,13 +199,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           crossAxisCount: 2,
           childAspectRatio: 0.48,
         ),
-        itemCount: sortedItems.length + (state.hasMore ? 2 : 0),
+        itemCount: filteredItems.length + (state.hasMore ? 2 : 0),
         itemBuilder: (context, index) {
-          if (index >= sortedItems.length) {
+          if (index >= filteredItems.length) {
             return const ProductCardSkeleton();
           }
 
-          final item = sortedItems[index];
+          final item = filteredItems[index];
           final isLeftColumn = index % 2 == 0;
 
           return ProductCard(
@@ -252,6 +278,47 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             style: AppTypography.bodyM.copyWith(
               color: AppColors.textHint,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoResultsState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            PhosphorIcons.funnelSimple(),
+            size: 64,
+            color: AppColors.textHint,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No items match your filters',
+            style: AppTypography.bodyL.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Try adjusting your price range',
+            style: AppTypography.bodyM.copyWith(
+              color: AppColors.textHint,
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _minPrice = null;
+                _maxPrice = null;
+                _selectedPrice = PriceOption.all;
+              });
+            },
+            child: const Text('Clear filters'),
           ),
         ],
       ),

@@ -3,6 +3,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
+import 'package:dres/core/widgets/profile_avatar.dart';
 import 'package:dres/features/orders/data/models/purchase_details_model.dart';
 import 'package:dres/features/orders/presentation/widgets/purchase_item_tile.dart';
 
@@ -38,31 +39,10 @@ class PurchaseSellerCard extends StatelessWidget {
           Row(
             children: [
               // Seller avatar
-              Container(
-                width: 57,
-                height: 57,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.secondary,
-                  image: sellerGroup.sellerImage != null
-                      ? DecorationImage(
-                          image: NetworkImage(sellerGroup.sellerImage!),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: sellerGroup.sellerImage == null
-                    ? Center(
-                        child: Text(
-                          sellerGroup.sellerName.isNotEmpty
-                              ? sellerGroup.sellerName[0].toUpperCase()
-                              : 'S',
-                          style: AppTypography.titleL.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      )
-                    : null,
+              ProfileAvatar(
+                photoUrl: sellerGroup.sellerImage,
+                displayName: sellerGroup.sellerName,
+                size: 57,
               ),
               const SizedBox(width: 7),
               // Seller info

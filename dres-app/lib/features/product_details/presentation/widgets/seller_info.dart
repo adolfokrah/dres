@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/l10n/app_localizations.dart';
-import 'package:dres/core/utilities/media_utils.dart';
 import 'package:dres/core/widgets/follow_button.dart';
+import 'package:dres/core/widgets/profile_avatar.dart';
 import 'package:dres/features/product_details/data/repositories/seller_repository.dart';
 import 'package:dres/features/product_details/data/models/seller_model.dart';
 import 'package:dres/core/di/injection.dart';
@@ -89,22 +89,11 @@ class _SellerInfoState extends State<SellerInfo> {
                 // Left section with avatar and info
                 Row(
                   children: [
-                    // Profile image
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFD9D9D9),
-                        image: seller.profileImage != null
-                            ? DecorationImage(
-                                image: NetworkImage(
-                                  MediaUtils.resolveUrl(seller.profileImage) ?? '',
-                                ),
-                                fit: BoxFit.cover,
-                              )
-                            : null,
-                      ),
+                    // Profile image with initials fallback
+                    ProfileAvatar(
+                      photoUrl: seller.profileImage,
+                      displayName: seller.name,
+                      size: 50,
                     ),
                     const SizedBox(width: 17),
                     
@@ -116,12 +105,13 @@ class _SellerInfoState extends State<SellerInfo> {
                           seller.name,
                           style: AppTypography.bodyL,
                         ),
-                        Text(
-                          seller.username,
-                          style: AppTypography.bodyM.copyWith(
-                            color: AppColors.textPrimary,
+                        if (seller.username != null && seller.username!.isNotEmpty)
+                          Text(
+                            '@${seller.username}',
+                            style: AppTypography.bodyM.copyWith(
+                              color: AppColors.textPrimary,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                   ],
