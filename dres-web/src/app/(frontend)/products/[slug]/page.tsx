@@ -107,12 +107,12 @@ export default async function ProductPage({ params: paramsPromise }: Args) {
               )}
             </div>
 
-            {/* CTA Button */}
+            {/* CTA Button - Deep link to app */}
             <a
-              href="https://dres.app"
+              href={`dres://products/${decodedSlug}`}
               className="block w-full bg-black text-white text-center py-4 font-semibold hover:bg-gray-800 transition-colors"
             >
-              Shop on DRES
+              Open in DRES App
             </a>
 
             <p className="text-center text-gray-500 text-sm mt-4">
