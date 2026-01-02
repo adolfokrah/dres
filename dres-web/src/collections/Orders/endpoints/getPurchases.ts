@@ -29,7 +29,7 @@ interface Purchase {
 }
 
 /**
- * GET /api/orders/purchases/:userId
+ * GET /api/orders/purchases
  * Fetch user's purchases (orders where user is the customer)
  * 
  * Query params:
@@ -39,20 +39,12 @@ interface Purchase {
  */
 export const getPurchases: PayloadHandler = async (req) => {
   const { payload, user } = req
-  const userId = req.routeParams?.userId as string
   const url = new URL(req.url || '', 'http://localhost')
   const status = url.searchParams.get('status')
   const page = parseInt(url.searchParams.get('page') || '1', 10)
   const limit = parseInt(url.searchParams.get('limit') || '10', 10)
 
-  if (!userId) {
-    return Response.json(
-      { error: 'User ID is required' },
-      { status: 400 }
-    )
-  }
-
-  // Check authorization - users can only view their own purchases
+  // Check authorization
   if (!user) {
     return Response.json(
       { error: 'Unauthorized' },
@@ -60,12 +52,7 @@ export const getPurchases: PayloadHandler = async (req) => {
     )
   }
 
-  if (user.role !== 'admin' && user.id !== userId) {
-    return Response.json(
-      { error: 'Forbidden - You can only view your own purchases' },
-      { status: 403 }
-    )
-  }
+  const userId = user.id
 
   try {
     // Build query - find orders where user is the customer

@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dres/core/di/injection.dart';
-import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/orders/data/repositories/incoming_orders_repository.dart';
 import 'package:dres/features/orders/logic/incoming_orders_bloc/incoming_orders_bloc.dart';
 import 'incoming_order_details_event.dart';
@@ -24,8 +23,6 @@ class IncomingOrderDetailsBloc extends Bloc<IncomingOrderDetailsEvent, IncomingO
     on<IncomingOrderAcceptReturn>(_onAcceptReturn);
   }
 
-  String get _userId => getIt<AuthBloc>().state.user?.id ?? '';
-
   Future<void> _onFetchRequested(
     IncomingOrderDetailsFetchRequested event,
     Emitter<IncomingOrderDetailsState> emit,
@@ -36,7 +33,6 @@ class IncomingOrderDetailsBloc extends Bloc<IncomingOrderDetailsEvent, IncomingO
     try {
       debugPrint('📦 Fetching incoming order details for orderId: ${event.orderId}');
       final order = await _repository.getIncomingOrderDetails(
-        userId: _userId,
         orderId: event.orderId,
       );
       debugPrint('📦 Fetched order ${order.orderId} with ${order.items.length} items');
@@ -66,7 +62,6 @@ class IncomingOrderDetailsBloc extends Bloc<IncomingOrderDetailsEvent, IncomingO
     try {
       debugPrint('📦 Marking item ${event.itemId} as not available');
       await _repository.markItemNotAvailable(
-        userId: _userId,
         orderId: _currentOrderId!,
         itemId: event.itemId,
       );
@@ -96,7 +91,6 @@ class IncomingOrderDetailsBloc extends Bloc<IncomingOrderDetailsEvent, IncomingO
     try {
       debugPrint('📦 Marking all items as out for delivery');
       await _repository.markAllOutForDelivery(
-        userId: _userId,
         orderId: _currentOrderId!,
       );
 
@@ -125,7 +119,6 @@ class IncomingOrderDetailsBloc extends Bloc<IncomingOrderDetailsEvent, IncomingO
     try {
       debugPrint('📦 Accepting return for item ${event.itemId}');
       await _repository.acceptReturn(
-        userId: _userId,
         orderId: _currentOrderId!,
         itemId: event.itemId,
       );
@@ -149,7 +142,6 @@ class IncomingOrderDetailsBloc extends Bloc<IncomingOrderDetailsEvent, IncomingO
 
     try {
       final order = await _repository.getIncomingOrderDetails(
-        userId: _userId,
         orderId: _currentOrderId!,
       );
 

@@ -13,7 +13,6 @@ class IncomingOrdersRepository {
 
   /// Fetch user's incoming orders (orders where user is the seller)
   Future<IncomingOrdersResponse> getIncomingOrders({
-    required String userId,
     int page = 1,
     int limit = 10,
     String? statusFilter,
@@ -28,7 +27,7 @@ class IncomingOrdersRepository {
     }
 
     final response = await _apiService.get(
-      '/orders/incoming/$userId',
+      '/orders/incoming',
       queryParameters: queryParams,
     );
     
@@ -49,11 +48,10 @@ class IncomingOrdersRepository {
 
   /// Fetch incoming order details (seller's view of a specific order)
   Future<IncomingOrderDetailsModel> getIncomingOrderDetails({
-    required String userId,
     required String orderId,
   }) async {
     final response = await _apiService.get(
-      '/orders/$orderId/incoming-details/$userId',
+      '/orders/$orderId/incoming-details',
     );
     
     debugPrint('🔵 IncomingOrdersRepository: Raw order details: ${response.data}');
@@ -67,12 +65,11 @@ class IncomingOrdersRepository {
 
   /// Mark item as not available
   Future<void> markItemNotAvailable({
-    required String userId,
     required String orderId,
     required String itemId,
   }) async {
     await _apiService.post(
-      '/orders/$orderId/update-item-status/$userId',
+      '/orders/$orderId/update-item-status',
       data: {
         'action': 'not_available',
         'itemId': itemId,
@@ -83,12 +80,11 @@ class IncomingOrdersRepository {
 
   /// Mark item as out for delivery
   Future<void> markItemOutForDelivery({
-    required String userId,
     required String orderId,
     required String itemId,
   }) async {
     await _apiService.post(
-      '/orders/$orderId/update-item-status/$userId',
+      '/orders/$orderId/update-item-status',
       data: {
         'action': 'out_for_delivery',
         'itemId': itemId,
@@ -99,12 +95,11 @@ class IncomingOrdersRepository {
 
   /// Accept return for an item
   Future<void> acceptReturn({
-    required String userId,
     required String orderId,
     required String itemId,
   }) async {
     await _apiService.post(
-      '/orders/$orderId/update-item-status/$userId',
+      '/orders/$orderId/update-item-status',
       data: {
         'action': 'accept_return',
         'itemId': itemId,
@@ -115,11 +110,10 @@ class IncomingOrdersRepository {
 
   /// Mark all seller's items as out for delivery
   Future<void> markAllOutForDelivery({
-    required String userId,
     required String orderId,
   }) async {
     await _apiService.post(
-      '/orders/$orderId/mark-all-out-for-delivery/$userId',
+      '/orders/$orderId/mark-all-out-for-delivery',
     );
     debugPrint('🟢 IncomingOrdersRepository: Marked all items as out for delivery');
   }

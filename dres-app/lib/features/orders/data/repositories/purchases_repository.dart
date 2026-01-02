@@ -11,7 +11,6 @@ class PurchasesRepository {
 
   /// Fetch user's purchases
   Future<PurchasesResponse> getPurchases({
-    required String userId,
     int page = 1,
     int limit = 10,
     String? statusFilter,
@@ -26,7 +25,7 @@ class PurchasesRepository {
     }
 
     final response = await _apiService.get(
-      '/orders/purchases/$userId',
+      '/orders/purchases',
       queryParameters: queryParams,
     );
     

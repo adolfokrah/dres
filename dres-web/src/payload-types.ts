@@ -67,39 +67,39 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    pages: Page;
-    posts: Post;
-    postCategories: PostCategory;
-    media: Media;
+    'variation-stats': VariationStat;
+    'variation-views': VariationView;
     attributes: Attribute;
     attributeOptions: AttributeOption;
-    'style-boosts': StyleBoost;
+    brands: Brand;
+    categories: Category;
+    collections: Collection;
+    departments: Department;
+    materials: Material;
+    skus: Skus;
     styles: Style;
     variations: Variation;
-    skus: Skus;
-    'variation-views': VariationView;
-    brands: Brand;
-    carts: Cart;
-    categories: Category;
+    media: Media;
+    pages: Page;
+    postCategories: PostCategory;
+    posts: Post;
     cities: City;
-    collections: Collection;
     countries: Country;
-    currencies: Currency;
-    departments: Department;
-    'discount-codes': DiscountCode;
-    favorites: Favorite;
-    follows: Follow;
-    materials: Material;
-    notifications: Notification;
-    orders: Order;
     regions: Region;
-    'variation-stats': VariationStat;
-    reviews: Review;
+    carts: Cart;
+    'delivery-codes': DeliveryCode;
+    'discount-codes': DiscountCode;
+    orders: Order;
     shippingRates: ShippingRate;
     transactions: Transaction;
-    users: User;
+    currencies: Currency;
+    favorites: Favorite;
+    follows: Follow;
+    notifications: Notification;
+    reviews: Review;
+    'style-boosts': StyleBoost;
     'user-points': UserPoint;
-    'delivery-codes': DeliveryCode;
+    users: User;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
@@ -116,14 +116,6 @@ export interface Config {
       options: 'attributeOptions';
       categories: 'categories';
     };
-    styles: {
-      variations: 'variations';
-      boost: 'style-boosts';
-    };
-    variations: {
-      skus: 'skus';
-      stats: 'variation-stats';
-    };
     categories: {
       variationStats: 'variation-stats';
     };
@@ -133,11 +125,19 @@ export interface Config {
     departments: {
       categories: 'categories';
     };
-    orders: {
-      transactions: 'transactions';
+    styles: {
+      variations: 'variations';
+      boost: 'style-boosts';
+    };
+    variations: {
+      skus: 'skus';
+      stats: 'variation-stats';
     };
     regions: {
       cities: 'cities';
+    };
+    orders: {
+      transactions: 'transactions';
     };
     users: {
       shippingRates: 'shippingRates';
@@ -154,39 +154,39 @@ export interface Config {
     };
   };
   collectionsSelect: {
-    pages: PagesSelect<false> | PagesSelect<true>;
-    posts: PostsSelect<false> | PostsSelect<true>;
-    postCategories: PostCategoriesSelect<false> | PostCategoriesSelect<true>;
-    media: MediaSelect<false> | MediaSelect<true>;
+    'variation-stats': VariationStatsSelect<false> | VariationStatsSelect<true>;
+    'variation-views': VariationViewsSelect<false> | VariationViewsSelect<true>;
     attributes: AttributesSelect<false> | AttributesSelect<true>;
     attributeOptions: AttributeOptionsSelect<false> | AttributeOptionsSelect<true>;
-    'style-boosts': StyleBoostsSelect<false> | StyleBoostsSelect<true>;
+    brands: BrandsSelect<false> | BrandsSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    collections: CollectionsSelect<false> | CollectionsSelect<true>;
+    departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
+    materials: MaterialsSelect<false> | MaterialsSelect<true>;
+    skus: SkusSelect<false> | SkusSelect<true>;
     styles: StylesSelect<false> | StylesSelect<true>;
     variations: VariationsSelect<false> | VariationsSelect<true>;
-    skus: SkusSelect<false> | SkusSelect<true>;
-    'variation-views': VariationViewsSelect<false> | VariationViewsSelect<true>;
-    brands: BrandsSelect<false> | BrandsSelect<true>;
-    carts: CartsSelect<false> | CartsSelect<true>;
-    categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
+    pages: PagesSelect<false> | PagesSelect<true>;
+    postCategories: PostCategoriesSelect<false> | PostCategoriesSelect<true>;
+    posts: PostsSelect<false> | PostsSelect<true>;
     cities: CitiesSelect<false> | CitiesSelect<true>;
-    collections: CollectionsSelect<false> | CollectionsSelect<true>;
     countries: CountriesSelect<false> | CountriesSelect<true>;
-    currencies: CurrenciesSelect<false> | CurrenciesSelect<true>;
-    departments: DepartmentsSelect<false> | DepartmentsSelect<true>;
-    'discount-codes': DiscountCodesSelect<false> | DiscountCodesSelect<true>;
-    favorites: FavoritesSelect<false> | FavoritesSelect<true>;
-    follows: FollowsSelect<false> | FollowsSelect<true>;
-    materials: MaterialsSelect<false> | MaterialsSelect<true>;
-    notifications: NotificationsSelect<false> | NotificationsSelect<true>;
-    orders: OrdersSelect<false> | OrdersSelect<true>;
     regions: RegionsSelect<false> | RegionsSelect<true>;
-    'variation-stats': VariationStatsSelect<false> | VariationStatsSelect<true>;
-    reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    carts: CartsSelect<false> | CartsSelect<true>;
+    'delivery-codes': DeliveryCodesSelect<false> | DeliveryCodesSelect<true>;
+    'discount-codes': DiscountCodesSelect<false> | DiscountCodesSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
     shippingRates: ShippingRatesSelect<false> | ShippingRatesSelect<true>;
     transactions: TransactionsSelect<false> | TransactionsSelect<true>;
-    users: UsersSelect<false> | UsersSelect<true>;
+    currencies: CurrenciesSelect<false> | CurrenciesSelect<true>;
+    favorites: FavoritesSelect<false> | FavoritesSelect<true>;
+    follows: FollowsSelect<false> | FollowsSelect<true>;
+    notifications: NotificationsSelect<false> | NotificationsSelect<true>;
+    reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    'style-boosts': StyleBoostsSelect<false> | StyleBoostsSelect<true>;
     'user-points': UserPointsSelect<false> | UserPointsSelect<true>;
-    'delivery-codes': DeliveryCodesSelect<false> | DeliveryCodesSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
@@ -249,277 +249,163 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Tracks variation performance - use for top variations, sellers, brands per category
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages".
+ * via the `definition` "variation-stats".
  */
-export interface Page {
+export interface VariationStat {
   id: string;
-  title: string;
-  hero: {
-    type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact';
-    richText?: {
-      root: {
-        type: string;
-        children: {
-          type: any;
-          version: number;
-          [k: string]: unknown;
-        }[];
-        direction: ('ltr' | 'rtl') | null;
-        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-        indent: number;
-        version: number;
-      };
-      [k: string]: unknown;
-    } | null;
-    links?:
-      | {
-          link: {
-            type?: ('reference' | 'custom') | null;
-            newTab?: boolean | null;
-            reference?:
-              | ({
-                  relationTo: 'pages';
-                  value: string | Page;
-                } | null)
-              | ({
-                  relationTo: 'posts';
-                  value: string | Post;
-                } | null);
-            url?: string | null;
-            label: string;
-            /**
-             * Choose how the link should be rendered.
-             */
-            appearance?: ('default' | 'outline') | null;
-          };
-          id?: string | null;
-        }[]
-      | null;
-    media?: (string | null) | Media;
-  };
-  layout: (
-    | CallToActionBlock
-    | ContentBlock
-    | MediaBlock
-    | ArchiveBlock
-    | FormBlock
-    | PromoBannerBlock
-    | FeaturedGridBlock
-    | ProductArchiveBlock
-  )[];
-  meta?: {
-    title?: string | null;
-    /**
-     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
-     */
-    image?: (string | null) | Media;
-    description?: string | null;
-  };
-  publishedAt?: string | null;
+  variation: string | Variation;
   /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   * Stats are tracked per SKU + Variation combination
    */
-  generateSlug?: boolean | null;
-  slug: string;
+  sku: string | Skus;
+  /**
+   * Auto-populated from variation
+   */
+  seller?: (string | null) | User;
+  /**
+   * Auto-populated from variation category
+   */
+  department?: (string | null) | Department;
+  /**
+   * Auto-populated from product category
+   */
+  collection?: (string | null) | Collection;
+  /**
+   * Auto-populated from product
+   */
+  category?: (string | null) | Category;
+  /**
+   * Auto-populated from product
+   */
+  brand?: (string | null) | Brand;
+  /**
+   * Total revenue from sales of this product
+   */
+  totalSales: number;
+  /**
+   * Number of completed orders for this product
+   */
+  totalOrders: number;
+  /**
+   * Total quantity of this product sold
+   */
+  totalItemsSold: number;
+  /**
+   * When the last sale was made
+   */
+  lastSaleAt?: string | null;
   updatedAt: string;
   createdAt: string;
-  _status?: ('draft' | 'published') | null;
 }
 /**
+ * Product variations - specific color/size combinations
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts".
+ * via the `definition` "variations".
  */
-export interface Post {
+export interface Variation {
   id: string;
-  title: string;
-  heroImage?: (string | null) | Media;
-  content: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
-  relatedPosts?: (string | Post)[] | null;
-  categories?: (string | PostCategory)[] | null;
-  meta?: {
-    title?: string | null;
-    /**
-     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
-     */
-    image?: (string | null) | Media;
-    description?: string | null;
-  };
-  publishedAt?: string | null;
-  authors?: (string | User)[] | null;
-  populatedAuthors?:
+  title?: string | null;
+  /**
+   * The style this variation belongs to
+   */
+  style: string | Style;
+  /**
+   * Variant options (e.g., Color: Red, Material: Leather)
+   */
+  variants?:
     | {
+        /**
+         * Select the attribute type (e.g., Color, Material)
+         */
+        variant: string | Attribute;
+        /**
+         * Select the value for this attribute
+         */
+        value?: (string | null) | AttributeOption;
         id?: string | null;
-        name?: string | null;
       }[]
     | null;
   /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   * Variation images (first image is the main image)
    */
-  generateSlug?: boolean | null;
-  slug: string;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: string;
-  alt?: string | null;
-  caption?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
+  images: (string | Media)[];
   /**
-   * Whether background has been removed from this image
+   * SKUs for this variation (inventory & pricing)
    */
-  backgroundRemoved?: boolean | null;
-  folder?: (string | null) | FolderInterface;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
-  sizes?: {
-    thumbnail?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    square?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    small?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    medium?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    large?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    xlarge?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    og?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-  };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-folders".
- */
-export interface FolderInterface {
-  id: string;
-  name: string;
-  folder?: (string | null) | FolderInterface;
-  documentsAndFolders?: {
-    docs?: (
-      | {
-          relationTo?: 'payload-folders';
-          value: string | FolderInterface;
-        }
-      | {
-          relationTo?: 'media';
-          value: string | Media;
-        }
-    )[];
+  skus?: {
+    docs?: (string | Skus)[];
     hasNextPage?: boolean;
     totalDocs?: number;
   };
-  folderType?: 'media'[] | null;
+  /**
+   * URL-friendly slug
+   */
+  slug: string;
+  /**
+   * Stats for this variation
+   */
+  stats?: {
+    docs?: (string | VariationStat)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
 /**
+ * Product styles - the main product definition
+ *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "postCategories".
+ * via the `definition` "styles".
  */
-export interface PostCategory {
+export interface Style {
   id: string;
-  title: string;
   /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   * The user selling this product
    */
-  generateSlug?: boolean | null;
-  slug: string;
-  parent?: (string | null) | PostCategory;
-  breadcrumbs?:
-    | {
-        doc?: (string | null) | PostCategory;
-        url?: string | null;
-        label?: string | null;
-        id?: string | null;
-      }[]
-    | null;
+  seller: string | User;
+  title: string;
+  description?: string | null;
+  /**
+   * Whether this product is a resell from a returned item (e.g., from a thrift store)
+   */
+  isResell?: boolean | null;
+  /**
+   * Select a department first to filter available collections
+   */
+  department: string | Department;
+  /**
+   * Select a collection
+   */
+  collection: string | Collection;
+  /**
+   * Select a category
+   */
+  category?: (string | null) | Category;
+  /**
+   * Select a brand
+   */
+  brand?: (string | null) | Brand;
+  /**
+   * Product variations (color/size combinations)
+   */
+  variations?: {
+    docs?: (string | Variation)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Boosts for increased visibility
+   */
+  boost?: {
+    docs?: (string | StyleBoost)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -706,6 +592,129 @@ export interface User {
   password?: string | null;
 }
 /**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: string;
+  alt?: string | null;
+  caption?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Whether background has been removed from this image
+   */
+  backgroundRemoved?: boolean | null;
+  folder?: (string | null) | FolderInterface;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+  sizes?: {
+    thumbnail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    square?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    small?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    medium?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    large?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    xlarge?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    og?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-folders".
+ */
+export interface FolderInterface {
+  id: string;
+  name: string;
+  folder?: (string | null) | FolderInterface;
+  documentsAndFolders?: {
+    docs?: (
+      | {
+          relationTo?: 'payload-folders';
+          value: string | FolderInterface;
+        }
+      | {
+          relationTo?: 'media';
+          value: string | Media;
+        }
+    )[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  folderType?: 'media'[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Supported countries with their currencies
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -862,491 +871,6 @@ export interface Region {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Product styles - the main product definition
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "styles".
- */
-export interface Style {
-  id: string;
-  /**
-   * The user selling this product
-   */
-  seller: string | User;
-  title: string;
-  description?: string | null;
-  /**
-   * Whether this product is a resell from a returned item (e.g., from a thrift store)
-   */
-  isResell?: boolean | null;
-  /**
-   * Select a department first to filter available collections
-   */
-  department: string | Department;
-  /**
-   * Select a collection
-   */
-  collection: string | Collection;
-  /**
-   * Select a category
-   */
-  category?: (string | null) | Category;
-  /**
-   * Select a brand
-   */
-  brand?: (string | null) | Brand;
-  /**
-   * Product variations (color/size combinations)
-   */
-  variations?: {
-    docs?: (string | Variation)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  /**
-   * Boosts for increased visibility
-   */
-  boost?: {
-    docs?: (string | StyleBoost)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "departments".
- */
-export interface Department {
-  id: string;
-  name: string;
-  /**
-   * Categories in this department
-   */
-  categories?: {
-    docs?: (string | Category)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories".
- */
-export interface Category {
-  id: string;
-  category: string;
-  /**
-   * Select which collections this falls under (e.g., Dresses, Bottoms, Shoes)
-   */
-  collections?: (string | Collection)[] | null;
-  /**
-   * Select which departments this category belongs to
-   */
-  departments?: (string | Department)[] | null;
-  /**
-   * Select which brands are available in this category
-   */
-  brands?: (string | Brand)[] | null;
-  /**
-   * Attributes available for products in this category (e.g., Fit, Material, Style)
-   */
-  attributes?: (string | Attribute)[] | null;
-  /**
-   * Attributes used as variation types (e.g., Size, Color) - select from attributes above
-   */
-  variantAttributes?: (string | Attribute)[] | null;
-  /**
-   * Variation stats for this category (for top variations, sellers, brands)
-   */
-  variationStats?: {
-    docs?: (string | VariationStat)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "collections".
- */
-export interface Collection {
-  id: string;
-  name: string;
-  /**
-   * Departments that can use this collection
-   */
-  departments?: (string | Department)[] | null;
-  /**
-   * Categories in this collection
-   */
-  categories?: {
-    docs?: (string | Category)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "brands".
- */
-export interface Brand {
-  id: string;
-  name: string;
-  /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
-   */
-  generateSlug?: boolean | null;
-  slug: string;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Product attributes like Fit, Material, Style, etc.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "attributes".
- */
-export interface Attribute {
-  id: string;
-  /**
-   * Attribute name (e.g., "Fit", "Material", "Style")
-   */
-  name: string;
-  /**
-   * Where this attribute should be used - Variation (e.g., Color) or SKU (e.g., Size)
-   */
-  level: 'variation' | 'sku';
-  /**
-   * Options available for this attribute
-   */
-  options?: {
-    docs?: (string | AttributeOption)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  /**
-   * Categories that use this attribute
-   */
-  categories?: {
-    docs?: (string | Category)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Options for product attributes (e.g., "Slim Fit", "Leather")
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "attributeOptions".
- */
-export interface AttributeOption {
-  id: string;
-  /**
-   * Option name (e.g., "Slim Fit", "Leather", "Cotton")
-   */
-  name: string;
-  /**
-   * URL-friendly slug (e.g., "slim-fit", "leather", "cotton")
-   */
-  slug: string;
-  /**
-   * The attribute this option belongs to
-   */
-  attribute: string | Attribute;
-  /**
-   * Categories that can use this option (leave empty for all categories with this attribute)
-   */
-  categories?: (string | Category)[] | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Tracks variation performance - use for top variations, sellers, brands per category
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variation-stats".
- */
-export interface VariationStat {
-  id: string;
-  variation: string | Variation;
-  /**
-   * Stats are tracked per SKU + Variation combination
-   */
-  sku: string | Skus;
-  /**
-   * Auto-populated from variation
-   */
-  seller?: (string | null) | User;
-  /**
-   * Auto-populated from variation category
-   */
-  department?: (string | null) | Department;
-  /**
-   * Auto-populated from product category
-   */
-  collection?: (string | null) | Collection;
-  /**
-   * Auto-populated from product
-   */
-  category?: (string | null) | Category;
-  /**
-   * Auto-populated from product
-   */
-  brand?: (string | null) | Brand;
-  /**
-   * Total revenue from sales of this product
-   */
-  totalSales: number;
-  /**
-   * Number of completed orders for this product
-   */
-  totalOrders: number;
-  /**
-   * Total quantity of this product sold
-   */
-  totalItemsSold: number;
-  /**
-   * When the last sale was made
-   */
-  lastSaleAt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Product variations - specific color/size combinations
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variations".
- */
-export interface Variation {
-  id: string;
-  title?: string | null;
-  /**
-   * The style this variation belongs to
-   */
-  style: string | Style;
-  /**
-   * Variant options (e.g., Color: Red, Material: Leather)
-   */
-  variants?:
-    | {
-        /**
-         * Select the attribute type (e.g., Color, Material)
-         */
-        variant: string | Attribute;
-        /**
-         * Select the value for this attribute
-         */
-        value?: (string | null) | AttributeOption;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Variation images (first image is the main image)
-   */
-  images: (string | Media)[];
-  /**
-   * SKUs for this variation (inventory & pricing)
-   */
-  skus?: {
-    docs?: (string | Skus)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  /**
-   * URL-friendly slug
-   */
-  slug: string;
-  /**
-   * Stats for this variation
-   */
-  stats?: {
-    docs?: (string | VariationStat)[];
-    hasNextPage?: boolean;
-    totalDocs?: number;
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * SKUs - inventory tracking with pricing for each variation
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "skus".
- */
-export interface Skus {
-  id: string;
-  title?: string | null;
-  /**
-   * Unique SKU code (auto-generated if empty)
-   */
-  sku: string;
-  /**
-   * The variation this SKU belongs to
-   */
-  variation: string | Variation;
-  /**
-   * SKU options (e.g., Size: M)
-   */
-  skuOptions?:
-    | {
-        /**
-         * Select the attribute type (e.g., Size)
-         */
-        option: string | Attribute;
-        /**
-         * Select the value for this attribute
-         */
-        value?: (string | null) | AttributeOption;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Base price for this SKU
-   */
-  price: number;
-  /**
-   * Final selling price (auto-calculated: price + platform fee)
-   */
-  sellingPrice?: number | null;
-  /**
-   * Original price before discount (shows as crossed out)
-   */
-  compareAtPrice?: number | null;
-  /**
-   * Available quantity (0 = sold out)
-   */
-  stock?: number | null;
-  /**
-   * Whether this SKU is available for purchase
-   */
-  isActive?: boolean | null;
-  /**
-   * Barcode/UPC for this SKU
-   */
-  barcode?: string | null;
-  /**
-   * Weight in grams (for shipping calculations)
-   */
-  weight?: number | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Style boost/featuring for increased visibility
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "style-boosts".
- */
-export interface StyleBoost {
-  id: string;
-  /**
-   * The style to boost
-   */
-  style: string | Style;
-  /**
-   * Boost tier determines visibility priority and duration
-   */
-  tier: 'basic' | 'standard' | 'premium';
-  /**
-   * Auto-calculated based on dates
-   */
-  status: 'scheduled' | 'active' | 'expired' | 'cancelled';
-  /**
-   * When the boost starts
-   */
-  startDate: string;
-  /**
-   * When the boost ends
-   */
-  endDate: string;
-  /**
-   * The payment transaction for this boost (optional)
-   */
-  transaction?: (string | null) | Transaction;
-  /**
-   * Additional notes about this boost
-   */
-  notes?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Payment transactions
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "transactions".
- */
-export interface Transaction {
-  id: string;
-  /**
-   * Unique transaction identifier (auto-generated)
-   */
-  transactionId: string;
-  /**
-   * Type of transaction
-   */
-  type: 'order_payment' | 'transfer' | 'deposit' | 'refund' | 'return_charge';
-  /**
-   * Transaction status
-   */
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
-  /**
-   * The user for this transaction
-   */
-  user: string | User;
-  /**
-   * The order this transaction belongs to
-   */
-  order: string | Order;
-  /**
-   * The order item ID this transaction is for (used to prevent duplicates)
-   */
-  itemId?: string | null;
-  /**
-   * Transaction amount (can be negative for return charges)
-   */
-  amount: number;
-  fees?: number | null;
-  paystackFees?: number | null;
-  /**
-   * Calculated: fees - paystackFees
-   */
-  commissionFees?: number | null;
-  /**
-   * Payment account information
-   */
-  billingDetails?: {
-    /**
-     * Account holder name
-     */
-    accountName?: string | null;
-    /**
-     * Account number
-     */
-    accountNumber?: string | null;
-    /**
-     * Bank or payment provider (e.g., MTN Mobile Money)
-     */
-    bank?: string | null;
-  };
-  /**
-   * Additional notes about this transaction
-   */
-  notes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1662,6 +1186,225 @@ export interface Cart {
   createdAt: string;
 }
 /**
+ * SKUs - inventory tracking with pricing for each variation
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skus".
+ */
+export interface Skus {
+  id: string;
+  title?: string | null;
+  /**
+   * Unique SKU code (auto-generated if empty)
+   */
+  sku: string;
+  /**
+   * The variation this SKU belongs to
+   */
+  variation: string | Variation;
+  /**
+   * SKU options (e.g., Size: M)
+   */
+  skuOptions?:
+    | {
+        /**
+         * Select the attribute type (e.g., Size)
+         */
+        option: string | Attribute;
+        /**
+         * Select the value for this attribute
+         */
+        value?: (string | null) | AttributeOption;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Base price for this SKU
+   */
+  price: number;
+  /**
+   * Final selling price (auto-calculated: price + platform fee)
+   */
+  sellingPrice?: number | null;
+  /**
+   * Original price before discount (shows as crossed out)
+   */
+  compareAtPrice?: number | null;
+  /**
+   * Available quantity (0 = sold out)
+   */
+  stock?: number | null;
+  /**
+   * Whether this SKU is available for purchase
+   */
+  isActive?: boolean | null;
+  /**
+   * Barcode/UPC for this SKU
+   */
+  barcode?: string | null;
+  /**
+   * Weight in grams (for shipping calculations)
+   */
+  weight?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Product attributes like Fit, Material, Style, etc.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "attributes".
+ */
+export interface Attribute {
+  id: string;
+  /**
+   * Attribute name (e.g., "Fit", "Material", "Style")
+   */
+  name: string;
+  /**
+   * Where this attribute should be used - Variation (e.g., Color) or SKU (e.g., Size)
+   */
+  level: 'variation' | 'sku';
+  /**
+   * Options available for this attribute
+   */
+  options?: {
+    docs?: (string | AttributeOption)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  /**
+   * Categories that use this attribute
+   */
+  categories?: {
+    docs?: (string | Category)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Options for product attributes (e.g., "Slim Fit", "Leather")
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "attributeOptions".
+ */
+export interface AttributeOption {
+  id: string;
+  /**
+   * Option name (e.g., "Slim Fit", "Leather", "Cotton")
+   */
+  name: string;
+  /**
+   * URL-friendly slug (e.g., "slim-fit", "leather", "cotton")
+   */
+  slug: string;
+  /**
+   * The attribute this option belongs to
+   */
+  attribute: string | Attribute;
+  /**
+   * Categories that can use this option (leave empty for all categories with this attribute)
+   */
+  categories?: (string | Category)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: string;
+  category: string;
+  /**
+   * Select which collections this falls under (e.g., Dresses, Bottoms, Shoes)
+   */
+  collections?: (string | Collection)[] | null;
+  /**
+   * Select which departments this category belongs to
+   */
+  departments?: (string | Department)[] | null;
+  /**
+   * Select which brands are available in this category
+   */
+  brands?: (string | Brand)[] | null;
+  /**
+   * Attributes available for products in this category (e.g., Fit, Material, Style)
+   */
+  attributes?: (string | Attribute)[] | null;
+  /**
+   * Attributes used as variation types (e.g., Size, Color) - select from attributes above
+   */
+  variantAttributes?: (string | Attribute)[] | null;
+  /**
+   * Variation stats for this category (for top variations, sellers, brands)
+   */
+  variationStats?: {
+    docs?: (string | VariationStat)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "collections".
+ */
+export interface Collection {
+  id: string;
+  name: string;
+  /**
+   * Departments that can use this collection
+   */
+  departments?: (string | Department)[] | null;
+  /**
+   * Categories in this collection
+   */
+  categories?: {
+    docs?: (string | Category)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "departments".
+ */
+export interface Department {
+  id: string;
+  name: string;
+  /**
+   * Categories in this department
+   */
+  categories?: {
+    docs?: (string | Category)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brands".
+ */
+export interface Brand {
+  id: string;
+  name: string;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Discount codes for orders
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1748,6 +1491,72 @@ export interface DiscountCode {
   createdAt: string;
 }
 /**
+ * Payment transactions
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "transactions".
+ */
+export interface Transaction {
+  id: string;
+  /**
+   * Unique transaction identifier (auto-generated)
+   */
+  transactionId: string;
+  /**
+   * Type of transaction
+   */
+  type: 'order_payment' | 'transfer' | 'deposit' | 'refund' | 'return_charge';
+  /**
+   * Transaction status
+   */
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  /**
+   * The user for this transaction
+   */
+  user: string | User;
+  /**
+   * The order this transaction belongs to
+   */
+  order: string | Order;
+  /**
+   * The order item ID this transaction is for (used to prevent duplicates)
+   */
+  itemId?: string | null;
+  /**
+   * Transaction amount (can be negative for return charges)
+   */
+  amount: number;
+  fees?: number | null;
+  paystackFees?: number | null;
+  /**
+   * Calculated: fees - paystackFees
+   */
+  commissionFees?: number | null;
+  /**
+   * Payment account information
+   */
+  billingDetails?: {
+    /**
+     * Account holder name
+     */
+    accountName?: string | null;
+    /**
+     * Account number
+     */
+    accountNumber?: string | null;
+    /**
+     * Bank or payment provider (e.g., MTN Mobile Money)
+     */
+    bank?: string | null;
+  };
+  /**
+   * Additional notes about this transaction
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * User favorite products
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1782,6 +1591,227 @@ export interface Follow {
    * The user being followed
    */
   following: string | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Style boost/featuring for increased visibility
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "style-boosts".
+ */
+export interface StyleBoost {
+  id: string;
+  /**
+   * The style to boost
+   */
+  style: string | Style;
+  /**
+   * Boost tier determines visibility priority and duration
+   */
+  tier: 'basic' | 'standard' | 'premium';
+  /**
+   * Auto-calculated based on dates
+   */
+  status: 'scheduled' | 'active' | 'expired' | 'cancelled';
+  /**
+   * When the boost starts
+   */
+  startDate: string;
+  /**
+   * When the boost ends
+   */
+  endDate: string;
+  /**
+   * The payment transaction for this boost (optional)
+   */
+  transaction?: (string | null) | Transaction;
+  /**
+   * Additional notes about this boost
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Tracks variation views for trending algorithm
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variation-views".
+ */
+export interface VariationView {
+  id: string;
+  variation: string | Variation;
+  /**
+   * Optional - can be null for anonymous views
+   */
+  users?: (string | User)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "materials".
+ */
+export interface Material {
+  id: string;
+  name: string;
+  /**
+   * Categories that use this material
+   */
+  categories?: (string | Category)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages".
+ */
+export interface Page {
+  id: string;
+  title: string;
+  hero: {
+    type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact';
+    richText?: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    } | null;
+    links?:
+      | {
+          link: {
+            type?: ('reference' | 'custom') | null;
+            newTab?: boolean | null;
+            reference?:
+              | ({
+                  relationTo: 'pages';
+                  value: string | Page;
+                } | null)
+              | ({
+                  relationTo: 'posts';
+                  value: string | Post;
+                } | null);
+            url?: string | null;
+            label: string;
+            /**
+             * Choose how the link should be rendered.
+             */
+            appearance?: ('default' | 'outline') | null;
+          };
+          id?: string | null;
+        }[]
+      | null;
+    media?: (string | null) | Media;
+  };
+  layout: (
+    | CallToActionBlock
+    | ContentBlock
+    | MediaBlock
+    | ArchiveBlock
+    | FormBlock
+    | PromoBannerBlock
+    | FeaturedGridBlock
+    | ProductArchiveBlock
+  )[];
+  meta?: {
+    title?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (string | null) | Media;
+    description?: string | null;
+  };
+  publishedAt?: string | null;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts".
+ */
+export interface Post {
+  id: string;
+  title: string;
+  heroImage?: (string | null) | Media;
+  content: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  relatedPosts?: (string | Post)[] | null;
+  categories?: (string | PostCategory)[] | null;
+  meta?: {
+    title?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (string | null) | Media;
+    description?: string | null;
+  };
+  publishedAt?: string | null;
+  authors?: (string | User)[] | null;
+  populatedAuthors?:
+    | {
+        id?: string | null;
+        name?: string | null;
+      }[]
+    | null;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "postCategories".
+ */
+export interface PostCategory {
+  id: string;
+  title: string;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  parent?: (string | null) | PostCategory;
+  breadcrumbs?:
+    | {
+        doc?: (string | null) | PostCategory;
+        url?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2215,32 +2245,29 @@ export interface ProductArchiveBlock {
   blockType: 'productArchive';
 }
 /**
- * Tracks variation views for trending algorithm
+ * Delivery confirmation codes for courier USSD verification
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variation-views".
+ * via the `definition` "delivery-codes".
  */
-export interface VariationView {
+export interface DeliveryCode {
   id: string;
-  variation: string | Variation;
   /**
-   * Optional - can be null for anonymous views
+   * 4-digit delivery confirmation code
    */
-  users?: (string | User)[] | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "materials".
- */
-export interface Material {
-  id: string;
-  name: string;
+  code: string;
   /**
-   * Categories that use this material
+   * The order this code belongs to
    */
-  categories?: (string | Category)[] | null;
+  order: string | Order;
+  /**
+   * The customer who will provide this code to courier
+   */
+  buyer: string | User;
+  /**
+   * When this code expires (optional)
+   */
+  expiresAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2349,33 +2376,6 @@ export interface UserPoint {
         id?: string | null;
       }[]
     | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Delivery confirmation codes for courier USSD verification
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "delivery-codes".
- */
-export interface DeliveryCode {
-  id: string;
-  /**
-   * 4-digit delivery confirmation code
-   */
-  code: string;
-  /**
-   * The order this code belongs to
-   */
-  order: string | Order;
-  /**
-   * The customer who will provide this code to courier
-   */
-  buyer: string | User;
-  /**
-   * When this code expires (optional)
-   */
-  expiresAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2570,20 +2570,12 @@ export interface PayloadLockedDocument {
   id: string;
   document?:
     | ({
-        relationTo: 'pages';
-        value: string | Page;
+        relationTo: 'variation-stats';
+        value: string | VariationStat;
       } | null)
     | ({
-        relationTo: 'posts';
-        value: string | Post;
-      } | null)
-    | ({
-        relationTo: 'postCategories';
-        value: string | PostCategory;
-      } | null)
-    | ({
-        relationTo: 'media';
-        value: string | Media;
+        relationTo: 'variation-views';
+        value: string | VariationView;
       } | null)
     | ({
         relationTo: 'attributes';
@@ -2594,8 +2586,28 @@ export interface PayloadLockedDocument {
         value: string | AttributeOption;
       } | null)
     | ({
-        relationTo: 'style-boosts';
-        value: string | StyleBoost;
+        relationTo: 'brands';
+        value: string | Brand;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: string | Category;
+      } | null)
+    | ({
+        relationTo: 'collections';
+        value: string | Collection;
+      } | null)
+    | ({
+        relationTo: 'departments';
+        value: string | Department;
+      } | null)
+    | ({
+        relationTo: 'materials';
+        value: string | Material;
+      } | null)
+    | ({
+        relationTo: 'skus';
+        value: string | Skus;
       } | null)
     | ({
         relationTo: 'styles';
@@ -2606,80 +2618,48 @@ export interface PayloadLockedDocument {
         value: string | Variation;
       } | null)
     | ({
-        relationTo: 'skus';
-        value: string | Skus;
+        relationTo: 'media';
+        value: string | Media;
       } | null)
     | ({
-        relationTo: 'variation-views';
-        value: string | VariationView;
+        relationTo: 'pages';
+        value: string | Page;
       } | null)
     | ({
-        relationTo: 'brands';
-        value: string | Brand;
+        relationTo: 'postCategories';
+        value: string | PostCategory;
       } | null)
     | ({
-        relationTo: 'carts';
-        value: string | Cart;
-      } | null)
-    | ({
-        relationTo: 'categories';
-        value: string | Category;
+        relationTo: 'posts';
+        value: string | Post;
       } | null)
     | ({
         relationTo: 'cities';
         value: string | City;
       } | null)
     | ({
-        relationTo: 'collections';
-        value: string | Collection;
-      } | null)
-    | ({
         relationTo: 'countries';
         value: string | Country;
-      } | null)
-    | ({
-        relationTo: 'currencies';
-        value: string | Currency;
-      } | null)
-    | ({
-        relationTo: 'departments';
-        value: string | Department;
-      } | null)
-    | ({
-        relationTo: 'discount-codes';
-        value: string | DiscountCode;
-      } | null)
-    | ({
-        relationTo: 'favorites';
-        value: string | Favorite;
-      } | null)
-    | ({
-        relationTo: 'follows';
-        value: string | Follow;
-      } | null)
-    | ({
-        relationTo: 'materials';
-        value: string | Material;
-      } | null)
-    | ({
-        relationTo: 'notifications';
-        value: string | Notification;
-      } | null)
-    | ({
-        relationTo: 'orders';
-        value: string | Order;
       } | null)
     | ({
         relationTo: 'regions';
         value: string | Region;
       } | null)
     | ({
-        relationTo: 'variation-stats';
-        value: string | VariationStat;
+        relationTo: 'carts';
+        value: string | Cart;
       } | null)
     | ({
-        relationTo: 'reviews';
-        value: string | Review;
+        relationTo: 'delivery-codes';
+        value: string | DeliveryCode;
+      } | null)
+    | ({
+        relationTo: 'discount-codes';
+        value: string | DiscountCode;
+      } | null)
+    | ({
+        relationTo: 'orders';
+        value: string | Order;
       } | null)
     | ({
         relationTo: 'shippingRates';
@@ -2690,16 +2670,36 @@ export interface PayloadLockedDocument {
         value: string | Transaction;
       } | null)
     | ({
-        relationTo: 'users';
-        value: string | User;
+        relationTo: 'currencies';
+        value: string | Currency;
+      } | null)
+    | ({
+        relationTo: 'favorites';
+        value: string | Favorite;
+      } | null)
+    | ({
+        relationTo: 'follows';
+        value: string | Follow;
+      } | null)
+    | ({
+        relationTo: 'notifications';
+        value: string | Notification;
+      } | null)
+    | ({
+        relationTo: 'reviews';
+        value: string | Review;
+      } | null)
+    | ({
+        relationTo: 'style-boosts';
+        value: string | StyleBoost;
       } | null)
     | ({
         relationTo: 'user-points';
         value: string | UserPoint;
       } | null)
     | ({
-        relationTo: 'delivery-codes';
-        value: string | DeliveryCode;
+        relationTo: 'users';
+        value: string | User;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -2762,6 +2762,275 @@ export interface PayloadMigration {
   batch?: number | null;
   updatedAt: string;
   createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variation-stats_select".
+ */
+export interface VariationStatsSelect<T extends boolean = true> {
+  variation?: T;
+  sku?: T;
+  seller?: T;
+  department?: T;
+  collection?: T;
+  category?: T;
+  brand?: T;
+  totalSales?: T;
+  totalOrders?: T;
+  totalItemsSold?: T;
+  lastSaleAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variation-views_select".
+ */
+export interface VariationViewsSelect<T extends boolean = true> {
+  variation?: T;
+  users?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "attributes_select".
+ */
+export interface AttributesSelect<T extends boolean = true> {
+  name?: T;
+  level?: T;
+  options?: T;
+  categories?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "attributeOptions_select".
+ */
+export interface AttributeOptionsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  attribute?: T;
+  categories?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "brands_select".
+ */
+export interface BrandsSelect<T extends boolean = true> {
+  name?: T;
+  generateSlug?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  category?: T;
+  collections?: T;
+  departments?: T;
+  brands?: T;
+  attributes?: T;
+  variantAttributes?: T;
+  variationStats?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "collections_select".
+ */
+export interface CollectionsSelect<T extends boolean = true> {
+  name?: T;
+  departments?: T;
+  categories?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "departments_select".
+ */
+export interface DepartmentsSelect<T extends boolean = true> {
+  name?: T;
+  categories?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "materials_select".
+ */
+export interface MaterialsSelect<T extends boolean = true> {
+  name?: T;
+  categories?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skus_select".
+ */
+export interface SkusSelect<T extends boolean = true> {
+  title?: T;
+  sku?: T;
+  variation?: T;
+  skuOptions?:
+    | T
+    | {
+        option?: T;
+        value?: T;
+        id?: T;
+      };
+  price?: T;
+  sellingPrice?: T;
+  compareAtPrice?: T;
+  stock?: T;
+  isActive?: T;
+  barcode?: T;
+  weight?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "styles_select".
+ */
+export interface StylesSelect<T extends boolean = true> {
+  seller?: T;
+  title?: T;
+  description?: T;
+  isResell?: T;
+  department?: T;
+  collection?: T;
+  category?: T;
+  brand?: T;
+  variations?: T;
+  boost?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "variations_select".
+ */
+export interface VariationsSelect<T extends boolean = true> {
+  title?: T;
+  style?: T;
+  variants?:
+    | T
+    | {
+        variant?: T;
+        value?: T;
+        id?: T;
+      };
+  images?: T;
+  skus?: T;
+  slug?: T;
+  stats?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media_select".
+ */
+export interface MediaSelect<T extends boolean = true> {
+  alt?: T;
+  caption?: T;
+  backgroundRemoved?: T;
+  folder?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+  sizes?:
+    | T
+    | {
+        thumbnail?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        square?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        small?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        medium?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        large?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        xlarge?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+        og?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+            };
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2946,6 +3215,26 @@ export interface ProductArchiveBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "postCategories_select".
+ */
+export interface PostCategoriesSelect<T extends boolean = true> {
+  title?: T;
+  generateSlug?: T;
+  slug?: T;
+  parent?: T;
+  breadcrumbs?:
+    | T
+    | {
+        doc?: T;
+        url?: T;
+        label?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "posts_select".
  */
 export interface PostsSelect<T extends boolean = true> {
@@ -2977,240 +3266,35 @@ export interface PostsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "postCategories_select".
+ * via the `definition` "cities_select".
  */
-export interface PostCategoriesSelect<T extends boolean = true> {
-  title?: T;
-  generateSlug?: T;
-  slug?: T;
-  parent?: T;
-  breadcrumbs?:
-    | T
-    | {
-        doc?: T;
-        url?: T;
-        label?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media_select".
- */
-export interface MediaSelect<T extends boolean = true> {
-  alt?: T;
-  caption?: T;
-  backgroundRemoved?: T;
-  folder?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  url?: T;
-  thumbnailURL?: T;
-  filename?: T;
-  mimeType?: T;
-  filesize?: T;
-  width?: T;
-  height?: T;
-  focalX?: T;
-  focalY?: T;
-  sizes?:
-    | T
-    | {
-        thumbnail?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-        square?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-        small?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-        medium?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-        large?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-        xlarge?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-        og?:
-          | T
-          | {
-              url?: T;
-              width?: T;
-              height?: T;
-              mimeType?: T;
-              filesize?: T;
-              filename?: T;
-            };
-      };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "attributes_select".
- */
-export interface AttributesSelect<T extends boolean = true> {
+export interface CitiesSelect<T extends boolean = true> {
   name?: T;
-  level?: T;
-  options?: T;
-  categories?: T;
+  country?: T;
+  region?: T;
   updatedAt?: T;
   createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "attributeOptions_select".
+ * via the `definition` "countries_select".
  */
-export interface AttributeOptionsSelect<T extends boolean = true> {
+export interface CountriesSelect<T extends boolean = true> {
   name?: T;
-  slug?: T;
-  attribute?: T;
-  categories?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "style-boosts_select".
- */
-export interface StyleBoostsSelect<T extends boolean = true> {
-  style?: T;
-  tier?: T;
-  status?: T;
-  startDate?: T;
-  endDate?: T;
-  transaction?: T;
-  notes?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "styles_select".
- */
-export interface StylesSelect<T extends boolean = true> {
-  seller?: T;
-  title?: T;
-  description?: T;
-  isResell?: T;
-  department?: T;
-  collection?: T;
-  category?: T;
-  brand?: T;
-  variations?: T;
-  boost?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variations_select".
- */
-export interface VariationsSelect<T extends boolean = true> {
-  title?: T;
-  style?: T;
-  variants?:
-    | T
-    | {
-        variant?: T;
-        value?: T;
-        id?: T;
-      };
-  images?: T;
-  skus?: T;
-  slug?: T;
-  stats?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "skus_select".
- */
-export interface SkusSelect<T extends boolean = true> {
-  title?: T;
-  sku?: T;
-  variation?: T;
-  skuOptions?:
-    | T
-    | {
-        option?: T;
-        value?: T;
-        id?: T;
-      };
-  price?: T;
-  sellingPrice?: T;
-  compareAtPrice?: T;
-  stock?: T;
+  code?: T;
+  currency?: T;
   isActive?: T;
-  barcode?: T;
-  weight?: T;
   updatedAt?: T;
   createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variation-views_select".
+ * via the `definition` "regions_select".
  */
-export interface VariationViewsSelect<T extends boolean = true> {
-  variation?: T;
-  users?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "brands_select".
- */
-export interface BrandsSelect<T extends boolean = true> {
+export interface RegionsSelect<T extends boolean = true> {
   name?: T;
-  generateSlug?: T;
-  slug?: T;
+  country?: T;
+  cities?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3249,74 +3333,13 @@ export interface CartsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories_select".
+ * via the `definition` "delivery-codes_select".
  */
-export interface CategoriesSelect<T extends boolean = true> {
-  category?: T;
-  collections?: T;
-  departments?: T;
-  brands?: T;
-  attributes?: T;
-  variantAttributes?: T;
-  variationStats?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "cities_select".
- */
-export interface CitiesSelect<T extends boolean = true> {
-  name?: T;
-  country?: T;
-  region?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "collections_select".
- */
-export interface CollectionsSelect<T extends boolean = true> {
-  name?: T;
-  departments?: T;
-  categories?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "countries_select".
- */
-export interface CountriesSelect<T extends boolean = true> {
-  name?: T;
+export interface DeliveryCodesSelect<T extends boolean = true> {
   code?: T;
-  currency?: T;
-  isActive?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "currencies_select".
- */
-export interface CurrenciesSelect<T extends boolean = true> {
-  name?: T;
-  code?: T;
-  symbol?: T;
-  exchangeRateToGHS?: T;
-  isBaseCurrency?: T;
-  isActive?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "departments_select".
- */
-export interface DepartmentsSelect<T extends boolean = true> {
-  name?: T;
-  categories?: T;
+  order?: T;
+  buyer?: T;
+  expiresAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3349,49 +3372,6 @@ export interface DiscountCodesSelect<T extends boolean = true> {
         order?: T;
         id?: T;
       };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "favorites_select".
- */
-export interface FavoritesSelect<T extends boolean = true> {
-  user?: T;
-  variation?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "follows_select".
- */
-export interface FollowsSelect<T extends boolean = true> {
-  follower?: T;
-  following?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "materials_select".
- */
-export interface MaterialsSelect<T extends boolean = true> {
-  name?: T;
-  categories?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "notifications_select".
- */
-export interface NotificationsSelect<T extends boolean = true> {
-  user?: T;
-  image?: T;
-  message?: T;
-  path?: T;
-  read?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3479,49 +3459,6 @@ export interface OrdersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "regions_select".
- */
-export interface RegionsSelect<T extends boolean = true> {
-  name?: T;
-  country?: T;
-  cities?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "variation-stats_select".
- */
-export interface VariationStatsSelect<T extends boolean = true> {
-  variation?: T;
-  sku?: T;
-  seller?: T;
-  department?: T;
-  collection?: T;
-  category?: T;
-  brand?: T;
-  totalSales?: T;
-  totalOrders?: T;
-  totalItemsSold?: T;
-  lastSaleAt?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "reviews_select".
- */
-export interface ReviewsSelect<T extends boolean = true> {
-  user?: T;
-  style?: T;
-  rating?: T;
-  review?: T;
-  images?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "shippingRates_select".
  */
 export interface ShippingRatesSelect<T extends boolean = true> {
@@ -3563,6 +3500,103 @@ export interface TransactionsSelect<T extends boolean = true> {
         bank?: T;
       };
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "currencies_select".
+ */
+export interface CurrenciesSelect<T extends boolean = true> {
+  name?: T;
+  code?: T;
+  symbol?: T;
+  exchangeRateToGHS?: T;
+  isBaseCurrency?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "favorites_select".
+ */
+export interface FavoritesSelect<T extends boolean = true> {
+  user?: T;
+  variation?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "follows_select".
+ */
+export interface FollowsSelect<T extends boolean = true> {
+  follower?: T;
+  following?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "notifications_select".
+ */
+export interface NotificationsSelect<T extends boolean = true> {
+  user?: T;
+  image?: T;
+  message?: T;
+  path?: T;
+  read?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "reviews_select".
+ */
+export interface ReviewsSelect<T extends boolean = true> {
+  user?: T;
+  style?: T;
+  rating?: T;
+  review?: T;
+  images?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "style-boosts_select".
+ */
+export interface StyleBoostsSelect<T extends boolean = true> {
+  style?: T;
+  tier?: T;
+  status?: T;
+  startDate?: T;
+  endDate?: T;
+  transaction?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "user-points_select".
+ */
+export interface UserPointsSelect<T extends boolean = true> {
+  user?: T;
+  balance?: T;
+  totalEarned?: T;
+  totalRedeemed?: T;
+  history?:
+    | T
+    | {
+        type?: T;
+        points?: T;
+        description?: T;
+        order?: T;
+        createdAt?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3631,40 +3665,6 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "user-points_select".
- */
-export interface UserPointsSelect<T extends boolean = true> {
-  user?: T;
-  balance?: T;
-  totalEarned?: T;
-  totalRedeemed?: T;
-  history?:
-    | T
-    | {
-        type?: T;
-        points?: T;
-        description?: T;
-        order?: T;
-        createdAt?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "delivery-codes_select".
- */
-export interface DeliveryCodesSelect<T extends boolean = true> {
-  code?: T;
-  order?: T;
-  buyer?: T;
-  expiresAt?: T;
-  updatedAt?: T;
-  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

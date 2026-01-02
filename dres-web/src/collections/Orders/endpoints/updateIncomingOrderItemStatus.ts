@@ -8,31 +8,23 @@ interface UpdateItemStatusBody {
 }
 
 /**
- * POST /api/orders/:id/update-item-status/:sellerId
+ * POST /api/orders/:id/update-item-status
  * Update the shipping status of an item in an incoming order
  * Note: Delivery code creation is handled by the Orders afterChange hook
  */
 export const updateIncomingOrderItemStatus: PayloadHandler = async (req) => {
   const { payload, user, routeParams } = req
   const orderId = routeParams?.id as string
-  const sellerId = routeParams?.sellerId as string
 
   if (!user) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  if (!sellerId) {
-    return Response.json({ error: 'Seller ID is required' }, { status: 400 })
   }
 
   if (!orderId) {
     return Response.json({ error: 'Order ID is required' }, { status: 400 })
   }
 
-  // Check authorization - users can only update their own incoming orders
-  if (user.role !== 'admin' && user.id !== sellerId) {
-    return Response.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const sellerId = user.id
 
   // Parse request body
   let body: UpdateItemStatusBody
@@ -179,31 +171,23 @@ export const updateIncomingOrderItemStatus: PayloadHandler = async (req) => {
 }
 
 /**
- * POST /api/orders/:id/mark-all-out-for-delivery/:sellerId
+ * POST /api/orders/:id/mark-all-out-for-delivery
  * Mark all eligible items as out for delivery
  * Note: Delivery code creation is handled by the Orders afterChange hook
  */
 export const markAllOutForDelivery: PayloadHandler = async (req) => {
   const { payload, user, routeParams } = req
   const orderId = routeParams?.id as string
-  const sellerId = routeParams?.sellerId as string
 
   if (!user) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  if (!sellerId) {
-    return Response.json({ error: 'Seller ID is required' }, { status: 400 })
   }
 
   if (!orderId) {
     return Response.json({ error: 'Order ID is required' }, { status: 400 })
   }
 
-  // Check authorization
-  if (user.role !== 'admin' && user.id !== sellerId) {
-    return Response.json({ error: 'Forbidden' }, { status: 403 })
-  }
+  const sellerId = user.id
 
   try {
     // Fetch the order

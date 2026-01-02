@@ -1,7 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dres/core/di/injection.dart';
-import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/orders/data/repositories/purchases_repository.dart';
 import 'purchases_event.dart';
 import 'purchases_state.dart';
@@ -22,8 +20,6 @@ class PurchasesBloc extends Bloc<PurchasesEvent, PurchasesState> {
     on<PurchasesFilterChanged>(_onFilterChanged);
   }
 
-  String get _userId => getIt<AuthBloc>().state.user?.id ?? '';
-
   Future<void> _onFetchRequested(
     PurchasesFetchRequested event,
     Emitter<PurchasesState> emit,
@@ -37,9 +33,8 @@ class PurchasesBloc extends Bloc<PurchasesEvent, PurchasesState> {
     ));
 
     try {
-      debugPrint('🛒 Fetching purchases for userId: $_userId with filter: ${event.statusFilter}');
+      debugPrint('🛒 Fetching purchases with filter: ${event.statusFilter}');
       final response = await _purchasesRepository.getPurchases(
-        userId: _userId,
         page: 1,
         limit: _pageSize,
         statusFilter: event.statusFilter,
@@ -71,7 +66,6 @@ class PurchasesBloc extends Bloc<PurchasesEvent, PurchasesState> {
     try {
       final nextPage = state.currentPage + 1;
       final response = await _purchasesRepository.getPurchases(
-        userId: _userId,
         page: nextPage,
         limit: _pageSize,
         statusFilter: state.statusFilter,

@@ -44,28 +44,28 @@ export const Orders: CollectionConfig = {
     },
     // Purchases endpoint (for buyers)
     {
-      path: '/purchases/:userId',
+      path: '/purchases',
       method: 'get',
       handler: getPurchases,
     },
     // Incoming orders endpoints (for sellers)
     {
-      path: '/incoming/:sellerId',
+      path: '/incoming',
       method: 'get',
       handler: getIncomingOrders,
     },
     {
-      path: '/:id/incoming-details/:sellerId',
+      path: '/:id/incoming-details',
       method: 'get',
       handler: getIncomingOrderDetails,
     },
     {
-      path: '/:id/update-item-status/:sellerId',
+      path: '/:id/update-item-status',
       method: 'post',
       handler: updateIncomingOrderItemStatus,
     },
     {
-      path: '/:id/mark-all-out-for-delivery/:sellerId',
+      path: '/:id/mark-all-out-for-delivery',
       method: 'post',
       handler: markAllOutForDelivery,
     },

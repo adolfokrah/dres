@@ -77,11 +77,11 @@ class IncomingOrderCard extends StatelessWidget {
                   ],
                   const SizedBox(height: 6),
 
-                  // Status badge
+                  // Status badge (use sellerStatus for seller-specific status)
                   StatusBadge(
-                    status: order.status.apiValue,
+                    status: order.sellerStatus.apiValue,
                     type: StatusBadgeType.order,
-                    displayText: order.status.displayName,
+                    displayText: order.sellerStatus.displayName,
                   ),
                 ],
               ),

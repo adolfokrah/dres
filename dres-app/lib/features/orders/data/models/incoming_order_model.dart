@@ -72,11 +72,12 @@ class IncomingOrderShippingAddress {
   }
 }
 
-/// Incoming order status
+/// Incoming order status (seller-specific)
 enum IncomingOrderStatus {
   newOrder,
   placed,
   inProgress,
+  returnInProgress,
   completed,
   cancelled;
 
@@ -88,6 +89,8 @@ enum IncomingOrderStatus {
         return IncomingOrderStatus.placed;
       case 'in_progress':
         return IncomingOrderStatus.inProgress;
+      case 'return_in_progress':
+        return IncomingOrderStatus.returnInProgress;
       case 'completed':
         return IncomingOrderStatus.completed;
       case 'cancelled':
@@ -105,6 +108,8 @@ enum IncomingOrderStatus {
         return 'Placed';
       case IncomingOrderStatus.inProgress:
         return 'In Progress';
+      case IncomingOrderStatus.returnInProgress:
+        return 'Return in Progress';
       case IncomingOrderStatus.completed:
         return 'Completed';
       case IncomingOrderStatus.cancelled:
@@ -121,6 +126,8 @@ enum IncomingOrderStatus {
         return 'placed';
       case IncomingOrderStatus.inProgress:
         return 'in_progress';
+      case IncomingOrderStatus.returnInProgress:
+        return 'return_in_progress';
       case IncomingOrderStatus.completed:
         return 'completed';
       case IncomingOrderStatus.cancelled:
@@ -133,7 +140,8 @@ enum IncomingOrderStatus {
 class IncomingOrderModel {
   final String id;
   final String orderId;
-  final IncomingOrderStatus status;
+  final IncomingOrderStatus status; // Overall order status
+  final IncomingOrderStatus sellerStatus; // Status based on seller's items only
   final List<IncomingOrderItem> items;
   final IncomingOrderShippingAddress? shippingAddress;
   final double totalAmount;
@@ -143,6 +151,7 @@ class IncomingOrderModel {
     required this.id,
     required this.orderId,
     required this.status,
+    required this.sellerStatus,
     required this.items,
     this.shippingAddress,
     required this.totalAmount,
@@ -154,6 +163,7 @@ class IncomingOrderModel {
       id: json['id'] ?? '',
       orderId: json['orderId'] ?? '',
       status: IncomingOrderStatus.fromString(json['status'] ?? 'new'),
+      sellerStatus: IncomingOrderStatus.fromString(json['sellerStatus'] ?? json['status'] ?? 'new'),
       items: (json['items'] as List<dynamic>?)
               ?.map((e) => IncomingOrderItem.fromJson(e))
               .toList() ??

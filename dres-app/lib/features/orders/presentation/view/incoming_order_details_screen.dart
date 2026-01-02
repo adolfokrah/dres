@@ -193,26 +193,26 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       child: Row(
         children: [
-          // Progress bars
+          // Progress bars (use sellerStatus for seller-specific progress)
           Expanded(
             child: Row(
               children: [
-                _buildProgressSegment(isActive: order.status.progressValue >= 1),
+                _buildProgressSegment(isActive: order.sellerStatus.progressValue >= 1),
                 const SizedBox(width: 10),
-                _buildProgressSegment(isActive: order.status.progressValue >= 2),
+                _buildProgressSegment(isActive: order.sellerStatus.progressValue >= 2),
                 const SizedBox(width: 10),
-                _buildProgressSegment(isActive: order.status.progressValue >= 3),
+                _buildProgressSegment(isActive: order.sellerStatus.progressValue >= 3),
                 const SizedBox(width: 10),
-                _buildProgressSegment(isActive: order.status.progressValue >= 4),
+                _buildProgressSegment(isActive: order.sellerStatus.progressValue >= 4),
               ],
             ),
           ),
           const SizedBox(width: 10),
-          // Status badge
+          // Status badge (use sellerStatus for seller-specific status)
           StatusBadge(
-            status: order.status.value,
+            status: order.sellerStatus.value,
             type: StatusBadgeType.order,
-            displayText: order.status.displayName,
+            displayText: order.sellerStatus.displayName,
           ),
         ],
       ),

@@ -1,7 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:dres/core/di/injection.dart';
-import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/orders/data/repositories/incoming_orders_repository.dart';
 import 'incoming_orders_event.dart';
 import 'incoming_orders_state.dart';
@@ -23,8 +21,6 @@ class IncomingOrdersBloc extends Bloc<IncomingOrdersEvent, IncomingOrdersState> 
     on<IncomingOrdersFilterChanged>(_onFilterChanged);
   }
 
-  String get _userId => getIt<AuthBloc>().state.user?.id ?? '';
-
   Future<void> _onFetchRequested(
     IncomingOrdersFetchRequested event,
     Emitter<IncomingOrdersState> emit,
@@ -38,9 +34,8 @@ class IncomingOrdersBloc extends Bloc<IncomingOrdersEvent, IncomingOrdersState> 
     ));
 
     try {
-      debugPrint('📦 Fetching incoming orders for userId: $_userId with filter: ${event.statusFilter}');
+      debugPrint('📦 Fetching incoming orders with filter: ${event.statusFilter}');
       final response = await _incomingOrdersRepository.getIncomingOrders(
-        userId: _userId,
         page: 1,
         limit: _pageSize,
         statusFilter: event.statusFilter,
@@ -72,7 +67,6 @@ class IncomingOrdersBloc extends Bloc<IncomingOrdersEvent, IncomingOrdersState> 
     try {
       final nextPage = state.currentPage + 1;
       final response = await _incomingOrdersRepository.getIncomingOrders(
-        userId: _userId,
         page: nextPage,
         limit: _pageSize,
         statusFilter: state.statusFilter,

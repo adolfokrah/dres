@@ -21,6 +21,7 @@ interface IncomingOrderDetails {
   id: string
   orderId: string
   status: string
+  sellerStatus: string // Status based on seller's items only
   items: IncomingOrderItem[]
   shipping: {
     customerName: string
@@ -37,30 +38,22 @@ interface IncomingOrderDetails {
 }
 
 /**
- * GET /api/orders/:id/incoming-details/:sellerId
+ * GET /api/orders/:id/incoming-details
  * Fetch incoming order details for seller (only shows seller's items)
  */
 export const getIncomingOrderDetails: PayloadHandler = async (req) => {
   const { payload, user, routeParams } = req
   const orderId = routeParams?.id as string
-  const sellerId = routeParams?.sellerId as string
 
   if (!user) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  if (!sellerId) {
-    return Response.json({ error: 'Seller ID is required' }, { status: 400 })
   }
 
   if (!orderId) {
     return Response.json({ error: 'Order ID is required' }, { status: 400 })
   }
 
-  // Check authorization - users can only view their own incoming orders
-  if (user.role !== 'admin' && user.id !== sellerId) {
-    return Response.json({ error: 'Forbidden - You can only view your own incoming orders' }, { status: 403 })
-  }
+  const sellerId = user.id
 
   try {
     // Get the order with populated relationships
@@ -167,10 +160,36 @@ export const getIncomingOrderDetails: PayloadHandler = async (req) => {
       }
     }
 
+    // Calculate seller-specific status based on seller's items only
+    const itemStatuses = items.map(item => item.shippingStatus)
+    let sellerStatus: string
+    
+    const completedStatuses = ['delivered', 'returned', 'not_available', 'cancelled']
+    const allCompleted = itemStatuses.length > 0 && itemStatuses.every(s => completedStatuses.includes(s))
+    const hasOutForDelivery = itemStatuses.some(s => s === 'out_for_delivery')
+    const hasReturnInProgress = itemStatuses.some(s => s === 'return_in_progress')
+    const allPlaced = itemStatuses.every(s => s === 'placed' || s === 'new')
+    const allCancelled = itemStatuses.every(s => s === 'cancelled' || s === 'not_available')
+    
+    if (allCancelled) {
+      sellerStatus = 'cancelled'
+    } else if (allCompleted) {
+      sellerStatus = 'completed'
+    } else if (hasReturnInProgress) {
+      sellerStatus = 'return_in_progress'
+    } else if (hasOutForDelivery) {
+      sellerStatus = 'in_progress'
+    } else if (allPlaced) {
+      sellerStatus = 'placed'
+    } else {
+      sellerStatus = 'in_progress' // Mixed statuses default to in_progress
+    }
+
     const response: IncomingOrderDetails = {
       id: order.id,
       orderId: order.orderId as string,
       status: order.status as string,
+      sellerStatus,
       items,
       shipping,
       itemCount,

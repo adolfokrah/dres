@@ -19,6 +19,7 @@ interface IncomingOrder {
   id: string
   orderId: string
   status: string
+  sellerStatus: string // Status based on seller's items only
   items: IncomingOrderItem[]
   shippingAddress: {
     city: string | null
@@ -29,7 +30,7 @@ interface IncomingOrder {
 }
 
 /**
- * GET /api/orders/incoming/:sellerId
+ * GET /api/orders/incoming
  * Fetch seller's incoming orders (orders where user is the seller of items)
  * 
  * Query params:
@@ -43,20 +44,12 @@ interface IncomingOrder {
  */
 export const getIncomingOrders: PayloadHandler = async (req) => {
   const { payload, user } = req
-  const sellerId = req.routeParams?.sellerId as string
   const url = new URL(req.url || '', 'http://localhost')
   const status = url.searchParams.get('status')
   const page = parseInt(url.searchParams.get('page') || '1', 10)
   const limit = parseInt(url.searchParams.get('limit') || '10', 10)
 
-  if (!sellerId) {
-    return Response.json(
-      { error: 'Seller ID is required' },
-      { status: 400 }
-    )
-  }
-
-  // Check authorization - users can only view their own incoming orders
+  // Check authorization
   if (!user) {
     return Response.json(
       { error: 'Unauthorized' },
@@ -64,12 +57,7 @@ export const getIncomingOrders: PayloadHandler = async (req) => {
     )
   }
 
-  if (user.role !== 'admin' && user.id !== sellerId) {
-    return Response.json(
-      { error: 'Forbidden - You can only view your own incoming orders' },
-      { status: 403 }
-    )
-  }
+  const sellerId = user.id
 
   try {
     // Build query - find orders where user is in the sellers array
@@ -180,10 +168,36 @@ export const getIncomingOrders: PayloadHandler = async (req) => {
       // Calculate total for seller's items only
       const sellerTotalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 
+      // Calculate seller-specific status based on seller's items only
+      const itemStatuses = items.map(item => item.status)
+      let sellerStatus: string
+      
+      const completedStatuses = ['delivered', 'returned', 'not_available', 'cancelled']
+      const allCompleted = itemStatuses.length > 0 && itemStatuses.every(s => completedStatuses.includes(s))
+      const hasOutForDelivery = itemStatuses.some(s => s === 'out_for_delivery')
+      const hasReturnInProgress = itemStatuses.some(s => s === 'return_in_progress')
+      const allPlaced = itemStatuses.every(s => s === 'placed' || s === 'new')
+      const allCancelled = itemStatuses.every(s => s === 'cancelled' || s === 'not_available')
+      
+      if (allCancelled) {
+        sellerStatus = 'cancelled'
+      } else if (allCompleted) {
+        sellerStatus = 'completed'
+      } else if (hasReturnInProgress) {
+        sellerStatus = 'return_in_progress'
+      } else if (hasOutForDelivery) {
+        sellerStatus = 'in_progress'
+      } else if (allPlaced) {
+        sellerStatus = 'placed'
+      } else {
+        sellerStatus = 'in_progress' // Mixed statuses default to in_progress
+      }
+
       return {
         id: order.id,
         orderId: order.orderId,
         status: order.status,
+        sellerStatus,
         items,
         shippingAddress,
         totalAmount: sellerTotalAmount,
