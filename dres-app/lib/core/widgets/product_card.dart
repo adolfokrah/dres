@@ -5,6 +5,9 @@ import '../theme/app_typography.dart';
 import '../utilities/media_utils.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:dres/core/widgets/badge_widget.dart';
+import 'package:dres/core/widgets/favorite_button.dart';
+import 'package:dres/core/di/injection.dart';
+import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 
 class ProductCard extends StatefulWidget {
   final String id;
@@ -23,6 +26,8 @@ class ProductCard extends StatefulWidget {
   final bool showLeftBorder;
   final bool showTopBorder;
   final bool isBoosted;
+  /// Seller ID - if matches current user, hides favorite button
+  final String? sellerId;
 
   const ProductCard({
     super.key,
@@ -42,6 +47,7 @@ class ProductCard extends StatefulWidget {
     this.showLeftBorder = true,
     this.showTopBorder = true,
     this.isBoosted = false,
+    this.sellerId,
   });
 
   @override
@@ -49,10 +55,12 @@ class ProductCard extends StatefulWidget {
 }
 
 class _ProductCardState extends State<ProductCard> {
-  bool get _isFavorited => widget.isFavorited;
-
-  void _handleFavoriteToggle() {
-    widget.onFavoriteToggle?.call(widget.id, !_isFavorited);
+  /// Check if the current user is the seller of this item
+  bool get _isOwnItem {
+    final currentUserId = getIt<AuthBloc>().state.user?.id;
+    return widget.sellerId != null && 
+           currentUserId != null && 
+           widget.sellerId == currentUserId;
   }
 
   @override
@@ -150,14 +158,15 @@ class _ProductCardState extends State<ProductCard> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        GestureDetector(
-                          onTap: _handleFavoriteToggle,
-                          child: Icon(
-                            _isFavorited ? Icons.favorite : Icons.favorite_border,
-                            color: _isFavorited ? Colors.red : AppColors.textPrimary,
+                        // Hide favorite button if user is the seller
+                        if (!_isOwnItem)
+                          FavoriteButton(
+                            variationId: widget.id,
                             size: 22,
+                            onChanged: (isFavorited) {
+                              widget.onFavoriteToggle?.call(widget.id, isFavorited);
+                            },
                           ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 4),

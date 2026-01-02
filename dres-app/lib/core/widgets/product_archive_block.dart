@@ -163,6 +163,7 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
                           onFavoriteToggle: widget.onFavoriteToggle,
                           showLeftBorder: index == 0,
                           isBoosted: product.isBoosted,
+                          sellerId: product.sellerId,
                         ),
                       );
                     },
@@ -238,6 +239,7 @@ class ProductCardData {
   final String currencySymbol;
   final String slug;
   final bool isBoosted;
+  final String? sellerId;
 
   ProductCardData({
     required this.id,
@@ -251,6 +253,7 @@ class ProductCardData {
     required this.currencySymbol,
     required this.slug,
     this.isBoosted = false,
+    this.sellerId,
   });
 
   factory ProductCardData.fromJson(Map<String, dynamic> json) {
@@ -273,6 +276,7 @@ class ProductCardData {
       currencySymbol: currencySymbol,
       slug: json['slug'],
       isBoosted: json['isBoosted'] ?? false,
+      sellerId: json['sellerId'],
     );
   }
 }

@@ -79,6 +79,9 @@ export const recentlyViewedVariations: PayloadHandler = async (req: PayloadReque
       .map((view: any) => typeof view.variation === 'string' ? view.variation : view.variation?.id)
       .filter(Boolean)
 
+    payload.logger.info(`Recently viewed: Found ${variationIds.length} variation IDs for user ${user.id}`)
+    payload.logger.info(`Recently viewed: Department filter: ${department || 'none'}`)
+
     if (variationIds.length === 0) {
       return Response.json({
         docs: [],
@@ -117,6 +120,8 @@ export const recentlyViewedVariations: PayloadHandler = async (req: PayloadReque
       depth: 5,
       limit: limit,
     })
+
+    payload.logger.info(`Recently viewed: Found ${variationsResult.docs.length} variations after department filter`)
 
     // Fetch SKUs and style for each variation
     const variationsWithSKUs = await Promise.all(

@@ -10,6 +10,7 @@ class VariationModel {
   final String? category;
   final String slug;
   final bool isBoosted;
+  final String? sellerId;
 
   VariationModel({
     required this.id,
@@ -23,6 +24,7 @@ class VariationModel {
     this.category,
     required this.slug,
     this.isBoosted = false,
+    this.sellerId,
   });
 
   factory VariationModel.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class VariationModel {
       category: json['category'] as String?,
       slug: json['slug'] as String? ?? '',
       isBoosted: json['isBoosted'] as bool? ?? false,
+      sellerId: json['sellerId'] as String?,
     );
   }
 

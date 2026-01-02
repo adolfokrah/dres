@@ -3,8 +3,10 @@ import 'package:dres/core/widgets/badge_widget.dart';
 import 'package:dres/core/widgets/accordion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
+import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_bloc.dart';
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_event.dart';
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_state.dart';
@@ -18,6 +20,7 @@ import 'package:dres/features/product_details/presentation/widgets/reviews_secti
 import 'package:dres/features/product_details/presentation/widgets/similar_variations_section.dart';
 import 'package:dres/features/product_details/presentation/widgets/recently_viewed_section.dart';
 import 'package:dres/features/product_details/presentation/widgets/add_to_bag_button.dart';
+import 'package:dres/core/widgets/favorite_button.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
@@ -174,10 +177,20 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                         PhosphorIconsRegular.shareNetwork,
                                         size: 20,
                                       ),
-                                      const SizedBox(width: 20),
-                                      PhosphorIcon(
-                                        PhosphorIconsRegular.heart,
-                                        size: 20,
+                                      const SizedBox(width: 16),
+                                      // Hide favorite button if user is the seller
+                                      Builder(
+                                        builder: (context) {
+                                          final currentUserId = getIt<AuthBloc>().state.user?.id;
+                                          final isOwnItem = variation.sellerId != null &&
+                                              currentUserId != null &&
+                                              variation.sellerId == currentUserId;
+                                          if (isOwnItem) return const SizedBox.shrink();
+                                          return FavoriteButton(
+                                            variationId: variation.id,
+                                            size: 24,
+                                          );
+                                        },
                                       ),
                                     ],
                                   ),
@@ -254,6 +267,17 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                               const SizedBox(height: 10),
                               Builder(
                                 builder: (context) {
+                                  // Check if current user is the seller
+                                  final currentUserId = getIt<AuthBloc>().state.user?.id;
+                                  final isOwnItem = variation.sellerId != null &&
+                                      currentUserId != null &&
+                                      variation.sellerId == currentUserId;
+                                  
+                                  // Hide add to bag for own items
+                                  if (isOwnItem) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  
                                   // Find the selected SKU and check stock
                                   final selectedSkuId = state.selectedSkuId ?? variation.defaultSku;
                                   final selectedSku = variation.skus.firstWhere(

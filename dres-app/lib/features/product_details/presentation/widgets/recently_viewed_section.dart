@@ -126,6 +126,7 @@ class _RecentlyViewedSectionState extends State<RecentlyViewedSection> {
                             showLeftBorder: index == 0,
                             showTopBorder: true,
                             isBoosted: variation.isBoosted,
+                            sellerId: variation.sellerId,
                           ),
                         );
                       },

@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:dres/features/splash/splash.dart';
 import 'package:dres/features/home/home.dart';
 import 'package:dres/features/sell/sell.dart';
-import 'package:dres/features/favourite/favourite.dart';
+import 'package:dres/features/favorites/presentation/view/favorites_screen.dart';
 import 'package:dres/features/profile/profile.dart';
 import 'package:dres/features/shop/presentation/view/shop_screen.dart';
 import 'package:dres/features/shop/presentation/view/categories_screen.dart';
@@ -323,7 +323,7 @@ class AppRoutes {
               GoRoute(
                 path: favourite,
                 name: 'favourite',
-                builder: (context, state) => const FavouriteScreen(),
+                builder: (context, state) => const FavoritesScreen(),
               ),
             ],
           ),

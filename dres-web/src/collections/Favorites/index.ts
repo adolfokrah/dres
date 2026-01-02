@@ -1,6 +1,10 @@
 import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
+import { getMyFavorites } from './endpoints/getMyFavorites'
+import { addToFavorites } from './endpoints/addToFavorites'
+import { removeFromFavorites } from './endpoints/removeFromFavorites'
+import { checkFavorite } from './endpoints/checkFavorite'
 
 export const Favorites: CollectionConfig = {
   slug: 'favorites',
@@ -9,6 +13,28 @@ export const Favorites: CollectionConfig = {
     defaultColumns: ['user', 'product', 'createdAt'],
     description: 'User favorite products',
   },
+  endpoints: [
+    {
+      path: '/my-favorites',
+      method: 'get',
+      handler: getMyFavorites,
+    },
+    {
+      path: '/add',
+      method: 'post',
+      handler: addToFavorites,
+    },
+    {
+      path: '/remove/:variationId',
+      method: 'delete',
+      handler: removeFromFavorites,
+    },
+    {
+      path: '/check/:variationId',
+      method: 'get',
+      handler: checkFavorite,
+    },
+  ],
   access: {
     read: ({ req: { user } }) => {
       if (!user) return false

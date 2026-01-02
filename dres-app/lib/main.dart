@@ -19,6 +19,7 @@ import 'package:dres/features/product_details/logic/product_details_bloc/product
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_event.dart';
+import 'package:dres/features/favorites/logic/favorites_bloc/favorites_bloc.dart';
 import 'package:dres/core/services/storage_service.dart';
 
 Future<void> main() async {
@@ -75,10 +76,15 @@ class MainApp extends StatelessWidget {
           create: (_) => getIt<ProductDetailsBloc>(),
           lazy: true,
         ),
-        // AuthBloc - for authentication
+        // AuthBloc - for authentication (check status on startup)
         BlocProvider<AuthBloc>(
-          create: (_) => getIt<AuthBloc>(),
-          lazy: true,
+          create: (_) {
+            final authBloc = getIt<AuthBloc>();
+            // Check auth status on startup
+            authBloc.add(const AuthCheckStatusRequested());
+            return authBloc;
+          },
+          lazy: false, // Load immediately to check auth status
         ),
         // CartBloc - for shopping cart (singleton, fetches on startup if logged in)
         BlocProvider<CartBloc>(
@@ -95,37 +101,64 @@ class MainApp extends StatelessWidget {
           },
           lazy: false, // Load immediately
         ),
+        // FavoritesBloc - for favorites (singleton, fetches on startup if logged in)
+        BlocProvider<FavoritesBloc>(
+          create: (_) {
+            final favoritesBloc = getIt<FavoritesBloc>();
+            // Fetch favorites on startup if user is logged in
+            final storageService = getIt<StorageService>();
+            storageService.getToken().then((token) {
+              if (token != null && token.isNotEmpty) {
+                favoritesBloc.add(const FavoritesFetchRequested());
+              }
+            });
+            return favoritesBloc;
+          },
+          lazy: false, // Load immediately
+        ),
       ],
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        title: 'DRES',
-        theme: AppTheme.theme,
-        
-        // Localization
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('en'),
-        ],
-        
-        // GoRouter
-        routerConfig: AppRoutes.router,
-        
-        // Wrap with SafeArea on Android
-        builder: (context, child) {
-          if (Platform.isAndroid) {
-            return SafeArea(
-              top: false,
-              bottom: true,
-              child: child ?? const SizedBox.shrink(),
-            );
-          }
-          return child ?? const SizedBox.shrink();
+      // Listen for auth state changes to fetch favorites when user logs in
+      child: BlocListener<AuthBloc, AuthState>(
+        bloc: getIt<AuthBloc>(),
+        listenWhen: (previous, current) => 
+            previous.status != AuthStatus.authenticated && 
+            current.status == AuthStatus.authenticated,
+        listener: (context, state) {
+          // User just logged in, fetch favorites and cart
+          getIt<FavoritesBloc>().add(const FavoritesFetchRequested());
+          getIt<CartBloc>().add(const CartFetchRequested());
         },
+        child: MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          title: 'DRES',
+          theme: AppTheme.theme,
+          
+          // Localization
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en'),
+          ],
+          
+          // GoRouter
+          routerConfig: AppRoutes.router,
+          
+          // Wrap with SafeArea on Android
+          builder: (context, child) {
+            if (Platform.isAndroid) {
+              return SafeArea(
+                top: false,
+                bottom: true,
+                child: child ?? const SizedBox.shrink(),
+              );
+            }
+            return child ?? const SizedBox.shrink();
+          },
+        ),
       ),
     );
   }

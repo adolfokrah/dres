@@ -282,6 +282,7 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
             isBoosted: product.isBoosted,
             showLeftBorder: index % 2 == 0,
             showTopBorder: index < 2,
+            sellerId: product.sellerId,
             onFavoriteToggle: (id, isFavorited) {
               // TODO: Toggle favorite
             },

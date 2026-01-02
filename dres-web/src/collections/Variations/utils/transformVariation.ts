@@ -23,6 +23,7 @@ interface TransformedVariation {
   isBoosted?: boolean
   defaultSku?: string
   styleId?: string | null
+  sellerId?: string | null
   relatedVariations?: Omit<TransformedVariation, 'relatedVariations'>[]
 }
 
@@ -195,6 +196,11 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
   // Get style ID
   const styleId = typeof variation.style === 'object' ? variation.style.id : variation.style
 
+  // Get seller ID from style
+  const sellerId = style?.seller && typeof style.seller === 'object' 
+    ? style.seller.id 
+    : (typeof style?.seller === 'string' ? style.seller : null)
+
   return {
     id: variation.id,
     thumbnail,
@@ -210,6 +216,7 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
     isBoosted: boostedValue,
     defaultSku: selectedSku?.id || undefined,
     styleId: styleId || null,
+    sellerId: sellerId || null,
     ...(includeRelated && { relatedVariations }),
   }
 }

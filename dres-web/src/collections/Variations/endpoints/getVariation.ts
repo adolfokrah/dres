@@ -353,6 +353,7 @@ export const getVariation: PayloadHandler = async (req) => {
         details,
         skus: skus as any, // Custom SKU structure with options
         variationsTitle,
+        sellerId: sellerId || null, // Add sellerId for ownership check
       },
       relatedVariations: relatedVariations as any, // Custom structure with details
       seller: sellerData,
