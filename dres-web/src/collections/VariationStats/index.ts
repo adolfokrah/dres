@@ -6,7 +6,7 @@ import { anyone } from '../../access/anyone'
 export const VariationStats: CollectionConfig = {
   slug: 'variation-stats',
   admin: {
-    group: 'Ecommerce',
+    group: 'Analytics',
     defaultColumns: [
       'variation',
       'sku',

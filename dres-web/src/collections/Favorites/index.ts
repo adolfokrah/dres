@@ -5,7 +5,7 @@ import { authenticated } from '../../access/authenticated'
 export const Favorites: CollectionConfig = {
   slug: 'favorites',
   admin: {
-    group: 'Ecommerce',
+    group: 'Users',
     defaultColumns: ['user', 'product', 'createdAt'],
     description: 'User favorite products',
   },

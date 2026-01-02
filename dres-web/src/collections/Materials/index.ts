@@ -7,7 +7,7 @@ export const Materials: CollectionConfig = {
   slug: 'materials',
   admin: {
     useAsTitle: 'name',
-    group: 'Ecommerce',
+    group: 'Catalog',
     defaultColumns: ['name', 'categories'],
   },
   access: {

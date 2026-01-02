@@ -6,7 +6,7 @@ export const ShippingRates: CollectionConfig = {
   slug: 'shippingRates',
   admin: {
     useAsTitle: 'id',
-    group: 'Ecommerce',
+    group: 'Orders',
     defaultColumns: ['user', 'cities', 'deliveryCost', 'updatedAt'],
     description: 'Shipping rates set by sellers for their products',
   },

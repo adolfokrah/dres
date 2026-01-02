@@ -17,7 +17,7 @@ export const Transactions: CollectionConfig = {
   slug: 'transactions',
   admin: {
     useAsTitle: 'transactionId',
-    group: 'Ecommerce',
+    group: 'Orders',
     defaultColumns: ['transactionId', 'user', 'order', 'amount', 'status', 'createdAt'],
     description: 'Payment transactions',
   },

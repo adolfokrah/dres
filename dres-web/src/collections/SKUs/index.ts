@@ -12,7 +12,7 @@ interface SKUOptionItem {
 export const SKUs: CollectionConfig = {
   slug: 'skus',
   admin: {
-    group: 'Ecommerce',
+    group: 'Catalog',
     defaultColumns: ['title', 'variation', 'skuOptions', 'price', 'stock', 'updatedAt'],
     description: 'SKUs - inventory tracking with pricing for each variation',
     useAsTitle: 'title',

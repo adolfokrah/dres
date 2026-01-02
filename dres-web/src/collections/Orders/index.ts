@@ -27,7 +27,7 @@ export const Orders: CollectionConfig = {
   slug: 'orders',
   admin: {
     useAsTitle: 'orderId',
-    group: 'Ecommerce',
+    group: 'Orders',
     defaultColumns: ['orderId', 'user', 'status', 'totalItems', 'totalAmount', 'createdAt'],
     description: 'Customer orders',
   },

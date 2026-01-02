@@ -6,7 +6,7 @@ import { anyone } from '../../access/anyone'
 export const Reviews: CollectionConfig = {
   slug: 'reviews',
   admin: {
-    group: 'Ecommerce',
+    group: 'Users',
     defaultColumns: ['product', 'user', 'rating', 'createdAt'],
     description: 'Product reviews from customers',
   },

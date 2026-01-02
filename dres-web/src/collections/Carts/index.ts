@@ -18,7 +18,7 @@ export const Carts: CollectionConfig = {
   slug: 'carts',
   admin: {
     useAsTitle: 'id',
-    group: 'Ecommerce',
+    group: 'Orders',
     defaultColumns: ['user', 'status', 'itemCount', 'updatedAt'],
     description: 'Shopping carts for users',
   },

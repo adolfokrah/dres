@@ -23,7 +23,7 @@ export const Variations: CollectionConfig = {
   slug: 'variations',
   admin: {
     useAsTitle: 'title',
-    group: 'Ecommerce',
+    group: 'Catalog',
     defaultColumns: ['title', 'style', 'images', 'variants'],
     description: 'Product variations - specific color/size combinations',
   },

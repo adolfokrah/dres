@@ -7,7 +7,7 @@ export const AttributeOptions: CollectionConfig = {
   slug: 'attributeOptions',
   admin: {
     useAsTitle: 'name',
-    group: 'Ecommerce',
+    group: 'Catalog',
     defaultColumns: ['name', 'slug', 'attribute', 'updatedAt'],
     description: 'Options for product attributes (e.g., "Slim Fit", "Leather")',
   },

@@ -7,7 +7,7 @@ import { getStyleReviewsEndpoint } from './endpoints/getStyleReviews'
 export const Styles: CollectionConfig = {
   slug: 'styles',
   admin: {
-    group: 'Ecommerce',
+    group: 'Catalog',
     useAsTitle: 'title',
     defaultColumns: ['title', 'department', 'category', 'brand', 'createdAt'],
     description: 'Product styles - the main product definition',

@@ -7,7 +7,7 @@ export const DiscountCodes: CollectionConfig = {
   slug: 'discount-codes',
   admin: {
     useAsTitle: 'code',
-    group: 'Ecommerce',
+    group: 'Orders',
     defaultColumns: ['code', 'type', 'value', 'usageCount', 'maxUses', 'active', 'expiresAt'],
     description: 'Discount codes for orders',
   },

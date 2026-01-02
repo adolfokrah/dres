@@ -7,7 +7,7 @@ export const Countries: CollectionConfig = {
   slug: 'countries',
   admin: {
     useAsTitle: 'name',
-    group: 'Settings',
+    group: 'Locations',
     defaultColumns: ['name', 'code', 'currency', 'isActive'],
     description: 'Supported countries with their currencies',
   },

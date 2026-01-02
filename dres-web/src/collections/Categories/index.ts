@@ -13,7 +13,7 @@ export const Categories: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'category',
-    group: 'Ecommerce',
+    group: 'Catalog',
     defaultColumns: ['category', 'departments', 'collections'],
   },
   fields: [

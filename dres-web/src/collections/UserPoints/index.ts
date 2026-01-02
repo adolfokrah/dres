@@ -5,7 +5,7 @@ export const UserPoints: CollectionConfig = {
   slug: 'user-points',
   admin: {
     useAsTitle: 'id',
-    group: 'Ecommerce',
+    group: 'Users',
     defaultColumns: ['user', 'balance', 'totalEarned', 'totalRedeemed', 'updatedAt'],
     description: 'User reward points for purchases',
   },

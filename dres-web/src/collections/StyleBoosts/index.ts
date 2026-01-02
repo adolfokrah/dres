@@ -6,7 +6,7 @@ export const StyleBoosts: CollectionConfig = {
   slug: 'style-boosts',
   admin: {
     useAsTitle: 'style',
-    group: 'Ecommerce',
+    group: 'Users',
     defaultColumns: ['style', 'tier', 'status', 'startDate', 'endDate', 'createdAt'],
     description: 'Style boost/featuring for increased visibility',
   },

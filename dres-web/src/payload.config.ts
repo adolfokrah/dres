@@ -3,47 +3,61 @@ import sharp from 'sharp'
 import path from 'path'
 import { buildConfig, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
+import { resendAdapter } from '@payloadcms/email-resend'
 
+// Analytics
+import { VariationStats } from './collections/VariationStats'
+import { VariationViews } from './collections/VariationViews'
+
+// Catalog
 import { Attributes } from './collections/Attributes'
 import { AttributeOptions } from './collections/AttributeOptions'
-import { StyleBoosts } from './collections/StyleBoosts'
 import { Brands } from './collections/Brands'
-import { Carts } from './collections/Carts'
 import { Categories } from './collections/Categories'
-import { Cities } from './collections/Cities'
-import { Countries } from './collections/Countries'
-import { Currencies } from './collections/Currencies'
 import { Collections } from './collections/Collections'
 import { Departments } from './collections/Departments'
-import { DiscountCodes } from './collections/DiscountCodes'
-import { Favorites } from './collections/Favorites'
-import { Follows } from './collections/Follows'
 import { Materials } from './collections/Materials'
+import { SKUs } from './collections/SKUs'
+import { Styles } from './collections/Styles'
+import { Variations } from './collections/Variations'
+
+// Content
 import { Media } from './collections/Media'
-import { Notifications } from './collections/Notifications'
-import { Orders } from './collections/Orders'
 import { Pages } from './collections/Pages'
 import { PostCategories } from './collections/PostCategories'
 import { Posts } from './collections/Posts'
-import { Styles } from './collections/Styles'
-import { Variations } from './collections/Variations'
-import { SKUs } from './collections/SKUs'
-import { VariationViews } from './collections/VariationViews'
-import { VariationStats } from './collections/VariationStats'
+
+// Locations
+import { Cities } from './collections/Cities'
+import { Countries } from './collections/Countries'
 import { Regions } from './collections/Regions'
-import { Reviews } from './collections/Reviews'
+
+// Orders
+import { Carts } from './collections/Carts'
+import { DeliveryCodes } from './collections/DeliveryCodes'
+import { DiscountCodes } from './collections/DiscountCodes'
+import { Orders } from './collections/Orders'
 import { ShippingRates } from './collections/ShippingRates'
 import { Transactions } from './collections/Transactions'
-import { Users } from './collections/Users'
+
+// Settings
+import { Currencies } from './collections/Currencies'
+
+// Users
+import { Favorites } from './collections/Favorites'
+import { Follows } from './collections/Follows'
+import { Notifications } from './collections/Notifications'
+import { Reviews } from './collections/Reviews'
+import { StyleBoosts } from './collections/StyleBoosts'
 import { UserPoints } from './collections/UserPoints'
-import { DeliveryCodes } from './collections/DeliveryCodes'
+import { Users } from './collections/Users'
+
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 import { getMenu } from './endpoints/menu'
-import {resendAdapter} from '@payloadcms/email-resend'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -117,7 +131,48 @@ export default buildConfig({
     defaultLocale: 'en',
     fallback: true,
   },
-  collections: [Pages, Posts, PostCategories, Media, Attributes, AttributeOptions, StyleBoosts, Styles, Variations, SKUs, VariationViews, Brands, Carts, Categories, Cities, Collections, Countries, Currencies, Departments, DiscountCodes, Favorites, Follows, Materials, Notifications, Orders, Regions, VariationStats, Reviews, ShippingRates, Transactions, Users, UserPoints, DeliveryCodes],
+  collections: [
+    // Analytics
+    VariationStats,
+    VariationViews,
+    // Catalog
+    Attributes,
+    AttributeOptions,
+    Brands,
+    Categories,
+    Collections,
+    Departments,
+    Materials,
+    SKUs,
+    Styles,
+    Variations,
+    // Content
+    Media,
+    Pages,
+    PostCategories,
+    Posts,
+    // Locations
+    Cities,
+    Countries,
+    Regions,
+    // Orders
+    Carts,
+    DeliveryCodes,
+    DiscountCodes,
+    Orders,
+    ShippingRates,
+    Transactions,
+    // Settings
+    Currencies,
+    // Users
+    Favorites,
+    Follows,
+    Notifications,
+    Reviews,
+    StyleBoosts,
+    UserPoints,
+    Users,
+  ],
   cors: [getServerSideURL()].filter(Boolean),
   endpoints: [
     {
