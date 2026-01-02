@@ -14,6 +14,8 @@ import 'package:dres/features/profile/presentation/widgets/profile_stats_card.da
 import 'package:dres/features/profile/presentation/widgets/profile_tabs_bar.dart';
 import 'package:dres/features/profile/presentation/widgets/purchases_list.dart';
 import 'package:dres/features/profile/presentation/widgets/incoming_orders_list.dart';
+import 'package:dres/features/profile/presentation/widgets/transactions_list.dart';
+import 'package:dres/features/profile/presentation/widgets/community_list.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String? userId;
@@ -39,6 +41,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     ProfileTab(label: 'Incoming orders'),
     ProfileTab(label: 'Purchases'),
     ProfileTab(label: 'Transactions'),
+    ProfileTab(label: 'Community'),
   ];
 
   @override
@@ -233,6 +236,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final seller = _seller;
     final displayName = seller?.name ?? 'User';
     final username = seller?.username ?? '';
+    final userId = widget.userId ?? authState.user?.id;
 
     return NestedScrollView(
       headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -264,7 +268,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       },
       body: Builder(
         builder: (context) {
-          return _buildTabContent(context);
+          return _buildTabContent(context, userId);
         },
       ),
     );
@@ -343,7 +347,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildTabContent(BuildContext context) {
+  Widget _buildTabContent(BuildContext context, String? userId) {
     switch (_selectedTabIndex) {
       case 0:
         return _buildPlaceholder(context, 'Products');
@@ -352,7 +356,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       case 2:
         return PurchasesList(parentContext: context);
       case 3:
-        return _buildPlaceholder(context, 'Transactions');
+        return TransactionsList(parentContext: context);
+      case 4:
+        if (userId == null) {
+          return _buildPlaceholder(context, 'Community');
+        }
+        return CommunityList(parentContext: context, userId: userId);
       default:
         return const SizedBox.shrink();
     }

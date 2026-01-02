@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
+import { getUserFollows } from './endpoints/getUserFollows'
 
 export const Follows: CollectionConfig = {
   slug: 'follows',
@@ -9,6 +10,13 @@ export const Follows: CollectionConfig = {
     defaultColumns: ['follower', 'following', 'createdAt'],
     description: 'User follow relationships',
   },
+  endpoints: [
+    {
+      path: '/user-follows/:userId',
+      method: 'get',
+      handler: getUserFollows,
+    },
+  ],
   access: {
     read: authenticated,
     create: authenticated,

@@ -30,6 +30,8 @@ import 'package:dres/features/orders/logic/incoming_orders_bloc/incoming_orders_
 import 'package:dres/features/orders/logic/incoming_order_details_bloc/incoming_order_details_bloc.dart';
 import 'package:dres/features/profile/data/repositories/transactions_repository.dart';
 import 'package:dres/features/profile/logic/transactions_bloc/transactions_bloc.dart';
+import 'package:dres/features/profile/data/repositories/community_repository.dart';
+import 'package:dres/features/profile/logic/community_bloc/community_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -169,5 +171,15 @@ Future<void> setupDependencies() async {
   // Transactions Bloc - Singleton so filter state persists
   getIt.registerLazySingleton<TransactionsBloc>(() => TransactionsBloc(
     transactionsRepository: getIt<TransactionsRepository>(),
+  ));
+
+  // Community Repository
+  getIt.registerLazySingleton<CommunityRepository>(() => CommunityRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Community Bloc - Singleton so filter state persists
+  getIt.registerLazySingleton<CommunityBloc>(() => CommunityBloc(
+    communityRepository: getIt<CommunityRepository>(),
   ));
 }

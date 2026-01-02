@@ -9,119 +9,71 @@ import 'package:dres/core/widgets/status_badge.dart';
 import 'package:dres/features/profile/logic/transactions_bloc/transactions_bloc.dart';
 import 'package:dres/features/profile/data/models/transaction_model.dart';
 
-/// Transactions tab for seller profile
-class TransactionsTab extends StatefulWidget {
-  const TransactionsTab({super.key});
+/// Transactions list tab content (seller's view)
+class TransactionsList extends StatefulWidget {
+  final BuildContext parentContext;
+
+  const TransactionsList({
+    super.key,
+    required this.parentContext,
+  });
 
   @override
-  State<TransactionsTab> createState() => _TransactionsTabState();
+  State<TransactionsList> createState() => _TransactionsListState();
 }
 
-class _TransactionsTabState extends State<TransactionsTab> {
-  late final TransactionsBloc _bloc;
-  final ScrollController _scrollController = ScrollController();
+class _TransactionsListState extends State<TransactionsList> {
+  late final TransactionsBloc _transactionsBloc;
 
   @override
   void initState() {
     super.initState();
-    _bloc = getIt<TransactionsBloc>();
-    _bloc.add(const TransactionsFetchRequested());
-    _scrollController.addListener(_onScroll);
+    _transactionsBloc = getIt<TransactionsBloc>();
+
+    // Always fetch transactions when this widget is shown
+    _transactionsBloc.add(const TransactionsFetchRequested());
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    // Don't close bloc - it's a singleton
     super.dispose();
   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      _bloc.add(const TransactionsLoadMoreRequested());
+  void _onScroll(ScrollNotification notification) {
+    if (notification is ScrollEndNotification) {
+      final metrics = notification.metrics;
+      if (metrics.pixels >= metrics.maxScrollExtent - 200) {
+        _transactionsBloc.add(const TransactionsLoadMoreRequested());
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TransactionsBloc, TransactionsState>(
-      bloc: _bloc,
+      bloc: _transactionsBloc,
       builder: (context, state) {
-        if (state.status == TransactionsStatus.loading &&
-            state.transactions.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (state.status == TransactionsStatus.error &&
-            state.transactions.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Failed to load transactions',
-                  style: AppTypography.bodyM.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () =>
-                      _bloc.add(const TransactionsRefreshRequested()),
-                  child: const Text('Retry'),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return RefreshIndicator(
-          onRefresh: () async {
-            _bloc.add(const TransactionsRefreshRequested());
+        return NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            _onScroll(notification);
+            return false; // Allow notification to bubble up to NestedScrollView
           },
           child: CustomScrollView(
-            controller: _scrollController,
             slivers: [
+              // Inject overlap from NestedScrollView header
+              SliverOverlapInjector(
+                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                    widget.parentContext),
+              ),
+
               // Summary header
               SliverToBoxAdapter(
                 child: _buildSummaryHeader(state),
               ),
 
-              // Transactions list
-              if (state.transactions.isEmpty)
-                SliverFillRemaining(
-                  child: Center(
-                    child: Text(
-                      'No transactions yet',
-                      style: AppTypography.bodyM.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                )
-              else
-                SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index >= state.transactions.length) {
-                        return const SizedBox.shrink();
-                      }
-                      return _TransactionCard(
-                        transaction: state.transactions[index],
-                      );
-                    },
-                    childCount: state.transactions.length,
-                  ),
-                ),
-
-              // Loading indicator
-              if (state.hasMore && state.transactions.isNotEmpty)
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                ),
+              // Transactions content
+              _buildSliverContent(state),
             ],
           ),
         );
@@ -216,6 +168,80 @@ class _TransactionsTabState extends State<TransactionsTab> {
       ),
     );
   }
+
+  Widget _buildSliverContent(TransactionsState state) {
+    if (state.status == TransactionsStatus.loading &&
+        state.transactions.isEmpty) {
+      return const SliverFillRemaining(
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (state.status == TransactionsStatus.error &&
+        state.transactions.isEmpty) {
+      return SliverFillRemaining(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'Failed to load transactions',
+                  style: AppTypography.bodyL.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                if (state.error != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    state.error!,
+                    style: AppTypography.bodyS.copyWith(
+                      color: AppColors.textHint,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () {
+                    _transactionsBloc.add(const TransactionsRefreshRequested());
+                  },
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (state.transactions.isEmpty) {
+      return SliverFillRemaining(
+        child: Center(
+          child: Text(
+            'No transactions yet',
+            style: AppTypography.bodyL.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          if (index >= state.transactions.length) {
+            return const SizedBox.shrink();
+          }
+          final transaction = state.transactions[index];
+          return _TransactionCard(transaction: transaction);
+        },
+        childCount: state.transactions.length + (state.hasMore ? 1 : 0),
+      ),
+    );
+  }
 }
 
 /// Transaction card widget
@@ -286,8 +312,7 @@ class _TransactionCard extends StatelessWidget {
                 style: AppTypography.bodyM.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
-                  decoration:
-                      isCancelled ? TextDecoration.lineThrough : null,
+                  decoration: isCancelled ? TextDecoration.lineThrough : null,
                 ),
               ),
               const SizedBox(height: 11),
@@ -320,9 +345,9 @@ class _TransactionCard extends StatelessWidget {
     final month = date.month.toString().padLeft(2, '0');
     final day = date.day.toString().padLeft(2, '0');
     final year = date.year;
-    final hour = date.hour > 12 ? date.hour - 12 : date.hour;
+    final hour = date.hour > 12 ? date.hour - 12 : (date.hour == 0 ? 12 : date.hour);
     final minute = date.minute.toString().padLeft(2, '0');
     final period = date.hour >= 12 ? 'PM' : 'AM';
-    return '$month/$day/$year ${hour == 0 ? 12 : hour}:$minute $period';
+    return '$month/$day/$year $hour:$minute $period';
   }
 }
