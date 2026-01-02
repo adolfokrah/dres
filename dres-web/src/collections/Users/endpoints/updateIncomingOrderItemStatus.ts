@@ -1,4 +1,5 @@
 import type { PayloadHandler } from 'payload'
+import { generateUniqueDeliveryCode } from '@/utilities/generateDeliveryCode'
 
 type ItemStatusAction = 'not_available' | 'out_for_delivery' | 'accept_return'
 
@@ -164,6 +165,53 @@ export const updateIncomingOrderItemStatus: PayloadHandler = async (req) => {
       },
     })
 
+    // If marking as out_for_delivery, create or update delivery code
+    if (action === 'out_for_delivery') {
+      const buyerId = typeof order.customer === 'object' ? order.customer.id : order.customer
+
+      // Check if delivery code exists for this seller + order (codes are deleted after use)
+      const existingCode = await payload.find({
+        collection: 'delivery-codes' as any,
+        where: {
+          and: [
+            { order: { equals: orderId } },
+            { seller: { equals: userId } },
+          ],
+        },
+        limit: 1,
+      })
+
+      if (existingCode.docs.length > 0) {
+        // Add item to existing code
+        const code = existingCode.docs[0] as any
+        const existingItems = (code.items || []) as { itemId: string }[]
+        const itemExists = existingItems.some((i) => i.itemId === itemId)
+
+        if (!itemExists) {
+          await payload.update({
+            collection: 'delivery-codes' as any,
+            id: code.id,
+            data: {
+              items: [...existingItems, { itemId }],
+            } as any,
+          })
+        }
+      } else {
+        // Create new delivery code
+        const newCode = await generateUniqueDeliveryCode(payload)
+        await payload.create({
+          collection: 'delivery-codes' as any,
+          data: {
+            code: newCode,
+            order: orderId,
+            seller: userId,
+            buyer: buyerId,
+            items: [{ itemId }],
+          } as any,
+        })
+      }
+    }
+
     return Response.json({
       success: true,
       message: `Item status updated to ${newStatus}`,
@@ -265,6 +313,67 @@ export const markAllOutForDelivery: PayloadHandler = async (req) => {
         status: newOrderStatus,
       },
     })
+
+    // Create delivery code for all items marked as out for delivery
+    if (updatedCount > 0) {
+      const buyerId = typeof order.customer === 'object' ? order.customer.id : order.customer
+
+      // Get all item IDs that were just marked as out for delivery
+      const outForDeliveryItemIds: string[] = []
+      updatedItems.forEach((item: any) => {
+        const itemSellerId = typeof item.seller === 'object' ? item.seller.id : item.seller
+        if (itemSellerId === userId && item.shippingStatus === 'out_for_delivery') {
+          outForDeliveryItemIds.push(item.id)
+        }
+      })
+
+      // Check if delivery code exists for this seller + order (codes are deleted after use)
+      const existingCode = await payload.find({
+        collection: 'delivery-codes' as any,
+        where: {
+          and: [
+            { order: { equals: orderId } },
+            { seller: { equals: userId } },
+          ],
+        },
+        limit: 1,
+      })
+
+      if (existingCode.docs.length > 0) {
+        // Update existing code with all items
+        const code = existingCode.docs[0] as any
+        const existingItems = (code.items || []) as { itemId: string }[]
+        const existingItemIds = existingItems.map((i) => i.itemId)
+
+        // Add new items that aren't already in the code
+        const newItems = outForDeliveryItemIds
+          .filter((id) => !existingItemIds.includes(id))
+          .map((id) => ({ itemId: id }))
+
+        if (newItems.length > 0) {
+          await payload.update({
+            collection: 'delivery-codes' as any,
+            id: code.id,
+            data: {
+              items: [...existingItems, ...newItems],
+            } as any,
+          })
+        }
+      } else {
+        // Create new delivery code
+        const newCode = await generateUniqueDeliveryCode(payload)
+        await payload.create({
+          collection: 'delivery-codes' as any,
+          data: {
+            code: newCode,
+            order: orderId,
+            seller: userId,
+            buyer: buyerId,
+            items: outForDeliveryItemIds.map((id) => ({ itemId: id })),
+          } as any,
+        })
+      }
+    }
 
     return Response.json({
       success: true,

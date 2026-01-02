@@ -36,6 +36,7 @@ import { ShippingRates } from './collections/ShippingRates'
 import { Transactions } from './collections/Transactions'
 import { Users } from './collections/Users'
 import { UserPoints } from './collections/UserPoints'
+import { DeliveryCodes } from './collections/DeliveryCodes'
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
 import { plugins } from './plugins'
@@ -116,7 +117,7 @@ export default buildConfig({
     defaultLocale: 'en',
     fallback: true,
   },
-  collections: [Pages, Posts, PostCategories, Media, Attributes, AttributeOptions, StyleBoosts, Styles, Variations, SKUs, VariationViews, Brands, Carts, Categories, Cities, Collections, Countries, Currencies, Departments, DiscountCodes, Favorites, Follows, Materials, Notifications, Orders, Regions, VariationStats, Reviews, ShippingRates, Transactions, Users, UserPoints],
+  collections: [Pages, Posts, PostCategories, Media, Attributes, AttributeOptions, StyleBoosts, Styles, Variations, SKUs, VariationViews, Brands, Carts, Categories, Cities, Collections, Countries, Currencies, Departments, DiscountCodes, Favorites, Follows, Materials, Notifications, Orders, Regions, VariationStats, Reviews, ShippingRates, Transactions, Users, UserPoints, DeliveryCodes],
   cors: [getServerSideURL()].filter(Boolean),
   endpoints: [
     {
