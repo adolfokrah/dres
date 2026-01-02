@@ -9,11 +9,11 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/l10n/app_localizations.dart';
 
 class BuyerProtectionFee extends StatelessWidget {
-  final double fee;
+  final double feeRate; // Percentage rate (e.g., 8 for 8%)
 
   const BuyerProtectionFee({
     super.key,
-    required this.fee,
+    required this.feeRate,
   });
 
   @override

@@ -119,6 +119,20 @@ class AppRoutes {
         },
       ),
       
+      // Products listing - redirects to /discover/products to show bottom nav
+      GoRoute(
+        path: '/products',
+        name: 'products-listing',
+        redirect: (context, state) {
+          // Redirect /products?... to /discover/products?... to keep bottom nav
+          final queryString = state.uri.query;
+          if (queryString.isNotEmpty) {
+            return '/discover/products?$queryString';
+          }
+          return '/discover/products';
+        },
+      ),
+      
       // Cart (outside shell, full screen)
       GoRoute(
         path: '/cart',
@@ -241,6 +255,30 @@ class AppRoutes {
                 name: 'discover',
                 builder: (context, state) => const ShopScreen(),
                 routes: [
+                  // Products listing with query params (inside shell with bottom nav)
+                  GoRoute(
+                    path: 'products',
+                    name: 'discover-products',
+                    builder: (context, state) {
+                      final queryParams = state.uri.queryParameters;
+                      
+                      final departmentId = queryParams['departmentId'] ?? queryParams['department'];
+                      final categoryId = queryParams['categoryId'] ?? queryParams['category'];
+                      final collectionId = queryParams['collectionId'] ?? queryParams['collection'];
+                      final brandId = queryParams['brandId'] ?? queryParams['brand'];
+                      final filterType = queryParams['filterType'];
+                      final title = queryParams['title'] ?? 'Products';
+                      
+                      return ProductsScreen(
+                        departmentId: departmentId,
+                        categoryId: categoryId,
+                        collectionId: collectionId,
+                        brandId: brandId,
+                        filterType: filterType,
+                        title: title,
+                      );
+                    },
+                  ),
                   GoRoute(
                     path: 'brands',
                     name: 'brands',

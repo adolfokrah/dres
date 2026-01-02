@@ -157,11 +157,9 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
         return PromoBanner(
           title: promoBanner.title,
           description: promoBanner.description,
-          actionText: promoBanner.actionText,
+          actionLabel: promoBanner.actionLink?.label,
           backgroundColor: promoBanner.backgroundColor ?? 'light',
-          onActionTap: () {
-            // TODO: Handle action link navigation
-          },
+          path: promoBanner.actionLink?.resolvedUrl,
         );
       case 'featuredGrid':
         final featuredGrid = block as FeaturedGridBlockModel;

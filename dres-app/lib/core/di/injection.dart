@@ -1,6 +1,8 @@
 import 'package:get_it/get_it.dart';
 import 'package:dres/core/services/api_service.dart';
 import 'package:dres/core/services/storage_service.dart';
+import 'package:dres/core/services/site_settings_service.dart';
+import 'package:dres/core/repositories/site_settings_repository.dart';
 import 'package:dres/features/home/data/repositories/home_repository.dart';
 import 'package:dres/features/home/logic/bloc/home_bloc.dart';
 import 'package:dres/features/splash/data/repositories/menu_repository.dart';
@@ -53,6 +55,14 @@ Future<void> setupDependencies() async {
 
   // API Service - Dio wrapper with auth
   getIt.registerLazySingleton<ApiService>(() => ApiService(getIt<StorageService>()));
+
+  // Site Settings Repository & Service
+  getIt.registerLazySingleton<SiteSettingsRepository>(() => SiteSettingsRepository(
+    apiService: getIt<ApiService>(),
+  ));
+  getIt.registerLazySingleton<SiteSettingsService>(() => SiteSettingsService(
+    repository: getIt<SiteSettingsRepository>(),
+  ));
 
   // ========================
   // Repositories (Singletons)

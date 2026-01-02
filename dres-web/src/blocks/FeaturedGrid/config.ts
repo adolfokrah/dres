@@ -44,7 +44,7 @@ export const FeaturedGrid: Block = {
           name: 'link',
           type: 'text',
           admin: {
-            description: 'Deep link URL. Example: /discover',
+            description: 'Deep link URL. Example: /products',
           },
         },
       ],

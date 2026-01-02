@@ -26,15 +26,6 @@ export const PromoBanner: Block = {
         description: 'Supporting text, e.g. "Shop: 10% off with code WELCOMEVC..."',
       },
     },
-    {
-      name: 'actionText',
-      type: 'text',
-      required: true,
-      defaultValue: 'Get started',
-      admin: {
-        description: 'CTA button text',
-      },
-    },
     link({
       appearances: false,
       overrides: {

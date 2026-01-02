@@ -54,10 +54,12 @@ import { Users } from './collections/Users'
 
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
+import { SiteSettings } from './globals/SiteSettings'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 import { getMenu } from './endpoints/menu'
+import { getSiteSettings } from './endpoints/siteSettings'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -180,8 +182,13 @@ export default buildConfig({
       method: 'get',
       handler: getMenu,
     },
+    {
+      path: '/site-settings',
+      method: 'get',
+      handler: getSiteSettings,
+    },
   ],
-  globals: [Header, Footer],
+  globals: [Header, Footer, SiteSettings],
   plugins,
   secret: process.env.PAYLOAD_SECRET,
   sharp,

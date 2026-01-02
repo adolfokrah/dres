@@ -22,6 +22,7 @@ import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_event.dart';
 import 'package:dres/features/favorites/logic/favorites_bloc/favorites_bloc.dart';
 import 'package:dres/core/services/storage_service.dart';
+import 'package:dres/core/services/site_settings_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +37,9 @@ Future<void> main() async {
   
   // Setup dependency injection
   await setupDependencies();
+  
+  // Fetch site settings from CMS
+  await getIt<SiteSettingsService>().fetchSettings();
   
   // Check for initial deep link (cold start)
   final appLinks = AppLinks();

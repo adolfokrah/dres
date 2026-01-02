@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
+import 'package:dres/core/utilities/media_utils.dart';
+import 'package:dres/core/services/site_settings_service.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_bloc.dart';
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_event.dart';
@@ -176,7 +178,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                     children: [
                                       GestureDetector(
                                         onTap: () {
-                                          final shareUrl = 'https://dres.app/products/${variation.slug}';
+                                          final shareUrl = '${MediaUtils.baseUrl}/products/${variation.slug}';
                                           SharePlus.instance.share(
                                             ShareParams(
                                               text: 'Check out ${variation.brand} ${variation.title} on DRES!\n\n$shareUrl',
@@ -263,7 +265,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       
                               // Buyer Protection Fee
                               BuyerProtectionFee(
-                                fee: 35.00,
+                                feeRate: getIt<SiteSettingsService>().buyerProtectionFeeRate,
                               ),
                               const SizedBox(height: 10),
                                // SKU Selector (Size, Color, etc.)

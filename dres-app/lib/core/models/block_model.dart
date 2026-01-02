@@ -38,7 +38,6 @@ abstract class BlockModel {
 class PromoBannerBlockModel extends BlockModel {
   final String title;
   final String description;
-  final String actionText;
   final LinkModel? actionLink;
   final String? backgroundColor;
 
@@ -47,7 +46,6 @@ class PromoBannerBlockModel extends BlockModel {
     super.blockName,
     required this.title,
     required this.description,
-    required this.actionText,
     this.actionLink,
     this.backgroundColor,
   }) : super(blockType: 'promoBanner');
@@ -58,7 +56,6 @@ class PromoBannerBlockModel extends BlockModel {
       blockName: json['blockName'] as String?,
       title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
-      actionText: json['actionText'] as String? ?? 'Get started',
       actionLink: json['actionLink'] != null
           ? LinkModel.fromJson(json['actionLink'] as Map<String, dynamic>)
           : null,

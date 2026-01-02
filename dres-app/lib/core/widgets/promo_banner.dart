@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
@@ -8,16 +9,18 @@ class PromoBanner extends StatelessWidget {
     super.key,
     required this.title,
     required this.description,
-    required this.actionText,
+    this.actionLabel,
     this.backgroundColor = 'light',
+    this.path,
     this.onActionTap,
     this.onDismiss,
   });
 
   final String title;
   final String description;
-  final String actionText;
+  final String? actionLabel;
   final String backgroundColor;
+  final String? path;
   final VoidCallback? onActionTap;
   final VoidCallback? onDismiss;
 
@@ -70,29 +73,36 @@ class PromoBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          // Action button
-          GestureDetector(
-            onTap: onActionTap,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  actionText,
-                  style: AppTypography.bodyL.copyWith(
-                    color: AppColors.textPrimary,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
+          // Action button - only show if there's a label or path
+          if (actionLabel != null && actionLabel!.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                if (onActionTap != null) {
+                  onActionTap!();
+                } else if (path != null && path!.isNotEmpty) {
+                  context.push(path!);
+                }
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    actionLabel!,
+                    style: AppTypography.bodyL.copyWith(
+                      color: AppColors.textPrimary,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                PhosphorIcon(
-                  PhosphorIcons.arrowRight(),
-                  color: AppColors.textPrimary,
-                  size: 22,
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  PhosphorIcon(
+                    PhosphorIcons.arrowRight(),
+                    color: AppColors.textPrimary,
+                    size: 22,
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
