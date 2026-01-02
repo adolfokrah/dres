@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { authenticated } from '../../access/authenticated'
 import { paystackWebhook } from './endpoints/paystackWebhook'
 import { checkTransactionStatus } from './endpoints/checkStatus'
+import { getUserTransactions } from './endpoints/getUserTransactions'
 
 // Generate unique transaction ID: TXN-YYYYMMDD-XXXXXX-XXXX
 const generateTransactionId = (): string => {
@@ -31,6 +32,11 @@ export const Transactions: CollectionConfig = {
       path: '/check-status',
       method: 'get',
       handler: checkTransactionStatus,
+    },
+    {
+      path: '/user-transactions',
+      method: 'get',
+      handler: getUserTransactions,
     },
   ],
   access: {

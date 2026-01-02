@@ -67,4 +67,19 @@ class CurrencyUtils {
         return code ?? defaultSymbol;
     }
   }
+
+  /// Format a price in compact form (e.g., "GHS 4.6K", "GHS 1.2M")
+  static String formatCompact(double amount, {String? symbol}) {
+    final currencySymbol = symbol ?? _service.code;
+    
+    if (amount >= 1000000) {
+      final value = amount / 1000000;
+      return '$currencySymbol ${value.toStringAsFixed(1)}M';
+    } else if (amount >= 1000) {
+      final value = amount / 1000;
+      return '$currencySymbol ${value.toStringAsFixed(1)}K';
+    } else {
+      return '$currencySymbol ${amount.toStringAsFixed(0)}';
+    }
+  }
 }

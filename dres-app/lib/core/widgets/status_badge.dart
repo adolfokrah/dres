@@ -8,6 +8,8 @@ enum StatusBadgeType {
   order,
   /// Item/shipping status (placed, out_for_delivery, delivered, return_in_progress, returned, not_available)
   shipping,
+  /// Transaction status (pending, in_progress, completed, cancelled)
+  transaction,
 }
 
 /// A reusable status badge widget matching CMS styling.
@@ -67,12 +69,18 @@ class StatusBadge extends StatelessWidget {
     if (type == StatusBadgeType.shipping) {
       return StatusColors.getShippingStatusColor(status);
     }
+    if (type == StatusBadgeType.transaction) {
+      return StatusColors.getTransactionStatusColor(status);
+    }
     return StatusColors.getOrderStatusColor(status);
   }
 
   String _getDisplayText() {
     if (type == StatusBadgeType.shipping) {
       return _shippingStatusLabels[status] ?? status;
+    }
+    if (type == StatusBadgeType.transaction) {
+      return _transactionStatusLabels[status] ?? status;
     }
     return _orderStatusLabels[status] ?? status;
   }
@@ -92,6 +100,13 @@ class StatusBadge extends StatelessWidget {
     'return_in_progress': 'Return in Progress',
     'returned': 'Returned',
     'not_available': 'Not Available',
+    'cancelled': 'Cancelled',
+  };
+
+  static const Map<String, String> _transactionStatusLabels = {
+    'pending': 'Pending',
+    'in_progress': 'In Progress',
+    'completed': 'Completed',
     'cancelled': 'Cancelled',
   };
 }

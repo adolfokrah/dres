@@ -16,6 +16,12 @@ import 'package:flutter/material.dart';
 /// - return_in_progress: Orange (#f97316)
 /// - not_available: Gray (#6b7280)
 /// - placed: Purple (#8b5cf6)
+///
+/// Transaction Status Colors (solid backgrounds from design):
+/// - pending: Yellow (#F4D39D)
+/// - in_progress: Blue (#3b82f6)
+/// - completed: Green (#ACF8BF)
+/// - cancelled: Red (#F8ACAC)
 class StatusColors {
   StatusColors._();
 
@@ -68,5 +74,21 @@ class StatusColors {
   /// Get background color with 20% opacity (like CMS)
   static Color getBackgroundColor(Color color) {
     return color.withValues(alpha: 0.2);
+  }
+
+  /// Get transaction status color (same style as order statuses)
+  static Color getTransactionStatusColor(String status) {
+    switch (status) {
+      case 'pending':
+        return orange; // Orange for pending
+      case 'in_progress':
+        return blue;
+      case 'completed':
+        return green;
+      case 'cancelled':
+        return red;
+      default:
+        return gray;
+    }
   }
 }

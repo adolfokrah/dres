@@ -1,0 +1,109 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dres/features/profile/data/repositories/transactions_repository.dart';
+import 'transactions_event.dart';
+import 'transactions_state.dart';
+
+export 'transactions_event.dart';
+export 'transactions_state.dart';
+
+class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
+  final TransactionsRepository _transactionsRepository;
+  static const int _pageSize = 10;
+
+  TransactionsBloc({
+    required TransactionsRepository transactionsRepository,
+  })  : _transactionsRepository = transactionsRepository,
+        super(const TransactionsState()) {
+    on<TransactionsFetchRequested>(_onFetchRequested);
+    on<TransactionsLoadMoreRequested>(_onLoadMoreRequested);
+    on<TransactionsRefreshRequested>(_onRefreshRequested);
+    on<TransactionsFilterChanged>(_onFilterChanged);
+  }
+
+  Future<void> _onFetchRequested(
+    TransactionsFetchRequested event,
+    Emitter<TransactionsState> emit,
+  ) async {
+    emit(state.copyWith(
+      status: TransactionsStatus.loading,
+      typeFilter: event.typeFilter,
+      statusFilter: event.statusFilter,
+      clearTypeFilter: event.typeFilter == null,
+      clearStatusFilter: event.statusFilter == null,
+      currentPage: 1,
+    ));
+
+    try {
+      debugPrint('💰 Fetching transactions with type: ${event.typeFilter}, status: ${event.statusFilter}');
+      final response = await _transactionsRepository.getUserTransactions(
+        page: 1,
+        limit: _pageSize,
+        typeFilter: event.typeFilter,
+        statusFilter: event.statusFilter,
+      );
+      debugPrint('💰 Fetched ${response.transactions.length} transactions');
+
+      emit(state.copyWith(
+        status: TransactionsStatus.success,
+        transactions: response.transactions,
+        totalEarned: response.totalEarned,
+        upcomingPayments: response.upcomingPayments,
+        hasMore: response.hasNextPage,
+        currentPage: response.page,
+      ));
+    } catch (e, stackTrace) {
+      debugPrint('💰 Error fetching transactions: $e');
+      debugPrint('💰 Stack trace: $stackTrace');
+      emit(state.copyWith(
+        status: TransactionsStatus.error,
+        error: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onLoadMoreRequested(
+    TransactionsLoadMoreRequested event,
+    Emitter<TransactionsState> emit,
+  ) async {
+    if (!state.hasMore || state.status == TransactionsStatus.loading) return;
+
+    try {
+      final nextPage = state.currentPage + 1;
+      final response = await _transactionsRepository.getUserTransactions(
+        page: nextPage,
+        limit: _pageSize,
+        typeFilter: state.typeFilter,
+        statusFilter: state.statusFilter,
+      );
+
+      emit(state.copyWith(
+        transactions: [...state.transactions, ...response.transactions],
+        hasMore: response.hasNextPage,
+        currentPage: response.page,
+      ));
+    } catch (e) {
+      debugPrint('💰 Error loading more transactions: $e');
+    }
+  }
+
+  Future<void> _onFilterChanged(
+    TransactionsFilterChanged event,
+    Emitter<TransactionsState> emit,
+  ) async {
+    add(TransactionsFetchRequested(
+      typeFilter: event.typeFilter,
+      statusFilter: event.statusFilter,
+    ));
+  }
+
+  Future<void> _onRefreshRequested(
+    TransactionsRefreshRequested event,
+    Emitter<TransactionsState> emit,
+  ) async {
+    add(TransactionsFetchRequested(
+      typeFilter: state.typeFilter,
+      statusFilter: state.statusFilter,
+    ));
+  }
+}
