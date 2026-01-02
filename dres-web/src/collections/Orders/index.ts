@@ -14,6 +14,13 @@ import { notifySellersOnOrderPlaced } from './hooks/notifySellersOnOrderPlaced'
 import { notifyCustomerOnStatusChange } from './hooks/notifyCustomerOnStatusChange'
 import { createDeliveryCodeOnOutForDelivery } from './hooks/createDeliveryCodeOnOutForDelivery'
 import { returnItem } from './endpoints/returnItem'
+import { getPurchaseDetails } from './endpoints/getPurchaseDetails'
+import { getIncomingOrders } from './endpoints/getIncomingOrders'
+import { getIncomingOrderDetails } from './endpoints/getIncomingOrderDetails'
+import {
+  updateIncomingOrderItemStatus,
+  markAllOutForDelivery,
+} from './endpoints/updateIncomingOrderItemStatus'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -28,6 +35,32 @@ export const Orders: CollectionConfig = {
       path: '/:id/return-item',
       method: 'post',
       handler: returnItem,
+    },
+    {
+      path: '/:id/purchase-details',
+      method: 'get',
+      handler: getPurchaseDetails,
+    },
+    // Incoming orders endpoints (for sellers)
+    {
+      path: '/incoming/:sellerId',
+      method: 'get',
+      handler: getIncomingOrders,
+    },
+    {
+      path: '/:id/incoming-details/:sellerId',
+      method: 'get',
+      handler: getIncomingOrderDetails,
+    },
+    {
+      path: '/:id/update-item-status/:sellerId',
+      method: 'post',
+      handler: updateIncomingOrderItemStatus,
+    },
+    {
+      path: '/:id/mark-all-out-for-delivery/:sellerId',
+      method: 'post',
+      handler: markAllOutForDelivery,
     },
   ],
   access: {

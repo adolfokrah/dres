@@ -2,9 +2,11 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dres/core/services/api_service.dart';
 import 'package:dres/features/orders/data/models/order_model.dart';
+import 'package:dres/features/orders/data/models/purchase_details_model.dart';
 import 'package:dres/features/orders/data/models/verify_payment_response.dart';
 
 export 'package:dres/features/orders/data/models/order_model.dart';
+export 'package:dres/features/orders/data/models/purchase_details_model.dart';
 export 'package:dres/features/orders/data/models/verify_payment_response.dart';
 
 class OrdersRepository {
@@ -54,6 +56,12 @@ class OrdersRepository {
   Future<OrderModel> getOrderById(String id) async {
     final response = await _apiService.get('/orders/$id?depth=3');
     return OrderModel.fromJson(response.data);
+  }
+
+  /// Fetch complete purchase details with grouped items and delivery codes
+  Future<PurchaseDetailsModel> getPurchaseDetails(String orderId) async {
+    final response = await _apiService.get('/orders/$orderId/purchase-details');
+    return PurchaseDetailsModel.fromJson(response.data);
   }
 
   /// Request a return for an order item

@@ -8,21 +8,21 @@ interface UpdateItemStatusBody {
 }
 
 /**
- * POST /api/users/:id/incoming-orders/:orderId/update-item-status
+ * POST /api/orders/:id/update-item-status/:sellerId
  * Update the shipping status of an item in an incoming order
  * Note: Delivery code creation is handled by the Orders afterChange hook
  */
 export const updateIncomingOrderItemStatus: PayloadHandler = async (req) => {
   const { payload, user, routeParams } = req
-  const userId = routeParams?.id as string
-  const orderId = routeParams?.orderId as string
+  const orderId = routeParams?.id as string
+  const sellerId = routeParams?.sellerId as string
 
   if (!user) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (!userId) {
-    return Response.json({ error: 'User ID is required' }, { status: 400 })
+  if (!sellerId) {
+    return Response.json({ error: 'Seller ID is required' }, { status: 400 })
   }
 
   if (!orderId) {
@@ -30,7 +30,7 @@ export const updateIncomingOrderItemStatus: PayloadHandler = async (req) => {
   }
 
   // Check authorization - users can only update their own incoming orders
-  if (user.role !== 'admin' && user.id !== userId) {
+  if (user.role !== 'admin' && user.id !== sellerId) {
     return Response.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -76,8 +76,8 @@ export const updateIncomingOrderItemStatus: PayloadHandler = async (req) => {
     const item = items[itemIndex]
 
     // Verify the seller owns this item
-    const sellerId = typeof item.seller === 'object' ? item.seller.id : item.seller
-    if (user.role !== 'admin' && sellerId !== userId) {
+    const itemSellerId = typeof item.seller === 'object' ? item.seller.id : item.seller
+    if (user.role !== 'admin' && itemSellerId !== sellerId) {
       return Response.json({ error: 'You can only update your own items' }, { status: 403 })
     }
 
@@ -179,21 +179,21 @@ export const updateIncomingOrderItemStatus: PayloadHandler = async (req) => {
 }
 
 /**
- * POST /api/users/:id/incoming-orders/:orderId/mark-all-out-for-delivery
+ * POST /api/orders/:id/mark-all-out-for-delivery/:sellerId
  * Mark all eligible items as out for delivery
  * Note: Delivery code creation is handled by the Orders afterChange hook
  */
 export const markAllOutForDelivery: PayloadHandler = async (req) => {
   const { payload, user, routeParams } = req
-  const userId = routeParams?.id as string
-  const orderId = routeParams?.orderId as string
+  const orderId = routeParams?.id as string
+  const sellerId = routeParams?.sellerId as string
 
   if (!user) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (!userId) {
-    return Response.json({ error: 'User ID is required' }, { status: 400 })
+  if (!sellerId) {
+    return Response.json({ error: 'Seller ID is required' }, { status: 400 })
   }
 
   if (!orderId) {
@@ -201,7 +201,7 @@ export const markAllOutForDelivery: PayloadHandler = async (req) => {
   }
 
   // Check authorization
-  if (user.role !== 'admin' && user.id !== userId) {
+  if (user.role !== 'admin' && user.id !== sellerId) {
     return Response.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -229,10 +229,10 @@ export const markAllOutForDelivery: PayloadHandler = async (req) => {
     let updatedCount = 0
 
     const updatedItems = items.map((item: any) => {
-      const sellerId = typeof item.seller === 'object' ? item.seller.id : item.seller
+      const itemSellerId = typeof item.seller === 'object' ? item.seller.id : item.seller
 
       // Only update items belonging to this seller and in eligible status
-      if (sellerId === userId && eligibleStatuses.includes(item.shippingStatus)) {
+      if (itemSellerId === sellerId && eligibleStatuses.includes(item.shippingStatus)) {
         updatedCount++
         return {
           ...item,

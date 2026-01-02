@@ -36,20 +36,20 @@ interface IncomingOrderDetails {
 }
 
 /**
- * GET /api/users/:id/incoming-orders/:orderId
+ * GET /api/orders/:id/incoming-details/:sellerId
  * Fetch incoming order details for seller (only shows seller's items)
  */
 export const getIncomingOrderDetails: PayloadHandler = async (req) => {
   const { payload, user, routeParams } = req
-  const userId = routeParams?.id as string
-  const orderId = routeParams?.orderId as string
+  const orderId = routeParams?.id as string
+  const sellerId = routeParams?.sellerId as string
 
   if (!user) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  if (!userId) {
-    return Response.json({ error: 'User ID is required' }, { status: 400 })
+  if (!sellerId) {
+    return Response.json({ error: 'Seller ID is required' }, { status: 400 })
   }
 
   if (!orderId) {
@@ -57,7 +57,7 @@ export const getIncomingOrderDetails: PayloadHandler = async (req) => {
   }
 
   // Check authorization - users can only view their own incoming orders
-  if (user.role !== 'admin' && user.id !== userId) {
+  if (user.role !== 'admin' && user.id !== sellerId) {
     return Response.json({ error: 'Forbidden - You can only view your own incoming orders' }, { status: 403 })
   }
 
@@ -77,7 +77,7 @@ export const getIncomingOrderDetails: PayloadHandler = async (req) => {
     const sellers = order.sellers as Array<string | { id: string }>
     const sellerIds = sellers?.map(s => typeof s === 'object' ? s.id : s) || []
     
-    if (user.role !== 'admin' && !sellerIds.includes(userId)) {
+    if (user.role !== 'admin' && !sellerIds.includes(sellerId)) {
       return Response.json({ error: 'Not authorized to view this order' }, { status: 403 })
     }
 
@@ -85,7 +85,7 @@ export const getIncomingOrderDetails: PayloadHandler = async (req) => {
     const allItems = (order.items || []) as any[]
     const sellerItems = allItems.filter((item: any) => {
           const itemSellerId = typeof item.seller === 'object' ? item.seller?.id : item.seller
-          return itemSellerId === userId
+          return itemSellerId === sellerId
         })
 
     // Transform items

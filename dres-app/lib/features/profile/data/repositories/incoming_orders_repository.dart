@@ -28,7 +28,7 @@ class IncomingOrdersRepository {
     }
 
     final response = await _apiService.get(
-      '/users/$userId/incoming-orders',
+      '/orders/incoming/$userId',
       queryParameters: queryParams,
     );
     
@@ -53,7 +53,7 @@ class IncomingOrdersRepository {
     required String orderId,
   }) async {
     final response = await _apiService.get(
-      '/users/$userId/incoming-orders/$orderId',
+      '/orders/$orderId/incoming-details/$userId',
     );
     
     debugPrint('🔵 IncomingOrdersRepository: Raw order details: ${response.data}');
@@ -72,7 +72,7 @@ class IncomingOrdersRepository {
     required String itemId,
   }) async {
     await _apiService.post(
-      '/users/$userId/incoming-orders/$orderId/update-item-status',
+      '/orders/$orderId/update-item-status/$userId',
       data: {
         'action': 'not_available',
         'itemId': itemId,
@@ -88,7 +88,7 @@ class IncomingOrdersRepository {
     required String itemId,
   }) async {
     await _apiService.post(
-      '/users/$userId/incoming-orders/$orderId/update-item-status',
+      '/orders/$orderId/update-item-status/$userId',
       data: {
         'action': 'out_for_delivery',
         'itemId': itemId,
@@ -104,7 +104,7 @@ class IncomingOrdersRepository {
     required String itemId,
   }) async {
     await _apiService.post(
-      '/users/$userId/incoming-orders/$orderId/update-item-status',
+      '/orders/$orderId/update-item-status/$userId',
       data: {
         'action': 'accept_return',
         'itemId': itemId,
@@ -119,7 +119,7 @@ class IncomingOrdersRepository {
     required String orderId,
   }) async {
     await _apiService.post(
-      '/users/$userId/incoming-orders/$orderId/mark-all-out-for-delivery',
+      '/orders/$orderId/mark-all-out-for-delivery/$userId',
     );
     debugPrint('🟢 IncomingOrdersRepository: Marked all items as out for delivery');
   }

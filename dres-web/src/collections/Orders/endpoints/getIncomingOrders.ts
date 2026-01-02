@@ -29,7 +29,7 @@ interface IncomingOrder {
 }
 
 /**
- * GET /api/users/:id/incoming-orders
+ * GET /api/orders/incoming/:sellerId
  * Fetch seller's incoming orders (orders where user is the seller of items)
  * 
  * Query params:
@@ -41,17 +41,17 @@ interface IncomingOrder {
  * - page: Page number (default: 1)
  * - limit: Items per page (default: 10)
  */
-export const getUserIncomingOrders: PayloadHandler = async (req) => {
+export const getIncomingOrders: PayloadHandler = async (req) => {
   const { payload, user } = req
-  const { id } = req.routeParams || {}
+  const sellerId = req.routeParams?.sellerId as string
   const url = new URL(req.url || '', 'http://localhost')
   const status = url.searchParams.get('status')
   const page = parseInt(url.searchParams.get('page') || '1', 10)
   const limit = parseInt(url.searchParams.get('limit') || '10', 10)
 
-  if (!id) {
+  if (!sellerId) {
     return Response.json(
-      { error: 'User ID is required' },
+      { error: 'Seller ID is required' },
       { status: 400 }
     )
   }
@@ -64,7 +64,7 @@ export const getUserIncomingOrders: PayloadHandler = async (req) => {
     )
   }
 
-  if (user.role !== 'admin' && user.id !== id) {
+  if (user.role !== 'admin' && user.id !== sellerId) {
     return Response.json(
       { error: 'Forbidden - You can only view your own incoming orders' },
       { status: 403 }
@@ -74,7 +74,7 @@ export const getUserIncomingOrders: PayloadHandler = async (req) => {
   try {
     // Build query - find orders where user is in the sellers array
     const where: any = {
-      sellers: { contains: id },
+      sellers: { contains: sellerId },
     }
 
     // Map filter status to order-level status for initial query
@@ -112,8 +112,8 @@ export const getUserIncomingOrders: PayloadHandler = async (req) => {
       // Filter and transform items - only include items where user is the seller
       let filteredItems = (order.items || [])
         .filter((item: any) => {
-          const sellerId = typeof item.seller === 'object' ? item.seller?.id : item.seller
-          return sellerId === id
+          const itemSellerId = typeof item.seller === 'object' ? item.seller?.id : item.seller
+          return itemSellerId === sellerId
         })
 
       // Apply item-level status filter

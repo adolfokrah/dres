@@ -6,13 +6,6 @@ import { generateUsername } from './hooks/generateUsername'
 import { getSellerInfo } from './endpoints/getSellerInfo'
 import { firebaseOAuth } from './endpoints/firebaseOAuth'
 import { addAddress, deleteAddress, setDefaultAddress, updateAddress } from './endpoints/addresses'
-import { getUserPurchases } from './endpoints/getPurchases'
-import { getUserIncomingOrders } from './endpoints/getIncomingOrders'
-import { getIncomingOrderDetails } from './endpoints/getIncomingOrderDetails'
-import {
-  updateIncomingOrderItemStatus,
-  markAllOutForDelivery,
-} from './endpoints/updateIncomingOrderItemStatus'
 import { getUserStats } from './endpoints/getUserStats'
 
 export const Users: CollectionConfig = {
@@ -40,31 +33,6 @@ export const Users: CollectionConfig = {
       path: '/:id/seller',
       method: 'get',
       handler: getSellerInfo,
-    },
-    {
-      path: '/:id/purchases',
-      method: 'get',
-      handler: getUserPurchases,
-    },
-    {
-      path: '/:id/incoming-orders',
-      method: 'get',
-      handler: getUserIncomingOrders,
-    },
-    {
-      path: '/:id/incoming-orders/:orderId',
-      method: 'get',
-      handler: getIncomingOrderDetails,
-    },
-    {
-      path: '/:id/incoming-orders/:orderId/update-item-status',
-      method: 'post',
-      handler: updateIncomingOrderItemStatus,
-    },
-    {
-      path: '/:id/incoming-orders/:orderId/mark-all-out-for-delivery',
-      method: 'post',
-      handler: markAllOutForDelivery,
     },
     {
       path: '/:id/stats',
