@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
 import { anyone } from '../../access/anyone'
+import { getSellerReviews } from './endpoints/getSellerReviews'
 
 export const Reviews: CollectionConfig = {
   slug: 'reviews',
@@ -10,6 +11,13 @@ export const Reviews: CollectionConfig = {
     defaultColumns: ['product', 'user', 'rating', 'createdAt'],
     description: 'Product reviews from customers',
   },
+  endpoints: [
+    {
+      path: '/seller/:sellerId',
+      method: 'get',
+      handler: getSellerReviews,
+    },
+  ],
   access: {
     read: anyone,
     create: authenticated,

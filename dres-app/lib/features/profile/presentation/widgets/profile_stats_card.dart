@@ -2,23 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 
-/// Profile stats card showing followers, following, reviews
+/// Profile stats card showing followers and following
 class ProfileStatsCard extends StatelessWidget {
   final int followers;
   final int following;
-  final int reviews;
   final VoidCallback? onFollowersTap;
   final VoidCallback? onFollowingTap;
-  final VoidCallback? onReviewsTap;
 
   const ProfileStatsCard({
     super.key,
     this.followers = 0,
     this.following = 0,
-    this.reviews = 0,
     this.onFollowersTap,
     this.onFollowingTap,
-    this.onReviewsTap,
   });
 
   @override
@@ -42,13 +38,6 @@ class ProfileStatsCard extends StatelessWidget {
               value: following,
               label: 'Following',
               onTap: onFollowingTap,
-            ),
-          ),
-          Expanded(
-            child: _StatItem(
-              value: reviews,
-              label: 'Reviews',
-              onTap: onReviewsTap,
             ),
           ),
         ],

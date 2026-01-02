@@ -32,6 +32,8 @@ import 'package:dres/features/profile/data/repositories/transactions_repository.
 import 'package:dres/features/profile/logic/transactions_bloc/transactions_bloc.dart';
 import 'package:dres/features/profile/data/repositories/community_repository.dart';
 import 'package:dres/features/profile/logic/community_bloc/community_bloc.dart';
+import 'package:dres/features/profile/data/repositories/seller_reviews_repository.dart';
+import 'package:dres/features/profile/logic/seller_reviews_bloc/seller_reviews_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -181,5 +183,15 @@ Future<void> setupDependencies() async {
   // Community Bloc - Singleton so filter state persists
   getIt.registerLazySingleton<CommunityBloc>(() => CommunityBloc(
     communityRepository: getIt<CommunityRepository>(),
+  ));
+
+  // Seller Reviews Repository
+  getIt.registerLazySingleton<SellerReviewsRepository>(() => SellerReviewsRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Seller Reviews Bloc - Singleton
+  getIt.registerLazySingleton<SellerReviewsBloc>(() => SellerReviewsBloc(
+    sellerReviewsRepository: getIt<SellerReviewsRepository>(),
   ));
 }

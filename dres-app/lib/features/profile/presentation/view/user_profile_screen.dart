@@ -16,6 +16,8 @@ import 'package:dres/features/profile/presentation/widgets/purchases_list.dart';
 import 'package:dres/features/profile/presentation/widgets/incoming_orders_list.dart';
 import 'package:dres/features/profile/presentation/widgets/transactions_list.dart';
 import 'package:dres/features/profile/presentation/widgets/community_list.dart';
+import 'package:dres/features/profile/presentation/widgets/seller_reviews_list.dart';
+import 'package:dres/features/profile/logic/seller_reviews_bloc/seller_reviews_bloc.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String? userId;
@@ -35,14 +37,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _isLoadingSeller = false;
   String? _error;
   String? _loadedUserId;
-
-  static const List<ProfileTab> _tabs = [
-    ProfileTab(label: 'Products'),
-    ProfileTab(label: 'Incoming orders'),
-    ProfileTab(label: 'Purchases'),
-    ProfileTab(label: 'Transactions'),
-    ProfileTab(label: 'Community'),
-  ];
 
   @override
   void initState() {
@@ -238,39 +232,57 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final username = seller?.username ?? '';
     final userId = widget.userId ?? authState.user?.id;
 
-    return NestedScrollView(
-      headerSliverBuilder: (context, innerBoxIsScrolled) {
-        return [
-          // Wrap header in SliverOverlapAbsorber for proper coordination
-          SliverOverlapAbsorber(
-            handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
-            sliver: SliverToBoxAdapter(
-              child: _buildShopHeader(seller, displayName, username, authState),
-            ),
-          ),
-
-          // Tabs bar - pinned (sticks to top)
-          SliverPersistentHeader(
-            pinned: true,
-            delegate: _TabsBarDelegate(
-              child: ProfileTabsBar(
-                selectedIndex: _selectedTabIndex,
-                onTabChanged: (index) {
-                  setState(() {
-                    _selectedTabIndex = index;
-                  });
-                },
-                tabs: _tabs,
-              ),
-            ),
+    return BlocBuilder<SellerReviewsBloc, SellerReviewsState>(
+      bloc: getIt<SellerReviewsBloc>(),
+      builder: (context, reviewsState) {
+        // Build tabs with review count
+        final tabs = [
+          const ProfileTab(label: 'Products'),
+          const ProfileTab(label: 'Incoming orders'),
+          const ProfileTab(label: 'Purchases'),
+          const ProfileTab(label: 'Transactions'),
+          const ProfileTab(label: 'Community'),
+          ProfileTab(
+            label: 'Reviews',
+            count: reviewsState.totalReviews > 0 ? reviewsState.totalReviews : null,
           ),
         ];
+
+        return NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) {
+            return [
+              // Wrap header in SliverOverlapAbsorber for proper coordination
+              SliverOverlapAbsorber(
+                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+                sliver: SliverToBoxAdapter(
+                  child: _buildShopHeader(seller, displayName, username, authState),
+                ),
+              ),
+
+              // Tabs bar - pinned (sticks to top)
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _TabsBarDelegate(
+                  child: ProfileTabsBar(
+                    selectedIndex: _selectedTabIndex,
+                    onTabChanged: (index) {
+                      setState(() {
+                        _selectedTabIndex = index;
+                      });
+                    },
+                    tabs: tabs,
+                  ),
+                ),
+              ),
+            ];
+          },
+          body: Builder(
+            builder: (context) {
+              return _buildTabContent(context, userId);
+            },
+          ),
+        );
       },
-      body: Builder(
-        builder: (context) {
-          return _buildTabContent(context, userId);
-        },
-      ),
     );
   }
 
@@ -331,15 +343,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ProfileStatsCard(
             followers: authState.user?.followersCount ?? 0,
             following: authState.user?.followingCount ?? 0,
-            reviews: authState.user?.reviewsCount ?? 0,
             onFollowersTap: () {
               // TODO: Navigate to followers
             },
             onFollowingTap: () {
               // TODO: Navigate to following
-            },
-            onReviewsTap: () {
-              // TODO: Navigate to reviews
             },
           ),
         ],
@@ -362,6 +370,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           return _buildPlaceholder(context, 'Community');
         }
         return CommunityList(parentContext: context, userId: userId);
+      case 5:
+        if (userId == null) {
+          return _buildPlaceholder(context, 'Reviews');
+        }
+        return SellerReviewsList(parentContext: context, sellerId: userId);
       default:
         return const SizedBox.shrink();
     }
