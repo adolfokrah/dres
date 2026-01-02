@@ -5,7 +5,7 @@
       "namespace": "android_app",
       "package_name": "com.example.dres",
       "sha256_cert_fingerprints": [
-        "TODO: Add your SHA256 fingerprint here. Run: keytool -list -v -keystore your-release-key.keystore"
+        "88:4F:54:7A:EA:64:E3:A9:0F:CD:7A:36:BC:30:1F:B4:95:D8:4B:A6:8C:77:A1:01:BF:95:0B:32:DD:F5:E5:8B"
       ]
     }
   }
