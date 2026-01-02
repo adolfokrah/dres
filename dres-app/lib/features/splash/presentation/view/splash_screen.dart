@@ -35,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // If already loaded, navigate immediately
     if (menuBloc.state.status == MenuStatus.success) {
       if (mounted) {
-        context.go(AppRoutes.home);
+        _navigateToDestination();
       }
       return;
     }
@@ -46,6 +46,26 @@ class _SplashScreenState extends State<SplashScreen> {
     );
     
     if (mounted) {
+      _navigateToDestination();
+    }
+  }
+  
+  void _navigateToDestination() {
+    // Check for pending deep link
+    final pendingDeepLink = AppRoutes.pendingDeepLink;
+    if (pendingDeepLink != null) {
+      // Clear the pending deep link
+      AppRoutes.pendingDeepLink = null;
+      // First go to home to initialize the shell, then push the deep link
+      context.go(AppRoutes.home);
+      // Use Future.microtask to ensure home is rendered first
+      Future.microtask(() {
+        if (mounted) {
+          context.push(pendingDeepLink);
+        }
+      });
+    } else {
+      // Normal navigation to home
       context.go(AppRoutes.home);
     }
   }

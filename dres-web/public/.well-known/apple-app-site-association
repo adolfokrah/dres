@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "KXTS2ZGSMU.com.hoganam.dres",
+        "paths": ["/products/*"]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["KXTS2ZGSMU.com.hoganam.dres"]
+  }
+}

@@ -49,6 +49,9 @@ class AppRoutes {
   static const String sell = '/sell';
   static const String favourite = '/favourite';
   static const String profile = '/profile';
+  
+  // Store pending deep link to navigate after splash
+  static String? pendingDeepLink;
 
   // Router configuration
   static final GoRouter router = GoRouter(
@@ -101,9 +104,11 @@ class AppRoutes {
       ),
       
       // Product Details (outside shell, full screen)
+      // Uses /products/:id to match web URL format for deep linking
       GoRoute(
-        path: '/product/:id',
+        path: '/products/:id',
         name: 'product-details',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           final skuId = state.uri.queryParameters['skuId'];
@@ -118,6 +123,7 @@ class AppRoutes {
       GoRoute(
         path: '/cart',
         name: 'cart',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const CartScreen(),
       ),
       
@@ -125,6 +131,7 @@ class AppRoutes {
       GoRoute(
         path: '/checkout',
         name: 'checkout',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const CheckoutScreen(),
       ),
       
@@ -132,6 +139,7 @@ class AppRoutes {
       GoRoute(
         path: '/orders/:id',
         name: 'order-details',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return PurchaseDetailsScreen(orderId: id);
@@ -142,6 +150,7 @@ class AppRoutes {
       GoRoute(
         path: '/incoming-orders/:id',
         name: 'incoming-order-details',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return IncomingOrderDetailsScreen(orderId: id);
@@ -152,6 +161,7 @@ class AppRoutes {
       GoRoute(
         path: '/orders/:orderId/return/:itemId',
         name: 'return-item',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final orderId = state.pathParameters['orderId']!;
           final itemId = state.pathParameters['itemId']!;
@@ -163,6 +173,7 @@ class AppRoutes {
       GoRoute(
         path: '/addresses',
         name: 'addresses',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final isSelecting = state.uri.queryParameters['selecting'] == 'true';
           return AddressesScreen(isSelecting: isSelecting);
@@ -173,6 +184,7 @@ class AppRoutes {
       GoRoute(
         path: '/add-address',
         name: 'add-address',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AddAddressScreen(),
       ),
       
@@ -180,6 +192,7 @@ class AppRoutes {
       GoRoute(
         path: '/edit-address',
         name: 'edit-address',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final address = state.extra as ShippingAddress?;
           return AddAddressScreen(addressToEdit: address);
@@ -190,6 +203,7 @@ class AppRoutes {
       GoRoute(
         path: '/direct-shipping-info',
         name: 'direct-shipping-info',
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const DirectShippingInfoScreen(),
       ),
       

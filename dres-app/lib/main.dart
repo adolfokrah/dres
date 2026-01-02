@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:app_links/app_links.dart';
 import 'package:dres/firebase_options.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/theme.dart';
@@ -36,11 +37,64 @@ Future<void> main() async {
   // Setup dependency injection
   await setupDependencies();
   
-  runApp(const MainApp());
+  // Check for initial deep link (cold start)
+  final appLinks = AppLinks();
+  final initialLink = await appLinks.getInitialLink();
+  if (initialLink != null) {
+    debugPrint('🔗 Initial deep link: ${initialLink.toString()}');
+    debugPrint('🔗 Host: ${initialLink.host}, Path: ${initialLink.path}');
+    
+    // Construct the full path from host + path
+    String fullPath;
+    if (initialLink.host.isNotEmpty) {
+      fullPath = '/${initialLink.host}${initialLink.path}';
+    } else {
+      fullPath = initialLink.path;
+    }
+    debugPrint('🔗 Full path: $fullPath');
+    AppRoutes.pendingDeepLink = fullPath;
+  } else {
+    debugPrint('🔗 No initial deep link');
+  }
+  
+  runApp(MainApp(appLinks: appLinks));
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class MainApp extends StatefulWidget {
+  const MainApp({super.key, required this.appLinks});
+  
+  final AppLinks appLinks;
+
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Listen for deep links while app is running (warm start)
+    widget.appLinks.uriLinkStream.listen((uri) {
+      debugPrint('🔗 Deep link received while running: ${uri.toString()}');
+      debugPrint('🔗 Host: ${uri.host}, Path: ${uri.path}');
+      
+      // Construct the full path from host + path
+      // dres://products/slug => host=products, path=/slug => /products/slug
+      String fullPath;
+      if (uri.host.isNotEmpty) {
+        fullPath = '/${uri.host}${uri.path}';
+      } else {
+        fullPath = uri.path;
+      }
+      
+      debugPrint('🔗 Full path: $fullPath');
+      
+      if (fullPath.isNotEmpty && fullPath != '/') {
+        // Use push to add on top of current stack (avoid shell conflict)
+        AppRoutes.router.push(fullPath);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

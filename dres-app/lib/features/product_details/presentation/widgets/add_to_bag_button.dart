@@ -56,7 +56,7 @@ class _AddToBagButtonState extends State<AddToBagButton> {
     if (token == null || token.isEmpty) {
       // User not logged in - set redirect to current product and navigate to auth
       if (context.mounted) {
-        final productPath = '/product/${widget.variationId}${widget.selectedSkuId != null ? '?skuId=${widget.selectedSkuId}' : ''}';
+        final productPath = '/products/${widget.variationId}${widget.selectedSkuId != null ? '?skuId=${widget.selectedSkuId}' : ''}';
         context.read<AuthBloc>().add(AuthSetRedirect(productPath));
         context.push('/auth');
       }

@@ -71,7 +71,7 @@ class _ProductCardState extends State<ProductCard> {
       onTap: () {
         // Navigate to product detail page
         final skuParam = widget.defaultSku != null ? '?skuId=${widget.defaultSku}' : '';
-        context.push('/product/${widget.id}$skuParam');
+        context.push('/products/${widget.id}$skuParam');
       },
       child: Container(
         decoration: BoxDecoration(
