@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 import 'package:wechat_camera_picker/wechat_camera_picker.dart';
 import 'package:dres/core/theme/app_colors.dart';
@@ -62,10 +63,10 @@ class ImagePickerUtils {
                 },
                 child: Container(
                   color: Colors.grey[850],
-                  child: const Column(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.camera_alt, color: Colors.white, size: 40),
+                      PhosphorIcon(PhosphorIconsRegular.camera, color: Colors.white, size: 40),
                       SizedBox(height: 8),
                       Text(
                         'Take photo',
@@ -121,10 +122,10 @@ class ImagePickerUtils {
                 },
                 child: Container(
                   color: Colors.grey[850],
-                  child: const Column(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.camera_alt, color: Colors.white, size: 40),
+                      PhosphorIcon(PhosphorIconsRegular.camera, color: Colors.white, size: 40),
                       SizedBox(height: 8),
                       Text(
                         'Take photo',

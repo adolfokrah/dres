@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../theme/app_typography.dart';
 import '../utilities/media_utils.dart';
 import '../services/storage_service.dart';
@@ -101,8 +102,8 @@ class CallToActionBlock extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Icon(
-                            Icons.arrow_forward,
+                          PhosphorIcon(
+                            PhosphorIconsRegular.arrowRight,
                             color: Colors.white,
                             size: 16,
                           ),

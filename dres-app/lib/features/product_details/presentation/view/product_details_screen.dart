@@ -22,6 +22,7 @@ import 'package:dres/features/product_details/presentation/widgets/recently_view
 import 'package:dres/features/product_details/presentation/widgets/add_to_bag_button.dart';
 import 'package:dres/core/widgets/favorite_button.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final String id;
@@ -173,9 +174,20 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   ),
                                   Row(
                                     children: [
-                                      PhosphorIcon(
-                                        PhosphorIconsRegular.shareNetwork,
-                                        size: 20,
+                                      GestureDetector(
+                                        onTap: () {
+                                          final shareUrl = 'https://dres.app/products/${variation.slug}';
+                                          SharePlus.instance.share(
+                                            ShareParams(
+                                              text: 'Check out ${variation.brand} ${variation.title} on DRES!\n\n$shareUrl',
+                                              subject: '${variation.brand} ${variation.title}',
+                                            ),
+                                          );
+                                        },
+                                        child: PhosphorIcon(
+                                          PhosphorIconsRegular.shareFat,
+                                          size: 24,
+                                        ),
                                       ),
                                       const SizedBox(width: 16),
                                       // Hide favorite button if user is the seller

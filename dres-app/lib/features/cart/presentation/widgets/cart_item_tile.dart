@@ -99,8 +99,8 @@ class CartItemTile extends StatelessWidget {
                   height: 56,
                   color: Colors.black.withOpacity(0.5),
                   alignment: Alignment.center,
-                  child: Icon(
-                    isNotInYourCountry ? Icons.location_off : Icons.remove_shopping_cart,
+                  child: PhosphorIcon(
+                    isNotInYourCountry ? PhosphorIconsRegular.prohibit : PhosphorIconsRegular.shoppingCartSimple,
                     color: Colors.white,
                     size: 20,
                   ),

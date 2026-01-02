@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_text_field.dart';
@@ -42,8 +43,8 @@ class PromoCodeSection extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.check_circle,
+                  PhosphorIcon(
+                    PhosphorIconsFill.checkCircle,
                     color: AppColors.success,
                     size: 24,
                   ),

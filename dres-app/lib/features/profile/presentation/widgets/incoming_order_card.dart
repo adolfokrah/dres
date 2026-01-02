@@ -142,8 +142,8 @@ class _ProductImage extends StatelessWidget {
         width: 43,
         height: 43,
         color: AppColors.surface,
-        child: Icon(
-          Icons.image_outlined,
+        child: PhosphorIcon(
+          PhosphorIconsRegular.image,
           size: 20,
           color: AppColors.textHint,
         ),
@@ -160,8 +160,8 @@ class _ProductImage extends StatelessWidget {
           width: 43,
           height: 43,
           color: AppColors.surface,
-          child: Icon(
-            Icons.broken_image_outlined,
+          child: PhosphorIcon(
+            PhosphorIconsRegular.imageBroken,
             size: 20,
             color: AppColors.textHint,
           ),

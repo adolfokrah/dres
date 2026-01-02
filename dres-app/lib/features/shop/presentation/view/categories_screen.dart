@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/models/menu_model.dart';
@@ -99,8 +100,8 @@ class CategoriesScreen extends StatelessWidget {
                     fontWeight: isAll ? FontWeight.w600 : FontWeight.w400,
                   ),
                 ),
-                Icon(
-                  Icons.chevron_right,
+                PhosphorIcon(
+                  PhosphorIconsRegular.caretRight,
                   color: AppColors.textSecondary,
                   size: 25,
                 ),

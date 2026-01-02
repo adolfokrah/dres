@@ -377,8 +377,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   color: AppColors.warning.withOpacity(0.1),
                                   child: Row(
                                     children: [
-                                      Icon(
-                                        Icons.warning_amber_rounded,
+                                      PhosphorIcon(
+                                        PhosphorIconsRegular.warning,
                                         color: AppColors.warning,
                                         size: 20,
                                       ),
@@ -487,8 +487,8 @@ class _EmptyCheckout extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.shopping_cart_outlined,
+            PhosphorIcon(
+              PhosphorIconsRegular.shoppingCart,
               size: 64,
               color: AppColors.textHint,
             ),

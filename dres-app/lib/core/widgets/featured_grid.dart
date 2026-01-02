@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/models/block_model.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
@@ -105,8 +106,8 @@ class _GridItem extends StatelessWidget {
                         },
                         errorBuilder: (_, __, ___) => Container(
                           color: AppColors.secondary,
-                          child: Icon(
-                            Icons.image_not_supported_outlined,
+                          child: PhosphorIcon(
+                            PhosphorIconsRegular.imageSquare,
                             color: AppColors.textHint,
                           ),
                         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
@@ -60,8 +61,8 @@ class _OrderSummarySectionState extends State<OrderSummarySection> {
                     AnimatedRotation(
                       turns: _isExpanded ? 0.5 : 0,
                       duration: const Duration(milliseconds: 200),
-                      child: Icon(
-                        Icons.keyboard_arrow_down,
+                      child: PhosphorIcon(
+                        PhosphorIconsRegular.caretDown,
                         size: 20,
                         color: AppColors.textSecondary,
                       ),

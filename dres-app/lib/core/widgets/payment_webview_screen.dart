@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/features/orders/data/repositories/orders_repository.dart';
@@ -158,7 +159,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
               ? 'Pay for ${widget.orderId}' 
               : 'Complete Payment'),
           leading: IconButton(
-            icon: const Icon(Icons.close),
+            icon: PhosphorIcon(PhosphorIconsRegular.x),
             onPressed: _onClose,
           ),
           actions: [

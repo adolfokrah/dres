@@ -57,8 +57,8 @@ class _IncomingOrderItemTileState extends State<IncomingOrderItemTile> {
                       : null,
                 ),
                 child: widget.item.resolvedImageUrl == null
-                    ? Icon(
-                        Icons.image_outlined,
+                    ? PhosphorIcon(
+                        PhosphorIconsRegular.image,
                         size: 24,
                         color: AppColors.textHint,
                       )
@@ -248,8 +248,8 @@ class _IncomingOrderItemTileState extends State<IncomingOrderItemTile> {
                     width: 195,
                     height: 260,
                     color: AppColors.surface,
-                    child: Icon(
-                      Icons.broken_image_outlined,
+                    child: PhosphorIcon(
+                      PhosphorIconsRegular.imageBroken,
                       size: 48,
                       color: AppColors.textHint,
                     ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/features/favorites/logic/favorites_bloc/favorites_bloc.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
@@ -74,8 +75,8 @@ class FavoriteButton extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               child: Padding(
                 padding: const EdgeInsets.all(4.0),
-                child: Icon(
-                  isFavorited ? Icons.favorite : Icons.favorite_border,
+                child: PhosphorIcon(
+                  isFavorited ? PhosphorIconsFill.heart : PhosphorIconsRegular.heart,
                   color: isFavorited ? favoritedColor : unfavoritedColor,
                   size: size,
                 ),

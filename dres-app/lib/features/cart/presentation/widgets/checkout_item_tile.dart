@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
@@ -62,9 +63,9 @@ class CheckoutItemTile extends StatelessWidget {
                   height: 56,
                   color: Colors.black.withOpacity(0.5),
                   alignment: Alignment.center,
-                  child: Icon(
-                    isNotInYourCountry ? Icons.location_off : 
-                    isUnavailable ? Icons.remove_shopping_cart : Icons.warning,
+                  child: PhosphorIcon(
+                    isNotInYourCountry ? PhosphorIconsRegular.prohibit : 
+                    isUnavailable ? PhosphorIconsRegular.shoppingCartSimple : PhosphorIconsRegular.warning,
                     color: Colors.white,
                     size: 20,
                   ),

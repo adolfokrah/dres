@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 
@@ -59,10 +60,10 @@ class _AppPasswordFieldState extends State<AppPasswordField> {
             filled: !widget.enabled,
             fillColor: widget.enabled ? null : AppColors.disabled.withOpacity(0.1),
             suffixIcon: IconButton(
-              icon: Icon(
+              icon: PhosphorIcon(
                 _obscureText
-                    ? Icons.visibility_outlined
-                    : Icons.visibility_off_outlined,
+                    ? PhosphorIconsRegular.eye
+                    : PhosphorIconsRegular.eyeSlash,
                 color: AppColors.textSecondary,
               ),
               onPressed: () {
