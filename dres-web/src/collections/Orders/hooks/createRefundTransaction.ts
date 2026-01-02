@@ -140,6 +140,11 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
           `Created refund transaction for returned item: ${currentItem.variationTitle} - Amount: ${refundTotal} (Product: ${sellingPriceTotal}${hasBuyerProtection ? `, Shipping: ${shippingFee}, Protection: ${buyerProtectionFee}` : ' - No buyer protection'})`,
         )
 
+        // TODO: Implement seller ban pattern for frequent returns instead of charging
+        // For now, we're not charging sellers for returned items
+        // We'll track return patterns and ban sellers who have too many returns
+        
+        /* COMMENTED OUT - Return charge logic disabled for now
         // Create return charge transaction for seller (negative amount = platform's 10% fee)
         const sellerData = currentItem.seller
         payload.logger.info(`Seller data type: ${typeof sellerData}, value: ${JSON.stringify(sellerData)}`)
@@ -190,6 +195,7 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
             `Return charge already exists for ${currentItem.variationTitle} - skipping`,
           )
         }
+        */
       }
     }
   } catch (error) {
