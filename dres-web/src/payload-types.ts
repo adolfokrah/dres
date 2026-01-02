@@ -1213,10 +1213,6 @@ export interface Skus {
       }[]
     | null;
   /**
-   * Currency for this SKU (auto-populated from seller's country)
-   */
-  currency?: (string | null) | Currency;
-  /**
    * Base price for this SKU
    */
   price: number;
@@ -1301,7 +1297,7 @@ export interface Transaction {
   /**
    * Type of transaction
    */
-  type: 'transfer' | 'deposit' | 'refund';
+  type: 'order_payment' | 'transfer' | 'deposit' | 'refund' | 'return_charge';
   /**
    * Transaction status
    */
@@ -1319,13 +1315,10 @@ export interface Transaction {
    */
   itemId?: string | null;
   /**
-   * Transaction amount (seller payout)
+   * Transaction amount (can be negative for return charges)
    */
   amount: number;
   fees?: number | null;
-  /**
-   * Calculated: 1.95% × selling price
-   */
   paystackFees?: number | null;
   /**
    * Calculated: fees - paystackFees
@@ -1404,13 +1397,17 @@ export interface Order {
      */
     variationTitle: string;
     /**
-     * Seller name at time of purchase
-     */
-    sellerName?: string | null;
-    /**
      * URL to variation image at time of purchase
      */
     variationImage?: string | null;
+    /**
+     * Seller shop name at time of purchase
+     */
+    sellerName?: string | null;
+    /**
+     * URL to seller profile photo at time of purchase
+     */
+    sellerImage?: string | null;
     /**
      * Reference to the SKU
      */
@@ -1440,7 +1437,14 @@ export interface Order {
     /**
      * Shipping status for this item
      */
-    shippingStatus: 'placed' | 'out_for_delivery' | 'delivered' | 'return_in_progress' | 'returned' | 'not_available';
+    shippingStatus:
+      | 'placed'
+      | 'out_for_delivery'
+      | 'delivered'
+      | 'return_in_progress'
+      | 'returned'
+      | 'not_available'
+      | 'cancelled';
     /**
      * History of status changes
      */
@@ -1497,10 +1501,14 @@ export interface Order {
    * Discount from redeemed points
    */
   pointsDiscount?: number | null;
-  /**
-   * Grand Total - Seller Payout - Paystack Fee - Transfer Fees + Buyer Protection
-   */
-  totalCommission?: number | null;
+  commissionBreakdown?: {
+    totalTransactionFees?: number | null;
+    totalPaystackFees?: number | null;
+    totalBuyerProtectionFees?: number | null;
+    discountAmount?: number | null;
+    pointsDiscount?: number | null;
+    totalCommission?: number | null;
+  };
   shippingDetails?: {
     /**
      * Recipient full name
@@ -1559,6 +1567,103 @@ export interface Order {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Shopping carts for users
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "carts".
+ */
+export interface Cart {
+  id: string;
+  /**
+   * The customer who owns this cart
+   */
+  customer: string | User;
+  /**
+   * Cart status
+   */
+  status: 'active' | 'converted' | 'abandoned';
+  /**
+   * Items in the cart
+   */
+  items: {
+    /**
+     * Variations available from sellers in your country
+     */
+    variation: string | Variation;
+    /**
+     * Select a SKU for this variation
+     */
+    sku?: (string | null) | Skus;
+    /**
+     * Price (auto-populated from selected SKU)
+     */
+    price?: number | null;
+    /**
+     * Quantity of this item
+     */
+    quantity: number;
+    /**
+     * Shipping fee for this item
+     */
+    shippingFee?: number | null;
+    /**
+     * Add buyer protection (80% of shipping fee)
+     */
+    buyerProtection?: boolean | null;
+    /**
+     * Buyer protection fee (auto-calculated: 80% of shipping fee)
+     */
+    buyerProtectionFee?: number | null;
+    /**
+     * When this item was added to the cart
+     */
+    addedAt?: string | null;
+    id?: string | null;
+  }[];
+  /**
+   * Total number of items in cart (auto-calculated)
+   */
+  itemCount?: number | null;
+  /**
+   * Subtotal (products only, before shipping/fees - used for discount calculation)
+   */
+  subtotal?: number | null;
+  /**
+   * Grand total (subtotal + shipping + buyer protection - discount)
+   */
+  grandTotal?: number | null;
+  /**
+   * Applied discount code (discount applies to subtotal)
+   */
+  discountCode?: (string | null) | DiscountCode;
+  /**
+   * Discount amount applied (percentage of subtotal)
+   */
+  discountAmount?: number | null;
+  /**
+   * Points to redeem as discount (1 point = 1 currency unit)
+   */
+  pointsToRedeem?: number | null;
+  /**
+   * Discount from redeemed points (auto-calculated)
+   */
+  pointsDiscount?: number | null;
+  /**
+   * Currency (auto-set from customer country)
+   */
+  currency?: (string | null) | Currency;
+  /**
+   * When the cart was converted to an order
+   */
+  purchasedAt?: string | null;
+  /**
+   * Optional notes for the order
+   */
+  notes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2068,7 +2173,7 @@ export interface FeaturedGridBlock {
      */
     label: string;
     /**
-     * URL to navigate to when clicked, e.g. "/categories/clothing"
+     * Deep link URL. Example: /discover
      */
     link?: string | null;
     id?: string | null;
@@ -2096,9 +2201,9 @@ export interface ProductArchiveBlock {
    */
   queryType: 'trending' | 'new-arrivals' | 'recently-viewed' | 'featured';
   /**
-   * URL for the "See all" button
+   * Show the "See all" button
    */
-  seeAllLink?: string | null;
+  showSeeAll?: boolean | null;
   /**
    * Text for the "See all" button
    */
@@ -2132,103 +2237,6 @@ export interface VariationView {
   createdAt: string;
 }
 /**
- * Shopping carts for users
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "carts".
- */
-export interface Cart {
-  id: string;
-  /**
-   * The customer who owns this cart
-   */
-  customer: string | User;
-  /**
-   * Cart status
-   */
-  status: 'active' | 'converted' | 'abandoned';
-  /**
-   * Items in the cart
-   */
-  items: {
-    /**
-     * Variations available from sellers in your country
-     */
-    variation: string | Variation;
-    /**
-     * Select a SKU for this variation
-     */
-    sku?: (string | null) | Skus;
-    /**
-     * Price (auto-populated from selected SKU)
-     */
-    price?: number | null;
-    /**
-     * Quantity of this item
-     */
-    quantity: number;
-    /**
-     * Shipping fee for this item
-     */
-    shippingFee?: number | null;
-    /**
-     * Add buyer protection (80% of shipping fee)
-     */
-    buyerProtection?: boolean | null;
-    /**
-     * Buyer protection fee (auto-calculated: 80% of shipping fee)
-     */
-    buyerProtectionFee?: number | null;
-    /**
-     * When this item was added to the cart
-     */
-    addedAt?: string | null;
-    id?: string | null;
-  }[];
-  /**
-   * Total number of items in cart (auto-calculated)
-   */
-  itemCount?: number | null;
-  /**
-   * Subtotal (products only, before shipping/fees - used for discount calculation)
-   */
-  subtotal?: number | null;
-  /**
-   * Grand total (subtotal + shipping + buyer protection - discount)
-   */
-  grandTotal?: number | null;
-  /**
-   * Applied discount code (discount applies to subtotal)
-   */
-  discountCode?: (string | null) | DiscountCode;
-  /**
-   * Discount amount applied (percentage of subtotal)
-   */
-  discountAmount?: number | null;
-  /**
-   * Points to redeem as discount (1 point = 1 currency unit)
-   */
-  pointsToRedeem?: number | null;
-  /**
-   * Discount from redeemed points (auto-calculated)
-   */
-  pointsDiscount?: number | null;
-  /**
-   * Currency (auto-set from customer country)
-   */
-  currency?: (string | null) | Currency;
-  /**
-   * When the cart was converted to an order
-   */
-  purchasedAt?: string | null;
-  /**
-   * Optional notes for the order
-   */
-  notes?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "materials".
  */
@@ -2255,9 +2263,9 @@ export interface Notification {
    */
   user: string | User;
   /**
-   * URL to the notification image/icon
+   * Notification image (e.g., product/variation image)
    */
-  image?: string | null;
+  image?: (string | null) | Media;
   /**
    * Notification message
    */
@@ -2904,7 +2912,7 @@ export interface FeaturedGridBlockSelect<T extends boolean = true> {
 export interface ProductArchiveBlockSelect<T extends boolean = true> {
   title?: T;
   queryType?: T;
-  seeAllLink?: T;
+  showSeeAll?: T;
   seeAllText?: T;
   department?: T;
   limit?: T;
@@ -3150,7 +3158,6 @@ export interface SkusSelect<T extends boolean = true> {
         value?: T;
         id?: T;
       };
-  currency?: T;
   price?: T;
   sellingPrice?: T;
   compareAtPrice?: T;
@@ -3370,6 +3377,8 @@ export interface NotificationsSelect<T extends boolean = true> {
 export interface OrdersSelect<T extends boolean = true> {
   orderId?: T;
   status?: T;
+  cart?: T;
+  paymentTransaction?: T;
   customer?: T;
   sellers?: T;
   items?:
@@ -3378,8 +3387,9 @@ export interface OrdersSelect<T extends boolean = true> {
         variation?: T;
         seller?: T;
         variationTitle?: T;
-        sellerName?: T;
         variationImage?: T;
+        sellerName?: T;
+        sellerImage?: T;
         sku?: T;
         skuTitle?: T;
         price?: T;
@@ -3409,7 +3419,16 @@ export interface OrdersSelect<T extends boolean = true> {
   discountAmount?: T;
   pointsRedeemed?: T;
   pointsDiscount?: T;
-  totalCommission?: T;
+  commissionBreakdown?:
+    | T
+    | {
+        totalTransactionFees?: T;
+        totalPaystackFees?: T;
+        totalBuyerProtectionFees?: T;
+        discountAmount?: T;
+        pointsDiscount?: T;
+        totalCommission?: T;
+      };
   shippingDetails?:
     | T
     | {

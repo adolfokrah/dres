@@ -3,19 +3,21 @@ import { generateTransactionId } from '@/utilities/generateTransactionId'
 
 interface OrderItem {
   id?: string
-  product: string | { id: string }
-  seller: string | { id: string }
-  productTitle: string
-  productImage: string
-  variationOptions: Record<string, string> | null
-  sellerName: string
+  variation?: string | { id: string } | null
+  seller?: string | { id: string } | null
+  variationTitle: string
+  variationImage?: string | null
+  sku?: string | { id: string } | null
+  skuTitle?: string | null
   price: number
-  originalPrice: number
+  originalPrice?: number | null
   quantity: number
-  shippingFee: number
-  buyerProtection: boolean
-  buyerProtectionFee: number
-  shippingStatus: string
+  shippingFee?: number | null
+  buyerProtection?: boolean | null
+  buyerProtectionFee?: number | null
+  shippingStatus?: string | null
+  returnReason?: string | null
+  returnImage?: string | { id: string } | null
 }
 
 export const createRefundTransaction: CollectionAfterChangeHook = async ({
@@ -79,7 +81,7 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
         // Skip if refund already exists
         if (existingRefund.docs.length > 0) {
           payload.logger.info(
-            `Refund transaction already exists for ${currentItem.productTitle} - skipping`,
+            `Refund transaction already exists for ${currentItem.variationTitle} - skipping`,
           )
           continue
         }
@@ -111,8 +113,8 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
 
         // Build refund notes
         const refundNotes = hasBuyerProtection
-          ? `Refund for returned item "${currentItem.productTitle}" (Qty: ${currentItem.quantity}). Product: ${sellingPriceTotal}, Shipping: ${shippingFee}. Total refund: ${refundTotal}`
-          : `Refund for returned item "${currentItem.productTitle}" (Qty: ${currentItem.quantity}). Product only: ${sellingPriceTotal} (No buyer protection - shipping not refunded)`
+          ? `Refund for returned item "${currentItem.variationTitle}" (Qty: ${currentItem.quantity}). Product: ${sellingPriceTotal}, Shipping: ${shippingFee}. Total refund: ${refundTotal}`
+          : `Refund for returned item "${currentItem.variationTitle}" (Qty: ${currentItem.quantity}). Product only: ${sellingPriceTotal} (No buyer protection - shipping not refunded)`
 
         // Create refund transaction for customer
         await payload.create({
@@ -135,7 +137,7 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
         })
 
         payload.logger.info(
-          `Created refund transaction for returned item: ${currentItem.productTitle} - Amount: ${refundTotal} (Product: ${sellingPriceTotal}${hasBuyerProtection ? `, Shipping: ${shippingFee}, Protection: ${buyerProtectionFee}` : ' - No buyer protection'})`,
+          `Created refund transaction for returned item: ${currentItem.variationTitle} - Amount: ${refundTotal} (Product: ${sellingPriceTotal}${hasBuyerProtection ? `, Shipping: ${shippingFee}, Protection: ${buyerProtectionFee}` : ' - No buyer protection'})`,
         )
 
         // Create return charge transaction for seller (negative amount = platform's 10% fee)
@@ -143,10 +145,11 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
         payload.logger.info(`Seller data type: ${typeof sellerData}, value: ${JSON.stringify(sellerData)}`)
         
         const sellerId = typeof sellerData === 'object' && sellerData !== null ? (sellerData as any).id : sellerData
-        const platformFee = Math.round(((currentItem.price * currentItem.quantity) - (currentItem.originalPrice * currentItem.quantity)) * 100) / 100 // Round to 2 decimal places
+        const originalPrice = currentItem.originalPrice ?? currentItem.price
+        const platformFee = Math.round(((currentItem.price * currentItem.quantity) - (originalPrice * currentItem.quantity)) * 100) / 100 // Round to 2 decimal places
         
         payload.logger.info(
-          `Return charge check - Seller ID: ${sellerId}, Platform Fee: ${platformFee}, Price: ${currentItem.price}, OriginalPrice: ${currentItem.originalPrice}, Qty: ${currentItem.quantity}`,
+          `Return charge check - Seller ID: ${sellerId}, Platform Fee: ${platformFee}, Price: ${currentItem.price}, OriginalPrice: ${originalPrice}, Qty: ${currentItem.quantity}`,
         )
 
         // Check if a return charge transaction already exists for this seller/item
@@ -175,16 +178,16 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
               itemId: itemId,
               amount: -platformFee, // Negative amount - seller owes this to platform
               fees: platformFee,
-              notes: `Return charge for "${currentItem.productTitle}" (Qty: ${currentItem.quantity}). Platform fee: ${platformFee}`,
+              notes: `Return charge for "${currentItem.variationTitle}" (Qty: ${currentItem.quantity}). Platform fee: ${platformFee}`,
             },
           })
 
           payload.logger.info(
-            `Created return charge transaction for seller: ${currentItem.sellerName || sellerId} - Fee: ${platformFee}`,
+            `Created return charge transaction for seller: ${sellerId} - Fee: ${platformFee}`,
           )
         } else if (existingReturnCharge.docs.length > 0) {
           payload.logger.info(
-            `Return charge already exists for ${currentItem.productTitle} - skipping`,
+            `Return charge already exists for ${currentItem.variationTitle} - skipping`,
           )
         }
       }

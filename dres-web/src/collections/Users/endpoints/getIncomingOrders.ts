@@ -99,7 +99,7 @@ export const getUserIncomingOrders: PayloadHandler = async (req) => {
 
     // Transform orders to simplified incoming order format
     // Only include items where the user is the seller
-    let incomingOrders: IncomingOrder[] = ordersResult.docs.map((order: any) => {
+    const incomingOrders: IncomingOrder[] = ordersResult.docs.map((order: any) => {
       // Extract shipping address info from shippingDetails
       let shippingAddress = null
       if (order.shippingDetails) {

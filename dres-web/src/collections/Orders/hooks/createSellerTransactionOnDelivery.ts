@@ -3,12 +3,11 @@ import { generateTransactionId } from '@/utilities/generateTransactionId'
 
 interface OrderItem {
   id?: string
-  product: string | { id: string }
+  variation?: string | { id: string } | null
   seller: string | { id: string }
-  productTitle: string
-  productImage: string
-  variationOptions: Record<string, string> | null
-  sellerName: string
+  variationTitle?: string | null
+  variationImage?: string | null
+  skuTitle?: string | null
   price: number
   originalPrice: number
   quantity: number
@@ -79,7 +78,7 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
             })
 
             payload.logger.info(
-              `Order payment transaction ${tx.id} cancelled - item "${currentItem.productTitle}" return in progress. Will be recreated when all items reach final status.`,
+              `Order payment transaction ${tx.id} cancelled - item "${currentItem.variationTitle}" return in progress. Will be recreated when all items reach final status.`,
             )
           }
         }
@@ -175,7 +174,7 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
       let totalOriginalPrice = 0
       let totalSellingPrice = 0
       const itemIds: string[] = []
-      const productTitles: string[] = []
+      const variationTitles: string[] = []
 
       for (let i = 0; i < deliveredItems.length; i++) {
         const item = deliveredItems[i]
@@ -183,7 +182,7 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
         totalOriginalPrice += originalPrice * item.quantity
         totalSellingPrice += item.price * item.quantity
         itemIds.push(item.id || `${doc.id}-${currentItems.indexOf(item)}`)
-        productTitles.push(`${item.productTitle} (Qty: ${item.quantity})`)
+        variationTitles.push(`${item.variationTitle || 'Item'} (Qty: ${item.quantity})`)
       }
 
       // Only ONE shipping fee per seller (from first delivered item)
@@ -221,7 +220,7 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
             accountNumber: withdrawalAccount?.accountNumber || '',
             bank: withdrawalAccount?.bank || '',
           },
-          notes: `Bulk seller payout for ${deliveredItems.length} item(s): ${productTitles.join(', ')}. Products: ${totalOriginalPrice}, Shipping: ${shippingFee}, Total: ${sellerPayout}`,
+          notes: `Bulk seller payout for ${deliveredItems.length} item(s): ${variationTitles.join(', ')}. Products: ${totalOriginalPrice}, Shipping: ${shippingFee}, Total: ${sellerPayout}`,
         },
       })
 
