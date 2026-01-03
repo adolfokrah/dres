@@ -4,6 +4,8 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/features/sell/data/models/attribute_model.dart';
 
+export 'package:dres/features/sell/data/models/attribute_model.dart';
+
 /// A selected attribute with its value
 class SelectedAttribute {
   final String attributeId;
@@ -353,12 +355,17 @@ class _AttributeCard extends StatelessWidget {
   }
 }
 
-class _DropdownField extends StatelessWidget {
+class AttributeDropdownField extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
   final bool enabled;
 
-  const _DropdownField({required this.label, this.onTap, this.enabled = true});
+  const AttributeDropdownField({
+    super.key,
+    required this.label,
+    this.onTap,
+    this.enabled = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -393,13 +400,33 @@ class _DropdownField extends StatelessWidget {
   }
 }
 
-class _AttributePickerSheet extends StatelessWidget {
+// Keep the private version for backward compatibility within this file
+class _DropdownField extends StatelessWidget {
+  final String label;
+  final VoidCallback? onTap;
+  final bool enabled;
+
+  const _DropdownField({required this.label, this.onTap, this.enabled = true});
+
+  @override
+  Widget build(BuildContext context) {
+    return AttributeDropdownField(
+      label: label,
+      onTap: onTap,
+      enabled: enabled,
+    );
+  }
+}
+
+/// A bottom sheet for picking attributes or attribute options
+class AttributePickerSheet extends StatelessWidget {
   final String title;
   final List<({String id, String name})> items;
   final String? selectedId;
   final Function(String id, String name) onSelected;
 
-  const _AttributePickerSheet({
+  const AttributePickerSheet({
+    super.key,
     required this.title,
     required this.items,
     this.selectedId,
@@ -450,9 +477,7 @@ class _AttributePickerSheet extends StatelessWidget {
                     item.name,
                     style: AppTypography.bodyL.copyWith(
                       color: AppColors.textPrimary,
-                      fontWeight: isSelected
-                          ? FontWeight.w700
-                          : FontWeight.w400,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
                     ),
                   ),
                   trailing: isSelected
@@ -468,6 +493,207 @@ class _AttributePickerSheet extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// Keep the private version for backward compatibility within this file
+class _AttributePickerSheet extends StatelessWidget {
+  final String title;
+  final List<({String id, String name})> items;
+  final String? selectedId;
+  final Function(String id, String name) onSelected;
+
+  const _AttributePickerSheet({
+    required this.title,
+    required this.items,
+    this.selectedId,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AttributePickerSheet(
+      title: title,
+      items: items,
+      selectedId: selectedId,
+      onSelected: onSelected,
+    );
+  }
+}
+
+/// A single attribute card widget for SKU details
+/// Allows selecting one attribute type and one value
+class SkuAttributeCard extends StatefulWidget {
+  final List<AttributeModel> availableAttributes;
+  final String? selectedAttributeId;
+  final String? selectedAttributeName;
+  final String? selectedOptionId;
+  final String? selectedOptionName;
+  final Function(String attributeId, String attributeName) onAttributeSelected;
+  final Function(String optionId, String optionName) onOptionSelected;
+
+  const SkuAttributeCard({
+    super.key,
+    required this.availableAttributes,
+    this.selectedAttributeId,
+    this.selectedAttributeName,
+    this.selectedOptionId,
+    this.selectedOptionName,
+    required this.onAttributeSelected,
+    required this.onOptionSelected,
+  });
+
+  @override
+  State<SkuAttributeCard> createState() => _SkuAttributeCardState();
+}
+
+class _SkuAttributeCardState extends State<SkuAttributeCard> {
+  bool _isExpanded = true;
+
+  String get _displayString {
+    if (widget.selectedOptionName != null &&
+        widget.selectedOptionName!.isNotEmpty) {
+      return '${widget.selectedAttributeName ?? 'Attribute'}: ${widget.selectedOptionName}';
+    }
+    return widget.selectedAttributeName ?? 'Select attribute';
+  }
+
+  List<AttributeOptionModel> get _availableOptions {
+    if (widget.selectedAttributeId == null) return [];
+    final attr = widget.availableAttributes.firstWhere(
+      (a) => a.id == widget.selectedAttributeId,
+      orElse: () =>
+          const AttributeModel(id: '', name: '', level: '', options: []),
+    );
+    return attr.options;
+  }
+
+  void _showAttributePicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
+      builder: (context) => AttributePickerSheet(
+        title: 'Select Attribute',
+        items: widget.availableAttributes
+            .map((a) => (id: a.id, name: a.name))
+            .toList(),
+        selectedId: widget.selectedAttributeId,
+        onSelected: (id, name) {
+          widget.onAttributeSelected(id, name);
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
+  void _showOptionPicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
+      builder: (context) => AttributePickerSheet(
+        title: 'Select Value',
+        items: _availableOptions.map((o) => (id: o.id, name: o.name)).toList(),
+        selectedId: widget.selectedOptionId,
+        onSelected: (id, name) {
+          widget.onOptionSelected(id, name);
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasAttribute = widget.selectedAttributeId != null &&
+        widget.selectedAttributeId!.isNotEmpty;
+
+    return Container(
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: AppColors.secondary, width: 10),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            border: Border.all(color: AppColors.secondary),
+          ),
+          child: Column(
+            children: [
+              // Header - shows selected attribute summary
+              GestureDetector(
+                onTap: () => setState(() => _isExpanded = !_isExpanded),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: const BoxDecoration(
+                    color: AppColors.secondary,
+                    border: Border(
+                      bottom: BorderSide(color: AppColors.secondary, width: 1),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _displayString,
+                          style: AppTypography.bodyL.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      PhosphorIcon(
+                        _isExpanded
+                            ? PhosphorIcons.caretUp()
+                            : PhosphorIcons.caretDown(),
+                        color: AppColors.textPrimary,
+                        size: 14,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Expanded content - attribute and value selectors
+              if (_isExpanded) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(9, 11, 9, 13),
+                  child: Column(
+                    children: [
+                      // Attribute type selector
+                      AttributeDropdownField(
+                        label: widget.selectedAttributeName ?? 'Select attribute',
+                        enabled: widget.availableAttributes.isNotEmpty,
+                        onTap: widget.availableAttributes.isNotEmpty
+                            ? _showAttributePicker
+                            : null,
+                      ),
+                      const SizedBox(height: 10),
+                      // Attribute value selector
+                      AttributeDropdownField(
+                        label: widget.selectedOptionName ?? 'Select value',
+                        enabled: hasAttribute && _availableOptions.isNotEmpty,
+                        onTap: hasAttribute && _availableOptions.isNotEmpty
+                            ? _showOptionPicker
+                            : null,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

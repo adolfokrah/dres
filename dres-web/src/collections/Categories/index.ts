@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { anyone } from '../../access/anyone'
 import { authenticated } from '../../access/authenticated'
+import { getCategoryAttributes } from './endpoints/getCategoryAttributes'
 
 export const Categories: CollectionConfig = {
   slug: 'categories',
@@ -16,6 +17,7 @@ export const Categories: CollectionConfig = {
     group: 'Catalog',
     defaultColumns: ['category', 'departments', 'collections'],
   },
+  endpoints: [getCategoryAttributes],
   fields: [
     {
       name: 'category',
@@ -59,35 +61,35 @@ export const Categories: CollectionConfig = {
         description: 'Attributes available for products in this category (e.g., Fit, Material, Style)',
       },
     },
-    {
-      name: 'variantAttributes',
-      type: 'relationship',
-      relationTo: 'attributes',
-      hasMany: true,
-      filterOptions: ({ data }) => {
-        // Only show attributes that are selected in the attributes field above
-        const selectedAttributes = data?.attributes as string[] | { id: string }[] | undefined
-        if (selectedAttributes && Array.isArray(selectedAttributes) && selectedAttributes.length > 0) {
-          const attributeIds = selectedAttributes.map((attr) =>
-            typeof attr === 'object' ? attr.id : attr
-          )
-          return {
-            id: {
-              in: attributeIds,
-            },
-          }
-        }
-        // If no attributes selected, show nothing
-        return {
-          id: {
-            equals: 'no-attributes-selected',
-          },
-        }
-      },
-      admin: {
-        description: 'Attributes used as variation types (e.g., Size, Color) - select from attributes above',
-      },
-    },
+    // {
+    //   name: 'variantAttributes',
+    //   type: 'relationship',
+    //   relationTo: 'attributes',
+    //   hasMany: true,
+    //   filterOptions: ({ data }) => {
+    //     // Only show attributes that are selected in the attributes field above
+    //     const selectedAttributes = data?.attributes as string[] | { id: string }[] | undefined
+    //     if (selectedAttributes && Array.isArray(selectedAttributes) && selectedAttributes.length > 0) {
+    //       const attributeIds = selectedAttributes.map((attr) =>
+    //         typeof attr === 'object' ? attr.id : attr
+    //       )
+    //       return {
+    //         id: {
+    //           in: attributeIds,
+    //         },
+    //       }
+    //     }
+    //     // If no attributes selected, show nothing
+    //     return {
+    //       id: {
+    //         equals: 'no-attributes-selected',
+    //       },
+    //     }
+    //   },
+    //   admin: {
+    //     description: 'Attributes used as variation types (e.g., Size, Color) - select from attributes above',
+    //   },
+    // },
     {
       name: 'variationStats',
       type: 'join',

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:dres/core/services/api_service.dart';
 import 'package:dres/features/sell/data/models/attribute_model.dart';
 import 'package:dres/features/sell/data/models/draft_styles_response.dart';
@@ -110,15 +109,11 @@ class SellRepository {
   /// Get variation details by ID for editing
   /// Uses standard Payload REST API which returns full data with IDs
   Future<VariationModel> getVariationDetails(String variationId) async {
-    debugPrint('📥 [VariationDetail] Fetching: $variationId');
     
     final response = await _apiService.get(
       '/variations/$variationId',
       queryParameters: {'depth': '2'},
     );
-    
-    debugPrint('📦 [VariationDetail] images count: ${(response.data['images'] as List?)?.length ?? 0}');
-    debugPrint('📦 [VariationDetail] variants count: ${(response.data['variants'] as List?)?.length ?? 0}');
     
     return VariationModel.fromJson(response.data);
   }
@@ -150,8 +145,7 @@ class SellRepository {
       data['images'] = imageIds;
     }
 
-    final response =
-        await _apiService.patch('/variations/$variationId', data: data);
+    await _apiService.patch('/variations/$variationId', data: data);
   }
 
   // ==================== SKUs ====================
@@ -227,61 +221,22 @@ class SellRepository {
 
   // ==================== ATTRIBUTES ====================
 
-  /// Get attributes for a category (with their options)
+  /// Get attributes for a category (with their options filtered by category)
   /// Returns variation-level and SKU-level attributes available for the category
   Future<GetCategoryAttributesResponse> getCategoryAttributes(
     String categoryId,
   ) async {
-    try {
-      // First, get the category to get attribute IDs
-      final categoryResponse = await _apiService.get(
-        '/categories/$categoryId',
-        queryParameters: {'depth': '1'},
-      );
+    final response = await _apiService.get(
+      '/categories/$categoryId/attributes',
+    );
 
-      // Extract attribute IDs from the category
-      final categoryData = categoryResponse.data;
-      final attributesData = categoryData['attributes'];
+    final attributesData = response.data['attributes'] as List? ?? [];
 
-      if (attributesData == null ||
-          attributesData is! List ||
-          attributesData.isEmpty) {
-        return const GetCategoryAttributesResponse(attributes: []);
-      }
+    final attributes = attributesData
+        .map((attr) => AttributeModel.fromJson(attr as Map<String, dynamic>))
+        .toList();
 
-      // Get attribute IDs (could be strings or objects with id)
-      final attributeIds = <String>[];
-      for (var attr in attributesData) {
-        if (attr is String) {
-          attributeIds.add(attr);
-        } else if (attr is Map && attr['id'] != null) {
-          attributeIds.add(attr['id']);
-        }
-      }
-
-      if (attributeIds.isEmpty) {
-        return const GetCategoryAttributesResponse(attributes: []);
-      }
-
-      // Now fetch each attribute with its options (join field)
-      final attributes = <AttributeModel>[];
-
-      for (var attrId in attributeIds) {
-        try {
-          final attrResponse = await _apiService.get(
-            '/attributes/$attrId',
-            queryParameters: {'depth': '2'},
-          );
-          attributes.add(AttributeModel.fromJson(attrResponse.data));
-        } catch (e) {
-          // Skip failed attributes
-        }
-      }
-
-      return GetCategoryAttributesResponse(attributes: attributes);
-    } catch (e) {
-      return const GetCategoryAttributesResponse(attributes: []);
-    }
+    return GetCategoryAttributesResponse(attributes: attributes);
   }
 
   // ==================== ARCHIVE ====================
