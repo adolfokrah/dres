@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/app_colors.dart';
-import 'package:dres/core/widgets/app_header.dart';
+import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/promo_banner.dart';
 import 'package:dres/core/widgets/featured_grid.dart';
 import 'package:dres/core/widgets/product_archive_block.dart';
@@ -30,8 +30,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     // Listen for scroll to top notifications (tab index 0 is Home)
-    _scrollSubscription = ScrollToTopService.instance.scrollToTopStream.listen((tabIndex) {
-      if (tabIndex == 0) { // Home tab
+    _scrollSubscription = ScrollToTopService.instance.scrollToTopStream.listen((
+      tabIndex,
+    ) {
+      if (tabIndex == 0) {
+        // Home tab
         debugPrint('📲 HomeScreen: Received scroll notification');
         if (_scrollController.hasClients) {
           debugPrint('📲 HomeScreen: Scrolling to top');
@@ -70,15 +73,14 @@ class _HomeScreenView extends StatefulWidget {
 }
 
 class _HomeScreenViewState extends State<_HomeScreenView> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56),
+        preferredSize: const Size.fromHeight(64),
         child: SafeArea(
-          child: AppHeader(
+          child: UnifiedHeader.search(
             onNotificationTap: () {
               // TODO: Navigate to notifications
             },
@@ -93,60 +95,56 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
         child: BlocBuilder<HomeBloc, HomeState>(
           builder: (context, state) {
             if (state.status == HomeStatus.loading) {
-              return const Center(
-                child: CircularProgressIndicator(),
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (state.status == HomeStatus.failure) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Failed to load',
+                      style: TextStyle(color: AppColors.textPrimary),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () {
+                        context.read<HomeBloc>().add(const RefreshHomePage());
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
               );
             }
 
-                  if (state.status == HomeStatus.failure) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Failed to load',
-                            style: TextStyle(color: AppColors.textPrimary),
-                          ),
-                          const SizedBox(height: 8),
-                          TextButton(
-                            onPressed: () {
-                              context
-                                  .read<HomeBloc>()
-                                  .add(const RefreshHomePage());
-                            },
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
+            final page = state.page;
+            if (page == null) {
+              return const SizedBox.shrink();
+            }
 
-                  final page = state.page;
-                  if (page == null) {
-                    return const SizedBox.shrink();
-                  }
-
-                  return RefreshIndicator(
-                    onRefresh: () async {
-                      final storageService = getIt<StorageService>();
-                      final department = storageService.getUserDepartment() ?? 'men';
-                      final pageSlug = department == 'women' ? 'home-women' : 'home';
-                      context.read<HomeBloc>().add(RefreshHomePage(slug: pageSlug));
-                    },
-                    child: SingleChildScrollView(
-                      controller: widget.scrollController,
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: Column(
-                        children: [
-                          // Render blocks from CMS
-                          ...page.layout.map((block) => _buildBlock(context, block)),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+            return RefreshIndicator(
+              onRefresh: () async {
+                final storageService = getIt<StorageService>();
+                final department = storageService.getUserDepartment() ?? 'men';
+                final pageSlug = department == 'women' ? 'home-women' : 'home';
+                context.read<HomeBloc>().add(RefreshHomePage(slug: pageSlug));
+              },
+              child: SingleChildScrollView(
+                controller: widget.scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  children: [
+                    // Render blocks from CMS
+                    ...page.layout.map((block) => _buildBlock(context, block)),
+                  ],
+                ),
               ),
-            ),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -174,8 +172,11 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
         // Use block department or fall back to user's selected department
         final storageService = getIt<StorageService>();
         final userDepartment = storageService.getUserDepartment();
-        final departmentId = productArchive.department ?? 
-            (userDepartment == 'women' ? '694eee871a36e6d75fbb15b1' : '694eee871a36e6d75fbb15af');
+        final departmentId =
+            productArchive.department ??
+            (userDepartment == 'women'
+                ? '694eee871a36e6d75fbb15b1'
+                : '694eee871a36e6d75fbb15af');
         return ProductArchiveBlock(
           title: productArchive.title,
           queryType: _getQueryType(productArchive.queryType),

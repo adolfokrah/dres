@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
-import 'package:dres/core/widgets/app_header.dart';
+import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/product_card.dart';
 import 'package:dres/core/widgets/product_card_skeleton.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
@@ -44,13 +44,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
     // Reset bloc state to clear any previous filter values
     context.read<ProductsBloc>().add(const ResetProducts());
     // Fetch products only once when screen is created
-    context.read<ProductsBloc>().add(FetchProducts(
-      departmentId: widget.departmentId,
-      categoryId: widget.categoryId,
-      collectionId: widget.collectionId,
-      brandId: widget.brandId,
-      filterType: widget.filterType,
-    ));
+    context.read<ProductsBloc>().add(
+      FetchProducts(
+        departmentId: widget.departmentId,
+        categoryId: widget.categoryId,
+        collectionId: widget.collectionId,
+        brandId: widget.brandId,
+        filterType: widget.filterType,
+      ),
+    );
   }
 
   @override
@@ -104,96 +106,98 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56),
         child: SafeArea(
-          child: AppHeader(
-            showBackButton: true,
+          child: UnifiedHeader.simple(
+            title: '',
             onBackTap: () => context.pop(),
           ),
         ),
       ),
       body: BlocBuilder<ProductsBloc, ProductsState>(
-          builder: (context, state) {
-            return NestedScrollView(
-              controller: _scrollController,
-              headerSliverBuilder: (context, innerBoxIsScrolled) {
-                return [
-                 
-                  // Collapsible Title and Filters
-                  SliverAppBar(
-                    floating: true,
-                    snap: true,
-                    pinned: false,
-                    automaticallyImplyLeading: false,
-                    backgroundColor: AppColors.background,
-                    surfaceTintColor: Colors.transparent,
-                    elevation: 0,
-                    toolbarHeight: 0,
-                    expandedHeight: _getExpandedHeight(state),
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Products Header (Title and Save Search)
-                          ProductsHeader(
-                            title: widget.title,
-                            itemCount: state.totalDocs,
-                            onSaveSearch: () {
-                              // TODO: Save search functionality
-                            },
-                          ),
+        builder: (context, state) {
+          return NestedScrollView(
+            controller: _scrollController,
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                // Collapsible Title and Filters
+                SliverAppBar(
+                  floating: true,
+                  snap: true,
+                  pinned: false,
+                  automaticallyImplyLeading: false,
+                  backgroundColor: AppColors.background,
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 0,
+                  toolbarHeight: 0,
+                  expandedHeight: _getExpandedHeight(state),
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Products Header (Title and Save Search)
+                        ProductsHeader(
+                          title: widget.title,
+                          itemCount: state.totalDocs,
+                          onSaveSearch: () {
+                            // TODO: Save search functionality
+                          },
+                        ),
 
-                          // Filter Bar
-                          ProductsFilterBar(
-                            selectedSort: state.sortBy == 'oldest' 
-                                ? SortOption.oldest 
-                                : SortOption.latest,
-                            selectedPrice: state.sortPrice == null
-                                ? PriceOption.all
-                                : state.sortPrice == 'desc' 
-                                    ? PriceOption.highToLow 
-                                    : PriceOption.lowToHigh,
-                            filters: state.filters,
-                            selectedAttributes: state.selectedAttributes,
-                            minPrice: state.minPrice,
-                            maxPrice: state.maxPrice,
-                            onSortChanged: (sortOption) {
-                              final sortBy = sortOption == SortOption.oldest ? 'oldest' : 'latest';
-                              context.read<ProductsBloc>().add(ChangeSortOption(sortBy));
-                            },
-                            onPriceChanged: (priceOption) {
-                              final sortPrice = priceOption == PriceOption.all 
-                                  ? null 
-                                  : priceOption == PriceOption.highToLow 
-                                      ? 'desc' 
-                                      : 'asc';
-                              context.read<ProductsBloc>().add(ChangePriceSort(sortPrice));
-                            },
-                            onAttributeFilterChanged: (attributeId, optionIds) {
-                              context.read<ProductsBloc>().add(
-                                ChangeAttributeFilter(
-                                  attributeId: attributeId,
-                                  optionIds: optionIds,
-                                ),
-                              );
-                            },
-                            onPriceRangeChanged: (min, max) {
-                              context.read<ProductsBloc>().add(
-                                ChangePriceRange(
-                                  minPrice: min,
-                                  maxPrice: max,
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
+                        // Filter Bar
+                        ProductsFilterBar(
+                          selectedSort: state.sortBy == 'oldest'
+                              ? SortOption.oldest
+                              : SortOption.latest,
+                          selectedPrice: state.sortPrice == null
+                              ? PriceOption.all
+                              : state.sortPrice == 'desc'
+                              ? PriceOption.highToLow
+                              : PriceOption.lowToHigh,
+                          filters: state.filters,
+                          selectedAttributes: state.selectedAttributes,
+                          minPrice: state.minPrice,
+                          maxPrice: state.maxPrice,
+                          onSortChanged: (sortOption) {
+                            final sortBy = sortOption == SortOption.oldest
+                                ? 'oldest'
+                                : 'latest';
+                            context.read<ProductsBloc>().add(
+                              ChangeSortOption(sortBy),
+                            );
+                          },
+                          onPriceChanged: (priceOption) {
+                            final sortPrice = priceOption == PriceOption.all
+                                ? null
+                                : priceOption == PriceOption.highToLow
+                                ? 'desc'
+                                : 'asc';
+                            context.read<ProductsBloc>().add(
+                              ChangePriceSort(sortPrice),
+                            );
+                          },
+                          onAttributeFilterChanged: (attributeId, optionIds) {
+                            context.read<ProductsBloc>().add(
+                              ChangeAttributeFilter(
+                                attributeId: attributeId,
+                                optionIds: optionIds,
+                              ),
+                            );
+                          },
+                          onPriceRangeChanged: (min, max) {
+                            context.read<ProductsBloc>().add(
+                              ChangePriceRange(minPrice: min, maxPrice: max),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   ),
-                ];
-              },
-              body: _buildBody(state),
-            );
-          },
-        ),
+                ),
+              ];
+            },
+            body: _buildBody(state),
+          );
+        },
+      ),
     );
   }
 
@@ -257,13 +261,12 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
           crossAxisCount: 2,
           childAspectRatio: 0.5,
         ),
-        itemCount: state.products.length +
+        itemCount:
+            state.products.length +
             (state.status == ProductsStatus.loadingMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index >= state.products.length) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           final product = state.products[index];

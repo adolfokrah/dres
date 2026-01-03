@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { authenticated } from '../../access/authenticated'
 import { anyone } from '../../access/anyone'
 import { getStyleReviewsEndpoint } from './endpoints/getStyleReviews'
+import { getMyDraftStyles } from './endpoints/getMyDraftStyles'
 
 export const Styles: CollectionConfig = {
   slug: 'styles',
@@ -26,6 +27,11 @@ export const Styles: CollectionConfig = {
       path: '/:id/reviews',
       method: 'get',
       handler: getStyleReviewsEndpoint,
+    },
+    {
+      path: '/my-drafts',
+      method: 'get',
+      handler: getMyDraftStyles,
     },
   ],
   fields: [

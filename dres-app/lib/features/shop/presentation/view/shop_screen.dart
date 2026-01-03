@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
-import 'package:dres/core/widgets/app_header.dart';
+import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/custom_tab_bar.dart';
 import 'package:dres/core/widgets/shop_promo_card.dart';
 import 'package:dres/core/services/scroll_to_top_service.dart';
@@ -31,10 +31,17 @@ class _ShopScreenState extends State<ShopScreen> {
   void initState() {
     super.initState();
     // Listen for scroll to top notifications (tab index 1 is Shop)
-    _scrollSubscription = ScrollToTopService.instance.scrollToTopStream.listen((tabIndex) {
-      if (tabIndex == 1 && _scrollController.hasClients) { // Tab index 1 = Shop
-        debugPrint('📲 ShopScreen: Received scroll notification, has clients: ${_scrollController.hasClients}');
-        debugPrint('📲 ShopScreen: Current offset: ${_scrollController.offset}');
+    _scrollSubscription = ScrollToTopService.instance.scrollToTopStream.listen((
+      tabIndex,
+    ) {
+      if (tabIndex == 1 && _scrollController.hasClients) {
+        // Tab index 1 = Shop
+        debugPrint(
+          '📲 ShopScreen: Received scroll notification, has clients: ${_scrollController.hasClients}',
+        );
+        debugPrint(
+          '📲 ShopScreen: Current offset: ${_scrollController.offset}',
+        );
         debugPrint('📲 ShopScreen: Scrolling to top via stream');
         _scrollController.animateTo(
           0,
@@ -42,7 +49,9 @@ class _ShopScreenState extends State<ShopScreen> {
           curve: Curves.easeOut,
         );
       } else if (tabIndex == 1) {
-        debugPrint('⚠️ ShopScreen: Received scroll notification but controller has no clients');
+        debugPrint(
+          '⚠️ ShopScreen: Received scroll notification but controller has no clients',
+        );
       }
     });
   }
@@ -59,9 +68,9 @@ class _ShopScreenState extends State<ShopScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56),
+        preferredSize: const Size.fromHeight(64),
         child: SafeArea(
-          child: AppHeader(
+          child: UnifiedHeader.search(
             onNotificationTap: () {
               // TODO: Navigate to notifications
             },
@@ -76,68 +85,69 @@ class _ShopScreenState extends State<ShopScreen> {
         child: BlocBuilder<MenuBloc, MenuState>(
           builder: (context, state) {
             if (state.status == MenuStatus.loading) {
-              return const Center(
-                child: CircularProgressIndicator(),
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (state.status == MenuStatus.failure) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)!.failedToLoadMenu,
+                      style: AppTypography.bodyL,
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () {
+                        // Retry is handled by pull to refresh
+                      },
+                      child: Text(AppLocalizations.of(context)!.pullToRefresh),
+                    ),
+                  ],
+                ),
               );
             }
 
-                  if (state.status == MenuStatus.failure) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            AppLocalizations.of(context)!.failedToLoadMenu,
-                            style: AppTypography.bodyL,
-                          ),
-                          const SizedBox(height: 8),
-                          TextButton(
-                            onPressed: () {
-                              // Retry is handled by pull to refresh
-                            },
-                            child: Text(AppLocalizations.of(context)!.pullToRefresh),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
+            final menu = state.menu;
+            if (menu == null) {
+              return const SizedBox.shrink();
+            }
 
-                  final menu = state.menu;
-                  if (menu == null) {
-                    return const SizedBox.shrink();
-                  }
+            final departments = menu.departments;
 
-                  final departments = menu.departments;
+            return Column(
+              children: [
+                // Department Tabs
+                CustomTabBar(
+                  tabs: departments.map((d) => d.name).toList(),
+                  selectedIndex: _selectedTabIndex,
+                  onTabSelected: (index) {
+                    setState(() {
+                      _selectedTabIndex = index;
+                    });
+                  },
+                ),
 
-                  return Column(
-                    children: [
-                      // Department Tabs
-                      CustomTabBar(
-                        tabs: departments.map((d) => d.name).toList(),
-                        selectedIndex: _selectedTabIndex,
-                        onTabSelected: (index) {
-                          setState(() {
-                            _selectedTabIndex = index;
-                          });
-                        },
-                      ),
-
-                      // Collections List
-                      Expanded(
-                        child: _buildCollectionsList(
-                          departments[_selectedTabIndex],
-                          departments[_selectedTabIndex].name,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
+                // Collections List
+                Expanded(
+                  child: _buildCollectionsList(
+                    departments[_selectedTabIndex],
+                    departments[_selectedTabIndex].name,
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
     );
   }
 
-  Widget _buildCollectionsList(DepartmentModel department, String departmentName) {
+  Widget _buildCollectionsList(
+    DepartmentModel department,
+    String departmentName,
+  ) {
     if (department.collections.isEmpty) {
       return Center(
         child: Text(
@@ -148,20 +158,24 @@ class _ShopScreenState extends State<ShopScreen> {
     }
 
     // Get promo cards based on department
-    final promoCards = _getPromoCardsForDepartment(department.name, department.id);
+    final promoCards = _getPromoCardsForDepartment(
+      department.name,
+      department.id,
+    );
 
     return ListView.builder(
       key: ValueKey('collections_${department.name}'),
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: department.collections.length + (promoCards.isNotEmpty ? 1 : 0),
+      itemCount:
+          department.collections.length + (promoCards.isNotEmpty ? 1 : 0),
       itemBuilder: (context, index) {
         // Show collections first
         if (index < department.collections.length) {
           final collection = department.collections[index];
           return _buildCollectionItem(collection, department);
         }
-        
+
         // Show promo cards at the end
         return Padding(
           padding: const EdgeInsets.all(10),
@@ -178,10 +192,13 @@ class _ShopScreenState extends State<ShopScreen> {
     );
   }
 
-  List<Widget> _getPromoCardsForDepartment(String departmentName, String departmentId) {
+  List<Widget> _getPromoCardsForDepartment(
+    String departmentName,
+    String departmentId,
+  ) {
     final name = departmentName.toLowerCase();
     final l10n = AppLocalizations.of(context)!;
-    
+
     if (name == 'women') {
       return [
         ShopPromoCard(
@@ -189,7 +206,13 @@ class _ShopScreenState extends State<ShopScreen> {
           subtitle: l10n.dailyDropPersonalized,
           imageText: 'NEW',
           gradientColors: const [Color(0xFF121212), Color(0xFF939393)],
-          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'new-arrivals', l10n.newArrivalsForYou),
+          onTap: () => _navigateToFilteredProducts(
+            context,
+            departmentId,
+            departmentName,
+            'new-arrivals',
+            l10n.newArrivalsForYou,
+          ),
         ),
         ShopPromoCard(
           title: l10n.designers,
@@ -197,7 +220,13 @@ class _ShopScreenState extends State<ShopScreen> {
           imageText: '',
           imagePath: 'assets/images/desiners_women.png',
           gradientColors: const [Color(0xFF121212), Color(0xFF939393)],
-          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'designers', l10n.designers),
+          onTap: () => _navigateToFilteredProducts(
+            context,
+            departmentId,
+            departmentName,
+            'designers',
+            l10n.designers,
+          ),
         ),
         ShopPromoCard(
           title: l10n.weLove,
@@ -205,14 +234,26 @@ class _ShopScreenState extends State<ShopScreen> {
           imageText: '',
           imagePath: 'assets/images/we_love_women.png',
           gradientColors: const [Color(0xFF121212), Color(0xFF939393)],
-          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'we-love', l10n.weLove),
+          onTap: () => _navigateToFilteredProducts(
+            context,
+            departmentId,
+            departmentName,
+            'we-love',
+            l10n.weLove,
+          ),
         ),
         ShopPromoCard(
           title: l10n.onSale,
           subtitle: l10n.finestDeals,
           imageText: 'SALE',
           gradientColors: const [Color(0xFF121212), Color(0xFFC6CA77)],
-          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'on-sale', l10n.onSale),
+          onTap: () => _navigateToFilteredProducts(
+            context,
+            departmentId,
+            departmentName,
+            'on-sale',
+            l10n.onSale,
+          ),
         ),
       ];
     } else if (name == 'men') {
@@ -222,7 +263,13 @@ class _ShopScreenState extends State<ShopScreen> {
           subtitle: l10n.dailyDropPersonalized,
           imageText: 'NEW',
           gradientColors: const [Color(0xFF121212), Color(0xFF939393)],
-          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'new-arrivals', l10n.newArrivalsForYou),
+          onTap: () => _navigateToFilteredProducts(
+            context,
+            departmentId,
+            departmentName,
+            'new-arrivals',
+            l10n.newArrivalsForYou,
+          ),
         ),
         ShopPromoCard(
           title: l10n.designers,
@@ -230,7 +277,13 @@ class _ShopScreenState extends State<ShopScreen> {
           imageText: '',
           imagePath: 'assets/images/designers_men.png',
           gradientColors: const [Color(0xFF121212), Color(0xFF939393)],
-          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'designers', l10n.designers),
+          onTap: () => _navigateToFilteredProducts(
+            context,
+            departmentId,
+            departmentName,
+            'designers',
+            l10n.designers,
+          ),
         ),
         ShopPromoCard(
           title: l10n.weLove,
@@ -238,14 +291,26 @@ class _ShopScreenState extends State<ShopScreen> {
           imageText: '',
           imagePath: 'assets/images/we_love_men.png',
           gradientColors: const [Color(0xFF121212), Color(0xFF939393)],
-          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'we-love', l10n.weLove),
+          onTap: () => _navigateToFilteredProducts(
+            context,
+            departmentId,
+            departmentName,
+            'we-love',
+            l10n.weLove,
+          ),
         ),
         ShopPromoCard(
           title: l10n.onSale,
           subtitle: l10n.finestDeals,
           imageText: 'SALE',
           gradientColors: const [Color(0xFF121212), Color(0xFF77B1CA)],
-          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'on-sale', l10n.onSale),
+          onTap: () => _navigateToFilteredProducts(
+            context,
+            departmentId,
+            departmentName,
+            'on-sale',
+            l10n.onSale,
+          ),
         ),
       ];
     } else if (name == 'kids') {
@@ -255,15 +320,24 @@ class _ShopScreenState extends State<ShopScreen> {
           subtitle: l10n.dailyDropPersonalized,
           badgeImagePath: 'assets/images/arrival_kids.png',
           gradientColors: const [Color(0xFF121212), Color(0xFF939393)],
-          onTap: () => _navigateToFilteredProducts(context, departmentId, departmentName, 'new-arrivals', l10n.newArrivalsForYou),
+          onTap: () => _navigateToFilteredProducts(
+            context,
+            departmentId,
+            departmentName,
+            'new-arrivals',
+            l10n.newArrivalsForYou,
+          ),
         ),
       ];
     }
-    
+
     return [];
   }
 
-  Widget _buildCollectionItem(CollectionModel collection, DepartmentModel department) {
+  Widget _buildCollectionItem(
+    CollectionModel collection,
+    DepartmentModel department,
+  ) {
     return Column(
       children: [
         InkWell(
@@ -284,9 +358,7 @@ class _ShopScreenState extends State<ShopScreen> {
               children: [
                 Text(
                   collection.name,
-                  style: AppTypography.bodyL.copyWith(
-                    fontSize: 18
-                  ),
+                  style: AppTypography.bodyL.copyWith(fontSize: 18),
                 ),
                 PhosphorIcon(
                   PhosphorIconsRegular.caretRight,
@@ -308,15 +380,18 @@ class _ShopScreenState extends State<ShopScreen> {
     );
   }
 
-  void _navigateToFilteredProducts(BuildContext context, String departmentId, String departmentName, String filterType, String title) {
+  void _navigateToFilteredProducts(
+    BuildContext context,
+    String departmentId,
+    String departmentName,
+    String filterType,
+    String title,
+  ) {
     // For Designers, navigate to brands screen instead
     if (filterType == 'designers') {
       context.pushNamed(
         'brands',
-        extra: {
-          'departmentId': departmentId,
-          'departmentName': departmentName,
-        },
+        extra: {'departmentId': departmentId, 'departmentName': departmentName},
       );
       return;
     }

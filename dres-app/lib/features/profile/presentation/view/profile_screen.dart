@@ -5,7 +5,7 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/services/storage_service.dart';
 import 'package:dres/core/di/injection.dart';
-import 'package:dres/core/widgets/cart_icon_button.dart';
+import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/profile_avatar.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/auth/data/models/auth_models.dart';
@@ -41,51 +41,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Custom Header matching SimpleHeader style
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal:24, vertical: 20),
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                border: Border(
-                  bottom: BorderSide(
-                    color: AppColors.border.withValues(alpha: 0.2),
-                    width: 1,
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  // Bell icon
-                  GestureDetector(
-                    onTap: () {
-                      // TODO: Navigate to notifications
-                    },
-                    child: Icon(
-                      PhosphorIcons.bellSimple(),
-                      size: 24,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-
-                  const SizedBox(width: 16),
-
-                  // Title
-                  Expanded(
-                    child: Text(
-                      l10n.me,
-                      style: AppTypography.bodyL.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-
-                  const SizedBox(width: 16),
-
-                  // Bag icon
-                  const CartIconButton(),
-                ],
-              ),
+            // Header
+            UnifiedHeader.titleWithBell(
+              title: l10n.me,
+              onNotificationTap: () {
+                // TODO: Navigate to notifications
+              },
             ),
 
             // Body content

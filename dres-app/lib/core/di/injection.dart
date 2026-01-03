@@ -40,6 +40,8 @@ import 'package:dres/features/favorites/data/repositories/favorites_repository.d
 import 'package:dres/features/favorites/logic/favorites_bloc/favorites_bloc.dart';
 import 'package:dres/features/follows/data/repositories/follows_repository.dart';
 import 'package:dres/features/follows/logic/follows_bloc/follows_bloc.dart';
+import 'package:dres/features/sell/data/repositories/sell_repository.dart';
+import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -227,5 +229,15 @@ Future<void> setupDependencies() async {
   // Follows Bloc - Singleton so follow state persists
   getIt.registerLazySingleton<FollowsBloc>(() => FollowsBloc(
     followsRepository: getIt<FollowsRepository>(),
+  ));
+
+  // Sell Repository
+  getIt.registerLazySingleton<SellRepository>(() => SellRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Sell Bloc - Singleton so draft state persists
+  getIt.registerLazySingleton<SellBloc>(() => SellBloc(
+    sellRepository: getIt<SellRepository>(),
   ));
 }

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
-import 'package:dres/core/widgets/simple_header.dart';
+import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/app_search_input.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_bloc.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_event.dart';
@@ -24,7 +24,7 @@ class BrandsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Add event to fetch brands
     context.read<BrandsBloc>().add(FetchBrands(departmentId: departmentId));
-    
+
     return _BrandsScreenView(
       departmentId: departmentId,
       departmentName: departmentName,
@@ -64,10 +64,7 @@ class _BrandsScreenViewState extends State<_BrandsScreenView> {
         child: Column(
           children: [
             // Header
-            SimpleHeader(
-              title: 'Brands A-Z',
-              onCartTap: () {},
-            ),
+            UnifiedHeader.simple(title: 'Brands A-Z'),
 
             // Search Bar
             AppSearchInput(
@@ -102,8 +99,8 @@ class _BrandsScreenViewState extends State<_BrandsScreenView> {
                           TextButton(
                             onPressed: () {
                               context.read<BrandsBloc>().add(
-                                    FetchBrands(departmentId: widget.departmentId),
-                                  );
+                                FetchBrands(departmentId: widget.departmentId),
+                              );
                             },
                             child: const Text('Retry'),
                           ),
@@ -116,9 +113,12 @@ class _BrandsScreenViewState extends State<_BrandsScreenView> {
                   final filteredBrands = _searchQuery.isEmpty
                       ? allBrands
                       : allBrands
-                          .where((brand) =>
-                              brand.name.toLowerCase().contains(_searchQuery.toLowerCase()))
-                          .toList();
+                            .where(
+                              (brand) => brand.name.toLowerCase().contains(
+                                _searchQuery.toLowerCase(),
+                              ),
+                            )
+                            .toList();
 
                   if (filteredBrands.isEmpty) {
                     return Center(
@@ -176,7 +176,8 @@ class _BrandsScreenViewState extends State<_BrandsScreenView> {
                                 // Brands under this letter
                                 SliverList(
                                   delegate: SliverChildBuilderDelegate(
-                                    (context, index) => _buildBrandItem(brands[index]),
+                                    (context, index) =>
+                                        _buildBrandItem(brands[index]),
                                     childCount: brands.length,
                                   ),
                                 ),
@@ -194,21 +195,24 @@ class _BrandsScreenViewState extends State<_BrandsScreenView> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#'
                               .split('')
-                              .map((letter) => Expanded(
-                                    child: Center(
-                                      child: Text(
-                                        letter,
-                                        style: AppTypography.bodyXS.copyWith(
-                                          color: alphabetLetters.contains(letter)
-                                              ? AppColors.textPrimary
-                                              : AppColors.textSecondary,
-                                          fontWeight: alphabetLetters.contains(letter)
-                                              ? FontWeight.w600
-                                              : FontWeight.w400,
-                                        ),
+                              .map(
+                                (letter) => Expanded(
+                                  child: Center(
+                                    child: Text(
+                                      letter,
+                                      style: AppTypography.bodyXS.copyWith(
+                                        color: alphabetLetters.contains(letter)
+                                            ? AppColors.textPrimary
+                                            : AppColors.textSecondary,
+                                        fontWeight:
+                                            alphabetLetters.contains(letter)
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
                                       ),
                                     ),
-                                  ))
+                                  ),
+                                ),
+                              )
                               .toList(),
                         ),
                       ),
@@ -246,9 +250,7 @@ class _BrandsScreenViewState extends State<_BrandsScreenView> {
                 Expanded(
                   child: Text(
                     brand.name,
-                    style: AppTypography.bodyL.copyWith(
-                      fontSize: 16,
-                    ),
+                    style: AppTypography.bodyL.copyWith(fontSize: 16),
                   ),
                 ),
               ],
@@ -285,7 +287,11 @@ class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => maxHeight;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return SizedBox.expand(child: child);
   }
 

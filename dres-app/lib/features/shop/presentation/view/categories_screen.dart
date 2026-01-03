@@ -3,7 +3,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/models/menu_model.dart';
-import 'package:dres/core/widgets/simple_header.dart';
+import 'package:dres/core/widgets/unified_header.dart';
 import 'package:go_router/go_router.dart';
 
 class CategoriesScreen extends StatelessWidget {
@@ -27,37 +27,34 @@ class CategoriesScreen extends StatelessWidget {
         child: Column(
           children: [
             // Header
-            SimpleHeader(
-              title: collection.name.toUpperCase(),
-              onCartTap: () {},
-            ),
-            
+            UnifiedHeader.simple(title: collection.name.toUpperCase()),
+
             // Categories List
             Expanded(
               child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: collection.categories.length + 1,
-        itemBuilder: (context, index) {
-          // First item: "All {Department} {Collection}"
-          if (index == 0) {
-            return _buildCategoryItem(
-              context,
-              'All $departmentName ${collection.name}',
-              departmentId: departmentId,
-              collectionId: collection.id,
-              isAll: true,
-            );
-          }
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: collection.categories.length + 1,
+                itemBuilder: (context, index) {
+                  // First item: "All {Department} {Collection}"
+                  if (index == 0) {
+                    return _buildCategoryItem(
+                      context,
+                      'All $departmentName ${collection.name}',
+                      departmentId: departmentId,
+                      collectionId: collection.id,
+                      isAll: true,
+                    );
+                  }
 
-          // Rest: individual categories
-          final category = collection.categories[index - 1];
-          return _buildCategoryItem(
-            context,
-            category.name,
-            departmentId: departmentId,
-            categoryId: category.id,
-          );
-        },
+                  // Rest: individual categories
+                  final category = collection.categories[index - 1];
+                  return _buildCategoryItem(
+                    context,
+                    category.name,
+                    departmentId: departmentId,
+                    categoryId: category.id,
+                  );
+                },
               ),
             ),
           ],

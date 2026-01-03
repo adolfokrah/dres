@@ -1,4 +1,4 @@
-import 'package:dres/core/widgets/simple_header.dart';
+import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/badge_widget.dart';
 import 'package:dres/core/widgets/accordion.dart';
 import 'package:flutter/material.dart';
@@ -30,11 +30,7 @@ class ProductDetailsScreen extends StatefulWidget {
   final String id;
   final String? skuId;
 
-  const ProductDetailsScreen({
-    super.key,
-    required this.id,
-    this.skuId,
-  });
+  const ProductDetailsScreen({super.key, required this.id, this.skuId});
 
   @override
   State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
@@ -46,10 +42,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     super.initState();
     // Fetch product details when screen loads
     context.read<ProductDetailsBloc>().add(
-      FetchProductDetails(
-        variationId: widget.id,
-        skuId: widget.skuId,
-      ),
+      FetchProductDetails(variationId: widget.id, skuId: widget.skuId),
     );
   }
 
@@ -63,13 +56,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             return SafeArea(
               child: Column(
                 children: [
-                  SimpleHeader(
-                    title: ''
-                  ),
+                  const UnifiedHeader.simple(title: ''),
                   const Expanded(
-                    child: Center(
-                      child: CircularProgressIndicator(),
-                    ),
+                    child: Center(child: CircularProgressIndicator()),
                   ),
                 ],
               ),
@@ -80,9 +69,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             return SafeArea(
               child: Column(
                 children: [
-                  SimpleHeader(
-                    title: '',
-                  ),
+                  const UnifiedHeader.simple(title: ''),
                   Expanded(
                     child: Center(
                       child: Column(
@@ -118,13 +105,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             return SafeArea(
               child: Column(
                 children: [
-                    SimpleHeader(
-                    title: '',
-                  ),
+                  const UnifiedHeader.simple(title: ''),
                   const Expanded(
-                    child: Center(
-                      child: Text('Product not found'),
-                    ),
+                    child: Center(child: Text('Product not found')),
                   ),
                 ],
               ),
@@ -135,9 +118,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             child: Column(
               children: [
                 // Header
-                 SimpleHeader(
-                    title: '',
-                  ),
+                const UnifiedHeader.simple(title: ''),
 
                 // Content
                 Expanded(
@@ -146,9 +127,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Main Image Carousel
-                        ProductImageCarousel(
-                          images: variation.images,
-                        ),
+                        ProductImageCarousel(images: variation.images),
 
                         // Product Info
                         Padding(
@@ -158,31 +137,33 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                             children: [
                               // Tags (Vintage, We Love)
                               if (variation.isBoosted)
-                                const BadgeWidget(
-                                  text: 'We Love',
-                                ),
+                                const BadgeWidget(text: 'We Love'),
                               const SizedBox(height: 10),
 
                               // Brand and Actions
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     variation.brand,
                                     style: AppTypography.bodyL.copyWith(
                                       fontWeight: FontWeight.w700,
-                                      fontSize: 24
+                                      fontSize: 24,
                                     ),
                                   ),
                                   Row(
                                     children: [
                                       GestureDetector(
                                         onTap: () {
-                                          final shareUrl = '${MediaUtils.baseUrl}/products/${variation.slug}';
+                                          final shareUrl =
+                                              '${MediaUtils.baseUrl}/products/${variation.slug}';
                                           SharePlus.instance.share(
                                             ShareParams(
-                                              text: 'Check out ${variation.brand} ${variation.title} on DRES!\n\n$shareUrl',
-                                              subject: '${variation.brand} ${variation.title}',
+                                              text:
+                                                  'Check out ${variation.brand} ${variation.title} on DRES!\n\n$shareUrl',
+                                              subject:
+                                                  '${variation.brand} ${variation.title}',
                                             ),
                                           );
                                         },
@@ -195,11 +176,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                       // Hide favorite button if user is the seller
                                       Builder(
                                         builder: (context) {
-                                          final currentUserId = getIt<AuthBloc>().state.user?.id;
-                                          final isOwnItem = variation.sellerId != null &&
+                                          final currentUserId =
+                                              getIt<AuthBloc>().state.user?.id;
+                                          final isOwnItem =
+                                              variation.sellerId != null &&
                                               currentUserId != null &&
-                                              variation.sellerId == currentUserId;
-                                          if (isOwnItem) return const SizedBox.shrink();
+                                              variation.sellerId ==
+                                                  currentUserId;
+                                          if (isOwnItem)
+                                            return const SizedBox.shrink();
                                           return FavoriteButton(
                                             variationId: variation.id,
                                             size: 24,
@@ -220,30 +205,31 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                     variation.category,
                                     style: AppTypography.bodyL,
                                   ),
-                                   const SizedBox(height: 5),
+                                  const SizedBox(height: 5),
                                   Text(
                                     variation.variationsTitle != null
                                         ? '${variation.title} '
                                         : variation.title,
                                     style: AppTypography.bodyL,
                                   ),
-                                   const SizedBox(height: 5),
+                                  const SizedBox(height: 5),
                                   if (variation.variationsTitle != null)
-                                   Row(
-                                    children: [
-                                       Text(
-                                      '${variation.variationsTitle!.attribute}s: ',
-                                      style: AppTypography.bodyL,
-                                    ),
-                                    if (variation.variationsTitle != null)
-                                      Text(
-                                        variation.variationsTitle!.values.join(', '),
-                                        style: AppTypography.bodyL.copyWith(
-                                          fontWeight: FontWeight.w700,
+                                    Row(
+                                      children: [
+                                        Text(
+                                          '${variation.variationsTitle!.attribute}s: ',
+                                          style: AppTypography.bodyL,
                                         ),
-                                      ),
-                                    ]
-                                   )
+                                        if (variation.variationsTitle != null)
+                                          Text(
+                                            variation.variationsTitle!.values
+                                                .join(', '),
+                                            style: AppTypography.bodyL.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                 ],
                               ),
                               const SizedBox(height: 10),
@@ -258,20 +244,22 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                               // Price
                               PriceDisplay(
                                 skus: variation.skus,
-                                selectedSkuId: state.selectedSkuId ?? variation.defaultSku,
+                                selectedSkuId:
+                                    state.selectedSkuId ?? variation.defaultSku,
                               ),
                               const SizedBox(height: 10),
 
-                      
                               // Buyer Protection Fee
                               BuyerProtectionFee(
-                                feeRate: getIt<SiteSettingsService>().buyerProtectionFeeRate,
+                                feeRate: getIt<SiteSettingsService>()
+                                    .buyerProtectionFeeRate,
                               ),
                               const SizedBox(height: 10),
-                               // SKU Selector (Size, Color, etc.)
+                              // SKU Selector (Size, Color, etc.)
                               SkuSelector(
                                 skus: variation.skus,
-                                selectedSkuId: state.selectedSkuId ?? variation.defaultSku,
+                                selectedSkuId:
+                                    state.selectedSkuId ?? variation.defaultSku,
                                 onSkuSelected: (skuId) {
                                   context.read<ProductDetailsBloc>().add(
                                     UpdateSelectedSku(skuId: skuId),
@@ -282,24 +270,30 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                               Builder(
                                 builder: (context) {
                                   // Check if current user is the seller
-                                  final currentUserId = getIt<AuthBloc>().state.user?.id;
-                                  final isOwnItem = variation.sellerId != null &&
+                                  final currentUserId =
+                                      getIt<AuthBloc>().state.user?.id;
+                                  final isOwnItem =
+                                      variation.sellerId != null &&
                                       currentUserId != null &&
                                       variation.sellerId == currentUserId;
-                                  
+
                                   // Hide add to bag for own items
                                   if (isOwnItem) {
                                     return const SizedBox.shrink();
                                   }
-                                  
+
                                   // Find the selected SKU and check stock
-                                  final selectedSkuId = state.selectedSkuId ?? variation.defaultSku;
+                                  final selectedSkuId =
+                                      state.selectedSkuId ??
+                                      variation.defaultSku;
                                   final selectedSku = variation.skus.firstWhere(
                                     (sku) => sku.id == selectedSkuId,
                                     orElse: () => variation.skus.first,
                                   );
-                                  final isOutOfStock = selectedSku.stock != null && selectedSku.stock! <= 0;
-                                  
+                                  final isOutOfStock =
+                                      selectedSku.stock != null &&
+                                      selectedSku.stock! <= 0;
+
                                   return AddToBagButton(
                                     variationId: variation.id,
                                     selectedSkuId: selectedSkuId,
@@ -313,7 +307,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           ),
                         ),
 
-                       
                         // Description Accordion
                         if (variation.styleDescription != null)
                           DescriptionAccordion(
@@ -325,10 +318,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           DetailsAccordion(
                             details: Map.fromEntries(
                               variation.details.map(
-                                (detail) => MapEntry(
-                                  detail.name,
-                                  detail.value,
-                                ),
+                                (detail) => MapEntry(detail.name, detail.value),
                               ),
                             ),
                           ),
@@ -336,7 +326,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         // Free Listing or Returns Accordion
                         const FreeListingReturnsAccordion(),
 
-                         const SizedBox(height: 26),
+                        const SizedBox(height: 26),
 
                         const SizedBox(height: 26),
 
@@ -353,26 +343,19 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                         // Reviews Section
                         if (variation.styleId != null)
-                          ReviewsSection(
-                            styleId: variation.styleId!,
-                          ),
+                          ReviewsSection(styleId: variation.styleId!),
 
                         const SizedBox(height: 26),
 
                         // Similar Variations Section
-                        SimilarVariationsSection(
-                          variationId: variation.id,
-                        ),
+                        SimilarVariationsSection(variationId: variation.id),
 
                         const SizedBox(height: 26),
 
                         // Recently Viewed Section
-                        RecentlyViewedSection(
-                          excludeVariationId: variation.id,
-                        ),
+                        RecentlyViewedSection(excludeVariationId: variation.id),
 
                         const SizedBox(height: 40),
-
                       ],
                     ),
                   ),

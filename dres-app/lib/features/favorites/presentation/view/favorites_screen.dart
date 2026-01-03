@@ -5,7 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/di/injection.dart';
-import 'package:dres/core/widgets/app_header.dart';
+import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/product_card.dart';
 import 'package:dres/core/widgets/product_card_skeleton.dart';
 import 'package:dres/features/favorites/logic/favorites_bloc/favorites_bloc.dart';
@@ -21,7 +21,7 @@ class FavoritesScreen extends StatefulWidget {
 class _FavoritesScreenState extends State<FavoritesScreen> {
   late final FavoritesBloc _favoritesBloc;
   final ScrollController _scrollController = ScrollController();
-  
+
   // Filter state
   SortOption _selectedSort = SortOption.latest;
   PriceOption _selectedPrice = PriceOption.all;
@@ -62,7 +62,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // App Header
-                AppHeader(
+                UnifiedHeader.search(
                   onNotificationTap: () {
                     // TODO: Navigate to notifications
                   },
@@ -104,9 +104,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 ),
 
                 // Content
-                Expanded(
-                  child: _buildContent(state),
-                ),
+                Expanded(child: _buildContent(state)),
               ],
             );
           },
@@ -131,9 +129,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           const SizedBox(height: 2),
           Text(
             state.itemCountDisplay,
-            style: AppTypography.bodyM.copyWith(
-              color: AppColors.textPrimary,
-            ),
+            style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
           ),
         ],
       ),
@@ -155,7 +151,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
     // Filter and sort items locally based on filter state
     var filteredItems = List.of(state.items);
-    
+
     // Apply price range filter
     if (_minPrice != null || _maxPrice != null) {
       filteredItems = filteredItems.where((item) {
@@ -168,14 +164,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         return true;
       }).toList();
     }
-    
+
     // Apply sort
     if (_selectedSort == SortOption.oldest) {
       filteredItems.sort((a, b) => a.favoritedAt.compareTo(b.favoritedAt));
     } else {
       filteredItems.sort((a, b) => b.favoritedAt.compareTo(a.favoritedAt));
     }
-    
+
     // Apply price sort
     if (_selectedPrice == PriceOption.lowToHigh) {
       filteredItems.sort((a, b) => a.price.compareTo(b.price));
@@ -228,10 +224,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             onFavoriteToggle: (id, isFavorited) {
               if (!isFavorited) {
                 // Remove from favorites
-                _favoritesBloc.add(FavoritesItemRemoved(
-                  favoriteId: item.favoriteId,
-                  variationId: item.id,
-                ));
+                _favoritesBloc.add(
+                  FavoritesItemRemoved(
+                    favoriteId: item.favoriteId,
+                    variationId: item.id,
+                  ),
+                );
               }
             },
           );
@@ -259,11 +257,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            PhosphorIcons.heart(),
-            size: 64,
-            color: AppColors.textHint,
-          ),
+          Icon(PhosphorIcons.heart(), size: 64, color: AppColors.textHint),
           const SizedBox(height: 16),
           Text(
             'No favourites yet',
@@ -275,9 +269,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           const SizedBox(height: 8),
           Text(
             'Start adding items you love',
-            style: AppTypography.bodyM.copyWith(
-              color: AppColors.textHint,
-            ),
+            style: AppTypography.bodyM.copyWith(color: AppColors.textHint),
           ),
         ],
       ),
@@ -305,9 +297,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           const SizedBox(height: 8),
           Text(
             'Try adjusting your price range',
-            style: AppTypography.bodyM.copyWith(
-              color: AppColors.textHint,
-            ),
+            style: AppTypography.bodyM.copyWith(color: AppColors.textHint),
           ),
           const SizedBox(height: 16),
           TextButton(
@@ -332,11 +322,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              PhosphorIcons.warning(),
-              size: 48,
-              color: AppColors.textHint,
-            ),
+            Icon(PhosphorIcons.warning(), size: 48, color: AppColors.textHint),
             const SizedBox(height: 16),
             Text(
               'Failed to load favourites',
