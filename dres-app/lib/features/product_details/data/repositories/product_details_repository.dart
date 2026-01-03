@@ -7,9 +7,9 @@ class ProductDetailsRepository {
 
   ProductDetailsRepository(this._apiService);
 
-  Future<ProductDetailsModel> fetchProductDetails(String variationId) async {
+  Future<ProductDetailsModel> fetchProductDetails(String variationSlug) async {
     try {
-      final response = await _apiService.get('${api.variationById}$variationId');
+      final response = await _apiService.get('${api.variationBySlug}$variationSlug/details');
       return ProductDetailsModel.fromJson(response.data as Map<String, dynamic>);
     } catch (e) {
       throw Exception('Failed to fetch product details: $e');

@@ -22,7 +22,7 @@ const String newArrivals = '/variations/new-arrivals';
 const String featuredVariations = '/variations/featured';
 const String recentlyViewedVariations = '/variations/recently-viewed';
 const String filteredVariations = '/variations/filtered';
-const String variationById = '/variations/';
+const String variationBySlug = '/variations/'; // Usage: variationBySlug + slug + '/details'
 const String recordVariationView = '/variations/record-view';
 
 // Menu

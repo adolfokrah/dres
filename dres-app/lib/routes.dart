@@ -3,6 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:dres/features/splash/splash.dart';
 import 'package:dres/features/home/home.dart';
 import 'package:dres/features/sell/sell.dart';
+import 'package:dres/features/sell/presentation/view/style_details_screen.dart';
+import 'package:dres/features/sell/presentation/view/style_variations_screen.dart';
+import 'package:dres/features/sell/presentation/view/variation_detail_screen.dart';
+import 'package:dres/features/sell/presentation/view/sku_detail_screen.dart';
+import 'package:dres/features/sell/presentation/view/select_department_screen.dart';
+import 'package:dres/features/sell/presentation/view/select_collection_screen.dart';
+import 'package:dres/features/sell/presentation/view/select_category_screen.dart';
+import 'package:dres/features/sell/presentation/view/select_brand_screen.dart';
 import 'package:dres/features/favorites/presentation/view/favorites_screen.dart';
 import 'package:dres/features/profile/profile.dart';
 import 'package:dres/features/shop/presentation/view/shop_screen.dart';
@@ -31,10 +39,16 @@ import 'package:dres/core/models/menu_model.dart';
 // Navigator keys for each tab
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'home');
-final _shellNavigatorDiscoverKey = GlobalKey<NavigatorState>(debugLabel: 'discover');
+final _shellNavigatorDiscoverKey = GlobalKey<NavigatorState>(
+  debugLabel: 'discover',
+);
 final _shellNavigatorSellKey = GlobalKey<NavigatorState>(debugLabel: 'sell');
-final _shellNavigatorFavouriteKey = GlobalKey<NavigatorState>(debugLabel: 'favourite');
-final _shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'profile');
+final _shellNavigatorFavouriteKey = GlobalKey<NavigatorState>(
+  debugLabel: 'favourite',
+);
+final _shellNavigatorProfileKey = GlobalKey<NavigatorState>(
+  debugLabel: 'profile',
+);
 
 class AppRoutes {
   AppRoutes._();
@@ -49,7 +63,7 @@ class AppRoutes {
   static const String sell = '/sell';
   static const String favourite = '/favourite';
   static const String profile = '/profile';
-  
+
   // Store pending deep link to navigate after splash
   static String? pendingDeepLink;
 
@@ -74,35 +88,35 @@ class AppRoutes {
         name: 'splash',
         builder: (context, state) => const SplashScreen(),
       ),
-      
+
       // Auth (outside shell, full screen)
       GoRoute(
         path: '/auth',
         name: 'auth',
         builder: (context, state) => const AuthHomeScreen(),
       ),
-      
+
       // Login (outside shell, full screen)
       GoRoute(
         path: '/login',
         name: 'login',
         builder: (context, state) => const LoginScreen(),
       ),
-      
+
       // Register (outside shell, full screen)
       GoRoute(
         path: '/register',
         name: 'register',
         builder: (context, state) => const RegisterScreen(),
       ),
-      
+
       // Forgot Password (outside shell, full screen)
       GoRoute(
         path: '/forgot-password',
         name: 'forgot-password',
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
-      
+
       // Product Details (outside shell, full screen)
       // Uses /products/:id to match web URL format for deep linking
       GoRoute(
@@ -112,13 +126,10 @@ class AppRoutes {
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           final skuId = state.uri.queryParameters['skuId'];
-          return ProductDetailsScreen(
-            id: id,
-            skuId: skuId,
-          );
+          return ProductDetailsScreen(id: id, skuId: skuId);
         },
       ),
-      
+
       // Products listing - redirects to /discover/products to show bottom nav
       GoRoute(
         path: '/products',
@@ -132,7 +143,7 @@ class AppRoutes {
           return '/discover/products';
         },
       ),
-      
+
       // Cart (outside shell, full screen)
       GoRoute(
         path: '/cart',
@@ -140,7 +151,7 @@ class AppRoutes {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const CartScreen(),
       ),
-      
+
       // Checkout (outside shell, full screen)
       GoRoute(
         path: '/checkout',
@@ -148,7 +159,7 @@ class AppRoutes {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const CheckoutScreen(),
       ),
-      
+
       // Order Details (outside shell, full screen)
       GoRoute(
         path: '/orders/:id',
@@ -159,7 +170,7 @@ class AppRoutes {
           return PurchaseDetailsScreen(orderId: id);
         },
       ),
-      
+
       // Incoming Order Details (seller's view, outside shell)
       GoRoute(
         path: '/incoming-orders/:id',
@@ -170,7 +181,7 @@ class AppRoutes {
           return IncomingOrderDetailsScreen(orderId: id);
         },
       ),
-      
+
       // Return Item (outside shell, full screen)
       GoRoute(
         path: '/orders/:orderId/return/:itemId',
@@ -182,7 +193,7 @@ class AppRoutes {
           return ReturnItemScreen(orderId: orderId, itemId: itemId);
         },
       ),
-      
+
       // Addresses (outside shell, full screen)
       GoRoute(
         path: '/addresses',
@@ -193,7 +204,7 @@ class AppRoutes {
           return AddressesScreen(isSelecting: isSelecting);
         },
       ),
-      
+
       // Add Address (outside shell, full screen)
       GoRoute(
         path: '/add-address',
@@ -201,7 +212,7 @@ class AppRoutes {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const AddAddressScreen(),
       ),
-      
+
       // Edit Address (outside shell, full screen)
       GoRoute(
         path: '/edit-address',
@@ -212,7 +223,7 @@ class AppRoutes {
           return AddAddressScreen(addressToEdit: address);
         },
       ),
-      
+
       // Direct Shipping Info (outside shell, full screen)
       GoRoute(
         path: '/direct-shipping-info',
@@ -220,7 +231,7 @@ class AppRoutes {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const DirectShippingInfoScreen(),
       ),
-      
+
       // Main shell with bottom navigation
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -245,7 +256,7 @@ class AppRoutes {
               ),
             ],
           ),
-          
+
           // Discover tab (Shop)
           StatefulShellBranch(
             navigatorKey: _shellNavigatorDiscoverKey,
@@ -261,14 +272,20 @@ class AppRoutes {
                     name: 'discover-products',
                     builder: (context, state) {
                       final queryParams = state.uri.queryParameters;
-                      
-                      final departmentId = queryParams['departmentId'] ?? queryParams['department'];
-                      final categoryId = queryParams['categoryId'] ?? queryParams['category'];
-                      final collectionId = queryParams['collectionId'] ?? queryParams['collection'];
-                      final brandId = queryParams['brandId'] ?? queryParams['brand'];
+
+                      final departmentId =
+                          queryParams['departmentId'] ??
+                          queryParams['department'];
+                      final categoryId =
+                          queryParams['categoryId'] ?? queryParams['category'];
+                      final collectionId =
+                          queryParams['collectionId'] ??
+                          queryParams['collection'];
+                      final brandId =
+                          queryParams['brandId'] ?? queryParams['brand'];
                       final filterType = queryParams['filterType'];
                       final title = queryParams['title'] ?? 'Products';
-                      
+
                       return ProductsScreen(
                         departmentId: departmentId,
                         categoryId: categoryId,
@@ -319,26 +336,32 @@ class AppRoutes {
                           // Support both extra data and query parameters
                           final extra = state.extra as Map<String, dynamic>?;
                           final queryParams = state.uri.queryParameters;
-                          
+
                           // Query params take priority, then extra data
-                          final departmentId = queryParams['departmentId'] ?? 
-                              queryParams['department'] ?? 
+                          final departmentId =
+                              queryParams['departmentId'] ??
+                              queryParams['department'] ??
                               extra?['departmentId'] as String?;
-                          final categoryId = queryParams['categoryId'] ?? 
-                              queryParams['category'] ?? 
+                          final categoryId =
+                              queryParams['categoryId'] ??
+                              queryParams['category'] ??
                               extra?['categoryId'] as String?;
-                          final collectionId = queryParams['collectionId'] ?? 
-                              queryParams['collection'] ?? 
+                          final collectionId =
+                              queryParams['collectionId'] ??
+                              queryParams['collection'] ??
                               extra?['collectionId'] as String?;
-                          final brandId = queryParams['brandId'] ?? 
-                              queryParams['brand'] ?? 
+                          final brandId =
+                              queryParams['brandId'] ??
+                              queryParams['brand'] ??
                               extra?['brandId'] as String?;
-                          final filterType = queryParams['filterType'] ?? 
+                          final filterType =
+                              queryParams['filterType'] ??
                               extra?['filterType'] as String?;
-                          final title = queryParams['title'] ?? 
-                              extra?['title'] as String? ?? 
+                          final title =
+                              queryParams['title'] ??
+                              extra?['title'] as String? ??
                               'Products';
-                          
+
                           return ProductsScreen(
                             departmentId: departmentId,
                             categoryId: categoryId,
@@ -355,7 +378,7 @@ class AppRoutes {
               ),
             ],
           ),
-          
+
           // Sell tab
           StatefulShellBranch(
             navigatorKey: _shellNavigatorSellKey,
@@ -364,10 +387,132 @@ class AppRoutes {
                 path: sell,
                 name: 'sell',
                 builder: (context, state) => const SellScreen(),
+                routes: [
+                  // Style Details (creating/editing a listing)
+                  GoRoute(
+                    path: 'style/:styleId',
+                    name: 'style-details',
+                    builder: (context, state) {
+                      final styleId = state.pathParameters['styleId']!;
+                      return StyleDetailsScreen(styleId: styleId);
+                    },
+                    routes: [
+                      // Style Variations (Step 2)
+                      GoRoute(
+                        path: 'variations',
+                        name: 'style-variations',
+                        builder: (context, state) {
+                          final styleId = state.pathParameters['styleId']!;
+                          final extra = state.extra as Map<String, dynamic>?;
+                          final styleTitle = extra?['styleTitle'] as String?;
+                          final categoryId = extra?['categoryId'] as String?;
+                          return StyleVariationsScreen(
+                            styleId: styleId,
+                            styleTitle: styleTitle,
+                            categoryId: categoryId,
+                          );
+                        },
+                      ),
+                      // Variation Detail
+                      GoRoute(
+                        path: 'variation/:variationId',
+                        name: 'variation-detail',
+                        builder: (context, state) {
+                          final styleId = state.pathParameters['styleId']!;
+                          final variationId =
+                              state.pathParameters['variationId']!;
+                          final extra = state.extra as Map<String, dynamic>?;
+                          final variationName =
+                              extra?['variationName'] as String?;
+                          final categoryId = extra?['categoryId'] as String?;
+                          return VariationDetailScreen(
+                            styleId: styleId,
+                            variationId: variationId,
+                            variationName: variationName,
+                            categoryId: categoryId,
+                          );
+                        },
+                        routes: [
+                          // SKU Detail
+                          GoRoute(
+                            path: 'sku/:skuId',
+                            name: 'sku-detail',
+                            builder: (context, state) {
+                              final styleId = state.pathParameters['styleId']!;
+                              final variationId =
+                                  state.pathParameters['variationId']!;
+                              final skuId = state.pathParameters['skuId']!;
+                              final extra =
+                                  state.extra as Map<String, dynamic>?;
+                              final variationName =
+                                  extra?['variationName'] as String?;
+                              final categoryId =
+                                  extra?['categoryId'] as String?;
+                              return SkuDetailScreen(
+                                styleId: styleId,
+                                variationId: variationId,
+                                skuId: skuId,
+                                variationName: variationName,
+                                categoryId: categoryId,
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  // Select Department (first step of category selection)
+                  GoRoute(
+                    path: 'select-department',
+                    name: 'select-department',
+                    builder: (context, state) => const SelectDepartmentScreen(),
+                  ),
+                  // Select Collection (second step of category selection)
+                  GoRoute(
+                    path: 'select-collection',
+                    name: 'select-collection',
+                    builder: (context, state) {
+                      final extra = state.extra as Map<String, dynamic>?;
+                      if (extra == null || extra['department'] == null) {
+                        return const Scaffold(
+                          body: Center(child: Text('No department selected')),
+                        );
+                      }
+                      return SelectCollectionScreen(
+                        department: extra['department'] as DepartmentModel,
+                      );
+                    },
+                  ),
+                  // Select Category (final step of category selection)
+                  GoRoute(
+                    path: 'select-category',
+                    name: 'select-category',
+                    builder: (context, state) {
+                      final extra = state.extra as Map<String, dynamic>?;
+                      if (extra == null ||
+                          extra['department'] == null ||
+                          extra['collection'] == null) {
+                        return const Scaffold(
+                          body: Center(child: Text('Missing selection data')),
+                        );
+                      }
+                      return SelectCategoryScreen(
+                        department: extra['department'] as DepartmentModel,
+                        collection: extra['collection'] as CollectionModel,
+                      );
+                    },
+                  ),
+                  // Select Brand
+                  GoRoute(
+                    path: 'select-brand',
+                    name: 'select-brand',
+                    builder: (context, state) => const SelectBrandScreen(),
+                  ),
+                ],
               ),
             ],
           ),
-          
+
           // Favourite tab
           StatefulShellBranch(
             navigatorKey: _shellNavigatorFavouriteKey,
@@ -379,7 +524,7 @@ class AppRoutes {
               ),
             ],
           ),
-          
+
           // Profile tab
           StatefulShellBranch(
             navigatorKey: _shellNavigatorProfileKey,

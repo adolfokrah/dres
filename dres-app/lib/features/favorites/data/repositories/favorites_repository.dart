@@ -24,11 +24,9 @@ class FavoritesRepository {
       queryParameters: queryParams,
     );
     
-    debugPrint('❤️ FavoritesRepository: Raw response data: ${response.data}');
     
     final result = FavoritesResponse.fromJson(response.data);
     
-    debugPrint('❤️ FavoritesRepository: Parsed ${result.docs.length} favorites');
     
     return result;
   }
@@ -42,14 +40,12 @@ class FavoritesRepository {
         'variationId': variationId,
       },
     );
-    debugPrint('❤️ FavoritesRepository: Added $variationId to favorites');
     return response.data['favoriteId'] as String?;
   }
 
   /// Remove item from favorites by variation ID
   Future<void> removeFromFavorites(String variationId) async {
     await _apiService.delete('/favorites/remove/$variationId');
-    debugPrint('❤️ FavoritesRepository: Removed favorite for variation $variationId');
   }
 
   /// Check if a variation is favorited
@@ -60,7 +56,6 @@ class FavoritesRepository {
       );
       return response.data['isFavorited'] as bool? ?? false;
     } catch (e) {
-      debugPrint('❤️ FavoritesRepository: Error checking favorite: $e');
       return false;
     }
   }

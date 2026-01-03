@@ -73,6 +73,11 @@ export const getSimilarVariations: PayloadHandler = async (req) => {
       where: {
         and: [
           {
+            status: {
+              equals: 'published',
+            },
+          },
+          {
             category: {
               equals: categoryId,
             },

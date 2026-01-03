@@ -42,6 +42,9 @@ import 'package:dres/features/follows/data/repositories/follows_repository.dart'
 import 'package:dres/features/follows/logic/follows_bloc/follows_bloc.dart';
 import 'package:dres/features/sell/data/repositories/sell_repository.dart';
 import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
+import 'package:dres/features/sell/logic/style_details_bloc/style_details_bloc.dart';
+import 'package:dres/features/sell/logic/variations_bloc/variations_bloc.dart';
+import 'package:dres/features/sell/logic/variation_detail_bloc/variation_detail_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -238,6 +241,21 @@ Future<void> setupDependencies() async {
 
   // Sell Bloc - Singleton so draft state persists
   getIt.registerLazySingleton<SellBloc>(() => SellBloc(
+    sellRepository: getIt<SellRepository>(),
+  ));
+
+  // Style Details Bloc - Factory since each style edit is independent
+  getIt.registerFactory<StyleDetailsBloc>(() => StyleDetailsBloc(
+    sellRepository: getIt<SellRepository>(),
+  ));
+
+  // Variations Bloc - Factory since each style's variations are independent
+  getIt.registerFactory<VariationsBloc>(() => VariationsBloc(
+    sellRepository: getIt<SellRepository>(),
+  ));
+
+  // Variation Detail Bloc - Factory for each variation
+  getIt.registerFactory<VariationDetailBloc>(() => VariationDetailBloc(
     sellRepository: getIt<SellRepository>(),
   ));
 }

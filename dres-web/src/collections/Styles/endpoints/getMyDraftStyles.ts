@@ -22,11 +22,13 @@ export const getMyDraftStyles: PayloadHandler = async (req) => {
   }
 
   try {
-    // Fetch all styles for the current user
+    // Fetch all draft styles for the current user
     const stylesResult = await payload.find({
       collection: 'styles',
       where: {
-        seller: { equals: user.id }
+        seller: { equals: user.id },
+        // Only fetch styles that are in draft status
+        status: { equals: 'draft' }
       },
       depth: 3,
       limit: 100,
@@ -111,12 +113,21 @@ interface StyleCompletionAnalysis {
 function analyzeStyleCompletion(style: any): StyleCompletionAnalysis {
   const missingSteps: string[] = []
 
-  // Check for basic style details
+  // Check for basic style details (Step 1)
+  if (!style.title || style.title.trim() === '') {
+    missingSteps.push('title')
+  }
+  if (!style.brand) {
+    missingSteps.push('brand')
+  }
+  if (!style.category) {
+    missingSteps.push('category')
+  }
   if (!style.description) {
     missingSteps.push('description')
   }
 
-  // Check if style has variations
+  // Check if style has variations (Step 2)
   const variations = style.variations?.docs || []
   if (variations.length === 0) {
     missingSteps.push('variations')

@@ -56,6 +56,14 @@ export const getVariation: PayloadHandler = async (req) => {
         depth: 5, // Increased depth to ensure category is populated
       })
       variation.style = fullStyle
+      
+      // Check if style is published
+      if (fullStyle.status !== 'published') {
+        return Response.json(
+          { error: 'Variation not found' },
+          { status: 404 }
+        )
+      }
     }
 
     // Transform the variation (without related variations from transformVariation)

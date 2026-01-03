@@ -79,11 +79,14 @@ class DraftStyleItem extends StatelessWidget {
   }
 
   Widget _buildDetails() {
+    final hasTitle = draft.title.isNotEmpty;
+    final hasBrand = draft.brandName != null && draft.brandName!.isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Brand name
-        if (draft.brandName != null) ...[
+        // Brand name (show "No brand" if empty and no title either)
+        if (hasBrand) ...[
           Text(
             draft.brandName!.toUpperCase(),
             style: const TextStyle(
@@ -96,16 +99,35 @@ class DraftStyleItem extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
+        ] else if (!hasTitle) ...[
+          Text(
+            'NO BRAND',
+            style: TextStyle(
+              fontFamily: 'HelveticaNowText',
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              height: 1.5,
+              color: AppColors.textHint,
+              fontStyle: FontStyle.italic,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
         // Product title
         Text(
-          draft.title.toUpperCase(),
-          style: const TextStyle(
+          (draft.title.isEmpty ? 'Unknown title' : draft.title).toUpperCase(),
+          style: TextStyle(
             fontFamily: 'HelveticaNowText',
             fontSize: 14,
             fontWeight: FontWeight.w400,
             height: 1.5,
-            color: AppColors.textPrimary,
+            color: draft.title.isEmpty
+                ? AppColors.textHint
+                : AppColors.textPrimary,
+            fontStyle: draft.title.isEmpty
+                ? FontStyle.italic
+                : FontStyle.normal,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

@@ -103,6 +103,10 @@ export const recentlyViewedVariations: PayloadHandler = async (req: PayloadReque
       collection: 'variations',
       where: {
         id: { in: variationIds },
+        // Only show variations from published styles
+        'style.status': {
+          equals: 'published',
+        },
         // Filter by department
         ...(department ? {
           'style.department': {

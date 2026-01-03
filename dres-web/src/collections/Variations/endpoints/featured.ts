@@ -92,7 +92,11 @@ export const featuredVariations: PayloadHandler = async (req: PayloadRequest) =>
 
     // Step 3: Build where clause for variations
     const variationsWhere: Where = {
-      'style': { in: boostedStyleIds }
+      'style': { in: boostedStyleIds },
+      // Only show variations from published styles
+      'style.status': {
+        equals: 'published'
+      }
     }
 
     // Filter by seller's country

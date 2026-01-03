@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
+import 'package:dres/features/sell/logic/style_details_bloc/style_details_bloc.dart';
 import 'package:dres/features/sell/presentation/widgets/draft_style_item.dart';
 
 class SellScreen extends StatefulWidget {
@@ -15,35 +17,43 @@ class SellScreen extends StatefulWidget {
 }
 
 class _SellScreenState extends State<SellScreen> {
+  late final StyleDetailsBloc _styleDetailsBloc;
+
   @override
   void initState() {
     super.initState();
+    _styleDetailsBloc = getIt<StyleDetailsBloc>();
     // Fetch drafts when screen loads
     getIt<SellBloc>().add(const SellFetchDraftsRequested());
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: getIt<SellBloc>(),
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        body: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              const UnifiedHeader.titleWithBell(title: 'Sell an item'),
-              // Content
-              Expanded(
-                child: BlocBuilder<SellBloc, SellState>(
-                  builder: (context, state) {
-                    return _buildContent(state);
-                  },
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: getIt<SellBloc>()),
+        BlocProvider.value(value: _styleDetailsBloc),
+      ],
+      child: Builder(
+        builder: (context) => Scaffold(
+          backgroundColor: AppColors.background,
+          body: SafeArea(
+            child: Column(
+              children: [
+                // Header
+                const UnifiedHeader.titleWithBell(title: 'Sell an item'),
+                // Content
+                Expanded(
+                  child: BlocBuilder<SellBloc, SellState>(
+                    builder: (context, state) {
+                      return _buildContent(state);
+                    },
+                  ),
                 ),
-              ),
-              // Bottom section with button
-              _buildBottomSection(),
-            ],
+                // Bottom section with button
+                _buildBottomSection(context),
+              ],
+            ),
           ),
         ),
       ),
@@ -142,7 +152,7 @@ class _SellScreenState extends State<SellScreen> {
     );
   }
 
-  Widget _buildBottomSection() {
+  Widget _buildBottomSection(BuildContext context) {
     return Container(
       color: AppColors.secondary,
       child: SafeArea(
@@ -152,24 +162,65 @@ class _SellScreenState extends State<SellScreen> {
           child: SizedBox(
             width: double.infinity,
             height: 44,
-            child: ElevatedButton(
-              onPressed: _onStartSellingPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.textOnPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(0),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                'Start selling',
-                style: TextStyle(
-                  fontFamily: 'HelveticaNowText',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
+            child: BlocConsumer<StyleDetailsBloc, StyleDetailsState>(
+              listener: (context, state) {
+                if (state.status == StyleDetailsStatus.createSuccess &&
+                    state.styleId != null &&
+                    state.styleId!.isNotEmpty) {
+                  // Navigate to style details screen with the new style ID
+                  final styleId = state.styleId!;
+                  // Refetch drafts so it shows when user comes back
+                  getIt<SellBloc>().add(const SellRefreshRequested());
+                  // Reset the bloc state before navigating
+                  _styleDetailsBloc.add(const StyleDetailsReset());
+                  context.push('/sell/style/$styleId');
+                }
+
+                if (state.status == StyleDetailsStatus.failure) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        state.errorMessage ?? 'Failed to create style',
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              builder: (context, state) {
+                final isCreating = state.status == StyleDetailsStatus.creating;
+
+                return ElevatedButton(
+                  onPressed: isCreating
+                      ? null
+                      : () => _onStartSellingPressed(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.textOnPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: isCreating
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.textOnPrimary,
+                          ),
+                        )
+                      : const Text(
+                          'Start selling',
+                          style: TextStyle(
+                            fontFamily: 'HelveticaNowText',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                );
+              },
             ),
           ),
         ),
@@ -178,12 +229,12 @@ class _SellScreenState extends State<SellScreen> {
   }
 
   void _onDraftTapped(String draftId) {
-    // TODO: Navigate to edit draft screen
-    debugPrint('Draft tapped: $draftId');
+    // Navigate to edit draft screen with existing style ID
+    context.push('/sell/style/$draftId');
   }
 
-  void _onStartSellingPressed() {
-    // TODO: Navigate to create new listing screen
-    debugPrint('Start selling pressed');
+  void _onStartSellingPressed(BuildContext context) {
+    // Create a new empty style first
+    context.read<StyleDetailsBloc>().add(const StyleDetailsCreateRequested());
   }
 }

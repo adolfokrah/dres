@@ -22,6 +22,17 @@ export const Styles: CollectionConfig = {
       return user.role === 'admin'
     },
   },
+  hooks: {
+    beforeChange: [
+      // Auto-set seller to current user on create
+      ({ req, operation, data }) => {
+        if (operation === 'create' && req.user) {
+          data.seller = req.user.id
+        }
+        return data
+      },
+    ],
+  },
   endpoints: [
     {
       path: '/:id/reviews',
@@ -36,10 +47,22 @@ export const Styles: CollectionConfig = {
   ],
   fields: [
     {
+      name: 'status',
+      type: 'select',
+      defaultValue: 'draft',
+      options: [
+        { label: 'Draft', value: 'draft' },
+        { label: 'Published', value: 'published' },
+      ],
+      admin: {
+        description: 'Only published styles will be visible to buyers',
+        position: 'sidebar',
+      },
+    },
+    {
       name: 'seller',
       type: 'relationship',
       relationTo: 'users',
-      required: true,
       admin: {
         description: 'The user selling this product',
       },
@@ -47,7 +70,6 @@ export const Styles: CollectionConfig = {
     {
       name: 'title',
       type: 'text',
-      required: true,
     },
     {
       name: 'description',
@@ -65,7 +87,6 @@ export const Styles: CollectionConfig = {
       name: 'department',
       type: 'relationship',
       relationTo: 'departments',
-      required: true,
       admin: {
         description: 'Select a department first to filter available collections',
       },
@@ -74,7 +95,6 @@ export const Styles: CollectionConfig = {
       name: 'collection',
       type: 'relationship',
       relationTo: 'collections',
-      required: true,
       admin: {
         description: 'Select a collection',
       },
@@ -94,7 +114,6 @@ export const Styles: CollectionConfig = {
       name: 'category',
       type: 'relationship',
       relationTo: 'categories',
-      required: true,
       filterOptions: ({ data }) => {
         const collectionId = data?.collection
         if (collectionId) {
@@ -115,7 +134,6 @@ export const Styles: CollectionConfig = {
       name: 'brand',
       type: 'relationship',
       relationTo: 'brands',
-      required: true,
       admin: {
         description: 'Select a brand',
         condition: (data) => Boolean(data?.category),

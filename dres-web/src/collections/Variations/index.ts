@@ -60,7 +60,7 @@ export const Variations: CollectionConfig = {
       handler: filteredVariations,
     },
     {
-      path: '/:slug',
+      path: '/:slug/details',
       method: 'get',
       handler: getVariation,
     },
@@ -195,7 +195,7 @@ export const Variations: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
       hasMany: true,
-      required: true,
+      required: false, // Not required so sellers can add images later in the mobile app
       admin: {
         description: 'Variation images (first image is the main image)',
         components: {

@@ -33,6 +33,10 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
   try {
     // Build where clause for filtering variations
     const variationsWhere: Where = {
+      // Only show variations from published styles
+      'style.status': {
+        equals: 'published'
+      },
       // Filter by time period - only variations updated within the days
       updatedAt: {
         greater_than: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()

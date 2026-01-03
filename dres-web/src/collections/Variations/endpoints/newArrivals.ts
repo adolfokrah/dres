@@ -31,7 +31,12 @@ export const newArrivals: PayloadHandler = async (req: PayloadRequest) => {
 
   try {
     // Build where clause for filtering
-    const where: Where = {}
+    const where: Where = {
+      // Only show variations from published styles
+      'style.status': {
+        equals: 'published'
+      }
+    }
 
     // Filter by seller's country
     if (userCountry.countryId) {

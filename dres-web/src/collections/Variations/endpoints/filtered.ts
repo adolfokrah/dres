@@ -141,7 +141,10 @@ export const filteredVariations: PayloadHandler = async (req) => {
     })
 
     // Build match conditions
-    let matchConditions: any = {}
+    let matchConditions: any = {
+      // Only show variations from published styles
+      'styleData.status': 'published'
+    }
 
     // Filter by department (convert string to ObjectId)
     if (department) {
