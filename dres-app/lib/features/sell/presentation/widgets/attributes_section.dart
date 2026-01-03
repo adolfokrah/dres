@@ -65,6 +65,16 @@ class _AttributesSectionState extends State<AttributesSection> {
   // Track which attribute cards are expanded
   final Map<int, bool> _expandedCards = {};
 
+  @override
+  void didUpdateWidget(AttributesSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // When a new attribute is added, expand it by default
+    if (widget.selectedAttributes.length > oldWidget.selectedAttributes.length) {
+      final newIndex = widget.selectedAttributes.length - 1;
+      _expandedCards[newIndex] = true;
+    }
+  }
+
   void _toggleExpanded(int index) {
     setState(() {
       _expandedCards[index] = !(_expandedCards[index] ?? false);
@@ -227,19 +237,19 @@ class _AttributeCard extends StatelessWidget {
       child: Column(
         children: [
           // Header - shows selected attribute summary
-          GestureDetector(
-            onTap: onToggleExpanded,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: AppColors.secondary,
-                border: Border(
-                  bottom: BorderSide(color: AppColors.secondary, width: 1),
-                ),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: AppColors.secondary,
+              border: Border(
+                bottom: BorderSide(color: AppColors.secondary, width: 1),
               ),
-              child: Row(
-                children: [
-                  Expanded(
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: onToggleExpanded,
                     child: Text(
                       attribute.displayString,
                       style: AppTypography.bodyL.copyWith(
@@ -247,15 +257,27 @@ class _AttributeCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  PhosphorIcon(
+                ),
+                GestureDetector(
+                  onTap: onRemove,
+                  child: PhosphorIcon(
+                    PhosphorIcons.trash(),
+                    color: AppColors.error,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                GestureDetector(
+                  onTap: onToggleExpanded,
+                  child: PhosphorIcon(
                     isExpanded
                         ? PhosphorIcons.caretUp()
                         : PhosphorIcons.caretDown(),
                     color: AppColors.textPrimary,
                     size: 14,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
 

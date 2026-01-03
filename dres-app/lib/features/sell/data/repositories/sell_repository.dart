@@ -83,7 +83,7 @@ class SellRepository {
     try {
       final response = await _apiService.get(
         '/variations',
-        queryParameters: {'where[style][equals]': styleId, 'depth': '2'},
+        queryParameters: {'where[style][equals]': styleId, 'depth': '3'},
       );
       return GetVariationsResponse.fromJson(response.data);
     } catch (e) {
@@ -282,5 +282,36 @@ class SellRepository {
     } catch (e) {
       return const GetCategoryAttributesResponse(attributes: []);
     }
+  }
+
+  // ==================== ARCHIVE ====================
+
+  /// Archive a variation (soft delete)
+  Future<void> archiveVariation(String variationId) async {
+    await _apiService.patch(
+      '/variations/$variationId',
+      data: {'status': 'archived'},
+    );
+  }
+
+  /// Archive a SKU (soft delete)
+  Future<void> archiveSku(String skuId) async {
+    await _apiService.patch(
+      '/skus/$skuId',
+      data: {'status': 'archived'},
+    );
+  }
+
+  // ==================== IMAGES ====================
+
+  /// Remove an image from a variation by updating the images array
+  Future<void> removeVariationImage({
+    required String variationId,
+    required List<String> imageIds,
+  }) async {
+    await _apiService.patch(
+      '/variations/$variationId',
+      data: {'images': imageIds},
+    );
   }
 }

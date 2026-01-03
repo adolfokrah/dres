@@ -1,6 +1,18 @@
 import type { CollectionAfterChangeHook } from 'payload'
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
 import { removeBackgroundFromBuffer, isRemoveBgConfigured } from '@/utilities/removeBackground'
+import sharp from 'sharp'
+
+// Image size configurations matching Payload's Media collection
+const IMAGE_SIZES = [
+  { name: 'thumbnail', width: 300 },
+  { name: 'square', width: 500, height: 500 },
+  { name: 'small', width: 600 },
+  { name: 'medium', width: 900 },
+  { name: 'large', width: 1400 },
+  { name: 'xlarge', width: 1920 },
+  { name: 'og', width: 1200, height: 630, crop: true },
+] as const
 
 // Initialize S3 client for Supabase storage
 const getS3Client = () => {
@@ -125,19 +137,87 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
       return doc
     }
 
-    // Upload processed image to S3/Supabase (overwrite original)
+    // Get original file extension and determine format
+    const originalExtension = mediaDoc.filename.split('.').pop()?.toLowerCase() || 'jpg'
+    const isPng = originalExtension === 'png'
+    const contentType = isPng ? 'image/png' : 'image/jpeg'
+    
+    // Convert processed image to original format
+    // For non-PNG, flatten transparency to white background
+    let processedBuffer: Buffer
+    if (isPng) {
+      processedBuffer = result.buffer
+    } else {
+      // Flatten transparent background to white for JPEG
+      processedBuffer = await sharp(result.buffer)
+        .flatten({ background: { r: 255, g: 255, b: 255 } })
+        .jpeg({ quality: 90 })
+        .toBuffer()
+    }
+    
+    // Upload processed main image to S3/Supabase (replace original file)
     try {
       const putCommand = new PutObjectCommand({
         Bucket: bucket,
-        Key: mediaDoc.filename,
-        Body: result.buffer,
-        ContentType: 'image/png',
+        Key: mediaDoc.filename, // Keep original filename
+        Body: processedBuffer,
+        ContentType: contentType,
       })
       
       await s3Client.send(putCommand)
+      req.payload.logger.info(`Uploaded processed image (replaced): ${mediaDoc.filename}`)
     } catch (error) {
       req.payload.logger.error(`Failed to upload processed image to S3: ${error}`)
       return doc
+    }
+
+    // Generate and upload all resized versions (same format as original)
+    try {
+      const metadata = await sharp(result.buffer).metadata()
+      const originalWidth = metadata.width || 1920
+      const originalHeight = metadata.height || 1080
+      const baseFilename = mediaDoc.filename.replace(/\.[^/.]+$/, '')
+
+      for (const size of IMAGE_SIZES) {
+        try {
+          let resizedBuffer: Buffer
+          const sizeFilename = `${baseFilename}-${size.width}x${size.height || Math.round((originalHeight / originalWidth) * size.width)}.${originalExtension}`
+
+          let sharpInstance = sharp(result.buffer)
+          
+          if (size.height && size.crop) {
+            sharpInstance = sharpInstance.resize(size.width, size.height, { fit: 'cover', position: 'center' })
+          } else if (size.height) {
+            sharpInstance = sharpInstance.resize(size.width, size.height, { fit: 'cover', position: 'center' })
+          } else {
+            sharpInstance = sharpInstance.resize(size.width, null, { withoutEnlargement: true })
+          }
+
+          if (isPng) {
+            resizedBuffer = await sharpInstance.png({ compressionLevel: 8 }).toBuffer()
+          } else {
+            // Flatten transparency to white for JPEG
+            resizedBuffer = await sharpInstance
+              .flatten({ background: { r: 255, g: 255, b: 255 } })
+              .jpeg({ quality: 85 })
+              .toBuffer()
+          }
+
+          const putCommand = new PutObjectCommand({
+            Bucket: bucket,
+            Key: sizeFilename,
+            Body: resizedBuffer,
+            ContentType: contentType,
+          })
+
+          await s3Client.send(putCommand)
+          req.payload.logger.info(`Uploaded resized image: ${sizeFilename}`)
+        } catch (sizeError) {
+          req.payload.logger.error(`Failed to generate ${size.name} size: ${sizeError}`)
+        }
+      }
+    } catch (error) {
+      req.payload.logger.error(`Failed to generate resized images: ${error}`)
     }
 
     // Mark the media as processed
@@ -149,7 +229,7 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
       },
     })
 
-    req.payload.logger.info(`Background removed for product ${doc.id} main image: ${mediaDoc.filename}`)
+    req.payload.logger.info(`Background removed and resized for product ${doc.id} main image: ${mediaDoc.filename}`)
   } catch (error) {
     req.payload.logger.error(`Error processing product main image: ${error}`)
   }

@@ -230,6 +230,21 @@ export const Variations: CollectionConfig = {
       admin: {
         description: 'Stats for this variation',
       },
+    },
+    {
+      name: 'status',
+      type: 'select',
+      options: [
+        {
+          label: 'Active',
+          value: 'active',
+        },
+        {
+          label: 'Archived',
+          value: 'archived',
+        },
+      ],
+      defaultValue: 'active',
     }
   ],
 }

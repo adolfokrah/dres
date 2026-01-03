@@ -93,6 +93,10 @@ export const featuredVariations: PayloadHandler = async (req: PayloadRequest) =>
     // Step 3: Build where clause for variations
     const variationsWhere: Where = {
       'style': { in: boostedStyleIds },
+      // Only show active variations (not archived)
+      status: {
+        not_equals: 'archived'
+      },
       // Only show variations from published styles
       'style.status': {
         equals: 'published'

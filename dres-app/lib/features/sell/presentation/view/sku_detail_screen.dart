@@ -149,6 +149,41 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
     );
   }
 
+  void _onRemove() {
+    // Show confirmation dialog
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Remove SKU',
+          style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+        ),
+        content: Text(
+          'Are you sure you want to remove this SKU? It will be archived and can be restored later.',
+          style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.textPrimary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _variationDetailBloc.add(
+                SkuArchiveRequested(skuId: widget.skuId),
+              );
+            },
+            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showValuePicker(AttributeModel attribute) {
     showModalBottomSheet(
       context: context,
@@ -249,6 +284,22 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('SKU updated successfully')),
             );
+            // Refresh variation detail to show updated SKU data
+            _variationDetailBloc.add(
+              VariationDetailLoadRequested(
+                variationId: widget.variationId,
+                categoryId: widget.categoryId,
+              ),
+            );
+            getIt<VariationsBloc>().add(const VariationsRefreshRequested());
+            getIt<SellBloc>().add(const SellRefreshRequested());
+            context.pop();
+          }
+
+          if (state.status == VariationDetailStatus.skuArchiveSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('SKU removed')),
+            );
             getIt<VariationsBloc>().add(const VariationsRefreshRequested());
             getIt<SellBloc>().add(const SellRefreshRequested());
             context.pop();
@@ -266,6 +317,7 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
         builder: (context, state) {
           final isLoading = state.status == VariationDetailStatus.loading;
           final isUpdating = state.status == VariationDetailStatus.skuUpdating;
+          final isArchiving = state.status == VariationDetailStatus.skuArchiving;
 
           // Get SKU-level attributes from the category
           final skuAttributes = state.skuAttributes;
@@ -280,6 +332,25 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
                 children: [
                   UnifiedHeader.titleOnly(
                     title: widget.variationName ?? 'SKU Details',
+                    rightWidget: GestureDetector(
+                      onTap: isArchiving ? null : _onRemove,
+                      child: isArchiving
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.textPrimary,
+                              ),
+                            )
+                          : Text(
+                              'Remove',
+                              style: AppTypography.bodyM.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.error,
+                              ),
+                            ),
+                    ),
                   ),
                   Expanded(
                     child: isLoading

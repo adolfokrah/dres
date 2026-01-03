@@ -23,17 +23,21 @@ export const getMyDraftStyles: PayloadHandler = async (req) => {
 
   try {
     // Fetch all draft styles for the current user
+    // Include styles where status is 'draft' OR status is not set (for backwards compatibility)
     const stylesResult = await payload.find({
       collection: 'styles',
       where: {
         seller: { equals: user.id },
-        // Only fetch styles that are in draft status
-        status: { equals: 'draft' }
+        or: [
+          { status: { equals: 'draft' } },
+          { status: { exists: false } },
+        ]
       },
       depth: 3,
       limit: 100,
       sort: '-updatedAt',
     })
+
 
     // Process each style to determine draft status and steps left
     const drafts: DraftStyle[] = []
@@ -42,19 +46,32 @@ export const getMyDraftStyles: PayloadHandler = async (req) => {
       const stepsAnalysis = analyzeStyleCompletion(style)
       
       // Only include styles that are incomplete (have steps left)
-      if (stepsAnalysis.stepsLeft > 0) {
         // Get the first variation's image as thumbnail
         let thumbnail: string | null = null
         
         if (style.variations?.docs && style.variations.docs.length > 0) {
           const firstVariation = style.variations.docs[0]
-          if (typeof firstVariation === 'object' && firstVariation.images?.length > 0) {
+          if (typeof firstVariation === 'object' && firstVariation?.images && firstVariation.images.length > 0) {
             const firstImage = firstVariation.images[0]
             if (typeof firstImage === 'object' && 'url' in firstImage) {
               thumbnail = firstImage.url || null
+            } else if (typeof firstImage === 'string') {
+              // Image is just an ID, fetch the actual image
+              try {
+                const imageDoc = await payload.findByID({
+                  collection: 'media',
+                  id: firstImage,
+                })
+                if (imageDoc && imageDoc.url) {
+                  thumbnail = imageDoc.url
+                }
+              } catch {
+                // Ignore error, thumbnail will be null
+              }
             }
           }
         }
+
 
         // Get brand name
         let brandName: string | null = null
@@ -64,7 +81,7 @@ export const getMyDraftStyles: PayloadHandler = async (req) => {
 
         drafts.push({
           id: style.id,
-          title: style.title,
+          title: style.title || 'Untitled Style',
           brandName,
           thumbnail,
           stepsLeft: stepsAnalysis.stepsLeft,
@@ -73,7 +90,8 @@ export const getMyDraftStyles: PayloadHandler = async (req) => {
           createdAt: style.createdAt,
         })
       }
-    }
+
+      console.log(drafts)
 
     return Response.json({
       drafts,

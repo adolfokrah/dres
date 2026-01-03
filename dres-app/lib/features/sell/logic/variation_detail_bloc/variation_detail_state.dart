@@ -8,12 +8,18 @@ enum VariationDetailStatus {
   loaded,
   updating,
   updateSuccess,
+  imageRemoving,
+  imageRemoveSuccess,
+  archiving,
+  archiveSuccess,
   skuCreating,
   skuCreateSuccess,
   skuUpdating,
   skuUpdateSuccess,
   skuDeleting,
   skuDeleteSuccess,
+  skuArchiving,
+  skuArchiveSuccess,
   failure,
 }
 

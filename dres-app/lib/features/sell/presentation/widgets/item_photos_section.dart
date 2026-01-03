@@ -10,6 +10,7 @@ class ItemPhotosSection extends StatefulWidget {
   final List<String> existingImages; // URLs of already uploaded images
   final List<File> selectedImages; // Locally selected images
   final Function(List<File>) onImagesChanged;
+  final Function(int)? onExistingImageRemoved; // Callback when existing image is removed
   final VoidCallback? onPhotoTipsTap;
   final int maxImages;
 
@@ -18,6 +19,7 @@ class ItemPhotosSection extends StatefulWidget {
     this.existingImages = const [],
     this.selectedImages = const [],
     required this.onImagesChanged,
+    this.onExistingImageRemoved,
     this.onPhotoTipsTap,
     this.maxImages = 10,
   });
@@ -239,28 +241,33 @@ class _ItemPhotosSectionState extends State<ItemPhotosSection> {
               image: file != null
                   ? FileImage(file)
                   : NetworkImage(imageUrl!) as ImageProvider,
-              fit: BoxFit.cover,
+              fit: BoxFit.contain,
             ),
           ),
         ),
-        // Remove button (only for local images)
-        if (!isExisting)
-          Positioned(
-            top: 4,
-            right: 4,
-            child: GestureDetector(
-              onTap: () => _onRemoveImage(index),
-              child: Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.close, color: Colors.white, size: 14),
+        // Remove button (for both local and existing images)
+        Positioned(
+          top: 4,
+          right: 4,
+          child: GestureDetector(
+            onTap: () {
+              if (isExisting) {
+                widget.onExistingImageRemoved?.call(index);
+              } else {
+                _onRemoveImage(index);
+              }
+            },
+            child: Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                shape: BoxShape.circle,
               ),
+              child: const Icon(Icons.close, color: Colors.white, size: 14),
             ),
           ),
+        ),
         // First image badge
         if (index == 0 && isExisting ||
             (index == 0 && widget.existingImages.isEmpty && !isExisting))

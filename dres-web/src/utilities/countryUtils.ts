@@ -1,5 +1,4 @@
 import type { PayloadRequest, Where } from 'payload'
-import { Types } from 'mongoose'
 
 // Default country code for non-logged-in users
 const DEFAULT_COUNTRY_CODE = 'GH' // Ghana
@@ -110,11 +109,4 @@ export function buildSellerCountryFilter(countryId: string): Where {
   }
 }
 
-/**
- * Build a MongoDB aggregation match stage to filter by seller's country
- */
-export function buildSellerCountryMatchStage(countryId: string): Record<string, unknown> {
-  return {
-    'sellerData.country': new Types.ObjectId(countryId),
-  }
-}
+

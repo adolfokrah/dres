@@ -115,14 +115,21 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
     );
   }
 
-  void _onSkuTap(dynamic sku) {
-    // Navigate to SKU detail page
-    context.push(
+  void _onSkuTap(dynamic sku) async {
+    // Navigate to SKU detail page and wait for result
+    await context.push(
       '/sell/style/${widget.styleId}/variation/${widget.variationId}/sku/${sku.id}',
       extra: {
         'variationName': widget.variationName,
         'categoryId': widget.categoryId,
       },
+    );
+    // Reload variation detail when returning from SKU screen
+    _variationDetailBloc.add(
+      VariationDetailLoadRequested(
+        variationId: widget.variationId,
+        categoryId: widget.categoryId,
+      ),
     );
   }
 
@@ -147,6 +154,41 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
         variants: variants,
         existingImageIds: existingImageIds,
         newImages: _selectedImages,
+      ),
+    );
+  }
+
+  void _onRemove() {
+    // Show confirmation dialog
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Remove Variation',
+          style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+        ),
+        content: Text(
+          'Are you sure you want to remove this variation? It will be archived and can be restored later.',
+          style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.textPrimary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _variationDetailBloc.add(
+                VariationArchiveRequested(variationId: widget.variationId),
+              );
+            },
+            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }
@@ -205,7 +247,15 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
                   'variationName': widget.variationName,
                   'categoryId': widget.categoryId,
                 },
-              );
+              ).then((_) {
+                // Reload variation detail when returning from SKU screen
+                _variationDetailBloc.add(
+                  VariationDetailLoadRequested(
+                    variationId: widget.variationId,
+                    categoryId: widget.categoryId,
+                  ),
+                );
+              });
             }
           }
 
@@ -220,10 +270,28 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
             );
           }
 
-          // When variation update succeeds, navigate back
+          // When image is removed successfully, refresh variations list
+          if (state.status == VariationDetailStatus.imageRemoveSuccess) {
+            getIt<VariationsBloc>().add(const VariationsRefreshRequested());
+            getIt<SellBloc>().add(const SellRefreshRequested());
+          }
+
+          // When variation update succeeds, navigate back and refresh
           if (state.status == VariationDetailStatus.updateSuccess &&
               _waitingForUpdate) {
             _waitingForUpdate = false;
+            getIt<VariationsBloc>().add(const VariationsRefreshRequested());
+            getIt<SellBloc>().add(const SellRefreshRequested());
+            _navigateBack();
+          }
+
+          // When variation archive succeeds, navigate back
+          if (state.status == VariationDetailStatus.archiveSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Variation removed')),
+            );
+            getIt<VariationsBloc>().add(const VariationsRefreshRequested());
+            getIt<SellBloc>().add(const SellRefreshRequested());
             _navigateBack();
           }
         },
@@ -232,6 +300,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
           final isCreatingSku =
               state.status == VariationDetailStatus.skuCreating;
           final isUpdating = state.status == VariationDetailStatus.updating;
+          final isArchiving = state.status == VariationDetailStatus.archiving;
           final variation = state.variation;
           final skus = state.skus;
 
@@ -246,6 +315,25 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
                         widget.variationName ??
                         variation?.displayName ??
                         'Variation',
+                    rightWidget: GestureDetector(
+                      onTap: isArchiving ? null : _onRemove,
+                      child: isArchiving
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.textPrimary,
+                              ),
+                            )
+                          : Text(
+                              'Remove',
+                              style: AppTypography.bodyM.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.error,
+                              ),
+                            ),
+                    ),
                   ),
 
                   // Content
@@ -268,6 +356,14 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
                                     setState(() {
                                       _selectedImages = images;
                                     });
+                                  },
+                                  onExistingImageRemoved: (index) {
+                                    _variationDetailBloc.add(
+                                      VariationImageRemoveRequested(
+                                        variationId: widget.variationId,
+                                        imageIndex: index,
+                                      ),
+                                    );
                                   },
                                 ),
 
@@ -341,10 +437,12 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
                           color: AppColors.textPrimary,
                         ),
                       )
-                    : PhosphorIcon(
-                        PhosphorIcons.plus(),
-                        color: AppColors.textPrimary,
-                        size: 20,
+                    : Text(
+                        'ADD',
+                        style: AppTypography.bodyM.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
               ),
             ],

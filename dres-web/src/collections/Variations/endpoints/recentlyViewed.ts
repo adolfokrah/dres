@@ -103,6 +103,10 @@ export const recentlyViewedVariations: PayloadHandler = async (req: PayloadReque
       collection: 'variations',
       where: {
         id: { in: variationIds },
+        // Only show active variations (not archived)
+        status: {
+          not_equals: 'archived',
+        },
         // Only show variations from published styles
         'style.status': {
           equals: 'published',

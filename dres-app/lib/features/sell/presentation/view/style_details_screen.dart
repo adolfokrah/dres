@@ -142,10 +142,6 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
     }
   }
 
-  void _onSaveAsTemplate() {
-    // TODO: Implement save as template
-  }
-
   void _onSave() {
     if (!_canProceed || _isUpdating) return;
 
@@ -181,7 +177,20 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
         'variationName': variation.displayName,
         'categoryId': _selectedCategoryId,
       },
-    );
+    ).then((_) {
+      // Refetch style details when returning
+      _styleDetailsBloc.add(
+        StyleDetailsLoadRequested(
+          styleId: widget.styleId,
+        ),
+      );
+      // Also refresh variations
+      _variationsBloc.add(
+        VariationsLoadRequested(
+          styleId: widget.styleId,
+        ),
+      );
+    });
   }
 
   @override
@@ -201,7 +210,7 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
             setState(() => _isUpdating = true);
           }
 
-          // Handle update success - stay on page and show success message
+          // Handle update success - close screen and refetch drafts
           if (state.status == StyleDetailsStatus.updateSuccess) {
             setState(() => _isUpdating = false);
             // Refetch drafts so it reflects the updated data
@@ -210,6 +219,8 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Style saved successfully')),
             );
+            // Close and go back
+            context.pop();
           }
 
           // Handle failure
@@ -232,7 +243,7 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
               child: Column(
                 children: [
                   // Header
-                  const UnifiedHeader.titleOnly(title: 'Style Details'),
+                  const UnifiedHeader.titleOnly(title: 'Product Details'),
 
                   // Content
                   Expanded(
@@ -322,7 +333,20 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
                                           'variationName': 'New Variation',
                                           'categoryId': _selectedCategoryId,
                                         },
-                                      );
+                                      ).then((_) {
+                                        // Refetch style details when returning
+                                        _styleDetailsBloc.add(
+                                          StyleDetailsLoadRequested(
+                                            styleId: widget.styleId,
+                                          ),
+                                        );
+                                        // Also refresh variations
+                                        _variationsBloc.add(
+                                          VariationsLoadRequested(
+                                            styleId: widget.styleId,
+                                          ),
+                                        );
+                                      });
                                     }
                                   },
                                   builder: (context, variationsState) {
@@ -385,10 +409,12 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
                           color: AppColors.textPrimary,
                         ),
                       )
-                    : PhosphorIcon(
-                        PhosphorIcons.plus(),
-                        color: AppColors.textPrimary,
-                        size: 14,
+                    : Text(
+                        'ADD',
+                        style: AppTypography.bodyM.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
               ),
             ],
@@ -458,24 +484,10 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
   Widget _buildBottomButtons() {
     return Container(
       padding: const EdgeInsets.all(20),
-      child: Row(
-        children: [
-          // Save as Template button
-          Expanded(
-            child: AppButton.outlined(
-              text: 'Save as Template',
-              onPressed: _onSaveAsTemplate,
-            ),
-          ),
-          const SizedBox(width: 16),
-          // Next button
-          Expanded(
-            child: AppButton.filled(
-              text: _isUpdating ? 'Saving...' : 'Next',
-              onPressed: _canProceed && !_isUpdating ? _onSave : null,
-            ),
-          ),
-        ],
+      width: double.infinity,
+      child: AppButton.filled(
+        text: _isUpdating ? 'Saving...' : 'Save',
+        onPressed: _canProceed && !_isUpdating ? _onSave : null,
       ),
     );
   }

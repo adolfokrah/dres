@@ -1,3 +1,5 @@
+import 'package:dres/core/utilities/media_utils.dart';
+
 /// Draft style model representing an incomplete/unfinished style
 class DraftStyleModel {
   final String id;
@@ -21,11 +23,15 @@ class DraftStyleModel {
   });
 
   factory DraftStyleModel.fromJson(Map<String, dynamic> json) {
+    // Resolve thumbnail URL (convert relative to absolute)
+    final rawThumbnail = json['thumbnail'] as String?;
+    final thumbnail = rawThumbnail != null ? MediaUtils.resolveUrl(rawThumbnail) : null;
+
     return DraftStyleModel(
       id: json['id'] ?? '',
       title: json['title'] ?? '',
       brandName: json['brandName'],
-      thumbnail: json['thumbnail'],
+      thumbnail: thumbnail,
       stepsLeft: json['stepsLeft'] ?? 0,
       missingSteps: (json['missingSteps'] as List<dynamic>?)
               ?.map((e) => e.toString())

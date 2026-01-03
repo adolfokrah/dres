@@ -118,3 +118,37 @@ class SkuUpdateRequested extends VariationDetailEvent {
     stock,
   ];
 }
+
+/// Archive a variation (soft delete)
+class VariationArchiveRequested extends VariationDetailEvent {
+  final String variationId;
+
+  const VariationArchiveRequested({required this.variationId});
+
+  @override
+  List<Object?> get props => [variationId];
+}
+
+/// Archive a SKU (soft delete)
+class SkuArchiveRequested extends VariationDetailEvent {
+  final String skuId;
+
+  const SkuArchiveRequested({required this.skuId});
+
+  @override
+  List<Object?> get props => [skuId];
+}
+
+/// Remove an existing image from a variation
+class VariationImageRemoveRequested extends VariationDetailEvent {
+  final String variationId;
+  final int imageIndex;
+
+  const VariationImageRemoveRequested({
+    required this.variationId,
+    required this.imageIndex,
+  });
+
+  @override
+  List<Object?> get props => [variationId, imageIndex];
+}

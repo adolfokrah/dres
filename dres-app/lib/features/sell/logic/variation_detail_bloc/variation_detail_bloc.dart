@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dres/features/sell/data/models/attribute_model.dart';
 import 'package:dres/features/sell/data/repositories/sell_repository.dart';
@@ -17,9 +16,12 @@ class VariationDetailBloc
       super(const VariationDetailState()) {
     on<VariationDetailLoadRequested>(_onLoadRequested);
     on<VariationUpdateRequested>(_onUpdateRequested);
+    on<VariationArchiveRequested>(_onVariationArchiveRequested);
+    on<VariationImageRemoveRequested>(_onImageRemoveRequested);
     on<SkuCreateRequested>(_onSkuCreateRequested);
     on<SkuUpdateRequested>(_onSkuUpdateRequested);
     on<SkuDeleteRequested>(_onSkuDeleteRequested);
+    on<SkuArchiveRequested>(_onSkuArchiveRequested);
   }
 
   Future<void> _onLoadRequested(
@@ -132,6 +134,46 @@ class VariationDetailBloc
     }
   }
 
+  Future<void> _onImageRemoveRequested(
+    VariationImageRemoveRequested event,
+    Emitter<VariationDetailState> emit,
+  ) async {
+    emit(state.copyWith(status: VariationDetailStatus.imageRemoving));
+
+    try {
+      // Get current images and remove the one at the specified index
+      final currentImages = List<String>.from(state.variation?.imageIds ?? []);
+      if (event.imageIndex >= 0 && event.imageIndex < currentImages.length) {
+        currentImages.removeAt(event.imageIndex);
+      }
+
+      // Update variation with the new image list
+      await _sellRepository.removeVariationImage(
+        variationId: event.variationId,
+        imageIds: currentImages,
+      );
+
+      // Refresh variation details
+      final variation = await _sellRepository.getVariationDetails(
+        event.variationId,
+      );
+
+      emit(
+        state.copyWith(
+          status: VariationDetailStatus.imageRemoveSuccess,
+          variation: variation,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: VariationDetailStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
   Future<void> _onSkuCreateRequested(
     SkuCreateRequested event,
     Emitter<VariationDetailState> emit,
@@ -225,6 +267,56 @@ class VariationDetailBloc
         );
       } else {
         emit(state.copyWith(status: VariationDetailStatus.skuUpdateSuccess));
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: VariationDetailStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onVariationArchiveRequested(
+    VariationArchiveRequested event,
+    Emitter<VariationDetailState> emit,
+  ) async {
+    emit(state.copyWith(status: VariationDetailStatus.archiving));
+
+    try {
+      await _sellRepository.archiveVariation(event.variationId);
+      emit(state.copyWith(status: VariationDetailStatus.archiveSuccess));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: VariationDetailStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onSkuArchiveRequested(
+    SkuArchiveRequested event,
+    Emitter<VariationDetailState> emit,
+  ) async {
+    emit(state.copyWith(status: VariationDetailStatus.skuArchiving));
+
+    try {
+      await _sellRepository.archiveSku(event.skuId);
+
+      // Refresh SKUs list
+      if (state.variationId != null) {
+        final skus = await _sellRepository.getVariationSkus(state.variationId!);
+        emit(
+          state.copyWith(
+            status: VariationDetailStatus.skuArchiveSuccess,
+            skus: skus,
+          ),
+        );
+      } else {
+        emit(state.copyWith(status: VariationDetailStatus.skuArchiveSuccess));
       }
     } catch (e) {
       emit(

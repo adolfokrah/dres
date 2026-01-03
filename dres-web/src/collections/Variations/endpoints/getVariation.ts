@@ -45,6 +45,14 @@ export const getVariation: PayloadHandler = async (req) => {
       )
     }
 
+    // Check if variation is archived (draft status)
+    if (variation.status === 'archived') {
+      return Response.json(
+        { error: 'Variation not found' },
+        { status: 404 }
+      )
+    }
+
     // Fetch the full style with boost data
     const styleId = typeof variation.style === 'object' ? variation.style.id : variation.style
     let fullStyle: any = null
@@ -95,6 +103,7 @@ export const getVariation: PayloadHandler = async (req) => {
           and: [
             { style: { equals: styleId } },
             { id: { not_equals: variation.id } }, // Exclude current variation
+            { status: { not_equals: 'archived' } }, // Exclude archived variations
           ]
         },
         limit: 10,
@@ -114,10 +123,13 @@ export const getVariation: PayloadHandler = async (req) => {
           relatedVar.style = fullRelatedStyle
         }
         
-        // Get SKUs for related variation with same structure as parent
+        // Get SKUs for related variation with same structure as parent (exclude archived)
         const relatedSkus = await payload.find({
           collection: 'skus',
-          where: { variation: { equals: relatedVar.id } },
+          where: { 
+            variation: { equals: relatedVar.id },
+            status: { not_equals: 'archived' }, // Exclude archived SKUs
+          },
           depth: 2,
         })
 
@@ -301,11 +313,12 @@ export const getVariation: PayloadHandler = async (req) => {
       }
     }
 
-    // Fetch SKUs with their options
+    // Fetch SKUs with their options (exclude archived SKUs)
     const skusResult = await payload.find({
       collection: 'skus',
       where: {
-        variation: { equals: variation.id }
+        variation: { equals: variation.id },
+        status: { not_equals: 'archived' }, // Exclude archived SKUs
       },
       depth: 3,
     })

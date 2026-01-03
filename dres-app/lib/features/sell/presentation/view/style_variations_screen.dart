@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
@@ -43,14 +44,16 @@ class _StyleVariationsScreenState extends State<StyleVariationsScreen> {
     _variationsBloc.add(VariationCreateRequested(styleId: widget.styleId));
   }
 
-  void _onVariationTap(VariationModel variation) {
-    context.push(
+  void _onVariationTap(VariationModel variation) async {
+    await context.push(
       '/sell/style/${widget.styleId}/variation/${variation.id}',
       extra: {
         'variationName': variation.displayName,
         'categoryId': widget.categoryId,
       },
     );
+    // Reload variations when returning from variation detail
+    _variationsBloc.add(VariationsLoadRequested(styleId: widget.styleId));
   }
 
   void _onDone() {
@@ -76,7 +79,10 @@ class _StyleVariationsScreenState extends State<StyleVariationsScreen> {
                   'variationName': widget.styleTitle ?? 'New Variation',
                   'categoryId': widget.categoryId,
                 },
-              );
+              ).then((_) {
+                // Reload variations when returning from variation detail
+                _variationsBloc.add(VariationsLoadRequested(styleId: widget.styleId));
+              });
             }
           }
 
@@ -199,10 +205,12 @@ class _StyleVariationsScreenState extends State<StyleVariationsScreen> {
                           color: AppColors.textPrimary,
                         ),
                       )
-                    : PhosphorIcon(
-                        PhosphorIcons.plus(),
-                        color: AppColors.textPrimary,
-                        size: 20,
+                    : Text(
+                        'ADD',
+                        style: AppTypography.bodyM.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
               ),
             ],
@@ -251,10 +259,14 @@ class _StyleVariationsScreenState extends State<StyleVariationsScreen> {
   }
 
   Widget _buildVariationItem(VariationModel variation, bool isLast) {
+    final images = variation.images;
+    final displayImages = images.take(3).toList();
+    final remainingCount = images.length > 3 ? images.length - 3 : 0;
+
     return GestureDetector(
       onTap: () => _onVariationTap(variation),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
@@ -266,11 +278,78 @@ class _StyleVariationsScreenState extends State<StyleVariationsScreen> {
         child: Row(
           children: [
             Expanded(
-              child: Text(
-                variation.displayName,
-                style: AppTypography.bodyM.copyWith(
-                  color: AppColors.textPrimary,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    variation.displayName,
+                    style: AppTypography.bodyM.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  if (images.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        ...displayImages.map((imageUrl) => Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                width: 40,
+                                height: 40,
+                                color: AppColors.secondary,
+                                child: const Center(
+                                  child: SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppColors.textHint,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                width: 40,
+                                height: 40,
+                                color: AppColors.secondary,
+                                child: const Icon(
+                                  Icons.image,
+                                  size: 16,
+                                  color: AppColors.textHint,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )),
+                        if (remainingCount > 0)
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: AppColors.secondary,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Center(
+                              child: Text(
+                                '+$remainingCount',
+                                style: AppTypography.bodyS.copyWith(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ],
               ),
             ),
             PhosphorIcon(

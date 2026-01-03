@@ -37,8 +37,11 @@ class VariationModel {
     this.updatedAt,
   });
 
-  /// Get image URLs (for backwards compatibility)
-  List<String> get images => imageObjects.map((img) => img.url).toList();
+  /// Get image URLs (for backwards compatibility) - only returns images with valid URLs
+  List<String> get images => imageObjects
+      .where((img) => img.url.isNotEmpty)
+      .map((img) => img.url)
+      .toList();
 
   /// Get image IDs
   List<String> get imageIds => imageObjects.map((img) => img.id).toList();
@@ -70,10 +73,17 @@ class VariationModel {
           // Just an ID, no URL available
           imageObjects.add(VariationImage(id: img, url: ''));
         } else if (img is Map) {
-          final id = img['id'] ?? '';
-          final rawUrl = img['url'] ?? '';
+          // Image could be nested under 'image' key or directly at root
+          final imageData = img['image'] is Map ? img['image'] as Map : img;
+          final id = imageData['id']?.toString() ?? '';
+          // Try multiple URL fields that Payload might return
+          final rawUrl = imageData['url'] ?? 
+                         imageData['thumbnailURL'] ?? 
+                         (imageData['sizes']?['thumbnail']?['url']) ??
+                         (imageData['sizes']?['small']?['url']) ??
+                         '';
           // Resolve relative URL to full URL
-          final url = MediaUtils.resolveUrl(rawUrl) ?? '';
+          final url = MediaUtils.resolveUrl(rawUrl?.toString()) ?? '';
           if (id.isNotEmpty) {
             imageObjects.add(VariationImage(id: id, url: url));
           }

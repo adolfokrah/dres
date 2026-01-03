@@ -142,6 +142,8 @@ export const filteredVariations: PayloadHandler = async (req) => {
 
     // Build match conditions
     let matchConditions: any = {
+      // Only show published variations (not archived/draft)
+      'status': { $ne: 'archived' },
       // Only show variations from published styles
       'styleData.status': 'published'
     }
@@ -500,3 +502,10 @@ export const filteredVariations: PayloadHandler = async (req) => {
     )
   }
 }
+
+
+// export const filteredVariations=()=>{
+//   return Response.json({
+//     message: 'Filtered variations',
+//   })
+// }

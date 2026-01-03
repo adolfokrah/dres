@@ -32,6 +32,10 @@ export const newArrivals: PayloadHandler = async (req: PayloadRequest) => {
   try {
     // Build where clause for filtering
     const where: Where = {
+      // Only show active variations (not archived)
+      status: {
+        not_equals: 'archived'
+      },
       // Only show variations from published styles
       'style.status': {
         equals: 'published'

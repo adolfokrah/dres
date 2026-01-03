@@ -210,10 +210,12 @@ export interface Config {
   globals: {
     header: Header;
     footer: Footer;
+    'site-settings': SiteSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
   };
   locale: 'en' | 'fr' | 'de' | 'es' | 'it';
   user: User & {
@@ -332,7 +334,7 @@ export interface Variation {
   /**
    * Variation images (first image is the main image)
    */
-  images: (string | Media)[];
+  images?: (string | Media)[] | null;
   /**
    * SKUs for this variation (inventory & pricing)
    */
@@ -353,6 +355,7 @@ export interface Variation {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
+  status?: ('active' | 'archived') | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -365,10 +368,14 @@ export interface Variation {
 export interface Style {
   id: string;
   /**
+   * Only published styles will be visible to buyers
+   */
+  status?: ('draft' | 'published') | null;
+  /**
    * The user selling this product
    */
-  seller: string | User;
-  title: string;
+  seller?: (string | null) | User;
+  title?: string | null;
   description?: string | null;
   /**
    * Whether this product is a resell from a returned item (e.g., from a thrift store)
@@ -377,11 +384,11 @@ export interface Style {
   /**
    * Select a department first to filter available collections
    */
-  department: string | Department;
+  department?: (string | null) | Department;
   /**
    * Select a collection
    */
-  collection: string | Collection;
+  collection?: (string | null) | Collection;
   /**
    * Select a category
    */
@@ -1246,6 +1253,7 @@ export interface Skus {
    * Weight in grams (for shipping calculations)
    */
   weight?: number | null;
+  status?: ('active' | 'archived') | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2152,10 +2160,6 @@ export interface PromoBannerBlock {
    */
   description: string;
   /**
-   * CTA button text
-   */
-  actionText: string;
-  /**
    * Where the CTA button links to
    */
   actionLink: {
@@ -2197,7 +2201,7 @@ export interface FeaturedGridBlock {
      */
     label: string;
     /**
-     * Deep link URL. Example: /discover
+     * Deep link URL. Example: /products
      */
     link?: string | null;
     id?: string | null;
@@ -2895,6 +2899,7 @@ export interface SkusSelect<T extends boolean = true> {
   isActive?: T;
   barcode?: T;
   weight?: T;
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2903,6 +2908,7 @@ export interface SkusSelect<T extends boolean = true> {
  * via the `definition` "styles_select".
  */
 export interface StylesSelect<T extends boolean = true> {
+  status?: T;
   seller?: T;
   title?: T;
   description?: T;
@@ -2934,6 +2940,7 @@ export interface VariationsSelect<T extends boolean = true> {
   skus?: T;
   slug?: T;
   stats?: T;
+  status?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -3166,7 +3173,6 @@ export interface FormBlockSelect<T extends boolean = true> {
 export interface PromoBannerBlockSelect<T extends boolean = true> {
   title?: T;
   description?: T;
-  actionText?: T;
   actionLink?:
     | T
     | {
@@ -4001,6 +4007,23 @@ export interface Footer {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: string;
+  /**
+   * The commission percentage charged on each sale (e.g., 10 for 10%)
+   */
+  commissionRate: number;
+  /**
+   * The buyer protection fee as a percentage of the item price (e.g., 8 for 8%)
+   */
+  buyerProtectionFeeRate: number;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -4041,6 +4064,17 @@ export interface FooterSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  commissionRate?: T;
+  buyerProtectionFeeRate?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

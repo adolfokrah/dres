@@ -47,7 +47,6 @@ export const Media: CollectionConfig = {
       defaultValue: false,
       admin: {
         description: 'Whether background has been removed from this image',
-        readOnly: true,
       },
     },
   ],

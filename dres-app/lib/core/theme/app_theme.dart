@@ -126,6 +126,16 @@ class AppTheme {
         ),
       ),
 
+      // Dialog theme - no border radius
+      dialogTheme: const DialogThemeData(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.zero,
+        ),
+        titleTextStyle: AppTypography.titleLM,
+        contentTextStyle: AppTypography.bodyM,
+      ),
+
       // Divider theme
       dividerTheme: const DividerThemeData(
         color: AppColors.divider,
@@ -140,6 +150,15 @@ class AppTheme {
         unselectedItemColor: AppColors.textSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
+      ),
+
+      // Bottom sheet theme - no border radius
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.zero,
+        ),
+        clipBehavior: Clip.none,
       ),
     );
   }

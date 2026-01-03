@@ -244,18 +244,18 @@ Future<void> setupDependencies() async {
     sellRepository: getIt<SellRepository>(),
   ));
 
-  // Style Details Bloc - Factory since each style edit is independent
-  getIt.registerFactory<StyleDetailsBloc>(() => StyleDetailsBloc(
+  // Style Details Bloc - Singleton for style editing
+  getIt.registerLazySingleton<StyleDetailsBloc>(() => StyleDetailsBloc(
     sellRepository: getIt<SellRepository>(),
   ));
 
-  // Variations Bloc - Factory since each style's variations are independent
-  getIt.registerFactory<VariationsBloc>(() => VariationsBloc(
+  // Variations Bloc - Singleton for variations management
+  getIt.registerLazySingleton<VariationsBloc>(() => VariationsBloc(
     sellRepository: getIt<SellRepository>(),
   ));
 
-  // Variation Detail Bloc - Factory for each variation
-  getIt.registerFactory<VariationDetailBloc>(() => VariationDetailBloc(
+  // Variation Detail Bloc - Singleton for variation detail editing
+  getIt.registerLazySingleton<VariationDetailBloc>(() => VariationDetailBloc(
     sellRepository: getIt<SellRepository>(),
   ));
 }

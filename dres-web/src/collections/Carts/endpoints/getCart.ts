@@ -18,6 +18,7 @@ interface CartItem {
   variation?: {
     id: string
     title?: string
+    status?: string
     images?: Array<{ image?: { url?: string } }>
     brand?: string | { name?: string }
     style?: {
@@ -29,6 +30,7 @@ interface CartItem {
     id: string
     stock?: number | null
     isActive?: boolean
+    status?: string
     price?: number
     discountedPrice?: number
     options?: Array<{ option?: string; value?: string }>
@@ -40,6 +42,7 @@ interface EnrichedCartItem extends Record<string, unknown> {
   isSellerOnVacation: boolean
   isOutOfStock: boolean
   isNotInYourCountry: boolean
+  isArchived: boolean
   stockQuantity: number | null
   availableStock: number | null
   // Per-item validation
@@ -95,10 +98,20 @@ export const getCart: PayloadHandler = async (req) => {
           isSellerOnVacation: false,
           isOutOfStock: false,
           isNotInYourCountry: false,
+          isArchived: false,
           stockQuantity: null,
           availableStock: null,
           valid: true,
           reason: null,
+        }
+
+        // Check if variation is archived
+        if (item.variation && typeof item.variation === 'object') {
+          if (item.variation.status === 'archived') {
+            enrichedItem.isArchived = true
+            enrichedItem.valid = false
+            enrichedItem.reason = 'Item no longer available'
+          }
         }
 
         // Check seller vacation status and enrich seller info
@@ -220,16 +233,22 @@ export const getCart: PayloadHandler = async (req) => {
             }
           }
         }
-        // Check SKU stock status
+        // Check SKU stock status and archived status
         if (item.sku && typeof item.sku === 'object') {
           const stock = item.sku.stock
           const isActive = item.sku.isActive
+          const skuStatus = item.sku.status
           const quantity = item.quantity || 1
 
           enrichedItem.stockQuantity = stock ?? null
           
-          // Check if out of stock
-          if (isActive === false) {
+          // Check if SKU is archived
+          if (skuStatus === 'archived') {
+            enrichedItem.isArchived = true
+            enrichedItem.availableStock = 0
+            enrichedItem.valid = false
+            enrichedItem.reason = 'Item no longer available'
+          } else if (isActive === false) {
             enrichedItem.isOutOfStock = true
             enrichedItem.availableStock = 0
             enrichedItem.valid = false
@@ -258,11 +277,18 @@ export const getCart: PayloadHandler = async (req) => {
             if (skuDoc) {
               const stock = skuDoc.stock as number | null | undefined
               const isActive = skuDoc.isActive as boolean | undefined
+              const skuStatus = skuDoc.status as string | undefined
               const quantity = item.quantity || 1
 
               enrichedItem.stockQuantity = stock ?? null
 
-              if (isActive === false) {
+              // Check if SKU is archived
+              if (skuStatus === 'archived') {
+                enrichedItem.isArchived = true
+                enrichedItem.availableStock = 0
+                enrichedItem.valid = false
+                enrichedItem.reason = 'Item no longer available'
+              } else if (isActive === false) {
                 enrichedItem.isOutOfStock = true
                 enrichedItem.availableStock = 0
                 enrichedItem.valid = false
@@ -294,6 +320,9 @@ export const getCart: PayloadHandler = async (req) => {
     const isValid = invalidItems.length === 0
     const validationIssues: string[] = []
     
+    if (invalidItems.some(item => item.isArchived)) {
+      validationIssues.push('Some items are no longer available')
+    }
     if (invalidItems.some(item => item.isOutOfStock)) {
       validationIssues.push('Some items are out of stock')
     }
