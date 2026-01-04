@@ -7,6 +7,7 @@ import { getSellerInfo } from './endpoints/getSellerInfo'
 import { firebaseOAuth } from './endpoints/firebaseOAuth'
 import { addAddress, deleteAddress, setDefaultAddress, updateAddress } from './endpoints/addresses'
 import { getUserStats } from './endpoints/getUserStats'
+import { updateEmail, resendVerification } from './endpoints/updateEmail'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -64,6 +65,16 @@ export const Users: CollectionConfig = {
       path: '/addresses/:index/default',
       method: 'patch',
       handler: setDefaultAddress,
+    },
+    {
+      path: '/update-email',
+      method: 'post',
+      handler: updateEmail,
+    },
+    {
+      path: '/resend-verification',
+      method: 'post',
+      handler: resendVerification,
     },
   ],
   fields: [

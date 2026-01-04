@@ -61,8 +61,8 @@ class AuthRepository {
   /// Get current user info
   Future<AuthUser?> getCurrentUser() async {
     try {
-      // Use depth=1 to get join fields like followers, following
-      final response = await _apiService.get('/users/me?depth=1');
+      // Use depth=2 to get nested fields like country.currency
+      final response = await _apiService.get('/users/me?depth=2');
       final data = response.data;
       debugPrint('🔵 getCurrentUser response keys: ${data is Map ? data.keys.toList() : 'not a map'}');
       
@@ -195,5 +195,107 @@ class AuthRepository {
   /// Sign out from social providers
   Future<void> socialSignOut() async {
     await _socialAuthService.signOut();
+  }
+
+  /// Update user profile
+  Future<AuthUser> updateProfile(Map<String, dynamic> updates) async {
+    debugPrint('🔵 updateProfile: $updates');
+    
+    // Get current user ID
+    final currentUser = await getCurrentUser();
+    if (currentUser == null) {
+      throw Exception('User not logged in');
+    }
+
+    // Update user via PATCH request
+    final response = await _apiService.patch(
+      '/users/${currentUser.id}',
+      data: updates,
+    );
+
+    debugPrint('🟢 updateProfile response: ${response.data}');
+    
+    // Parse the updated user
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      // Response might have 'doc' wrapper from Payload
+      final userData = data['doc'] ?? data;
+      return AuthUser.fromJson(userData);
+    }
+    
+    throw Exception('Invalid response from server');
+  }
+
+  /// Update user photo
+  Future<AuthUser> updatePhoto(String filePath) async {
+    debugPrint('🔵 updatePhoto: $filePath');
+    
+    // Get current user ID
+    final currentUser = await getCurrentUser();
+    if (currentUser == null) {
+      throw Exception('User not logged in');
+    }
+
+    // First upload the media file
+    final mediaResponse = await _apiService.uploadFile(
+      '/media',
+      filePath: filePath,
+      fieldName: 'file',
+    );
+
+    debugPrint('🟢 Media upload response: ${mediaResponse.data}');
+    
+    final mediaId = mediaResponse.data['doc']?['id'] ?? mediaResponse.data['id'];
+    if (mediaId == null) {
+      throw Exception('Failed to upload photo');
+    }
+
+    // Then update user profile with the media ID
+    return updateProfile({'photo': mediaId});
+  }
+
+  /// Delete user account
+  Future<void> deleteAccount() async {
+    final currentUser = await getCurrentUser();
+    if (currentUser == null) {
+      throw Exception('User not logged in');
+    }
+
+    await _apiService.delete('/users/${currentUser.id}');
+    await _storageService.deleteTokens();
+  }
+
+  /// Update user email with verification
+  /// Returns updated user data
+  Future<Map<String, dynamic>> updateEmail(String newEmail) async {
+    debugPrint('🔵 updateEmail: $newEmail');
+    
+    final response = await _apiService.post(
+      '/users/update-email',
+      data: {'email': newEmail},
+    );
+
+    debugPrint('🟢 Email update response: ${response.data}');
+    
+    if (response.data is Map<String, dynamic>) {
+      return response.data;
+    }
+    
+    throw Exception('Invalid response from server');
+  }
+
+  /// Resend verification email
+  Future<Map<String, dynamic>> resendVerification() async {
+    debugPrint('🔵 resendVerification');
+    
+    final response = await _apiService.post('/users/resend-verification');
+
+    debugPrint('🟢 Resend verification response: ${response.data}');
+    
+    if (response.data is Map<String, dynamic>) {
+      return response.data;
+    }
+    
+    throw Exception('Invalid response from server');
   }
 }

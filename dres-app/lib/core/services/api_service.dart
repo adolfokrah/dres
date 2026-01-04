@@ -145,4 +145,25 @@ class ApiService {
   }) async {
     return _dio.delete(path, data: data, queryParameters: queryParameters, options: options);
   }
+
+  // Upload file (multipart form data)
+  Future<Response> uploadFile(
+    String path, {
+    required String filePath,
+    String fieldName = 'file',
+    Map<String, dynamic>? additionalFields,
+    Options? options,
+  }) async {
+    final fileName = filePath.split('/').last;
+    final formData = FormData.fromMap({
+      fieldName: await MultipartFile.fromFile(filePath, filename: fileName),
+      if (additionalFields != null) ...additionalFields,
+    });
+    
+    return _dio.post(
+      path,
+      data: formData,
+      options: options ?? Options(contentType: 'multipart/form-data'),
+    );
+  }
 }

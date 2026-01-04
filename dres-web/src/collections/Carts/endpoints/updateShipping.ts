@@ -1,5 +1,8 @@
 import { PayloadHandler } from 'payload'
 
+// Default buyer protection fee in GHS when shipping is 0 or not available
+const DEFAULT_BUYER_PROTECTION_FEE_GHS = 50
+
 interface ShippingRate {
   id: string
   user: string | { id: string }
@@ -85,6 +88,26 @@ export const updateShipping: PayloadHandler = async (req) => {
         cart,
       })
     }
+
+    // Get user's currency exchange rate for buyer protection fee conversion
+    let exchangeRateToGHS = 1
+    const userCountry = user.country
+    if (userCountry) {
+      const countryId = typeof userCountry === 'object' ? (userCountry as { id: string }).id : userCountry
+      if (countryId) {
+        const country = await payload.findByID({
+          collection: 'countries',
+          id: countryId,
+          depth: 1, // Get currency
+        })
+        if (country?.currency && typeof country.currency === 'object') {
+          exchangeRateToGHS = (country.currency as { exchangeRateToGHS?: number }).exchangeRateToGHS || 1
+        }
+      }
+    }
+    
+    // Convert default buyer protection fee from GHS to user's currency
+    const defaultBuyerProtectionFee = DEFAULT_BUYER_PROTECTION_FEE_GHS / exchangeRateToGHS
 
     // Get unique seller IDs from cart items
     const sellerIds = new Set<string>()
@@ -185,8 +208,18 @@ export const updateShipping: PayloadHandler = async (req) => {
         sellersWithShippingApplied.add(sellerId)
       }
 
-      // Calculate buyer protection fee (80% of shipping fee if enabled)
-      const buyerProtectionFee = item.buyerProtection ? shippingFee * 0.8 : 0
+      // Calculate buyer protection fee:
+      // - If shipping fee exists: 80% of shipping fee
+      // - If no shipping or shipping is 0: default 50 GHS (converted to user's currency)
+      let buyerProtectionFee = 0
+      if (item.buyerProtection) {
+        if (shippingFee > 0) {
+          buyerProtectionFee = shippingFee * 0.8
+        } else {
+          // Use default buyer protection fee (50 GHS converted to user's currency)
+          buyerProtectionFee = defaultBuyerProtectionFee
+        }
+      }
 
       return {
         ...item,

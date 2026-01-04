@@ -41,15 +41,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   
   // Create BLoC instance for this screen
   late final SellerReviewsBloc _sellerReviewsBloc;
+  bool _initialized = false;
 
   @override
   void initState() {
     super.initState();
     // Create a new BLoC instance for this screen
     _sellerReviewsBloc = getIt<SellerReviewsBloc>();
-    
-    // Refresh user data (including stats) when profile screen opens
-    getIt<AuthBloc>().add(const AuthCheckStatusRequested());
   }
 
   @override
@@ -62,7 +60,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Future<void> _fetchSellerInfo(String userId) async {
     if (_loadedUserId == userId || _isLoadingSeller) return;
     
-    debugPrint('🔵 UserProfileScreen: Fetching seller info for userId: $userId');
 
     setState(() {
       _isLoadingSeller = true;
@@ -98,6 +95,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Refresh user data (including stats) when profile screen opens (once)
+    if (!_initialized) {
+      _initialized = true;
+      context.read<AuthBloc>().add(const AuthCheckStatusRequested());
+    }
+
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         final userId = widget.userId ?? state.user?.id;
@@ -182,6 +185,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           color: AppColors.textPrimary,
         ),
       ),
+      actions: [
+        IconButton(
+          icon: Icon(
+            PhosphorIcons.pencilSimple(),
+            color: AppColors.textPrimary,
+            size: 20,
+          ),
+          onPressed: () => context.push('/profile/personal-info'),
+        ),
+      ],
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
         child: Container(
@@ -245,9 +258,28 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Widget _buildContent(AuthState authState) {
     final seller = _seller;
-    final displayName = seller?.name ?? 'User';
-    final username = seller?.username ?? '';
     final userId = widget.userId ?? authState.user?.id;
+    final isOwnProfile = widget.userId == null || widget.userId == authState.user?.id;
+    
+    // Use authState.user for own profile (always up-to-date), seller for others
+    final String displayName;
+    final String username;
+    final String? photoUrl;
+    
+    if (isOwnProfile && authState.user != null) {
+      // Own profile - use AuthBloc state (always fresh)
+      final user = authState.user!;
+      displayName = user.shopName ?? '${user.firstName} ${user.lastName}'.trim();
+      username = user.username ?? '';
+      photoUrl = user.photo != null ? MediaUtils.resolveUrl(user.photo) : null;
+    } else {
+      // Other user's profile - use fetched seller data
+      displayName = seller?.name ?? 'User';
+      username = seller?.username ?? '';
+      photoUrl = seller?.profileImage != null 
+          ? MediaUtils.resolveUrl(seller!.profileImage) 
+          : null;
+    }
 
     return BlocBuilder<SellerReviewsBloc, SellerReviewsState>(
       bloc: _sellerReviewsBloc,
@@ -272,7 +304,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               SliverOverlapAbsorber(
                 handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
                 sliver: SliverToBoxAdapter(
-                  child: _buildShopHeader(seller, displayName, username, authState),
+                  child: _buildShopHeader(displayName, username, photoUrl, authState),
                 ),
               ),
 
@@ -303,11 +335,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildShopHeader(SellerModel? seller, String displayName, String username, AuthState authState) {
-    final photoUrl = seller?.profileImage != null 
-        ? MediaUtils.resolveUrl(seller!.profileImage) 
-        : null;
-
+  Widget _buildShopHeader(String displayName, String username, String? photoUrl, AuthState authState) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
       decoration: const BoxDecoration(

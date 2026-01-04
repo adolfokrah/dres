@@ -57,6 +57,8 @@ class AuthUser {
   final String? shopName;
   final String? username;
   final String? photo;
+  final String? language;
+  final AuthCountry? country;
   final int followersCount;
   final int followingCount;
   final int reviewsCount;
@@ -69,6 +71,8 @@ class AuthUser {
     this.shopName,
     this.username,
     this.photo,
+    this.language,
+    this.country,
     this.followersCount = 0,
     this.followingCount = 0,
     this.reviewsCount = 0,
@@ -85,6 +89,13 @@ class AuthUser {
     } else if (photo is Map) {
       photoUrl = photo['url'] as String?;
     }
+
+    // Handle country - can be a string ID, an object, or null
+    AuthCountry? country;
+    final countryData = json['country'];
+    if (countryData is Map<String, dynamic>) {
+      country = AuthCountry.fromJson(countryData);
+    }
     
     return AuthUser(
       id: json['id']?.toString() ?? '',
@@ -94,6 +105,8 @@ class AuthUser {
       shopName: json['shopName'],
       username: json['username'],
       photo: photoUrl,
+      language: json['language'] as String?,
+      country: country,
       followersCount: json['followersCount'] ?? 0,
       followingCount: json['followingCount'] ?? 0,
       reviewsCount: json['reviewsCount'] ?? 0,
@@ -130,6 +143,60 @@ class AuthResponse {
       user: AuthUser.fromJson(json['user'] ?? {}),
       token: json['token'] ?? '',
       exp: json['exp'] != null ? DateTime.fromMillisecondsSinceEpoch(json['exp'] * 1000) : null,
+    );
+  }
+}
+
+/// Country model for auth user
+class AuthCountry {
+  final String id;
+  final String name;
+  final String code;
+  final AuthCurrency? currency;
+
+  AuthCountry({
+    required this.id,
+    required this.name,
+    required this.code,
+    this.currency,
+  });
+
+  factory AuthCountry.fromJson(Map<String, dynamic> json) {
+    AuthCurrency? currency;
+    final currencyData = json['currency'];
+    if (currencyData is Map<String, dynamic>) {
+      currency = AuthCurrency.fromJson(currencyData);
+    }
+    
+    return AuthCountry(
+      id: json['id']?.toString() ?? '',
+      name: json['name'] ?? '',
+      code: json['code'] ?? '',
+      currency: currency,
+    );
+  }
+}
+
+/// Currency model for auth user's country
+class AuthCurrency {
+  final String id;
+  final String name;
+  final String code;
+  final String symbol;
+
+  AuthCurrency({
+    required this.id,
+    required this.name,
+    required this.code,
+    required this.symbol,
+  });
+
+  factory AuthCurrency.fromJson(Map<String, dynamic> json) {
+    return AuthCurrency(
+      id: json['id']?.toString() ?? '',
+      name: json['name'] ?? '',
+      code: json['code'] ?? '',
+      symbol: json['symbol'] ?? '',
     );
   }
 }

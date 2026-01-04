@@ -127,13 +127,17 @@ class AppTheme {
       ),
 
       // Dialog theme - no border radius
-      dialogTheme: const DialogThemeData(
+      dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.zero,
         ),
-        titleTextStyle: AppTypography.titleLM,
-        contentTextStyle: AppTypography.bodyM,
+        titleTextStyle: AppTypography.titleLM.copyWith(
+          color: AppColors.textPrimary,
+        ),
+        contentTextStyle: AppTypography.bodyM.copyWith(
+          color: AppColors.textPrimary,
+        ),
       ),
 
       // Divider theme

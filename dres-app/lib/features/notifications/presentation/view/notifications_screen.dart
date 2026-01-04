@@ -199,6 +199,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (path != null && path.isNotEmpty) {
       try {
         debugPrint('Navigating to path: $path');
+        context.push(path);
       } catch (e) {
         debugPrint('Failed to navigate to path: $path, error: $e');
       }

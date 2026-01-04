@@ -45,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             UnifiedHeader.titleWithBell(
               title: l10n.me,
               onNotificationTap: () {
-                // TODO: Navigate to notifications
+                context.push('/notifications');
               },
             ),
 
@@ -67,6 +67,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         // Profile Header
                         _buildProfileHeader(context, user, l10n),
+
+                        // Personal Info Section
+                        _buildSectionHeader(l10n.personalInfo.toUpperCase()),
+                        
+                        _buildMenuItem(
+                          title: l10n.personalInfo,
+                          onTap: () {
+                            context.push('/profile/personal-info');
+                          },
+                        ),
 
                         // Account Preference Section
                         _buildSectionHeader(l10n.accountPreference),

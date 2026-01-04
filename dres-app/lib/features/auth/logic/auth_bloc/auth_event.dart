@@ -76,3 +76,38 @@ class AuthAppleSignInRequested extends AuthEvent {
 class AuthGoogleSignInRequested extends AuthEvent {
   const AuthGoogleSignInRequested();
 }
+
+class AuthUpdateProfileRequested extends AuthEvent {
+  final Map<String, dynamic> updates;
+
+  const AuthUpdateProfileRequested(this.updates);
+
+  @override
+  List<Object?> get props => [updates];
+}
+
+class AuthUpdatePhotoRequested extends AuthEvent {
+  final String filePath;
+
+  const AuthUpdatePhotoRequested(this.filePath);
+
+  @override
+  List<Object?> get props => [filePath];
+}
+
+class AuthDeleteAccountRequested extends AuthEvent {
+  const AuthDeleteAccountRequested();
+}
+
+class AuthUpdateEmailRequested extends AuthEvent {
+  final String newEmail;
+
+  const AuthUpdateEmailRequested(this.newEmail);
+
+  @override
+  List<Object?> get props => [newEmail];
+}
+
+class AuthResendVerificationRequested extends AuthEvent {
+  const AuthResendVerificationRequested();
+}

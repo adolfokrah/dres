@@ -23,6 +23,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthClearRedirect>(_onClearRedirect);
     on<AuthAppleSignInRequested>(_onAppleSignInRequested);
     on<AuthGoogleSignInRequested>(_onGoogleSignInRequested);
+    on<AuthUpdateProfileRequested>(_onUpdateProfileRequested);
+    on<AuthUpdatePhotoRequested>(_onUpdatePhotoRequested);
+    on<AuthDeleteAccountRequested>(_onDeleteAccountRequested);
+    on<AuthUpdateEmailRequested>(_onUpdateEmailRequested);
+    on<AuthResendVerificationRequested>(_onResendVerificationRequested);
   }
 
   void _onSetRedirect(
@@ -318,6 +323,141 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(state.copyWith(status: AuthStatus.initial));
         return;
       }
+      emit(state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: _parseError(e),
+      ));
+    }
+  }
+
+  Future<void> _onUpdateProfileRequested(
+    AuthUpdateProfileRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(status: AuthStatus.loading));
+
+    try {
+      final updatedUser = await _authRepository.updateProfile(event.updates);
+      
+      debugPrint('🟢 AuthBloc: Profile updated successfully');
+      emit(state.copyWith(
+        status: AuthStatus.authenticated,
+        user: updatedUser,
+      ));
+    } catch (e) {
+      debugPrint('🔴 AuthBloc: Error updating profile: $e');
+      emit(state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: _parseError(e),
+      ));
+    }
+  }
+
+  Future<void> _onUpdatePhotoRequested(
+    AuthUpdatePhotoRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(status: AuthStatus.loading));
+
+    try {
+      final updatedUser = await _authRepository.updatePhoto(event.filePath);
+      
+      debugPrint('🟢 AuthBloc: Photo updated successfully');
+      emit(state.copyWith(
+        status: AuthStatus.authenticated,
+        user: updatedUser,
+      ));
+    } catch (e) {
+      debugPrint('🔴 AuthBloc: Error updating photo: $e');
+      emit(state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: _parseError(e),
+      ));
+    }
+  }
+
+  Future<void> _onDeleteAccountRequested(
+    AuthDeleteAccountRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(status: AuthStatus.loading));
+
+    try {
+      await _authRepository.deleteAccount();
+      
+      debugPrint('🟢 AuthBloc: Account deleted successfully');
+      emit(state.copyWith(
+        status: AuthStatus.unauthenticated,
+        user: null,
+      ));
+    } catch (e) {
+      debugPrint('🔴 AuthBloc: Error deleting account: $e');
+      emit(state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: _parseError(e),
+      ));
+    }
+  }
+
+  Future<void> _onUpdateEmailRequested(
+    AuthUpdateEmailRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(status: AuthStatus.loading));
+
+    try {
+      final response = await _authRepository.updateEmail(event.newEmail);
+      
+      debugPrint('🟢 AuthBloc: Email updated successfully');
+      
+      // Refresh user data to get updated email
+      final updatedUser = await _authRepository.getCurrentUser();
+      
+      emit(state.copyWith(
+        status: AuthStatus.authenticated,
+        user: updatedUser,
+        errorMessage: response['message'] as String?,
+      ));
+    } on DioException catch (e) {
+      debugPrint('🔴 AuthBloc: Error updating email: $e');
+      final errorMessage = e.response?.data?['error'] ?? 'Failed to update email';
+      emit(state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: errorMessage,
+      ));
+    } catch (e) {
+      debugPrint('🔴 AuthBloc: Error updating email: $e');
+      emit(state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: _parseError(e),
+      ));
+    }
+  }
+
+  Future<void> _onResendVerificationRequested(
+    AuthResendVerificationRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(state.copyWith(status: AuthStatus.loading));
+
+    try {
+      final response = await _authRepository.resendVerification();
+      
+      debugPrint('🟢 AuthBloc: Verification email resent');
+      
+      emit(state.copyWith(
+        status: AuthStatus.authenticated,
+        errorMessage: response['message'] as String?,
+      ));
+    } on DioException catch (e) {
+      debugPrint('🔴 AuthBloc: Error resending verification: $e');
+      final errorMessage = e.response?.data?['error'] ?? 'Failed to resend verification';
+      emit(state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: errorMessage,
+      ));
+    } catch (e) {
+      debugPrint('🔴 AuthBloc: Error resending verification: $e');
       emit(state.copyWith(
         status: AuthStatus.error,
         errorMessage: _parseError(e),

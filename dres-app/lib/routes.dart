@@ -33,6 +33,7 @@ import 'package:dres/features/orders/presentation/view/purchase_details_screen.d
 import 'package:dres/features/orders/presentation/view/return_item_screen.dart';
 import 'package:dres/features/profile/presentation/view/user_profile_screen.dart';
 import 'package:dres/features/profile/presentation/view/seller_profile_screen.dart';
+import 'package:dres/features/profile/presentation/view/personal_info_screen.dart';
 import 'package:dres/features/orders/presentation/view/incoming_order_details_screen.dart';
 import 'package:dres/features/notifications/presentation/view/notifications_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
@@ -574,6 +575,12 @@ class AppRoutes {
                       final userId = state.uri.queryParameters['userId'];
                       return UserProfileScreen(userId: userId);
                     },
+                  ),
+                  // Personal Info (nested under profile tab)
+                  GoRoute(
+                    path: 'personal-info',
+                    name: 'personal-info',
+                    builder: (context, state) => const PersonalInfoScreen(),
                   ),
                 ],
               ),

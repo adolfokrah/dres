@@ -295,3 +295,254 @@ Future<void> setupDependencies() async {
     sellerProductsRepository: getIt<SellerProductsRepository>(),
   ));
 }
+
+/// Reset all dependencies except StorageService (to preserve auth token)
+/// Call this when country changes to refresh all data
+Future<void> resetDependencies() async {
+  // Get StorageService before reset (we want to keep auth token)
+  final storageService = getIt<StorageService>();
+  
+  // Reset GetIt - this unregisters everything
+  await getIt.reset();
+  
+  // Re-register StorageService (already initialized)
+  getIt.registerSingleton<StorageService>(storageService);
+  
+  // Re-setup all other dependencies
+  await _setupDependenciesWithExistingStorage(storageService);
+}
+
+Future<void> _setupDependenciesWithExistingStorage(StorageService storageService) async {
+  // API Service - Dio wrapper with auth
+  getIt.registerLazySingleton<ApiService>(() => ApiService(storageService));
+
+  // Site Settings Repository & Service
+  getIt.registerLazySingleton<SiteSettingsRepository>(() => SiteSettingsRepository(
+    apiService: getIt<ApiService>(),
+  ));
+  getIt.registerLazySingleton<SiteSettingsService>(() => SiteSettingsService(
+    repository: getIt<SiteSettingsRepository>(),
+  ));
+
+  // ========================
+  // Repositories (Singletons)
+  // ========================
+  
+  // Home Repository
+  getIt.registerLazySingleton<HomeRepository>(() => HomeRepository(getIt<ApiService>()));
+
+  // Menu Repository
+  getIt.registerLazySingleton<MenuRepository>(() => MenuRepository(getIt<ApiService>()));
+
+  // Products Repository
+  getIt.registerLazySingleton<ProductsRepository>(() => ProductsRepository(getIt<ApiService>().dio));
+
+  // Brands Repository
+  getIt.registerLazySingleton<BrandsRepository>(() => BrandsRepository(getIt<ApiService>().dio));
+
+  // Product Details Repository
+  getIt.registerLazySingleton<ProductDetailsRepository>(() => ProductDetailsRepository(getIt<ApiService>()));
+
+  // Reviews Repository
+  getIt.registerLazySingleton<ReviewsRepository>(() => ReviewsRepository(getIt<ApiService>()));
+
+  // Seller Repository
+  getIt.registerLazySingleton<SellerRepository>(() => SellerRepository(getIt<ApiService>()));
+
+  // Similar Variations Repository
+  getIt.registerLazySingleton<SimilarVariationsRepository>(() => SimilarVariationsRepository(getIt<ApiService>()));
+
+  // Auth Repository
+  getIt.registerLazySingleton<AuthRepository>(() => AuthRepository(
+    apiService: getIt<ApiService>(),
+    storageService: storageService,
+  ));
+
+  // Cart Repository
+  getIt.registerLazySingleton<CartRepository>(() => CartRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Address Repository
+  getIt.registerLazySingleton<AddressRepository>(() => AddressRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Promo Repository
+  getIt.registerLazySingleton<PromoRepository>(() => PromoRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Orders Repository
+  getIt.registerLazySingleton<OrdersRepository>(() => OrdersRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Purchases Repository
+  getIt.registerLazySingleton<PurchasesRepository>(() => PurchasesRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Incoming Orders Repository
+  getIt.registerLazySingleton<IncomingOrdersRepository>(() => IncomingOrdersRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Transactions Repository
+  getIt.registerLazySingleton<TransactionsRepository>(() => TransactionsRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Community Repository
+  getIt.registerLazySingleton<CommunityRepository>(() => CommunityRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Seller Reviews Repository
+  getIt.registerLazySingleton<SellerReviewsRepository>(() => SellerReviewsRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Favorites Repository
+  getIt.registerLazySingleton<FavoritesRepository>(() => FavoritesRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Follows Repository
+  getIt.registerLazySingleton<FollowsRepository>(() => FollowsRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Sell Repository
+  getIt.registerLazySingleton<SellRepository>(() => SellRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Notifications Repository
+  getIt.registerLazySingleton<NotificationsRepository>(() => NotificationsRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // User Products Repository
+  getIt.registerLazySingleton<UserProductsRepository>(() => UserProductsRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Seller Products Repository
+  getIt.registerLazySingleton<SellerProductsRepository>(() => SellerProductsRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // ========================
+  // BLoCs
+  // ========================
+
+  // Menu Bloc - Singleton
+  getIt.registerLazySingleton<MenuBloc>(() => MenuBloc(getIt<MenuRepository>()));
+
+  // Home Bloc - Singleton
+  getIt.registerLazySingleton<HomeBloc>(() => HomeBloc(getIt<HomeRepository>()));
+
+  // Products Bloc - Singleton
+  getIt.registerLazySingleton<ProductsBloc>(() => ProductsBloc(getIt<ProductsRepository>()));
+
+  // Brands Bloc - Singleton
+  getIt.registerLazySingleton<BrandsBloc>(() => BrandsBloc(getIt<BrandsRepository>()));
+
+  // Product Details Bloc - Factory
+  getIt.registerFactory<ProductDetailsBloc>(() => ProductDetailsBloc(getIt<ProductDetailsRepository>()));
+
+  // Auth Bloc - Singleton
+  getIt.registerLazySingleton<AuthBloc>(() => AuthBloc(authRepository: getIt<AuthRepository>()));
+
+  // Cart Bloc - Singleton
+  getIt.registerLazySingleton<CartBloc>(() => CartBloc(
+    cartRepository: getIt<CartRepository>(),
+    promoRepository: getIt<PromoRepository>(),
+  ));
+
+  // Address Bloc - Singleton
+  getIt.registerLazySingleton<AddressBloc>(() => AddressBloc(
+    addressRepository: getIt<AddressRepository>(),
+  ));
+
+  // Order Details Bloc - Factory
+  getIt.registerFactory<OrderDetailsBloc>(() => OrderDetailsBloc(
+    ordersRepository: getIt<OrdersRepository>(),
+  ));
+
+  // Purchases Bloc - Singleton
+  getIt.registerLazySingleton<PurchasesBloc>(() => PurchasesBloc(
+    purchasesRepository: getIt<PurchasesRepository>(),
+  ));
+
+  // Incoming Orders Bloc - Singleton
+  getIt.registerLazySingleton<IncomingOrdersBloc>(() => IncomingOrdersBloc(
+    incomingOrdersRepository: getIt<IncomingOrdersRepository>(),
+  ));
+
+  // Incoming Order Details Bloc - Factory
+  getIt.registerFactory<IncomingOrderDetailsBloc>(() => IncomingOrderDetailsBloc(
+    incomingOrdersRepository: getIt<IncomingOrdersRepository>(),
+  ));
+
+  // Transactions Bloc - Singleton
+  getIt.registerLazySingleton<TransactionsBloc>(() => TransactionsBloc(
+    transactionsRepository: getIt<TransactionsRepository>(),
+  ));
+
+  // Community Bloc - Factory
+  getIt.registerFactory<CommunityBloc>(() => CommunityBloc(
+    communityRepository: getIt<CommunityRepository>(),
+  ));
+
+  // Seller Reviews Bloc - Factory
+  getIt.registerFactory<SellerReviewsBloc>(() => SellerReviewsBloc(
+    sellerReviewsRepository: getIt<SellerReviewsRepository>(),
+  ));
+
+  // Favorites Bloc - Singleton
+  getIt.registerLazySingleton<FavoritesBloc>(() => FavoritesBloc(
+    favoritesRepository: getIt<FavoritesRepository>(),
+  ));
+
+  // Follows Bloc - Factory
+  getIt.registerFactory<FollowsBloc>(() => FollowsBloc(
+    followsRepository: getIt<FollowsRepository>(),
+  ));
+
+  // Sell Bloc - Factory
+  getIt.registerFactory<SellBloc>(() => SellBloc(
+    sellRepository: getIt<SellRepository>(),
+  ));
+
+  // Style Details Bloc - Factory
+  getIt.registerFactory<StyleDetailsBloc>(() => StyleDetailsBloc(
+    sellRepository: getIt<SellRepository>(),
+  ));
+
+  // Variations Bloc - Factory
+  getIt.registerFactory<VariationsBloc>(() => VariationsBloc(
+    sellRepository: getIt<SellRepository>(),
+  ));
+
+  // Variation Detail Bloc - Factory
+  getIt.registerFactory<VariationDetailBloc>(() => VariationDetailBloc(
+    sellRepository: getIt<SellRepository>(),
+  ));
+
+  // Notifications Bloc - Singleton
+  getIt.registerLazySingleton<NotificationsBloc>(() => NotificationsBloc(
+    notificationsRepository: getIt<NotificationsRepository>(),
+  ));
+
+  // User Products Bloc - Singleton
+  getIt.registerLazySingleton<UserProductsBloc>(() => UserProductsBloc(
+    userProductsRepository: getIt<UserProductsRepository>(),
+  ));
+
+  // Seller Products Bloc - Factory
+  getIt.registerFactory<SellerProductsBloc>(() => SellerProductsBloc(
+    sellerProductsRepository: getIt<SellerProductsRepository>(),
+  ));
+}

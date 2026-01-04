@@ -354,6 +354,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Registration successful! Please log in.';
 
   @override
+  String get personalInfo => 'Personal info';
+
+  @override
   String get accountPreference => 'Account Preference';
 
   @override

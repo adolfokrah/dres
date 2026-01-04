@@ -480,6 +480,10 @@
   "@me": {
     "description": "Profile tab label"
   },
+  "personalInfo": "Personal info",
+  "@personalInfo": {
+    "description": "Personal info menu item"
+  },
   "accountPreference": "Account Preference",
   "@accountPreference": {
     "description": "Account preference section title"

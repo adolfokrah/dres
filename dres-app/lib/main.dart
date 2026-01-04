@@ -5,9 +5,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:app_links/app_links.dart';
+import 'package:provider/provider.dart';
 import 'package:dres/firebase_options.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/theme.dart';
+import 'package:dres/core/providers/locale_provider.dart';
+import 'package:dres/core/widgets/restart_widget.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:dres/routes.dart';
 import 'package:dres/features/splash/logic/menu_bloc/menu_bloc.dart';
@@ -23,7 +26,6 @@ import 'package:dres/features/cart/logic/cart_bloc/cart_event.dart';
 import 'package:dres/features/favorites/logic/favorites_bloc/favorites_bloc.dart';
 import 'package:dres/features/notifications/logic/notifications_bloc/notifications_bloc.dart';
 import 'package:dres/features/profile/logic/user_products_bloc/user_products_bloc.dart';
-import 'package:dres/features/profile/logic/seller_products_bloc/seller_products_bloc.dart';
 import 'package:dres/core/services/storage_service.dart';
 import 'package:dres/core/services/site_settings_service.dart';
 
@@ -98,7 +100,8 @@ class _MainAppState extends State<MainApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
+    return RestartWidget(
+      child: MultiBlocProvider(
       providers: [
         // Global MenuBloc - fetch menu once and share across app
         BlocProvider<MenuBloc>(
@@ -193,49 +196,70 @@ class _MainAppState extends State<MainApp> {
         // locally in their respective widgets as factory instances
       ],
       // Listen for auth state changes to fetch favorites when user logs in
-      child: BlocListener<AuthBloc, AuthState>(
-        bloc: getIt<AuthBloc>(),
-        listenWhen: (previous, current) => 
-            previous.status != AuthStatus.authenticated && 
-            current.status == AuthStatus.authenticated,
-        listener: (context, state) {
-          // User just logged in, fetch favorites, cart, and notifications
-          getIt<FavoritesBloc>().add(const FavoritesFetchRequested());
-          getIt<CartBloc>().add(const CartFetchRequested());
-          getIt<NotificationsBloc>().add(const NotificationsUnreadCountRequested());
-        },
-        child: MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          title: 'DRES',
-          theme: AppTheme.theme,
-          
-          // Localization
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('en'),
-          ],
-          
-          // GoRouter
-          routerConfig: AppRoutes.router,
-          
-          // Wrap with SafeArea on Android
-          builder: (context, child) {
-            if (Platform.isAndroid) {
-              return SafeArea(
-                top: false,
-                bottom: true,
-                child: child ?? const SizedBox.shrink(),
-              );
-            }
-            return child ?? const SizedBox.shrink();
+      child: ChangeNotifierProvider(
+        create: (_) => LocaleProvider(),
+        child: BlocListener<AuthBloc, AuthState>(
+          bloc: getIt<AuthBloc>(),
+          listenWhen: (previous, current) {
+            // Listen when user authenticates OR when language changes
+            final authChanged = previous.status != AuthStatus.authenticated && 
+                current.status == AuthStatus.authenticated;
+            final languageChanged = previous.user?.language != current.user?.language;
+            return authChanged || languageChanged;
           },
+          listener: (context, state) {
+            // User just logged in, fetch favorites, cart, and notifications
+            if (state.status == AuthStatus.authenticated) {
+              getIt<FavoritesBloc>().add(const FavoritesFetchRequested());
+              getIt<CartBloc>().add(const CartFetchRequested());
+              getIt<NotificationsBloc>().add(const NotificationsUnreadCountRequested());
+            }
+            
+            // Update locale based on user's language preference
+            if (state.user?.language != null) {
+              context.read<LocaleProvider>().setLocale(state.user!.language!);
+            }
+          },
+          child: Consumer<LocaleProvider>(
+            builder: (context, localeProvider, child) {
+              return MaterialApp.router(
+                debugShowCheckedModeBanner: false,
+                title: 'DRES',
+                theme: AppTheme.theme,
+                
+                // Localization
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                supportedLocales: const [
+                  Locale('en'),
+                  Locale('fr'),
+                ],
+                locale: localeProvider.locale,
+                
+                // GoRouter
+                routerConfig: AppRoutes.router,
+                
+                // Wrap with SafeArea on Android
+                builder: (context, child) {
+                  if (Platform.isAndroid) {
+                    return SafeArea(
+                      top: false,
+                      bottom: true,
+                      child: child ?? const SizedBox.shrink(),
+                    );
+                  }
+                  return child ?? const SizedBox.shrink();
+                },
+              );
+            },
+          ),
         ),
       ),
+    ),
     );
   }
 }
