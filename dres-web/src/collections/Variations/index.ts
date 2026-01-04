@@ -13,6 +13,7 @@ import { filteredVariations } from './endpoints/filtered'
 import { getVariation } from './endpoints/getVariation'
 import { getVariationSeller } from './endpoints/getVariationSeller'
 import { getSimilarVariations } from './endpoints/getSimilarVariations'
+import { getSellerVariations } from './endpoints/getSellerVariations'
 
 interface VariantItem {
   variant?: string | { id: string }
@@ -73,6 +74,11 @@ export const Variations: CollectionConfig = {
       path: '/:id/similar',
       method: 'get',
       handler: getSimilarVariations,
+    },
+    {
+      path: '/seller/:sellerId',
+      method: 'get',
+      handler: getSellerVariations,
     },
     {
       path: '/record-view',

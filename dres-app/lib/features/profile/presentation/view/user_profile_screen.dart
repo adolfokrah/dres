@@ -38,18 +38,31 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _isLoadingSeller = false;
   String? _error;
   String? _loadedUserId;
+  
+  // Create BLoC instance for this screen
+  late final SellerReviewsBloc _sellerReviewsBloc;
 
   @override
   void initState() {
     super.initState();
+    // Create a new BLoC instance for this screen
+    _sellerReviewsBloc = getIt<SellerReviewsBloc>();
+    
     // Refresh user data (including stats) when profile screen opens
     getIt<AuthBloc>().add(const AuthCheckStatusRequested());
+  }
+
+  @override
+  void dispose() {
+    // Close the BLoC since it's a factory instance
+    _sellerReviewsBloc.close();
+    super.dispose();
   }
 
   Future<void> _fetchSellerInfo(String userId) async {
     if (_loadedUserId == userId || _isLoadingSeller) return;
     
-    debugPrint('🔵 UserProfileScreen: Fetching seller info for userId: \$userId');
+    debugPrint('🔵 UserProfileScreen: Fetching seller info for userId: $userId');
 
     setState(() {
       _isLoadingSeller = true;
@@ -57,11 +70,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       _loadedUserId = userId;
     });
 
+    // Also fetch reviews for this user
+    _sellerReviewsBloc.add(SellerReviewsFetchRequested(sellerId: userId));
+
     try {
       final sellerRepository = getIt<SellerRepository>();
       debugPrint('🔵 UserProfileScreen: Calling getSellerInfo...');
       final seller = await sellerRepository.getSellerInfo(sellerId: userId);
-      debugPrint('🟢 UserProfileScreen: Got seller: \${seller.name}');
+      debugPrint('🟢 UserProfileScreen: Got seller: ${seller.name}');
       if (mounted) {
         setState(() {
           _seller = seller;
@@ -69,8 +85,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         });
       }
     } catch (e, stackTrace) {
-      debugPrint('�� Error fetching seller info: \$e');
-      debugPrint('🔴 Stack trace: \$stackTrace');
+      debugPrint('🔴 Error fetching seller info: $e');
+      debugPrint('🔴 Stack trace: $stackTrace');
       if (mounted) {
         setState(() {
           _isLoadingSeller = false;
@@ -234,7 +250,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final userId = widget.userId ?? authState.user?.id;
 
     return BlocBuilder<SellerReviewsBloc, SellerReviewsState>(
-      bloc: getIt<SellerReviewsBloc>(),
+      bloc: _sellerReviewsBloc,
       builder: (context, reviewsState) {
         // Build tabs with review count
         final tabs = [
@@ -375,7 +391,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         if (userId == null) {
           return _buildPlaceholder(context, 'Reviews');
         }
-        return SellerReviewsList(parentContext: context, sellerId: userId);
+        return SellerReviewsList(
+          parentContext: context,
+          sellerId: userId,
+          bloc: _sellerReviewsBloc, // Pass the parent's BLoC
+        );
       default:
         return const SizedBox.shrink();
     }

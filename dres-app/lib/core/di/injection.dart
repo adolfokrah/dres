@@ -49,6 +49,8 @@ import 'package:dres/features/notifications/data/repositories/notifications_repo
 import 'package:dres/features/notifications/logic/notifications_bloc/notifications_bloc.dart';
 import 'package:dres/features/profile/data/repositories/user_products_repository.dart';
 import 'package:dres/features/profile/logic/user_products_bloc/user_products_bloc.dart';
+import 'package:dres/features/profile/data/repositories/seller_products_repository.dart';
+import 'package:dres/features/profile/logic/seller_products_bloc/seller_products_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -203,8 +205,8 @@ Future<void> setupDependencies() async {
     apiService: getIt<ApiService>(),
   ));
 
-  // Community Bloc - Singleton so filter state persists
-  getIt.registerLazySingleton<CommunityBloc>(() => CommunityBloc(
+  // Community Bloc - Factory so each screen gets its own instance
+  getIt.registerFactory<CommunityBloc>(() => CommunityBloc(
     communityRepository: getIt<CommunityRepository>(),
   ));
 
@@ -213,8 +215,8 @@ Future<void> setupDependencies() async {
     apiService: getIt<ApiService>(),
   ));
 
-  // Seller Reviews Bloc - Singleton
-  getIt.registerLazySingleton<SellerReviewsBloc>(() => SellerReviewsBloc(
+  // Seller Reviews Bloc - Factory so each screen gets its own instance
+  getIt.registerFactory<SellerReviewsBloc>(() => SellerReviewsBloc(
     sellerReviewsRepository: getIt<SellerReviewsRepository>(),
   ));
 
@@ -281,5 +283,15 @@ Future<void> setupDependencies() async {
   // User Products Bloc - Singleton so products list persists
   getIt.registerLazySingleton<UserProductsBloc>(() => UserProductsBloc(
     userProductsRepository: getIt<UserProductsRepository>(),
+  ));
+
+  // Seller Products Repository (for viewing other seller's products)
+  getIt.registerLazySingleton<SellerProductsRepository>(() => SellerProductsRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Seller Products Bloc - Factory so each screen gets its own instance
+  getIt.registerFactory<SellerProductsBloc>(() => SellerProductsBloc(
+    sellerProductsRepository: getIt<SellerProductsRepository>(),
   ));
 }

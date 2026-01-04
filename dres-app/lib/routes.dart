@@ -32,6 +32,7 @@ import 'package:dres/features/cart/data/models/shipping_address.dart';
 import 'package:dres/features/orders/presentation/view/purchase_details_screen.dart';
 import 'package:dres/features/orders/presentation/view/return_item_screen.dart';
 import 'package:dres/features/profile/presentation/view/user_profile_screen.dart';
+import 'package:dres/features/profile/presentation/view/seller_profile_screen.dart';
 import 'package:dres/features/orders/presentation/view/incoming_order_details_screen.dart';
 import 'package:dres/features/notifications/presentation/view/notifications_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
@@ -188,6 +189,28 @@ class AppRoutes {
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return IncomingOrderDetailsScreen(orderId: id);
+        },
+      ),
+
+      // Seller Profile (visitor view, outside shell)
+      GoRoute(
+        path: '/sellers/:id',
+        name: 'seller-profile',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return SellerProfileScreen(sellerId: id);
+        },
+      ),
+
+      // User Profile (outside shell, for navigating from other screens)
+      GoRoute(
+        path: '/users/:id/profile',
+        name: 'user-profile-standalone',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return UserProfileScreen(userId: id);
         },
       ),
 

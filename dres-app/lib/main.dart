@@ -23,6 +23,7 @@ import 'package:dres/features/cart/logic/cart_bloc/cart_event.dart';
 import 'package:dres/features/favorites/logic/favorites_bloc/favorites_bloc.dart';
 import 'package:dres/features/notifications/logic/notifications_bloc/notifications_bloc.dart';
 import 'package:dres/features/profile/logic/user_products_bloc/user_products_bloc.dart';
+import 'package:dres/features/profile/logic/seller_products_bloc/seller_products_bloc.dart';
 import 'package:dres/core/services/storage_service.dart';
 import 'package:dres/core/services/site_settings_service.dart';
 
@@ -47,8 +48,6 @@ Future<void> main() async {
   final appLinks = AppLinks();
   final initialLink = await appLinks.getInitialLink();
   if (initialLink != null) {
-    debugPrint('🔗 Initial deep link: ${initialLink.toString()}');
-    debugPrint('🔗 Host: ${initialLink.host}, Path: ${initialLink.path}');
     
     // Construct the full path from host + path
     String fullPath;
@@ -57,7 +56,6 @@ Future<void> main() async {
     } else {
       fullPath = initialLink.path;
     }
-    debugPrint('🔗 Full path: $fullPath');
     AppRoutes.pendingDeepLink = fullPath;
   } else {
     debugPrint('🔗 No initial deep link');
@@ -191,6 +189,8 @@ class _MainAppState extends State<MainApp> {
         BlocProvider<UserProductsBloc>(
           create: (_) => getIt<UserProductsBloc>(),
         ),
+        // Note: SellerProductsBloc, CommunityBloc, SellerReviewsBloc are now created
+        // locally in their respective widgets as factory instances
       ],
       // Listen for auth state changes to fetch favorites when user logs in
       child: BlocListener<AuthBloc, AuthState>(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/l10n/app_localizations.dart';
@@ -86,35 +87,42 @@ class _SellerInfoState extends State<SellerInfo> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Left section with avatar and info
-                Row(
-                  children: [
-                    // Profile image with initials fallback
-                    ProfileAvatar(
-                      photoUrl: seller.profileImage,
-                      displayName: seller.name,
-                      size: 50,
-                    ),
-                    const SizedBox(width: 17),
-                    
-                    // Name and username
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                // Left section with avatar and info - tappable to go to seller profile
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => context.push('/sellers/${seller.id}'),
+                    child: Row(
                       children: [
-                        Text(
-                          seller.name,
-                          style: AppTypography.bodyL,
+                        // Profile image with initials fallback
+                        ProfileAvatar(
+                          photoUrl: seller.profileImage,
+                          displayName: seller.name,
+                          size: 50,
                         ),
-                        if (seller.username != null && seller.username!.isNotEmpty)
-                          Text(
-                            '@${seller.username}',
-                            style: AppTypography.bodyM.copyWith(
-                              color: AppColors.textPrimary,
-                            ),
+                        const SizedBox(width: 17),
+                        
+                        // Name and username
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                seller.name,
+                                style: AppTypography.bodyL,
+                              ),
+                              if (seller.username != null && seller.username!.isNotEmpty)
+                                Text(
+                                  '@${seller.username}',
+                                  style: AppTypography.bodyM.copyWith(
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                            ],
                           ),
+                        ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
                 
                 // Follow button

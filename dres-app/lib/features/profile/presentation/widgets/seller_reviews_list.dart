@@ -10,11 +10,13 @@ import 'package:dres/features/product_details/presentation/widgets/review_item.d
 class SellerReviewsList extends StatefulWidget {
   final BuildContext parentContext;
   final String sellerId;
+  final SellerReviewsBloc? bloc; // Optional: use parent's BLoC if provided
 
   const SellerReviewsList({
     super.key,
     required this.parentContext,
     required this.sellerId,
+    this.bloc,
   });
 
   @override
@@ -23,19 +25,29 @@ class SellerReviewsList extends StatefulWidget {
 
 class _SellerReviewsListState extends State<SellerReviewsList> {
   late final SellerReviewsBloc _sellerReviewsBloc;
+  bool _ownsBloc = false;
 
   @override
   void initState() {
     super.initState();
-    _sellerReviewsBloc = getIt<SellerReviewsBloc>();
-
-    // Fetch reviews when widget is shown
-    _sellerReviewsBloc.add(SellerReviewsFetchRequested(sellerId: widget.sellerId));
+    // Use provided BLoC or create a new one
+    if (widget.bloc != null) {
+      _sellerReviewsBloc = widget.bloc!;
+      _ownsBloc = false;
+    } else {
+      _sellerReviewsBloc = getIt<SellerReviewsBloc>();
+      _ownsBloc = true;
+      // Fetch reviews when widget is shown (only if we created the BLoC)
+      _sellerReviewsBloc.add(SellerReviewsFetchRequested(sellerId: widget.sellerId));
+    }
   }
 
   @override
   void dispose() {
-    // Don't close bloc - it's a singleton
+    // Only close the BLoC if we created it
+    if (_ownsBloc) {
+      _sellerReviewsBloc.close();
+    }
     super.dispose();
   }
 

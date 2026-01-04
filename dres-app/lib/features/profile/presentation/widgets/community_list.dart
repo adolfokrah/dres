@@ -30,6 +30,7 @@ class _CommunityListState extends State<CommunityList> {
   @override
   void initState() {
     super.initState();
+    // Create a new BLoC instance for this widget
     _communityBloc = getIt<CommunityBloc>();
 
     // Always fetch community when this widget is shown
@@ -38,7 +39,8 @@ class _CommunityListState extends State<CommunityList> {
 
   @override
   void dispose() {
-    // Don't close bloc - it's a singleton
+    // Close the BLoC since it's a factory instance
+    _communityBloc.close();
     super.dispose();
   }
 
@@ -208,18 +210,25 @@ class _CommunityMemberCard extends StatelessWidget {
     required this.filterType,
   });
 
+  void _onTap(BuildContext context) {
+    // Navigate to seller profile for all users (including self)
+    // The seller profile shows the public view (products, community, reviews)
+    context.push('/sellers/${user.id}');
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: AppColors.secondary, width: 1),
+    return GestureDetector(
+      onTap: () => _onTap(context),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(
+            bottom: BorderSide(color: AppColors.secondary, width: 1),
+          ),
         ),
-      ),
-      child: GestureDetector(
-        onTap: () => context.push('/profile/${user.id}'),
         child: Row(
           children: [
             // Avatar
