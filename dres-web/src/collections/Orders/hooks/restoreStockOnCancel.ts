@@ -5,7 +5,7 @@ interface OrderItem {
   variation: string | { id: string }
   seller: string | { id: string }
   productTitle: string
-  variationId: string | null // This is actually the SKU ID
+  sku: string | { id: string } | null
   quantity: number
   shippingStatus?: string
 }
@@ -63,8 +63,8 @@ export const restoreStockOnCancel: CollectionAfterChangeHook = async ({
       const variationId = typeof item.variation === 'object' ? item.variation.id : item.variation
       if (!variationId) continue
 
-      // variationId field in Orders stores the SKU ID
-      const skuId = item.variationId
+      // Get SKU ID from the sku field (can be string or object)
+      const skuId = typeof item.sku === 'object' ? item.sku?.id : item.sku
 
       // If item has a SKU ID, restore SKU stock
       if (skuId) {

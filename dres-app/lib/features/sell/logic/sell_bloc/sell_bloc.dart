@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dres/core/services/api_exception.dart';
 import 'package:dres/features/sell/data/repositories/sell_repository.dart';
 
 part 'sell_event.dart';
@@ -32,7 +33,7 @@ class SellBloc extends Bloc<SellEvent, SellState> {
       );
     } catch (e) {
       emit(
-        state.copyWith(status: SellStatus.failure, errorMessage: e.toString()),
+        state.copyWith(status: SellStatus.failure, errorMessage: getErrorMessage(e)),
       );
     }
   }
@@ -52,7 +53,7 @@ class SellBloc extends Bloc<SellEvent, SellState> {
       );
     } catch (e) {
       emit(
-        state.copyWith(status: SellStatus.failure, errorMessage: e.toString()),
+        state.copyWith(status: SellStatus.failure, errorMessage: getErrorMessage(e)),
       );
     }
   }

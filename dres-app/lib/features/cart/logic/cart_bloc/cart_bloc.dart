@@ -1,6 +1,6 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dres/core/services/api_exception.dart';
 import 'package:dres/features/cart/data/repositories/cart_repository.dart';
 import 'package:dres/features/cart/data/repositories/promo_repository.dart';
 import 'cart_event.dart';
@@ -45,8 +45,6 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     try {
       final response = await _cartRepository.getMyCart();
       
-      debugPrint('🛒 CartBloc: Fetched cart with ${response.cart?.itemCount ?? 0} items');
-      debugPrint('🛒 CartBloc: Validation valid=${response.validation?.valid}, reasons=${response.validation?.reasons}');
       
       // Explicitly clear cart if null
       if (response.cart == null) {
@@ -63,10 +61,9 @@ class CartBloc extends Bloc<CartEvent, CartState> {
         ));
       }
     } catch (e) {
-      debugPrint('🛒 CartBloc: Error fetching cart: $e');
       emit(state.copyWith(
         status: CartStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: getErrorMessage(e),
       ));
     }
   }
@@ -95,7 +92,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       debugPrint('🛒 CartBloc: Error adding to cart: $e');
       emit(state.copyWith(
         status: CartStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: getErrorMessage(e),
       ));
     }
   }
@@ -137,7 +134,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       debugPrint('🛒 CartBloc: Error updating shipping: $e');
       emit(state.copyWith(
         status: CartStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: getErrorMessage(e),
       ));
     }
   }
@@ -171,17 +168,9 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       }
     } catch (e) {
       debugPrint('🛒 CartBloc: Error applying promo: $e');
-      // Extract error message from DioException response
-      String errorMessage = 'Failed to apply promo code';
-      if (e is DioException && e.response?.data != null) {
-        final data = e.response!.data;
-        if (data is Map<String, dynamic>) {
-          errorMessage = data['error'] ?? data['message'] ?? errorMessage;
-        }
-      }
       emit(state.copyWith(
         promoStatus: PromoStatus.error,
-        promoError: errorMessage,
+        promoError: getErrorMessage(e),
         clearPromoMessage: true,
       ));
     }
@@ -216,7 +205,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       debugPrint('🛒 CartBloc: Error removing promo: $e');
       emit(state.copyWith(
         status: CartStatus.error,
-        errorMessage: e.toString(),
+        errorMessage: getErrorMessage(e),
       ));
     }
   }
@@ -259,14 +248,9 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       }
     } catch (e) {
       debugPrint('🛒 CartBloc: Error placing order: $e');
-      String errorMessage = 'Failed to place order';
-      if (e is DioException && e.response?.data != null) {
-        final data = e.response!.data;
-        errorMessage = data['error'] ?? data['message'] ?? errorMessage;
-      }
       emit(state.copyWith(
         placeOrderStatus: PlaceOrderStatus.error,
-        placeOrderError: errorMessage,
+        placeOrderError: getErrorMessage(e),
       ));
     }
   }

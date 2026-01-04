@@ -135,7 +135,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
         },
         // Add minPrice for sorting by price (default to 0 if no SKUs)
         minPrice: {
-          $ifNull: [{ $min: '$skuData.price' }, 0]
+          $ifNull: [{ $min: '$skuData.sellingPrice' }, 0]
         }
       }
     })

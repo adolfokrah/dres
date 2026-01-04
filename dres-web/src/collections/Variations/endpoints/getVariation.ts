@@ -162,7 +162,7 @@ export const getVariation: PayloadHandler = async (req) => {
             return {
               id: sku.id,
               options,
-              price: sku.price,
+              sellingPrice: sku.sellingPrice,
               compareAtPrice: sku.compareAtPrice || null,
               stock: sku.stock || 0,
             }
@@ -352,7 +352,7 @@ export const getVariation: PayloadHandler = async (req) => {
         return {
           id: sku.id,
           options,
-          price: sku.price,
+          sellingPrice: sku.sellingPrice,
           compareAtPrice: sku.compareAtPrice,
           stock: sku.stock,
         }

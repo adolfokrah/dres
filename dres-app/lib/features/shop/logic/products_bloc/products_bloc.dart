@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dres/core/services/api_exception.dart';
 import 'package:dres/features/shop/data/repositories/products_repository.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_event.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_state.dart';
@@ -68,7 +69,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     } catch (e) {
       emit(state.copyWith(
         status: ProductsStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: getErrorMessage(e),
       ));
     }
   }
@@ -114,7 +115,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     } catch (e) {
       emit(state.copyWith(
         status: ProductsStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: getErrorMessage(e),
       ));
     }
   }

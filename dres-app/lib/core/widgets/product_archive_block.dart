@@ -268,7 +268,7 @@ class ProductCardData {
       brand: json['brand'],
       category: json['category'],
       title: json['title'],
-      price: (json['price'] as num).toDouble(),
+      price: (json['sellingPrice'] as num?)?.toDouble() ?? (json['price'] as num?)?.toDouble() ?? 0,
       compareAtPrice: json['compareAtPrice'] != null
           ? (json['compareAtPrice'] as num).toDouble()
           : null,

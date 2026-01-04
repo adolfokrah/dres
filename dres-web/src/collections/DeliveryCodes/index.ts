@@ -10,8 +10,8 @@ export const DeliveryCodes: CollectionConfig = {
   admin: {
     useAsTitle: 'code',
     group: 'Orders',
-    defaultColumns: ['code', 'order', 'buyer', 'createdAt'],
-    description: 'Delivery confirmation codes for courier USSD verification',
+    defaultColumns: ['code', 'order', 'seller', 'buyer', 'createdAt'],
+    description: 'Delivery confirmation codes for courier verification - per seller per order',
   },
   access: {
     // Admin can do everything
@@ -51,9 +51,17 @@ export const DeliveryCodes: CollectionConfig = {
       type: 'relationship',
       relationTo: 'orders',
       required: true,
-      unique: true, // One code per order
       admin: {
         description: 'The order this code belongs to',
+      },
+    },
+    {
+      name: 'seller',
+      type: 'relationship',
+      relationTo: 'users',
+      required: true,
+      admin: {
+        description: 'The seller whose items this code covers',
       },
     },
     {
@@ -64,6 +72,31 @@ export const DeliveryCodes: CollectionConfig = {
       admin: {
         description: 'The customer who will provide this code to courier',
       },
+    },
+    {
+      name: 'items',
+      type: 'array',
+      required: true,
+      admin: {
+        description: 'The specific order items covered by this code',
+      },
+      fields: [
+        {
+          name: 'itemId',
+          type: 'text',
+          required: true,
+          admin: {
+            description: 'The ID of the order item',
+          },
+        },
+        {
+          name: 'skuTitle',
+          type: 'text',
+          admin: {
+            description: 'SKU title for reference',
+          },
+        },
+      ],
     },
     {
       name: 'expiresAt',

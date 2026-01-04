@@ -11,9 +11,14 @@ export const generateVariationSlug: CollectionBeforeChangeHook = async ({
   req,
   operation,
   originalDoc,
+  context,
 }) => {
-  // Only generate slug on create or if style/variants changed
+  // Check if forced regeneration is requested (e.g., when style title changes)
+  const forceRegenerate = context?.forceRegenerateSlug === true
+
+  // Only generate slug on create or if style/variants changed, or if forced
   const shouldGenerateSlug =
+    forceRegenerate ||
     operation === 'create' ||
     !originalDoc?.slug ||
     data?.style !== originalDoc?.style ||

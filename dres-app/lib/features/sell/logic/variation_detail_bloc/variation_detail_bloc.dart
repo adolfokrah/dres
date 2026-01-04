@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dres/core/services/api_exception.dart';
 import 'package:dres/features/sell/data/models/attribute_model.dart';
 import 'package:dres/features/sell/data/repositories/sell_repository.dart';
 import 'package:dres/features/sell/logic/variation_detail_bloc/variation_detail_event.dart';
@@ -77,7 +78,7 @@ class VariationDetailBloc
       emit(
         state.copyWith(
           status: VariationDetailStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: getErrorMessage(e),
         ),
       );
     }
@@ -128,7 +129,7 @@ class VariationDetailBloc
       emit(
         state.copyWith(
           status: VariationDetailStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: getErrorMessage(e),
         ),
       );
     }
@@ -168,7 +169,7 @@ class VariationDetailBloc
       emit(
         state.copyWith(
           status: VariationDetailStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: getErrorMessage(e),
         ),
       );
     }
@@ -206,7 +207,7 @@ class VariationDetailBloc
       emit(
         state.copyWith(
           status: VariationDetailStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: getErrorMessage(e),
         ),
       );
     }
@@ -234,7 +235,7 @@ class VariationDetailBloc
       emit(
         state.copyWith(
           status: VariationDetailStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: getErrorMessage(e),
         ),
       );
     }
@@ -272,7 +273,7 @@ class VariationDetailBloc
       emit(
         state.copyWith(
           status: VariationDetailStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: getErrorMessage(e),
         ),
       );
     }
@@ -291,7 +292,7 @@ class VariationDetailBloc
       emit(
         state.copyWith(
           status: VariationDetailStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: getErrorMessage(e),
         ),
       );
     }
@@ -322,7 +323,7 @@ class VariationDetailBloc
       emit(
         state.copyWith(
           status: VariationDetailStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: getErrorMessage(e),
         ),
       );
     }

@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dres/core/services/api_exception.dart';
 import 'package:dres/features/sell/data/repositories/sell_repository.dart';
 import 'package:dres/features/sell/logic/variations_bloc/variations_event.dart';
 import 'package:dres/features/sell/logic/variations_bloc/variations_state.dart';
@@ -38,7 +39,7 @@ class VariationsBloc extends Bloc<VariationsEvent, VariationsState> {
       emit(
         state.copyWith(
           status: VariationsStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: getErrorMessage(e),
         ),
       );
     }
@@ -62,7 +63,7 @@ class VariationsBloc extends Bloc<VariationsEvent, VariationsState> {
       emit(
         state.copyWith(
           status: VariationsStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: getErrorMessage(e),
         ),
       );
     }
@@ -98,7 +99,7 @@ class VariationsBloc extends Bloc<VariationsEvent, VariationsState> {
       emit(
         state.copyWith(
           status: VariationsStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: getErrorMessage(e),
         ),
       );
     }
@@ -128,7 +129,7 @@ class VariationsBloc extends Bloc<VariationsEvent, VariationsState> {
       emit(
         state.copyWith(
           status: VariationsStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: getErrorMessage(e),
         ),
       );
     }

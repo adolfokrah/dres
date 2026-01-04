@@ -7,6 +7,7 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/utilities/image_picker_utils.dart';
 import 'package:dres/core/di/injection.dart';
+import 'package:dres/core/services/api_exception.dart';
 import 'package:dres/features/orders/data/models/order_model.dart';
 import 'package:dres/features/orders/data/repositories/orders_repository.dart';
 
@@ -65,7 +66,7 @@ class _ReturnItemScreenState extends State<ReturnItemScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load item: $e')),
+          SnackBar(content: Text(getErrorMessage(e))),
         );
       }
     }
@@ -124,7 +125,7 @@ class _ReturnItemScreenState extends State<ReturnItemScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to submit return: $e'),
+            content: Text(getErrorMessage(e)),
             backgroundColor: Colors.red,
           ),
         );

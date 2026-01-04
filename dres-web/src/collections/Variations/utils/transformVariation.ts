@@ -2,7 +2,7 @@ import type { Variation } from '@/payload-types'
 
 interface TransformedSKU {
   value: string
-  price: number
+  sellingPrice: number
 }
 
 interface TransformedVariation {
@@ -13,7 +13,7 @@ interface TransformedVariation {
   skus: TransformedSKU[]
   category: string | null
   brand: string | null
-  price: number
+  sellingPrice: number
   compareAtPrice?: number
   currency: {
     code: string
@@ -92,7 +92,7 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
         
         skus.push({
           value: value || 'Standard',
-          price: typeof sku.price === 'number' ? sku.price : 0,
+          sellingPrice: typeof sku.sellingPrice === 'number' ? sku.sellingPrice : 0,
         })
       }
     })
@@ -113,8 +113,8 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
     }
   }
   
-  const price = selectedSku && typeof selectedSku === 'object' && typeof selectedSku.price === 'number' 
-    ? selectedSku.price 
+  const sellingPrice = selectedSku && typeof selectedSku === 'object' && typeof selectedSku.sellingPrice === 'number' 
+    ? selectedSku.sellingPrice 
     : 0
   
   const compareAtPrice = selectedSku && typeof selectedSku === 'object' && typeof selectedSku.compareAtPrice === 'number'
@@ -209,7 +209,7 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
     skus,
     category,
     brand,
-    price,
+    sellingPrice,
     compareAtPrice,
     currency,
     variants,

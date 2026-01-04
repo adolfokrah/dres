@@ -180,7 +180,7 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
       padding: const EdgeInsets.all(20),
       color: AppColors.secondary,
       child: Text(
-        'You have 24 hours to package and ship the products. Failure to ship within 48 hours will result in automatic order cancellation and a loss of credibility on the platform.',
+        'You have 24 hours to package and ship the products. Failure to ship 24 hours will result in automatic order cancellation and a loss of credibility on the platform.',
         style: AppTypography.bodyM.copyWith(
           color: AppColors.textPrimary,
         ),

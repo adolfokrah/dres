@@ -13,7 +13,6 @@ class OrderSellerCard extends StatelessWidget {
   final List<OrderItemModel> items;
   final VoidCallback? onLearnMoreTap;
   final void Function(OrderItemModel item)? onReturnItemTap;
-  final void Function(OrderItemModel item)? onResellItemTap;
 
   const OrderSellerCard({
     super.key,
@@ -21,7 +20,6 @@ class OrderSellerCard extends StatelessWidget {
     required this.items,
     this.onLearnMoreTap,
     this.onReturnItemTap,
-    this.onResellItemTap,
   });
 
   double get _shippingFee {
@@ -122,7 +120,6 @@ class OrderSellerCard extends StatelessWidget {
               child: OrderItemTile(
                 item: item,
                 onReturnItemTap: onReturnItemTap,
-                onResellItemTap: onResellItemTap,
               ),
             ),
           ),

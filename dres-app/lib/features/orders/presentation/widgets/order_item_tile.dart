@@ -10,13 +10,11 @@ import 'package:dres/features/orders/presentation/widgets/shipping_status_badge.
 class OrderItemTile extends StatelessWidget {
   final OrderItemModel item;
   final void Function(OrderItemModel item)? onReturnItemTap;
-  final void Function(OrderItemModel item)? onResellItemTap;
 
   const OrderItemTile({
     super.key,
     required this.item,
     this.onReturnItemTap,
-    this.onResellItemTap,
   });
 
   @override
@@ -107,30 +105,13 @@ class OrderItemTile extends StatelessWidget {
         // Status badge
         ShippingStatusBadge(status: item.shippingStatus),
 
-        // Action buttons for delivered items only
-        if (isDelivered) ...[
+        // Action button for delivered items only
+        if (isDelivered && item.canReturn) ...[
           const SizedBox(height: 12),
-          Row(
-            children: [
-              // Show Return Item only if within 6 hour window of delivery
-              if (item.canReturn) ...[
-                Expanded(
-                  child: AppButton.outlined(
-                    text: 'Return Item',
-                    onPressed: () => onReturnItemTap?.call(item),
-                    height: 44,
-                  ),
-                ),
-                const SizedBox(width: 16),
-              ],
-              Expanded(
-                child: AppButton.filled(
-                  text: 'Resell Item',
-                  onPressed: () => onResellItemTap?.call(item),
-                  height: 44,
-                ),
-              ),
-            ],
+          AppButton.outlined(
+            text: 'Return Item',
+            onPressed: () => onReturnItemTap?.call(item),
+            height: 44,
           ),
         ],
       ],

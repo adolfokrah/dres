@@ -31,7 +31,7 @@ class VariationModel {
     return VariationModel(
       id: json['id'] as String,
       title: json['title'] as String? ?? '',
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      price: (json['sellingPrice'] as num?)?.toDouble() ?? (json['price'] as num?)?.toDouble() ?? 0.0,
       compareAtPrice: (json['compareAtPrice'] as num?)?.toDouble(),
       thumbnail: json['thumbnail'] as String?,
       inStock: json['inStock'] as bool? ?? true,

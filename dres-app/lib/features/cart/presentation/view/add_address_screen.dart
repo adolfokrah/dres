@@ -6,6 +6,7 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_text_field.dart';
 import 'package:dres/core/di/injection.dart';
+import 'package:dres/core/services/api_exception.dart';
 import 'package:dres/features/cart/data/models/shipping_address.dart';
 import 'package:dres/features/cart/data/repositories/location_repository.dart';
 import 'package:dres/features/cart/logic/address_bloc/address_bloc.dart';
@@ -143,7 +144,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save address: $e'),
+            content: Text(getErrorMessage(e)),
             backgroundColor: AppColors.error,
           ),
         );

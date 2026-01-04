@@ -84,7 +84,7 @@ class VariationDetailsModel {
           [],
       category: json['category'] ?? '',
       brand: json['brand'] ?? '',
-      price: (json['price'] ?? 0).toDouble(),
+      price: (json['sellingPrice'] ?? json['price'] ?? 0).toDouble(),
       compareAtPrice: json['compareAtPrice']?.toDouble(),
       currency: json['currency'],
       variants: json['variants'] ?? '',
@@ -130,7 +130,7 @@ class SkuModel {
               ?.map((o) => SkuOptionModel.fromJson(o))
               .toList() ??
           [],
-      price: (json['price'] ?? 0).toDouble(),
+      price: (json['sellingPrice'] ?? json['price'] ?? 0).toDouble(),
       compareAtPrice: json['compareAtPrice']?.toDouble(),
       stock: json['stock'],
     );

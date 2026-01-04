@@ -7,14 +7,12 @@ class PurchaseDetailsModel {
   final OrderShippingAddress? shippingAddress;
   final List<SellerGroupModel> sellerGroups;
   final PurchaseSummary summary;
-  final String? deliveryCode;
 
   PurchaseDetailsModel({
     required this.order,
     this.shippingAddress,
     required this.sellerGroups,
     required this.summary,
-    this.deliveryCode,
   });
 
   factory PurchaseDetailsModel.fromJson(Map<String, dynamic> json) {
@@ -28,7 +26,6 @@ class PurchaseDetailsModel {
               .toList() ??
           [],
       summary: PurchaseSummary.fromJson(json['summary'] ?? {}),
-      deliveryCode: json['deliveryCode'],
     );
   }
 
@@ -76,6 +73,7 @@ class SellerGroupModel {
   final double buyerProtectionFee;
   final double itemsTotal;
   final double total;
+  final String? deliveryCode;
 
   SellerGroupModel({
     required this.sellerId,
@@ -87,6 +85,7 @@ class SellerGroupModel {
     required this.buyerProtectionFee,
     required this.itemsTotal,
     required this.total,
+    this.deliveryCode,
   });
 
   factory SellerGroupModel.fromJson(Map<String, dynamic> json) {
@@ -105,6 +104,7 @@ class SellerGroupModel {
       buyerProtectionFee: (json['buyerProtectionFee'] ?? 0).toDouble(),
       itemsTotal: (json['itemsTotal'] ?? 0).toDouble(),
       total: (json['total'] ?? 0).toDouble(),
+      deliveryCode: json['deliveryCode'],
     );
   }
 
@@ -123,6 +123,7 @@ class PurchaseItemModel {
   final String? skuTitle;
   final int quantity;
   final double price;
+  final double total;
   final double buyerProtectionFee;
   final ShippingStatus shippingStatus;
   final List<StatusLog> statusLogs;
@@ -135,12 +136,15 @@ class PurchaseItemModel {
     this.skuTitle,
     required this.quantity,
     required this.price,
+    required this.total,
     required this.buyerProtectionFee,
     required this.shippingStatus,
     this.statusLogs = const [],
   });
 
   factory PurchaseItemModel.fromJson(Map<String, dynamic> json) {
+    final price = (json['price'] ?? 0).toDouble();
+    final quantity = json['quantity'] ?? 1;
     return PurchaseItemModel(
       id: json['id'] ?? '',
       productTitle: json['productTitle'] ?? '',
@@ -149,8 +153,9 @@ class PurchaseItemModel {
           ? MediaUtils.resolveUrl(json['variationImage'])
           : null,
       skuTitle: json['skuTitle'],
-      quantity: json['quantity'] ?? 1,
-      price: (json['price'] ?? 0).toDouble(),
+      quantity: quantity,
+      price: price,
+      total: (json['total'] ?? price * quantity).toDouble(),
       buyerProtectionFee: (json['buyerProtectionFee'] ?? 0).toDouble(),
       shippingStatus: ShippingStatus.fromString(json['shippingStatus']),
       statusLogs: (json['statusLogs'] as List<dynamic>?)
@@ -160,8 +165,8 @@ class PurchaseItemModel {
     );
   }
 
-  /// Total for this item (price * quantity)
-  double get itemTotal => price * quantity;
+  /// Total for this item (price * quantity) - alias for total field
+  double get itemTotal => total;
 
   /// Get display image URL
   String? get imageUrl => variationImage;

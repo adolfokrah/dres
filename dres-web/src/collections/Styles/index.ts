@@ -4,6 +4,7 @@ import { authenticated } from '../../access/authenticated'
 import { anyone } from '../../access/anyone'
 import { getStyleReviewsEndpoint } from './endpoints/getStyleReviews'
 import { getMyDraftStyles } from './endpoints/getMyDraftStyles'
+import { updateVariationsOnTitleChange } from './hooks/updateVariationsOnTitleChange'
 
 export const Styles: CollectionConfig = {
   slug: 'styles',
@@ -31,6 +32,10 @@ export const Styles: CollectionConfig = {
         }
         return data
       },
+    ],
+    afterChange: [
+      // Update variation titles/slugs when style title changes
+      updateVariationsOnTitleChange,
     ],
   },
   endpoints: [

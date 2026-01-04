@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dres/core/services/api_exception.dart';
 import 'package:dres/features/shop/data/repositories/brands_repository.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_event.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_state.dart';
@@ -28,7 +29,7 @@ class BrandsBloc extends Bloc<BrandsEvent, BrandsState> {
     } catch (e) {
       emit(state.copyWith(
         status: BrandsStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: getErrorMessage(e),
       ));
     }
   }

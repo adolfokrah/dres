@@ -10,7 +10,6 @@ import 'package:dres/features/orders/logic/order_details_bloc/order_details_bloc
 import 'package:dres/features/orders/presentation/widgets/order_progress_bar.dart';
 import 'package:dres/features/orders/presentation/widgets/purchase_seller_card.dart';
 import 'package:dres/features/orders/presentation/widgets/order_summary_card.dart';
-import 'package:dres/features/orders/presentation/widgets/delivery_code_card.dart';
 
 class PurchaseDetailsScreen extends StatefulWidget {
   final String orderId;
@@ -119,11 +118,6 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Delivery code at the top (show when any item is out for delivery)
-                  if (purchaseDetails.hasItemsOutForDelivery &&
-                      purchaseDetails.deliveryCode != null)
-                    DeliveryCodeCard(code: purchaseDetails.deliveryCode!),
-
                   // Progress bar
                   OrderProgressBar(
                     status: purchaseDetails.order.status,
@@ -149,14 +143,6 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
                             OrderDetailsFetchRequested(orderId: widget.orderId),
                           );
                         }
-                      },
-                      onResellItemTap: (item) {
-                        // TODO: Handle resell item
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Resell item feature coming soon'),
-                          ),
-                        );
                       },
                     );
                   }),

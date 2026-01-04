@@ -10,6 +10,7 @@ interface SellerGroup {
   buyerProtectionFee: number
   itemsTotal: number
   total: number
+  deliveryCode: string | null
 }
 
 interface PurchaseDetails {
@@ -30,12 +31,11 @@ interface PurchaseDetails {
     totalDiscount: number
     grandTotal: number
   }
-  deliveryCode: string | null
 }
 
 /**
  * GET /api/orders/:id/purchase-details
- * Get complete purchase details with items grouped by seller and delivery codes
+ * Get complete purchase details with items grouped by seller and delivery codes per seller
  */
 export const getPurchaseDetails: PayloadHandler = async (req) => {
   const { payload, user, routeParams } = req
@@ -67,18 +67,25 @@ export const getPurchaseDetails: PayloadHandler = async (req) => {
       return Response.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Fetch delivery code for this order (one per order)
-    const deliveryCodeResult = await payload.find({
+    // Fetch all delivery codes for this order (one per seller)
+    const deliveryCodesResult = await payload.find({
       collection: 'delivery-codes' as any,
       where: {
         order: { equals: orderId },
       },
-      limit: 1,
+      limit: 100,
       depth: 0,
     })
-    const deliveryCode = deliveryCodeResult.docs.length > 0 
-      ? (deliveryCodeResult.docs[0] as any).code 
-      : null
+    
+    // Map seller ID to delivery code
+    const deliveryCodesBySeller = new Map<string, string>()
+    for (const doc of deliveryCodesResult.docs) {
+      const codeDoc = doc as any
+      const sellerId = typeof codeDoc.seller === 'object' ? codeDoc.seller.id : codeDoc.seller
+      if (sellerId) {
+        deliveryCodesBySeller.set(sellerId, codeDoc.code)
+      }
+    }
 
     // Group items by seller
     const items = (order.items || []) as any[]
@@ -92,7 +99,16 @@ export const getPurchaseDetails: PayloadHandler = async (req) => {
 
       if (!sellerGroupsMap.has(sellerId)) {
         // Get seller info from item (stored at purchase time) or from relation
-        const sellerName = item.sellerName || seller.firstName || seller.username || 'Unknown Seller'
+        // Priority: stored sellerName > shopName > firstName lastName > username
+        let sellerName = item.sellerName
+        if (!sellerName && typeof seller === 'object') {
+          sellerName = seller.shopName || 
+            `${seller.firstName || ''} ${seller.lastName || ''}`.trim() || 
+            seller.username || 
+            'Unknown Seller'
+        }
+        sellerName = sellerName || 'Unknown Seller'
+        
         const sellerImage = item.sellerImage || seller.profilePhoto?.url || null
 
         sellerGroupsMap.set(sellerId, {
@@ -105,10 +121,14 @@ export const getPurchaseDetails: PayloadHandler = async (req) => {
           buyerProtectionFee: 0,
           itemsTotal: 0,
           total: 0,
+          deliveryCode: deliveryCodesBySeller.get(sellerId) || null,
         })
       }
 
       const group = sellerGroupsMap.get(sellerId)!
+      
+      // Calculate item total
+      const itemTotal = (item.price || 0) * (item.quantity || 1)
       
       // Add item to group
       group.items.push({
@@ -119,6 +139,7 @@ export const getPurchaseDetails: PayloadHandler = async (req) => {
         skuTitle: item.skuTitle,
         quantity: item.quantity,
         price: item.price,
+        total: itemTotal,
         shippingStatus: item.shippingStatus,
         statusLogs: item.statusLogs || [],
         buyerProtectionFee: item.buyerProtectionFee || 0,
@@ -126,7 +147,7 @@ export const getPurchaseDetails: PayloadHandler = async (req) => {
 
       // Accumulate totals
       group.buyerProtectionFee += item.buyerProtectionFee || 0
-      group.itemsTotal += (item.price || 0) * (item.quantity || 1)
+      group.itemsTotal += itemTotal
     }
 
     // Calculate totals for each group
@@ -157,7 +178,6 @@ export const getPurchaseDetails: PayloadHandler = async (req) => {
       shippingAddress: (order as any).shippingAddress || null,
       sellerGroups,
       summary,
-      deliveryCode,
     }
 
     return Response.json(purchaseDetails)

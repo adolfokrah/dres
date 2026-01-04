@@ -12,14 +12,12 @@ class PurchaseSellerCard extends StatelessWidget {
   final SellerGroupModel sellerGroup;
   final String orderId;
   final void Function(PurchaseItemModel item)? onReturnItemTap;
-  final void Function(PurchaseItemModel item)? onResellItemTap;
 
   const PurchaseSellerCard({
     super.key,
     required this.sellerGroup,
     required this.orderId,
     this.onReturnItemTap,
-    this.onResellItemTap,
   });
 
   @override
@@ -87,7 +85,6 @@ class PurchaseSellerCard extends StatelessWidget {
               child: PurchaseItemTile(
                 item: item,
                 onReturnItemTap: onReturnItemTap,
-                onResellItemTap: onResellItemTap,
               ),
             ),
           ),
@@ -125,6 +122,12 @@ class PurchaseSellerCard extends StatelessWidget {
               ),
             ],
           ),
+
+          // Delivery code for this seller (show when items are out for delivery)
+          if (sellerGroup.hasItemsOutForDelivery && sellerGroup.deliveryCode != null) ...[
+            _DeliveryCodeSection(code: sellerGroup.deliveryCode!),
+            const SizedBox(height: 16),
+          ],
         ],
       ),
     );
@@ -162,6 +165,63 @@ class _FeeRow extends StatelessWidget {
           style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
         ),
       ],
+    );
+  }
+}
+
+/// Delivery code section shown within seller card
+class _DeliveryCodeSection extends StatelessWidget {
+  final String code;
+
+  const _DeliveryCodeSection({required this.code});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Your delivery pin',
+            style: AppTypography.bodyL.copyWith(
+              color: AppColors.textPrimary,
+            ),
+          ),
+          Row(
+            children: code.split('').map((digit) => _DigitBox(digit: digit)).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Individual digit box for delivery pin
+class _DigitBox extends StatelessWidget {
+  final String digit;
+
+  const _DigitBox({required this.digit});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 30,
+      height: 30,
+      margin: const EdgeInsets.only(left: 2),
+      decoration: BoxDecoration(
+        color: AppColors.textPrimary,
+        border: Border.all(color: AppColors.textPrimary),
+      ),
+      child: Center(
+        child: Text(
+          digit,
+          style: AppTypography.bodyL.copyWith(
+            color: AppColors.background,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
     );
   }
 }

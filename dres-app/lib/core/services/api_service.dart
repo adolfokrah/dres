@@ -1,6 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:dres/core/services/storage_service.dart';
+import 'package:dres/core/services/api_exception.dart';
+
+export 'package:dres/core/services/api_exception.dart';
 
 class ApiService {
   late final Dio _dio;
@@ -22,6 +25,7 @@ class ApiService {
     // Add interceptors
     _dio.interceptors.add(_createLogInterceptor());
     _dio.interceptors.add(_createAuthInterceptor());
+    _dio.interceptors.add(_createErrorInterceptor());
   }
 
   Dio get dio => _dio;
@@ -68,6 +72,27 @@ class ApiService {
           // TODO: Navigate to login screen or emit auth event
         }
         return handler.next(e);
+      },
+    );
+  }
+
+  // Error interceptor to convert DioException to ApiException
+  InterceptorsWrapper _createErrorInterceptor() {
+    return InterceptorsWrapper(
+      onError: (DioException e, handler) {
+        // Convert DioException to ApiException with user-friendly message
+        final apiException = ApiException.fromDioException(e);
+        
+        // Create a new DioException with our custom error message
+        final newException = DioException(
+          requestOptions: e.requestOptions,
+          response: e.response,
+          type: e.type,
+          error: apiException,
+          message: apiException.message,
+        );
+        
+        return handler.next(newException);
       },
     );
   }

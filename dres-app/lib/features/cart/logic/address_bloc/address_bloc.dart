@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dres/core/services/api_exception.dart';
 import 'package:dres/features/cart/data/repositories/address_repository.dart';
 import 'address_event.dart';
 import 'address_state.dart';
@@ -44,7 +45,7 @@ class AddressBloc extends Bloc<AddressEvent, AddressState> {
       debugPrint('🏠 AddressBloc ERROR: $e');
       emit(state.copyWith(
         status: AddressStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: getErrorMessage(e),
       ));
     }
   }
@@ -74,7 +75,7 @@ class AddressBloc extends Bloc<AddressEvent, AddressState> {
       debugPrint('🏠 AddressBloc DELETE ERROR: $e');
       emit(state.copyWith(
         status: AddressStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: getErrorMessage(e),
       ));
     }
   }
@@ -98,7 +99,7 @@ class AddressBloc extends Bloc<AddressEvent, AddressState> {
       debugPrint('🏠 AddressBloc UPDATE ERROR: $e');
       emit(state.copyWith(
         status: AddressStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: getErrorMessage(e),
       ));
     }
   }
@@ -118,7 +119,7 @@ class AddressBloc extends Bloc<AddressEvent, AddressState> {
     } catch (e) {
       emit(state.copyWith(
         status: AddressStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: getErrorMessage(e),
       ));
     }
   }

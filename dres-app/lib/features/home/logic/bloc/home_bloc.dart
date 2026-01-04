@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dres/core/services/api_exception.dart';
 import 'package:dres/features/home/data/repositories/home_repository.dart';
 import 'package:dres/features/home/logic/bloc/home_event.dart';
 import 'package:dres/features/home/logic/bloc/home_state.dart';
@@ -29,7 +30,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
       emit(state.copyWithSuccess(page));
     } catch (e) {
-      emit(state.copyWithFailure(e.toString()));
+      emit(state.copyWithFailure(getErrorMessage(e)));
     }
   }
 
@@ -46,7 +47,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
       emit(state.copyWithSuccess(page));
     } catch (e) {
-      emit(state.copyWithFailure(e.toString()));
+      emit(state.copyWithFailure(getErrorMessage(e)));
     }
   }
 }

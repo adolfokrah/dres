@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dres/core/services/api_exception.dart';
 import 'package:dres/features/sell/data/repositories/sell_repository.dart';
 import 'package:dres/features/sell/logic/style_details_bloc/style_details_event.dart';
 import 'package:dres/features/sell/logic/style_details_bloc/style_details_state.dart';
@@ -36,7 +37,7 @@ class StyleDetailsBloc extends Bloc<StyleDetailsEvent, StyleDetailsState> {
       emit(
         state.copyWith(
           status: StyleDetailsStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: getErrorMessage(e),
         ),
       );
     }
@@ -65,7 +66,7 @@ class StyleDetailsBloc extends Bloc<StyleDetailsEvent, StyleDetailsState> {
       emit(
         state.copyWith(
           status: StyleDetailsStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: getErrorMessage(e),
         ),
       );
     }
@@ -97,7 +98,7 @@ class StyleDetailsBloc extends Bloc<StyleDetailsEvent, StyleDetailsState> {
       emit(
         state.copyWith(
           status: StyleDetailsStatus.failure,
-          errorMessage: e.toString(),
+          errorMessage: getErrorMessage(e),
         ),
       );
     }
