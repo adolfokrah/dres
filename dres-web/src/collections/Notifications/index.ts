@@ -1,12 +1,18 @@
 import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
+import { 
+  getMyNotifications, 
+  getUnreadCount, 
+  markAsRead, 
+  markAllAsRead 
+} from './endpoints/notificationEndpoints'
 
 export const Notifications: CollectionConfig = {
   slug: 'notifications',
   admin: {
     group: 'Users',
-    defaultColumns: ['user', 'message', 'read', 'createdAt'],
+    defaultColumns: ['user', 'type', 'message', 'read', 'createdAt'],
     description: 'User notifications',
   },
   access: {
@@ -42,6 +48,28 @@ export const Notifications: CollectionConfig = {
       }
     },
   },
+  endpoints: [
+    {
+      path: '/my-notifications',
+      method: 'get',
+      handler: getMyNotifications,
+    },
+    {
+      path: '/unread-count',
+      method: 'get',
+      handler: getUnreadCount,
+    },
+    {
+      path: '/:id/read',
+      method: 'patch',
+      handler: markAsRead,
+    },
+    {
+      path: '/mark-all-read',
+      method: 'post',
+      handler: markAllAsRead,
+    },
+  ],
   fields: [
     {
       name: 'user',
@@ -50,6 +78,20 @@ export const Notifications: CollectionConfig = {
       required: true,
       admin: {
         description: 'The user who receives this notification',
+      },
+    },
+    {
+      name: 'type',
+      type: 'select',
+      defaultValue: 'system',
+      options: [
+        { label: 'Price Drop', value: 'price_drop' },
+        { label: 'Order Update', value: 'order_update' },
+        { label: 'Promotion', value: 'promotion' },
+        { label: 'System', value: 'system' },
+      ],
+      admin: {
+        description: 'Type of notification',
       },
     },
     {
@@ -72,7 +114,14 @@ export const Notifications: CollectionConfig = {
       name: 'path',
       type: 'text',
       admin: {
-        description: 'Path to navigate to when notification is clicked',
+        description: 'Path to navigate to when notification is clicked (e.g., /orders/123, /products/abc)',
+      },
+    },
+    {
+      name: 'metadata',
+      type: 'json',
+      admin: {
+        description: 'Additional data for the notification (orderId, productId, etc.)',
       },
     },
     {

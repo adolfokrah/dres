@@ -51,7 +51,7 @@ enum IncomingItemStatus {
       case IncomingItemStatus.outForDelivery:
         return 2;
       case IncomingItemStatus.delivered:
-        return 3;
+        return 4; // All steps complete when delivered
       case IncomingItemStatus.returned:
         return 4;
       case IncomingItemStatus.returnInProgress:

@@ -21,6 +21,7 @@ import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_event.dart';
 import 'package:dres/features/favorites/logic/favorites_bloc/favorites_bloc.dart';
+import 'package:dres/features/notifications/logic/notifications_bloc/notifications_bloc.dart';
 import 'package:dres/core/services/storage_service.dart';
 import 'package:dres/core/services/site_settings_service.dart';
 
@@ -174,6 +175,21 @@ class _MainAppState extends State<MainApp> {
           },
           lazy: false, // Load immediately
         ),
+        // NotificationsBloc - for notifications (singleton, fetches unread count on startup if logged in)
+        BlocProvider<NotificationsBloc>(
+          create: (_) {
+            final notificationsBloc = getIt<NotificationsBloc>();
+            // Fetch unread count on startup if user is logged in
+            final storageService = getIt<StorageService>();
+            storageService.getToken().then((token) {
+              if (token != null && token.isNotEmpty) {
+                notificationsBloc.add(const NotificationsUnreadCountRequested());
+              }
+            });
+            return notificationsBloc;
+          },
+          lazy: false, // Load immediately
+        ),
       ],
       // Listen for auth state changes to fetch favorites when user logs in
       child: BlocListener<AuthBloc, AuthState>(
@@ -182,9 +198,10 @@ class _MainAppState extends State<MainApp> {
             previous.status != AuthStatus.authenticated && 
             current.status == AuthStatus.authenticated,
         listener: (context, state) {
-          // User just logged in, fetch favorites and cart
+          // User just logged in, fetch favorites, cart, and notifications
           getIt<FavoritesBloc>().add(const FavoritesFetchRequested());
           getIt<CartBloc>().add(const CartFetchRequested());
+          getIt<NotificationsBloc>().add(const NotificationsUnreadCountRequested());
         },
         child: MaterialApp.router(
           debugShowCheckedModeBanner: false,

@@ -5,6 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/di/injection.dart';
+import 'package:dres/features/orders/data/models/order_model.dart';
 import 'package:dres/features/orders/data/models/purchase_details_model.dart';
 import 'package:dres/features/orders/logic/order_details_bloc/order_details_bloc.dart';
 import 'package:dres/features/orders/presentation/widgets/order_progress_bar.dart';
@@ -161,7 +162,13 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
   }
 
   /// Calculate overall progress from all items in all seller groups
+  /// Returns 4 if order is completed, otherwise returns max item shipping progress
   int _calculateOverallProgress(PurchaseDetailsModel purchaseDetails) {
+    // If order is completed, all steps should be green
+    if (purchaseDetails.order.status == OrderStatus.completed) {
+      return 4;
+    }
+    
     int maxProgress = 0;
     for (final group in purchaseDetails.sellerGroups) {
       for (final item in group.items) {

@@ -4,6 +4,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/cart_icon_button.dart';
+import 'package:dres/core/widgets/notification_bell_icon.dart';
 import 'package:dres/l10n/app_localizations.dart';
 
 /// Header variation types
@@ -106,10 +107,7 @@ class UnifiedHeader extends StatelessWidget {
     switch (variant) {
       case HeaderVariant.search:
       case HeaderVariant.titleWithBell:
-        return _HeaderIconButton(
-          icon: PhosphorIcons.bellSimple(),
-          onTap: onNotificationTap,
-          badgeCount: notificationCount,
+        return NotificationBellIcon(
         );
       case HeaderVariant.simple:
       case HeaderVariant.titleOnly:
@@ -247,17 +245,15 @@ class _TitleOnlyHeader extends UnifiedHeader {
        );
 }
 
-/// Reusable header icon button with optional badge
+/// Reusable header icon button (for back button, etc.)
 class _HeaderIconButton extends StatelessWidget {
   const _HeaderIconButton({
     required this.icon,
     this.onTap,
-    this.badgeCount = 0,
   });
 
   final PhosphorIconData icon;
   final VoidCallback? onTap;
-  final int badgeCount;
 
   @override
   Widget build(BuildContext context) {
@@ -266,35 +262,8 @@ class _HeaderIconButton extends StatelessWidget {
       child: SizedBox(
         width: 40,
         height: 40,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            PhosphorIcon(icon, color: AppColors.textPrimary, size: 24),
-            if (badgeCount > 0)
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: AppColors.error,
-                    shape: BoxShape.circle,
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 16,
-                    minHeight: 16,
-                  ),
-                  child: Text(
-                    badgeCount > 99 ? '99+' : badgeCount.toString(),
-                    style: AppTypography.bodyXS.copyWith(
-                      color: AppColors.textOnPrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-          ],
+        child: Center(
+          child: PhosphorIcon(icon, color: AppColors.textPrimary, size: 24),
         ),
       ),
     );

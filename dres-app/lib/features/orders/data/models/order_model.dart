@@ -81,7 +81,7 @@ enum ShippingStatus {
       case ShippingStatus.outForDelivery:
         return 2;
       case ShippingStatus.delivered:
-        return 3;
+        return 4; // All steps complete when delivered
       case ShippingStatus.returned:
       case ShippingStatus.returnInProgress:
       case ShippingStatus.notAvailable:

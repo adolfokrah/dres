@@ -81,7 +81,7 @@ export const getMyDraftStyles: PayloadHandler = async (req) => {
 
         drafts.push({
           id: style.id,
-          title: style.title || 'Untitled Style',
+          title: style.title || '',
           brandName,
           thumbnail,
           stepsLeft: stepsAnalysis.stepsLeft,

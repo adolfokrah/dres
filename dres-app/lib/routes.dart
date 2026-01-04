@@ -33,6 +33,7 @@ import 'package:dres/features/orders/presentation/view/purchase_details_screen.d
 import 'package:dres/features/orders/presentation/view/return_item_screen.dart';
 import 'package:dres/features/profile/presentation/view/user_profile_screen.dart';
 import 'package:dres/features/orders/presentation/view/incoming_order_details_screen.dart';
+import 'package:dres/features/notifications/presentation/view/notifications_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
 import 'package:dres/core/models/menu_model.dart';
 
@@ -150,6 +151,14 @@ class AppRoutes {
         name: 'cart',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const CartScreen(),
+      ),
+
+      // Notifications (outside shell, full screen)
+      GoRoute(
+        path: '/notifications',
+        name: 'notifications',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const NotificationsScreen(),
       ),
 
       // Checkout (outside shell, full screen)
