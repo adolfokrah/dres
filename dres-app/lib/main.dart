@@ -22,6 +22,7 @@ import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_event.dart';
 import 'package:dres/features/favorites/logic/favorites_bloc/favorites_bloc.dart';
 import 'package:dres/features/notifications/logic/notifications_bloc/notifications_bloc.dart';
+import 'package:dres/features/profile/logic/user_products_bloc/user_products_bloc.dart';
 import 'package:dres/core/services/storage_service.dart';
 import 'package:dres/core/services/site_settings_service.dart';
 
@@ -80,9 +81,6 @@ class _MainAppState extends State<MainApp> {
     super.initState();
     // Listen for deep links while app is running (warm start)
     widget.appLinks.uriLinkStream.listen((uri) {
-      debugPrint('🔗 Deep link received while running: ${uri.toString()}');
-      debugPrint('🔗 Host: ${uri.host}, Path: ${uri.path}');
-      
       // Construct the full path from host + path
       // dres://products/slug => host=products, path=/slug => /products/slug
       String fullPath;
@@ -92,7 +90,6 @@ class _MainAppState extends State<MainApp> {
         fullPath = uri.path;
       }
       
-      debugPrint('🔗 Full path: $fullPath');
       
       if (fullPath.isNotEmpty && fullPath != '/') {
         // Use push to add on top of current stack (avoid shell conflict)
@@ -189,6 +186,10 @@ class _MainAppState extends State<MainApp> {
             return notificationsBloc;
           },
           lazy: false, // Load immediately
+        ),
+        // UserProductsBloc - for user's published products (singleton)
+        BlocProvider<UserProductsBloc>(
+          create: (_) => getIt<UserProductsBloc>(),
         ),
       ],
       // Listen for auth state changes to fetch favorites when user logs in

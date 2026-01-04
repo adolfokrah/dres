@@ -195,14 +195,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     // Navigate based on action URL (path field from backend)
-    var path = notification.actionUrl;
+    final path = notification.actionUrl;
     if (path != null && path.isNotEmpty) {
-      // Ensure path starts with /
-      if (!path.startsWith('/')) {
-        path = '/$path';
-      }
       try {
-        context.push(path);
+        debugPrint('Navigating to path: $path');
       } catch (e) {
         debugPrint('Failed to navigate to path: $path, error: $e');
       }

@@ -66,7 +66,7 @@ export const notifySellersOnOrderPlaced: CollectionAfterChangeHook = async ({
         data: {
           user: sellerId,
           message: `New order received! #${doc.orderId} waiting to be shipped.`,
-          path: `/sold/${doc.id}`,
+          path: `/incoming-orders/${doc.id}`,
           image: data.image || undefined,
           read: false,
         },

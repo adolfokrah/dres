@@ -242,7 +242,7 @@ class _ProductTile extends StatelessWidget {
                   // Title
                   Text(
                     product.title.isNotEmpty ? product.title : 'Untitled',
-                    style: AppTypography.bodyM.copyWith(
+                    style: AppTypography.bodyL.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
                     ),
@@ -255,7 +255,7 @@ class _ProductTile extends StatelessWidget {
                   if (product.brandName != null) ...[
                     Text(
                       product.brandName!,
-                      style: AppTypography.bodyS.copyWith(
+                      style: AppTypography.bodyM.copyWith(
                         color: AppColors.textSecondary,
                       ),
                       maxLines: 1,
@@ -270,7 +270,7 @@ class _ProductTile extends StatelessWidget {
                       // Variations count
                       Text(
                         '${product.variationCount} variation${product.variationCount != 1 ? 's' : ''}',
-                        style: AppTypography.bodyS.copyWith(
+                        style: AppTypography.bodyM.copyWith(
                           color: AppColors.textHint,
                         ),
                       ),
@@ -278,7 +278,7 @@ class _ProductTile extends StatelessWidget {
                       // Stock
                       Text(
                         '${product.totalStock} in stock',
-                        style: AppTypography.bodyS.copyWith(
+                        style: AppTypography.bodyM.copyWith(
                           color: product.totalStock > 0 
                               ? AppColors.textHint 
                               : AppColors.error,

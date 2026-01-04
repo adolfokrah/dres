@@ -100,7 +100,7 @@ export const notifyCustomerOnStatusChange: CollectionAfterChangeHook = async ({
             user: customerId,
             image: imageId || undefined,
             message,
-            path: `orders/${doc.id}`,
+            path: `/orders/${doc.id}`,
             read: false,
           },
         })

@@ -41,25 +41,27 @@ class NotificationTile extends StatelessWidget {
                       placeholder: (context, url) => Container(
                         width: 60,
                         height: 60,
-                        color: AppColors.secondary,
+                        color: Colors.white,
                       ),
                       errorWidget: (context, url, error) => Container(
                         width: 60,
                         height: 60,
-                        color: AppColors.secondary,
-                        child: const Icon(
-                          Icons.image_not_supported_outlined,
-                          color: AppColors.textHint,
+                        color: Colors.white,
+                        padding: const EdgeInsets.all(12),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          fit: BoxFit.contain,
                         ),
                       ),
                     )
                   : Container(
                       width: 60,
                       height: 60,
-                      color: AppColors.secondary,
-                      child: const Icon(
-                        Icons.notifications_outlined,
-                        color: AppColors.textHint,
+                      color: Colors.white,
+                      padding: const EdgeInsets.all(12),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        fit: BoxFit.contain,
                       ),
                     ),
             ),

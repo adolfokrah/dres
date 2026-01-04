@@ -48,6 +48,17 @@ export const Notifications: CollectionConfig = {
       }
     },
   },
+  hooks: {
+    beforeChange: [
+      // Ensure path always starts with /
+      ({ data }) => {
+        if (data.path && typeof data.path === 'string' && !data.path.startsWith('/')) {
+          data.path = `/${data.path}`
+        }
+        return data
+      },
+    ],
+  },
   endpoints: [
     {
       path: '/my-notifications',

@@ -150,7 +150,7 @@ export const returnItem: PayloadHandler = async (req) => {
         data: {
           user: sellerId,
           message: `Return requested for order #${order.orderId}. Reason: ${reasonLabels[reason] || reason}`,
-          path: `/sold/${orderId}`,
+          path: `/incoming-orders/${orderId}`,
           image: imageId || undefined,
           read: false,
         },

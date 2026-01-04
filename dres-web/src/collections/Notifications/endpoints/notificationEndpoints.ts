@@ -5,17 +5,19 @@ import type { PayloadHandler } from 'payload'
  * Get notifications for the current user with pagination
  */
 export const getMyNotifications: PayloadHandler = async (req) => {
-  const { payload, user, query } = req
+  const { payload, user } = req
 
   if (!user) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const page = parseInt(query.page as string) || 1
-  const limit = parseInt(query.limit as string) || 20
+  // Get query params from URL
+  const url = new URL(req.url || '', 'http://localhost')
+  const page = parseInt(url.searchParams.get('page') || '1')
+  const limit = parseInt(url.searchParams.get('limit') || '20')
 
   try {
-    // Fetch notifications for the user
+    // Fetch notifications for the user (depth: 0 to avoid population issues with invalid image refs)
     const notifications = await payload.find({
       collection: 'notifications',
       where: {
@@ -24,7 +26,7 @@ export const getMyNotifications: PayloadHandler = async (req) => {
       sort: '-createdAt',
       page,
       limit,
-      depth: 1,
+      depth: 0,
     })
 
     // Get unread count
@@ -37,18 +39,47 @@ export const getMyNotifications: PayloadHandler = async (req) => {
         ],
       },
       limit: 0, // We only need the count
+      depth: 0, // Don't populate relations
     })
 
     // Transform notifications
-    const docs = notifications.docs.map((notification: any) => ({
-      id: notification.id,
-      type: notification.type || 'system',
-      message: notification.message,
-      imageUrl: notification.image?.url || notification.image?.sizes?.thumbnail?.url || null,
-      isRead: notification.read || false,
-      createdAt: notification.createdAt,
-      actionUrl: notification.path || null,
-      metadata: notification.metadata || null,
+    const docs = await Promise.all(notifications.docs.map(async (notification: any) => {
+      let imageUrl = null
+      
+      // Try to get the image URL
+      if (notification.image) {
+        if (typeof notification.image === 'string') {
+          // Check if it's already a URL or an ObjectId
+          if (notification.image.startsWith('/') || notification.image.startsWith('http')) {
+            // It's already a URL
+            imageUrl = notification.image
+          } else {
+            // It's an ObjectId, try to fetch the media
+            try {
+              const media = await payload.findByID({
+                collection: 'media',
+                id: notification.image,
+              })
+              imageUrl = media?.url || null
+            } catch {
+              // Invalid media reference, ignore
+            }
+          }
+        } else if (typeof notification.image === 'object') {
+          imageUrl = notification.image.url || null
+        }
+      }
+      
+      return {
+        id: notification.id,
+        type: notification.type || 'system',
+        message: notification.message,
+        imageUrl,
+        isRead: notification.read || false,
+        createdAt: notification.createdAt,
+        actionUrl: notification.path || null,
+        metadata: notification.metadata || null,
+      }
     }))
 
     return Response.json({
@@ -88,6 +119,7 @@ export const getUnreadCount: PayloadHandler = async (req) => {
         ],
       },
       limit: 0, // We only need the count
+      depth: 0, // Don't populate relations
     })
 
     return Response.json({ count: result.totalDocs })
