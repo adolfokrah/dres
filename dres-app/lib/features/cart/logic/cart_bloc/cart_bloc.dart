@@ -23,6 +23,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     on<CartApplyPromoRequested>(_onApplyPromoRequested);
     on<CartRemovePromoRequested>(_onRemovePromoRequested);
     on<CartPlaceOrderRequested>(_onPlaceOrderRequested);
+    on<CartPlaceOrderReset>(_onPlaceOrderReset);
   }
 
   /// Helper to convert CartValidationResponse to CartValidation
@@ -253,5 +254,12 @@ class CartBloc extends Bloc<CartEvent, CartState> {
         placeOrderError: getErrorMessage(e),
       ));
     }
+  }
+
+  void _onPlaceOrderReset(
+    CartPlaceOrderReset event,
+    Emitter<CartState> emit,
+  ) {
+    emit(state.copyWith(clearPlaceOrder: true));
   }
 }

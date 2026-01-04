@@ -99,7 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _buildMenuItem(
                           title: l10n.vacationMode,
                           onTap: () {
-                            // TODO: Navigate to vacation mode
+                            context.pushNamed('vacation-mode');
                           },
                         ),
 

@@ -69,3 +69,8 @@ class CartPlaceOrderRequested extends CartEvent {
   @override
   List<Object?> get props => [shippingAddressId];
 }
+
+/// Reset place order status (after handling error or success)
+class CartPlaceOrderReset extends CartEvent {
+  const CartPlaceOrderReset();
+}

@@ -59,6 +59,7 @@ class AuthUser {
   final String? photo;
   final String? language;
   final AuthCountry? country;
+  final bool vacationMode;
   final int followersCount;
   final int followingCount;
   final int reviewsCount;
@@ -73,6 +74,7 @@ class AuthUser {
     this.photo,
     this.language,
     this.country,
+    this.vacationMode = false,
     this.followersCount = 0,
     this.followingCount = 0,
     this.reviewsCount = 0,
@@ -107,6 +109,7 @@ class AuthUser {
       photo: photoUrl,
       language: json['language'] as String?,
       country: country,
+      vacationMode: json['vacationMode'] ?? false,
       followersCount: json['followersCount'] ?? 0,
       followingCount: json['followingCount'] ?? 0,
       reviewsCount: json['reviewsCount'] ?? 0,

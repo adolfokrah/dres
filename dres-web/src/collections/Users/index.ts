@@ -9,6 +9,7 @@ import { firebaseOAuth } from './endpoints/firebaseOAuth'
 import { addAddress, deleteAddress, setDefaultAddress, updateAddress } from './endpoints/addresses'
 import { getUserStats } from './endpoints/getUserStats'
 import { updateEmail, resendVerification } from './endpoints/updateEmail'
+import { getBanksEndpoint, resolveAccountEndpoint } from './endpoints/resolveBankAccount'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -80,6 +81,8 @@ export const Users: CollectionConfig = {
       method: 'post',
       handler: resendVerification,
     },
+    getBanksEndpoint,
+    resolveAccountEndpoint,
   ],
   fields: [
     {

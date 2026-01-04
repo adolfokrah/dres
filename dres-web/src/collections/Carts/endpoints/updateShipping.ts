@@ -1,4 +1,5 @@
 import { PayloadHandler } from 'payload'
+import { enrichCartItems } from './enrichCartItems'
 
 // Default buyer protection fee in GHS when shipping is 0 or not available
 const DEFAULT_BUYER_PROTECTION_FEE_GHS = 50
@@ -254,49 +255,29 @@ export const updateShipping: PayloadHandler = async (req) => {
     const sellersWithRates = sellerShippingRates.size
     const sellersWithoutRates = sellerIds.size - sellersWithRates
 
-    // Build validation (reusing items data - validation based on original fetch)
-    const validationIssues: string[] = []
-    let hasUnavailableItems = false
-    let hasExceedsStock = false // eslint-disable-line prefer-const
+    // Get user's country ID for validation (reuse userCountry from earlier)
+    const userCountryId = typeof userCountry === 'object' && userCountry !== null 
+      ? (userCountry as { id: string }).id 
+      : userCountry as string | undefined
 
-    for (const item of items) {
-      const variation = item.variation
-      if (typeof variation === 'object' && variation.style) {
-        const seller = variation.style.seller
-        if (typeof seller === 'object') {
-          const sellerData = seller as unknown as Record<string, unknown>
-          if (sellerData.vacationMode === true) {
-            hasUnavailableItems = true
-          }
-          // Check seller country vs user country
-          const sellerCountry = sellerData.country
-          const sellerCountryId = typeof sellerCountry === 'object' && sellerCountry !== null 
-            ? (sellerCountry as { id: string }).id 
-            : sellerCountry as string | undefined
-          const userCountry = user.country
-          const userCountryId = typeof userCountry === 'object' && userCountry !== null 
-            ? (userCountry as { id: string }).id 
-            : userCountry as string | undefined
-          if (userCountryId && sellerCountryId && sellerCountryId !== userCountryId) {
-            hasUnavailableItems = true
-          }
-        }
-      }
-    }
+    // Enrich cart items with validation flags using shared utility
+    const updatedCartItems = (updatedCart.items || []) as Array<Record<string, unknown>>
+    const { enrichedItems, validation } = await enrichCartItems({
+      payload,
+      items: updatedCartItems as Parameters<typeof enrichCartItems>[0]['items'],
+      userCountryId: userCountryId || null,
+    })
 
-    if (hasUnavailableItems) {
-      validationIssues.push('Some items are unavailable. Please update your cart to continue.')
+    // Return cart with enriched items
+    const enrichedCart = {
+      ...updatedCart,
+      items: enrichedItems,
     }
-    if (hasExceedsStock) {
-      validationIssues.push('Some items exceed available stock. Please update quantities in your cart.')
-    }
-
-    const isValid = !hasUnavailableItems && !hasExceedsStock
 
     return Response.json({
       success: true,
       message: `Shipping updated for ${items.length} items`,
-      cart: updatedCart,
+      cart: enrichedCart,
       shippingSummary: {
         cityId,
         totalShipping,
@@ -306,10 +287,7 @@ export const updateShipping: PayloadHandler = async (req) => {
         // Include estimated delivery info from first rate (could improve this)
         estimatedDays: shippingRatesResult.docs[0]?.estimatedDays || null,
       },
-      validation: {
-        valid: isValid,
-        reasons: validationIssues,
-      },
+      validation,
     })
   } catch (error: unknown) {
     payload.logger.error(`Error updating shipping: ${error}`)

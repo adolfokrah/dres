@@ -30,6 +30,7 @@ class CheckoutScreen extends StatefulWidget {
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final TextEditingController _promoController = TextEditingController();
   String? _lastShippingCityId; // Track last city we calculated shipping for
+  bool _isShowingErrorDialog = false; // Prevent duplicate error dialogs
 
   @override
   void initState() {
@@ -126,12 +127,63 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       }
     } else if (state.placeOrderStatus == PlaceOrderStatus.error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(state.placeOrderError ?? 'Failed to place order'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      // Prevent showing multiple dialogs
+      if (_isShowingErrorDialog) {
+        debugPrint('🚨 Already showing error dialog, skipping');
+        return;
+      }
+      
+      // Show ALL order errors in a dialog so they persist until dismissed
+      // This is important because users need to understand why their order failed
+      final errorMessage = state.placeOrderError ?? 'Failed to place order';
+      
+      debugPrint('🚨 Place order error: $errorMessage');
+      debugPrint('🚨 Showing error dialog...');
+      
+      _isShowingErrorDialog = true;
+      
+      // Use addPostFrameCallback to ensure dialog shows after current frame
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          _isShowingErrorDialog = false;
+          return;
+        }
+        // Show error in a dialog - reset status AFTER dialog is dismissed
+        showDialog(
+          context: context,
+          barrierDismissible: false, // User must tap OK
+          builder: (dialogContext) => AlertDialog(
+            title: Row(
+              children: [
+                PhosphorIcon(
+                  PhosphorIconsRegular.warning,
+                  color: AppColors.error,
+                  size: 24,
+                ),
+                const SizedBox(width: 8),
+                const Text('Order Issue'),
+              ],
+            ),
+            content: Text(errorMessage),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  debugPrint('🚨 Dialog OK pressed - dismissing');
+                  Navigator.of(dialogContext).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        ).then((_) {
+          debugPrint('🚨 Dialog dismissed - resetting state');
+          _isShowingErrorDialog = false;
+          if (!mounted) return;
+          // Reset status and refresh cart AFTER dialog is dismissed
+          getIt<CartBloc>().add(const CartPlaceOrderReset());
+          getIt<CartBloc>().add(const CartFetchRequested());
+        });
+      });
     }
   }
 
@@ -271,9 +323,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             },
             child: BlocListener<CartBloc, CartState>(
             listenWhen: (previous, current) {
-              // Listen for place order status changes
+              debugPrint('🔔 listenWhen: prev=${previous.placeOrderStatus}, curr=${current.placeOrderStatus}');
+              // Only listen when status changes TO success or error (not FROM them)
               if (previous.placeOrderStatus != current.placeOrderStatus) {
-                return true;
+                // Only trigger when transitioning TO success or error
+                final shouldListen = current.placeOrderStatus == PlaceOrderStatus.success ||
+                       current.placeOrderStatus == PlaceOrderStatus.error;
+                debugPrint('🔔 Status changed, shouldListen=$shouldListen');
+                return shouldListen;
               }
               // Only listen for promo changes when NOT placing order AND when message actually changed
               if (current.placeOrderStatus == PlaceOrderStatus.initial) {
@@ -284,6 +341,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               return false;
             },
             listener: (context, cartState) {
+              debugPrint('🔔 Listener called: placeOrderStatus=${cartState.placeOrderStatus}');
               // Handle place order result
               if (cartState.placeOrderStatus == PlaceOrderStatus.success ||
                   cartState.placeOrderStatus == PlaceOrderStatus.error) {
@@ -298,7 +356,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               
               // Show promo success message
               if (cartState.promoMessage != null) {
-                ScaffoldMessenger.of(context).clearSnackBars();
+                // Don't clear existing snackbars - they might be important error messages
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(cartState.promoMessage!),
@@ -309,7 +367,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               }
               // Show promo error message
               if (cartState.promoError != null) {
-                ScaffoldMessenger.of(context).clearSnackBars();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(cartState.promoError!),
@@ -321,12 +378,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             },
             child: BlocBuilder<CartBloc, CartState>(
             builder: (context, cartState) {
+              // Show loading while fetching cart initially
               if (cartState.status == CartStatus.loading && cartState.cart == null) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              if (cartState.cart == null || cartState.items.isEmpty) {
+              // Don't show empty checkout if we're in the middle of placing an order
+              // (the cart might be clearing)
+              final isPlacingOrder = cartState.placeOrderStatus == PlaceOrderStatus.loading ||
+                  cartState.placeOrderStatus == PlaceOrderStatus.success;
+
+              if ((cartState.cart == null || cartState.items.isEmpty) && !isPlacingOrder) {
                 return _EmptyCheckout();
+              }
+
+              // If cart is empty but we're processing order, show loading
+              if (cartState.items.isEmpty && isPlacingOrder) {
+                return const Center(child: CircularProgressIndicator());
               }
 
               final sellerGroups = SellerGroup.groupBySeller(cartState.items);
@@ -458,10 +526,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                       
                       // Sticky bottom bar with grand total and place order button
+                      // Disable button when:
+                      // - No address selected
+                      // - Cart has invalid items
+                      // - Cart is loading
+                      // - Place order is loading or has error (until dialog dismissed)
                       CheckoutBottomBar(
                         grandTotal: grandTotal,
                         onPlaceOrder: _placeOrder,
-                        canPlaceOrder: selectedAddress != null && hasValidItems && cartState.status != CartStatus.loading,
+                        canPlaceOrder: selectedAddress != null && 
+                            hasValidItems && 
+                            cartState.status != CartStatus.loading &&
+                            cartState.placeOrderStatus != PlaceOrderStatus.loading &&
+                            cartState.placeOrderStatus != PlaceOrderStatus.error,
                         isLoading: cartState.placeOrderStatus == PlaceOrderStatus.loading,
                       ),
                     ],

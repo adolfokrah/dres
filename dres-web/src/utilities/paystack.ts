@@ -231,3 +231,184 @@ export function toSmallestUnit(amount: number): number {
 export function fromSmallestUnit(amount: number): number {
   return amount / 100
 }
+
+// =============================================================================
+// Bank & Account Verification
+// Docs: https://paystack.com/docs/identity-verification/verify-account-number/
+// =============================================================================
+
+interface PaystackBank {
+  id: number
+  name: string
+  slug: string
+  code: string
+  longcode: string
+  gateway: string | null
+  pay_with_bank: boolean
+  supports_transfer: boolean
+  active: boolean
+  country: string
+  currency: string
+  type: string
+  is_deleted: boolean
+}
+
+interface PaystackBankListResponse {
+  status: boolean
+  message: string
+  data: PaystackBank[]
+}
+
+interface PaystackResolveAccountResponse {
+  status: boolean
+  message: string
+  data: {
+    account_number: string
+    account_name: string
+    bank_id: number
+  }
+}
+
+/**
+ * Get list of banks for a specific country
+ * 
+ * @param country - Country code (e.g., 'ghana', 'nigeria')
+ * @param currency - Currency code (e.g., 'GHS', 'NGN')
+ * @returns List of banks
+ * 
+ * @example
+ * ```ts
+ * const result = await getBanks('ghana', 'GHS')
+ * if (result.success) {
+ *   // result.data contains array of banks
+ *   console.log(result.data)
+ * }
+ * ```
+ */
+export async function getBanks(country: string = 'ghana', currency: string = 'GHS'): Promise<{
+  success: boolean
+  data?: PaystackBank[]
+  error?: string
+}> {
+  if (!PAYSTACK_SECRET_KEY) {
+    return {
+      success: false,
+      error: 'Paystack secret key is not configured',
+    }
+  }
+
+  try {
+    const params = new URLSearchParams({
+      country,
+      currency,
+      use_cursor: 'false',
+      perPage: '100',
+    })
+
+    const response = await fetch(`${PAYSTACK_BASE_URL}/bank?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${PAYSTACK_SECRET_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const result = await response.json() as PaystackBankListResponse | PaystackError
+
+    if (!result.status) {
+      return {
+        success: false,
+        error: result.message || 'Failed to fetch banks',
+      }
+    }
+
+    return {
+      success: true,
+      data: (result as PaystackBankListResponse).data,
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    }
+  }
+}
+
+/**
+ * Resolve/Verify a bank account number
+ * Get the account name associated with an account number
+ * 
+ * **IMPORTANT: This endpoint requires a LIVE secret key.**
+ * Test keys will return "Invalid key" error.
+ * Available for: Nigeria, Ghana
+ * 
+ * @param accountNumber - The bank account number to verify
+ * @param bankCode - The bank code from getBanks()
+ * @returns Account details including account name
+ * 
+ * @example
+ * ```ts
+ * // First get the bank code from getBanks()
+ * const banks = await getBanks('ghana', 'GHS')
+ * const bankCode = banks.data?.find(b => b.name === 'Access Bank')?.code
+ * 
+ * // Then resolve the account
+ * const result = await resolveAccountNumber('1234567890', bankCode)
+ * if (result.success) {
+ *   console.log(result.data.account_name) // "JOHN DOE"
+ * }
+ * ```
+ */
+export async function resolveAccountNumber(accountNumber: string, bankCode: string): Promise<{
+  success: boolean
+  data?: PaystackResolveAccountResponse['data']
+  error?: string
+}> {
+  if (!PAYSTACK_SECRET_KEY) {
+    return {
+      success: false,
+      error: 'Paystack secret key is not configured',
+    }
+  }
+
+  if (!accountNumber || !bankCode) {
+    return {
+      success: false,
+      error: 'Account number and bank code are required',
+    }
+  }
+
+  try {
+    const params = new URLSearchParams({
+      account_number: accountNumber,
+      bank_code: bankCode,
+    })
+
+    const response = await fetch(`${PAYSTACK_BASE_URL}/bank/resolve?${params.toString()}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${PAYSTACK_SECRET_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    const result = await response.json() as PaystackResolveAccountResponse | PaystackError
+
+    if (!result.status) {
+      return {
+        success: false,
+        error: result.message || 'Failed to resolve account',
+      }
+    }
+
+    return {
+      success: true,
+      data: (result as PaystackResolveAccountResponse).data,
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    }
+  }
+}
