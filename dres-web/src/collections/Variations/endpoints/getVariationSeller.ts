@@ -56,7 +56,7 @@ export const getVariationSeller: PayloadHandler = async (req) => {
     }
 
     // Extract seller ID
-    const sellerId = typeof style.seller === 'object' ? style.seller.id : style.seller
+    const sellerId = style.seller && typeof style.seller === 'object' ? style.seller.id : style.seller
 
     if (!sellerId) {
       return Response.json(

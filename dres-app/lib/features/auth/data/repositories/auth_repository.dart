@@ -254,7 +254,7 @@ class AuthRepository {
     return updateProfile({'photo': mediaId});
   }
 
-  /// Request account deletion - sets status to 'to be archived'
+  /// Request account deletion - sets status to 'to-be-archived'
   /// Actual deletion will be handled by a cron job
   Future<void> deleteAccount() async {
     final currentUser = await getCurrentUser();
@@ -262,10 +262,10 @@ class AuthRepository {
       throw Exception('User not logged in');
     }
 
-    // Set user status to 'to be archived' instead of deleting
+    // Set user accountStatus to 'to-be-archived' instead of deleting
     await _apiService.patch(
       '/users/${currentUser.id}',
-      data: {'status': 'to be archived'},
+      data: {'accountStatus': 'to-be-archived'},
     );
     
     // Log the user out

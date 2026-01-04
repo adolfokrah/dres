@@ -108,9 +108,9 @@ export const createOrderFromCart: CollectionAfterChangeHook = async ({
       }
 
       // Get seller info
-      const sellerId = typeof seller === 'object' ? seller.id : seller
+      const sellerId = seller && typeof seller === 'object' ? seller.id : seller
       const sellerName =
-        typeof seller === 'object'
+        seller && typeof seller === 'object'
           ? seller.shopName || `${seller.firstName || ''} ${seller.lastName || ''}`.trim() || 'Unknown Seller'
           : 'Unknown Seller'
       

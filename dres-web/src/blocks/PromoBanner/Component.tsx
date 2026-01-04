@@ -11,7 +11,6 @@ type Props = PromoBannerBlockType & {
 export const PromoBannerBlock: React.FC<Props> = ({
   title,
   description,
-  actionText,
   actionLink,
   backgroundColor,
   className,
@@ -46,7 +45,7 @@ export const PromoBannerBlock: React.FC<Props> = ({
             {...actionLink}
             className="inline-flex items-center gap-2 font-bold text-sm md:text-base group text-black"
           >
-            {actionText}
+            {actionLink.label}
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </CMSLink>
         )}

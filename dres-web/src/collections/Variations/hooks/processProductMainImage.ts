@@ -181,14 +181,15 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
       for (const size of IMAGE_SIZES) {
         try {
           let resizedBuffer: Buffer
-          const sizeFilename = `${baseFilename}-${size.width}x${size.height || Math.round((originalHeight / originalWidth) * size.width)}.${originalExtension}`
+          const sizeHeight = 'height' in size ? size.height : undefined
+          const sizeFilename = `${baseFilename}-${size.width}x${sizeHeight || Math.round((originalHeight / originalWidth) * size.width)}.${originalExtension}`
 
           let sharpInstance = sharp(result.buffer)
           
-          if (size.height && size.crop) {
-            sharpInstance = sharpInstance.resize(size.width, size.height, { fit: 'cover', position: 'center' })
-          } else if (size.height) {
-            sharpInstance = sharpInstance.resize(size.width, size.height, { fit: 'cover', position: 'center' })
+          if (sizeHeight && 'crop' in size && size.crop) {
+            sharpInstance = sharpInstance.resize(size.width, sizeHeight, { fit: 'cover', position: 'center' })
+          } else if (sizeHeight) {
+            sharpInstance = sharpInstance.resize(size.width, sizeHeight, { fit: 'cover', position: 'center' })
           } else {
             sharpInstance = sharpInstance.resize(size.width, null, { withoutEnlargement: true })
           }

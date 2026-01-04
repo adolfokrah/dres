@@ -3,6 +3,7 @@ import type { CollectionConfig, Where } from 'payload'
 import { authenticated } from '../../access/authenticated'
 import { adminOnly } from '../../access/adminOnly'
 import { generateUsername } from './hooks/generateUsername'
+import { beforeLogin } from './hooks/beforeLogin'
 import { getSellerInfo } from './endpoints/getSellerInfo'
 import { firebaseOAuth } from './endpoints/firebaseOAuth'
 import { addAddress, deleteAddress, setDefaultAddress, updateAddress } from './endpoints/addresses'
@@ -23,12 +24,15 @@ export const Users: CollectionConfig = {
     useAsTitle: 'email',
     group: 'Users',
   },
-   auth: {
+  auth: {
     tokenExpiration: 31536000, // 1 year in seconds
     verify: true, // Require email verification
     maxLoginAttempts: 5, // Automatically lock a user out after X amount of failed logins
     lockTime: 600 * 1000, // Time period to allow the max login attempts
     // More options are available
+  },
+  hooks: {
+    beforeLogin: [beforeLogin],
   },
   endpoints: [
     {
@@ -476,7 +480,8 @@ export const Users: CollectionConfig = {
       options: [
         { label: 'Active', value: 'active' },
         { label: 'Banned', value: 'banned' },
-        { label: 'Deleted', value: 'deleted' },
+        { label: 'To Be Archived', value: 'to-be-archived' },
+        { label: 'Archived', value: 'archived' },
       ],
       admin: {
         position: 'sidebar',

@@ -49,7 +49,7 @@ export const addToFavorites: PayloadHandler = async (req) => {
     // Check if user owns this variation's style
     const style = variation.style
     if (style && typeof style === 'object') {
-      const sellerId = typeof style.seller === 'object' 
+      const sellerId = style.seller && typeof style.seller === 'object' 
         ? style.seller.id 
         : style.seller
 
