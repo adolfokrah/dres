@@ -47,6 +47,8 @@ import 'package:dres/features/sell/logic/variations_bloc/variations_bloc.dart';
 import 'package:dres/features/sell/logic/variation_detail_bloc/variation_detail_bloc.dart';
 import 'package:dres/features/notifications/data/repositories/notifications_repository.dart';
 import 'package:dres/features/notifications/logic/notifications_bloc/notifications_bloc.dart';
+import 'package:dres/features/profile/data/repositories/user_products_repository.dart';
+import 'package:dres/features/profile/logic/user_products_bloc/user_products_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -269,5 +271,15 @@ Future<void> setupDependencies() async {
   // Notifications Bloc - Singleton so unread count persists across screens
   getIt.registerLazySingleton<NotificationsBloc>(() => NotificationsBloc(
     notificationsRepository: getIt<NotificationsRepository>(),
+  ));
+
+  // User Products Repository
+  getIt.registerLazySingleton<UserProductsRepository>(() => UserProductsRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // User Products Bloc - Singleton so products list persists
+  getIt.registerLazySingleton<UserProductsBloc>(() => UserProductsBloc(
+    userProductsRepository: getIt<UserProductsRepository>(),
   ));
 }

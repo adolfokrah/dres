@@ -4,6 +4,7 @@ import { authenticated } from '../../access/authenticated'
 import { anyone } from '../../access/anyone'
 import { getStyleReviewsEndpoint } from './endpoints/getStyleReviews'
 import { getMyDraftStyles } from './endpoints/getMyDraftStyles'
+import { getMyProducts } from './endpoints/getMyProducts'
 import { updateVariationsOnTitleChange } from './hooks/updateVariationsOnTitleChange'
 
 export const Styles: CollectionConfig = {
@@ -48,6 +49,11 @@ export const Styles: CollectionConfig = {
       path: '/my-drafts',
       method: 'get',
       handler: getMyDraftStyles,
+    },
+    {
+      path: '/my-products',
+      method: 'get',
+      handler: getMyProducts,
     },
   ],
   fields: [

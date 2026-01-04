@@ -17,6 +17,7 @@ import 'package:dres/features/profile/presentation/widgets/incoming_orders_list.
 import 'package:dres/features/profile/presentation/widgets/transactions_list.dart';
 import 'package:dres/features/profile/presentation/widgets/community_list.dart';
 import 'package:dres/features/profile/presentation/widgets/seller_reviews_list.dart';
+import 'package:dres/features/profile/presentation/widgets/user_products_list.dart';
 import 'package:dres/features/profile/logic/seller_reviews_bloc/seller_reviews_bloc.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -358,7 +359,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget _buildTabContent(BuildContext context, String? userId) {
     switch (_selectedTabIndex) {
       case 0:
-        return _buildPlaceholder(context, 'Products');
+        return UserProductsList(parentContext: context);
       case 1:
         return IncomingOrdersList(parentContext: context);
       case 2:
