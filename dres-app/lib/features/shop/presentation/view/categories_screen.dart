@@ -4,9 +4,12 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/models/menu_model.dart';
 import 'package:dres/core/widgets/unified_header.dart';
+import 'package:dres/core/widgets/user_list_item.dart';
+import 'package:dres/core/di/injection.dart';
+import 'package:dres/features/splash/data/repositories/menu_repository.dart';
 import 'package:go_router/go_router.dart';
 
-class CategoriesScreen extends StatelessWidget {
+class CategoriesScreen extends StatefulWidget {
   final CollectionModel collection;
   final String departmentName;
   final String departmentId;
@@ -19,6 +22,42 @@ class CategoriesScreen extends StatelessWidget {
   });
 
   @override
+  State<CategoriesScreen> createState() => _CategoriesScreenState();
+}
+
+class _CategoriesScreenState extends State<CategoriesScreen> {
+  List<TopSeller> _topSellers = [];
+  bool _isLoadingTopSellers = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTopSellers();
+  }
+
+  Future<void> _fetchTopSellers() async {
+    try {
+      final sellers = await getIt<MenuRepository>().fetchTopSellers(
+        collectionId: widget.collection.id,
+        departmentId: widget.departmentId,
+        limit: 5,
+      );
+      if (mounted) {
+        setState(() {
+          _topSellers = sellers;
+          _isLoadingTopSellers = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingTopSellers = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -27,34 +66,69 @@ class CategoriesScreen extends StatelessWidget {
         child: Column(
           children: [
             // Header
-            UnifiedHeader.simple(title: collection.name.toUpperCase()),
+            UnifiedHeader.simple(title: widget.collection.name.toUpperCase()),
 
-            // Categories List
+            // Categories List and Top Sellers
             Expanded(
-              child: ListView.builder(
+              child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: collection.categories.length + 1,
-                itemBuilder: (context, index) {
+                children: [
                   // First item: "All {Department} {Collection}"
-                  if (index == 0) {
-                    return _buildCategoryItem(
-                      context,
-                      'All $departmentName ${collection.name}',
-                      departmentId: departmentId,
-                      collectionId: collection.id,
-                      isAll: true,
-                    );
-                  }
-
-                  // Rest: individual categories
-                  final category = collection.categories[index - 1];
-                  return _buildCategoryItem(
+                  _buildCategoryItem(
                     context,
-                    category.name,
-                    departmentId: departmentId,
-                    categoryId: category.id,
-                  );
-                },
+                    'All ${widget.departmentName} ${widget.collection.name}',
+                    departmentId: widget.departmentId,
+                    collectionId: widget.collection.id,
+                    isAll: true,
+                  ),
+                  // Individual categories
+                  ...widget.collection.categories.map((category) =>
+                    _buildCategoryItem(
+                      context,
+                      category.name,
+                      departmentId: widget.departmentId,
+                      categoryId: category.id,
+                    ),
+                  ),
+                  // Top Sellers Section
+                  if (!_isLoadingTopSellers && _topSellers.isNotEmpty) ...[
+                    const SizedBox(height: 24),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'TOP SELLERS',
+                        style: AppTypography.bodyL.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ..._topSellers.map((seller) => UserListItem(
+                      id: seller.id,
+                      name: seller.shopName ?? seller.name,
+                      username: seller.username,
+                      avatarUrl: seller.avatarUrl,
+                      badge: 'TOP SELLER',
+                    )),
+                  ],
+                  // Loading indicator for top sellers
+                  if (_isLoadingTopSellers)
+                    const Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ],

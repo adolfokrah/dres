@@ -27,3 +27,6 @@ const String recordVariationView = '/variations/record-view';
 
 // Menu
 const String menu = '$apiBaseUrl/menu';
+
+// Top Sellers
+const String topSellers = '$apiBaseUrl/top-sellers';

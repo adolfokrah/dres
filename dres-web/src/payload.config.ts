@@ -61,6 +61,7 @@ import { getServerSideURL } from './utilities/getURL'
 import { getMenu } from './endpoints/menu'
 import { getSiteSettings } from './endpoints/siteSettings'
 import { search } from './endpoints/search'
+import { getTopSellers } from './endpoints/topSellers'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -192,6 +193,11 @@ export default buildConfig({
       path: '/search-items',
       method: 'get',
       handler: search,
+    },
+    {
+      path: '/top-sellers',
+      method: 'get',
+      handler: getTopSellers,
     },
   ],
   globals: [Header, Footer, SiteSettings],

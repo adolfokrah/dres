@@ -63,12 +63,14 @@ class SellerSearchResult {
   final String id;
   final String name;
   final String? username;
+  final String? shopName;
   final String? avatarUrl;
 
   SellerSearchResult({
     required this.id,
     required this.name,
     this.username,
+    this.shopName,
     this.avatarUrl,
   });
 
@@ -83,6 +85,7 @@ class SellerSearchResult {
       id: json['id'] as String,
       name: json['name'] as String? ?? '',
       username: json['username'] as String?,
+      shopName: json['shopName'] as String?,
       avatarUrl: avatarUrl,
     );
   }

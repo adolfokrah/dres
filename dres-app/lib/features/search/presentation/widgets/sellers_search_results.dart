@@ -51,7 +51,7 @@ class SellersSearchResults extends StatelessWidget {
         final seller = sellers[index];
         return UserListItem(
           id: seller.id,
-          name: seller.name,
+          name: seller.shopName ?? seller.name,
           username: seller.username,
           avatarUrl: seller.avatarUrl,
         );

@@ -53,15 +53,26 @@ class UserListItem extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Shop name or name as primary
                   Text(
-                    username ?? name,
+                    name,
                     style: AppTypography.bodyM.copyWith(
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
                     ),
                   ),
+                  // Username as secondary (if different from name)
+                  if (username != null && username != name) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '@$username',
+                      style: AppTypography.bodyS.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
                   if (badge != null) ...[
-                    const SizedBox(height: 11),
+                    const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 5,
