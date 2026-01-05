@@ -18,9 +18,11 @@ class ProductsState extends Equatable {
   final int totalPages;
   final int totalDocs;
   final bool hasNextPage;
+  final String? query;
   final String? departmentId;
   final String? categoryId;
   final String? collectionId;
+  final String? styleId;
   final String? brandId;
   final String? filterType;
   final String? sortBy;
@@ -38,9 +40,11 @@ class ProductsState extends Equatable {
     this.totalPages = 0,
     this.totalDocs = 0,
     this.hasNextPage = false,
+    this.query,
     this.departmentId,
     this.categoryId,
     this.collectionId,
+    this.styleId,
     this.brandId,
     this.filterType,
     this.sortBy,
@@ -59,9 +63,11 @@ class ProductsState extends Equatable {
     int? totalPages,
     int? totalDocs,
     bool? hasNextPage,
+    String? query,
     String? departmentId,
     String? categoryId,
     String? collectionId,
+    String? styleId,
     String? brandId,
     String? filterType,
     String? sortBy,
@@ -79,9 +85,11 @@ class ProductsState extends Equatable {
       totalPages: totalPages ?? this.totalPages,
       totalDocs: totalDocs ?? this.totalDocs,
       hasNextPage: hasNextPage ?? this.hasNextPage,
+      query: query ?? this.query,
       departmentId: departmentId ?? this.departmentId,
       categoryId: categoryId ?? this.categoryId,
       collectionId: collectionId ?? this.collectionId,
+      styleId: styleId ?? this.styleId,
       brandId: brandId ?? this.brandId,
       filterType: filterType ?? this.filterType,
       sortBy: sortBy ?? this.sortBy,
@@ -102,9 +110,11 @@ class ProductsState extends Equatable {
         totalPages,
         totalDocs,
         hasNextPage,
+        query,
         departmentId,
         categoryId,
         collectionId,
+        styleId,
         brandId,
         filterType,
         sortBy,

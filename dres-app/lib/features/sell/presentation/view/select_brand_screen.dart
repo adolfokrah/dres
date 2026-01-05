@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
+import 'package:dres/core/widgets/app_search_input.dart';
 import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_bloc.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_event.dart';
@@ -55,7 +56,16 @@ class _SelectBrandScreenState extends State<SelectBrandScreen> {
             const UnifiedHeader.titleOnly(title: 'Select Brand'),
 
             // Search Bar
-            _buildSearchInput(),
+            AppSearchInput(
+              controller: _searchController,
+              hintText: 'Search brands...',
+              padding: const EdgeInsets.all(20),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
 
             // Brands List
             Expanded(
@@ -203,63 +213,6 @@ class _SelectBrandScreenState extends State<SelectBrandScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchInput() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Container(
-        height: 44,
-        decoration: BoxDecoration(
-          color: AppColors.secondary,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: TextField(
-          controller: _searchController,
-          onChanged: (value) {
-            setState(() {
-              _searchQuery = value;
-            });
-          },
-          style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
-          decoration: InputDecoration(
-            hintText: 'Search brands...',
-            hintStyle: AppTypography.bodyM.copyWith(color: AppColors.textHint),
-            prefixIcon: Padding(
-              padding: const EdgeInsets.all(12),
-              child: PhosphorIcon(
-                PhosphorIcons.magnifyingGlass(),
-                color: AppColors.textHint,
-                size: 20,
-              ),
-            ),
-            suffixIcon: _searchQuery.isNotEmpty
-                ? GestureDetector(
-                    onTap: () {
-                      _searchController.clear();
-                      setState(() {
-                        _searchQuery = '';
-                      });
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: PhosphorIcon(
-                        PhosphorIcons.x(),
-                        color: AppColors.textHint,
-                        size: 20,
-                      ),
-                    ),
-                  )
-                : null,
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-          ),
         ),
       ),
     );

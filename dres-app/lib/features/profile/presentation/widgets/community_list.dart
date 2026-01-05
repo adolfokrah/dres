@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/di/injection.dart';
-import 'package:dres/core/widgets/profile_avatar.dart';
+import 'package:dres/core/widgets/user_list_item.dart';
 import 'package:dres/features/profile/logic/community_bloc/community_bloc.dart';
-import 'package:dres/features/profile/data/models/follow_user_model.dart';
 
 /// Community list tab content (followers/following)
 class CommunityList extends StatefulWidget {
@@ -189,96 +187,15 @@ class _CommunityListState extends State<CommunityList> {
             return const SizedBox.shrink();
           }
           final user = state.users[index];
-          return _CommunityMemberCard(
-            user: user,
-            filterType: state.filter,
+          return UserListItem(
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            avatarUrl: user.avatar,
+            badge: state.filter == 'followers' ? 'Follower' : 'Following',
           );
         },
         childCount: state.users.length + (state.hasMore ? 1 : 0),
-      ),
-    );
-  }
-}
-
-/// Community member card widget
-class _CommunityMemberCard extends StatelessWidget {
-  final FollowUserModel user;
-  final String filterType;
-
-  const _CommunityMemberCard({
-    required this.user,
-    required this.filterType,
-  });
-
-  void _onTap(BuildContext context) {
-    // Navigate to seller profile for all users (including self)
-    // The seller profile shows the public view (products, community, reviews)
-    context.push('/sellers/${user.id}');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _onTap(context),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(
-            bottom: BorderSide(color: AppColors.secondary, width: 1),
-          ),
-        ),
-        child: Row(
-          children: [
-            // Avatar
-            ProfileAvatar(
-              photoUrl: user.avatar,
-              size: 56,
-              displayName: user.name,
-            ),
-            const SizedBox(width: 15),
-
-            // User info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user.username ?? user.name,
-                    style: AppTypography.bodyM.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 11),
-                  // Badge
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.textPrimary, width: 1),
-                    ),
-                    child: Text(
-                      filterType == 'followers' ? 'Follower' : 'Following',
-                      style: AppTypography.bodyS.copyWith(
-                        color: AppColors.textPrimary,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Chevron
-            Icon(
-              PhosphorIcons.caretRight(),
-              size: 16,
-              color: AppColors.textPrimary,
-            ),
-          ],
-        ),
       ),
     );
   }

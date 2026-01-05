@@ -16,18 +16,22 @@ import 'package:dres/features/shop/presentation/widgets/products_empty_state.dar
 import 'package:dres/l10n/app_localizations.dart';
 
 class ProductsScreen extends StatefulWidget {
+  final String? query;
   final String? departmentId;
   final String? categoryId;
   final String? collectionId;
+  final String? styleId;
   final String? brandId;
   final String? filterType; // 'new-arrivals', 'featured', 'trending', 'on-sale'
   final String title;
 
   const ProductsScreen({
     super.key,
+    this.query,
     this.departmentId,
     this.categoryId,
     this.collectionId,
+    this.styleId,
     this.brandId,
     this.filterType,
     required this.title,
@@ -46,9 +50,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
     // Fetch products only once when screen is created
     context.read<ProductsBloc>().add(
       FetchProducts(
+        query: widget.query,
         departmentId: widget.departmentId,
         categoryId: widget.categoryId,
         collectionId: widget.collectionId,
+        styleId: widget.styleId,
         brandId: widget.brandId,
         filterType: widget.filterType,
       ),

@@ -5,7 +5,7 @@ import { getUserCountryInfo } from '../../../utilities/countryUtils'
 
 export const filteredVariations: PayloadHandler = async (req) => {
   const { payload } = req
-  const { department, category, collection, brand, filterType, sortBy, sortPrice, attributes, minPrice, maxPrice, limit = 20, page = 1 } = req.query
+  const { query, department, category, collection, style, brand, filterType, sortBy, sortPrice, attributes, minPrice, maxPrice, limit = 20, page = 1 } = req.query
 
   // Get user's country for filtering sellers
   const userCountry = await getUserCountryInfo(req)
@@ -171,6 +171,20 @@ export const filteredVariations: PayloadHandler = async (req) => {
       } catch {
         matchConditions['styleData.brand'] = brand
       }
+    }
+
+    // Filter by style
+    if (style) {
+      matchConditions['style'] = new Types.ObjectId(style as string)
+    }
+
+    // Filter by search query (search in variation title and style title)
+    if (query && typeof query === 'string' && query.trim()) {
+      const searchRegex = { $regex: query.trim(), $options: 'i' }
+      matchConditions['$or'] = [
+        { title: searchRegex },
+        { 'styleData.title': searchRegex },
+      ]
     }
 
     // Apply filter type

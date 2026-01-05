@@ -26,9 +26,11 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
   ) async {
     emit(state.copyWith(
       status: ProductsStatus.loading,
+      query: event.query,
       departmentId: event.departmentId,
       categoryId: event.categoryId,
       collectionId: event.collectionId,
+      styleId: event.styleId,
       brandId: event.brandId,
       filterType: event.filterType,
       sortBy: event.sortBy,
@@ -40,9 +42,11 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
 
     try {
       final result = await _repository.fetchProducts(
+        query: event.query,
         departmentId: event.departmentId,
         categoryId: event.categoryId,
         collectionId: event.collectionId,
+        styleId: event.styleId,
         brandId: event.brandId,
         filterType: event.filterType,
         sortBy: event.sortBy,
@@ -86,9 +90,11 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
 
     try {
       final result = await _repository.fetchProducts(
+        query: state.query,
         departmentId: state.departmentId,
         categoryId: state.categoryId,
         collectionId: state.collectionId,
+        styleId: state.styleId,
         brandId: state.brandId,
         filterType: state.filterType,
         sortBy: state.sortBy,
@@ -125,9 +131,11 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     Emitter<ProductsState> emit,
   ) async {
     add(FetchProducts(
+      query: state.query,
       departmentId: state.departmentId,
       categoryId: state.categoryId,
       collectionId: state.collectionId,
+      styleId: state.styleId,
       brandId: state.brandId,
       filterType: state.filterType,
       sortBy: state.sortBy,
@@ -141,9 +149,11 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     Emitter<ProductsState> emit,
   ) async {
     add(FetchProducts(
+      query: state.query,
       departmentId: state.departmentId,
       categoryId: state.categoryId,
       collectionId: state.collectionId,
+      styleId: state.styleId,
       brandId: state.brandId,
       filterType: state.filterType,
       sortBy: event.sortBy,
@@ -157,9 +167,11 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     Emitter<ProductsState> emit,
   ) async {
     add(FetchProducts(
+      query: state.query,
       departmentId: state.departmentId,
       categoryId: state.categoryId,
       collectionId: state.collectionId,
+      styleId: state.styleId,
       brandId: state.brandId,
       filterType: state.filterType,
       sortBy: state.sortBy,
@@ -196,9 +208,11 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     
     // Refetch products with updated attribute filters
     add(FetchProducts(
+      query: state.query,
       departmentId: state.departmentId,
       categoryId: state.categoryId,
       collectionId: state.collectionId,
+      styleId: state.styleId,
       brandId: state.brandId,
       filterType: state.filterType,
       sortBy: state.sortBy,
@@ -216,9 +230,11 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
   ) async {
     // Refetch products with updated price range
     add(FetchProducts(
+      query: state.query,
       departmentId: state.departmentId,
       categoryId: state.categoryId,
       collectionId: state.collectionId,
+      styleId: state.styleId,
       brandId: state.brandId,
       filterType: state.filterType,
       sortBy: state.sortBy,

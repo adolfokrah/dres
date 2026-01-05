@@ -60,6 +60,7 @@ import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
 import { getMenu } from './endpoints/menu'
 import { getSiteSettings } from './endpoints/siteSettings'
+import { search } from './endpoints/search'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -186,6 +187,11 @@ export default buildConfig({
       path: '/site-settings',
       method: 'get',
       handler: getSiteSettings,
+    },
+    {
+      path: '/search-items',
+      method: 'get',
+      handler: search,
     },
   ],
   globals: [Header, Footer, SiteSettings],

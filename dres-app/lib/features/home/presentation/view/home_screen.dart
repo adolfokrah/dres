@@ -80,14 +80,7 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(64),
         child: SafeArea(
-          child: UnifiedHeader.search(
-            onNotificationTap: () {
-              // TODO: Navigate to notifications
-            },
-            onSearchTap: () {
-              // TODO: Navigate to search/discover
-            },
-          ),
+          child: UnifiedHeader.search(),
         ),
       ),
       body: SafeArea(

@@ -46,10 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             // Header
             UnifiedHeader.titleWithBell(
-              title: l10n.me,
-              onNotificationTap: () {
-                context.push('/notifications');
-              },
+              title: l10n.me
             ),
 
             // Body content

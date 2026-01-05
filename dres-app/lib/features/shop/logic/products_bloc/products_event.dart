@@ -8,9 +8,11 @@ abstract class ProductsEvent extends Equatable {
 }
 
 class FetchProducts extends ProductsEvent {
+  final String? query;
   final String? departmentId;
   final String? categoryId;
   final String? collectionId;
+  final String? styleId;
   final String? brandId;
   final String? filterType;
   final String? sortBy; // 'latest' or 'oldest'
@@ -24,9 +26,11 @@ class FetchProducts extends ProductsEvent {
   final int page;
 
   const FetchProducts({
+    this.query,
     this.departmentId,
     this.categoryId,
     this.collectionId,
+    this.styleId,
     this.brandId,
     this.filterType,
     this.sortBy,
@@ -41,7 +45,7 @@ class FetchProducts extends ProductsEvent {
   });
 
   @override
-  List<Object?> get props => [departmentId, categoryId, collectionId, brandId, filterType, sortBy, sortPrice, selectedAttributes, minPrice, maxPrice, updateMinPrice, updateMaxPrice, updatePriceSort, page];
+  List<Object?> get props => [query, departmentId, categoryId, collectionId, styleId, brandId, filterType, sortBy, sortPrice, selectedAttributes, minPrice, maxPrice, updateMinPrice, updateMaxPrice, updatePriceSort, page];
 }
 
 class LoadMoreProducts extends ProductsEvent {

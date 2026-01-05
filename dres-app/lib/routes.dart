@@ -38,6 +38,7 @@ import 'package:dres/features/profile/presentation/view/vacation_mode_screen.dar
 import 'package:dres/features/profile/presentation/view/withdrawal_account_screen.dart';
 import 'package:dres/features/orders/presentation/view/incoming_order_details_screen.dart';
 import 'package:dres/features/notifications/presentation/view/notifications_screen.dart';
+import 'package:dres/features/search/presentation/view/search_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
 import 'package:dres/core/models/menu_model.dart';
 
@@ -135,17 +136,36 @@ class AppRoutes {
         },
       ),
 
-      // Products listing - redirects to /discover/products to show bottom nav
+      // Products listing (outside shell, full screen - used by search)
       GoRoute(
         path: '/products',
         name: 'products-listing',
-        redirect: (context, state) {
-          // Redirect /products?... to /discover/products?... to keep bottom nav
-          final queryString = state.uri.query;
-          if (queryString.isNotEmpty) {
-            return '/discover/products?$queryString';
-          }
-          return '/discover/products';
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final queryParams = state.uri.queryParameters;
+
+          final query = queryParams['query'];
+          final departmentId =
+              queryParams['departmentId'] ?? queryParams['department'];
+          final categoryId =
+              queryParams['categoryId'] ?? queryParams['category'];
+          final collectionId =
+              queryParams['collectionId'] ?? queryParams['collection'];
+          final styleId = queryParams['styleId'] ?? queryParams['style'];
+          final brandId = queryParams['brandId'] ?? queryParams['brand'];
+          final filterType = queryParams['filterType'];
+          final title = queryParams['title'] ?? 'Products';
+
+          return ProductsScreen(
+            query: query,
+            departmentId: departmentId,
+            categoryId: categoryId,
+            collectionId: collectionId,
+            styleId: styleId,
+            brandId: brandId,
+            filterType: filterType,
+            title: title,
+          );
         },
       ),
 
@@ -163,6 +183,14 @@ class AppRoutes {
         name: 'notifications',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const NotificationsScreen(),
+      ),
+
+      // Search (outside shell, full screen)
+      GoRoute(
+        path: '/search',
+        name: 'search',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SearchScreen(),
       ),
 
       // Checkout (outside shell, full screen)
@@ -308,6 +336,7 @@ class AppRoutes {
                     builder: (context, state) {
                       final queryParams = state.uri.queryParameters;
 
+                      final query = queryParams['query'];
                       final departmentId =
                           queryParams['departmentId'] ??
                           queryParams['department'];
@@ -316,15 +345,19 @@ class AppRoutes {
                       final collectionId =
                           queryParams['collectionId'] ??
                           queryParams['collection'];
+                      final styleId =
+                          queryParams['styleId'] ?? queryParams['style'];
                       final brandId =
                           queryParams['brandId'] ?? queryParams['brand'];
                       final filterType = queryParams['filterType'];
                       final title = queryParams['title'] ?? 'Products';
 
                       return ProductsScreen(
+                        query: query,
                         departmentId: departmentId,
                         categoryId: categoryId,
                         collectionId: collectionId,
+                        styleId: styleId,
                         brandId: brandId,
                         filterType: filterType,
                         title: title,
@@ -373,6 +406,9 @@ class AppRoutes {
                           final queryParams = state.uri.queryParameters;
 
                           // Query params take priority, then extra data
+                          final query =
+                              queryParams['query'] ??
+                              extra?['query'] as String?;
                           final departmentId =
                               queryParams['departmentId'] ??
                               queryParams['department'] ??
@@ -385,6 +421,10 @@ class AppRoutes {
                               queryParams['collectionId'] ??
                               queryParams['collection'] ??
                               extra?['collectionId'] as String?;
+                          final styleId =
+                              queryParams['styleId'] ??
+                              queryParams['style'] ??
+                              extra?['styleId'] as String?;
                           final brandId =
                               queryParams['brandId'] ??
                               queryParams['brand'] ??
@@ -398,9 +438,11 @@ class AppRoutes {
                               'Products';
 
                           return ProductsScreen(
+                            query: query,
                             departmentId: departmentId,
                             categoryId: categoryId,
                             collectionId: collectionId,
+                            styleId: styleId,
                             brandId: brandId,
                             filterType: filterType,
                             title: title,

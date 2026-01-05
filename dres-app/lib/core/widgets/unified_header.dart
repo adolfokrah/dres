@@ -40,10 +40,7 @@ class UnifiedHeader extends StatelessWidget {
   /// bell + search bar + cart
   const factory UnifiedHeader.search({
     Key? key,
-    VoidCallback? onNotificationTap,
     VoidCallback? onCartTap,
-    VoidCallback? onSearchTap,
-    int notificationCount,
   }) = _SearchHeader;
 
   /// Simple header with title
@@ -60,9 +57,7 @@ class UnifiedHeader extends StatelessWidget {
   const factory UnifiedHeader.titleWithBell({
     Key? key,
     required String title,
-    VoidCallback? onNotificationTap,
     VoidCallback? onCartTap,
-    int notificationCount,
   }) = _TitleWithBellHeader;
 
   /// Title only header
@@ -123,7 +118,7 @@ class UnifiedHeader extends StatelessWidget {
       case HeaderVariant.search:
         final l10n = AppLocalizations.of(context)!;
         return GestureDetector(
-          onTap: onSearchTap,
+          onTap: () => context.push('/search'),
           child: Container(
             height: 40,
             padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -188,16 +183,10 @@ class UnifiedHeader extends StatelessWidget {
 class _SearchHeader extends UnifiedHeader {
   const _SearchHeader({
     super.key,
-    VoidCallback? onNotificationTap,
     VoidCallback? onCartTap,
-    VoidCallback? onSearchTap,
-    int notificationCount = 0,
   }) : super._(
          variant: HeaderVariant.search,
-         onNotificationTap: onNotificationTap,
          onCartTap: onCartTap,
-         onSearchTap: onSearchTap,
-         notificationCount: notificationCount,
        );
 }
 
@@ -219,15 +208,11 @@ class _TitleWithBellHeader extends UnifiedHeader {
   const _TitleWithBellHeader({
     super.key,
     required String title,
-    VoidCallback? onNotificationTap,
     VoidCallback? onCartTap,
-    int notificationCount = 0,
   }) : super._(
          variant: HeaderVariant.titleWithBell,
          title: title,
-         onNotificationTap: onNotificationTap,
          onCartTap: onCartTap,
-         notificationCount: notificationCount,
        );
 }
 

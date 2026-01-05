@@ -9,9 +9,11 @@ class ProductsRepository {
   ProductsRepository(this._dio);
 
   Future<Map<String, dynamic>> fetchProducts({
+    String? query,
     String? departmentId,
     String? categoryId,
     String? collectionId,
+    String? styleId,
     String? brandId,
     String? filterType,
     String? sortBy,
@@ -31,9 +33,11 @@ class ProductsRepository {
         'limit': limit,
       };
 
+      if (query != null) queryParams['query'] = query;
       if (departmentId != null) queryParams['department'] = departmentId;
       if (categoryId != null) queryParams['category'] = categoryId;
       if (collectionId != null) queryParams['collection'] = collectionId;
+      if (styleId != null) queryParams['style'] = styleId;
       if (brandId != null) queryParams['brand'] = brandId;
       if (filterType != null) queryParams['filterType'] = filterType;
       if (sortBy != null) queryParams['sortBy'] = sortBy;

@@ -4,7 +4,7 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 
 /// A reusable search input widget with consistent styling
-class AppSearchInput extends StatelessWidget {
+class AppSearchInput extends StatefulWidget {
   final TextEditingController? controller;
   final String hintText;
   final ValueChanged<String>? onChanged;
@@ -23,37 +23,74 @@ class AppSearchInput extends StatelessWidget {
   });
 
   @override
+  State<AppSearchInput> createState() => _AppSearchInputState();
+}
+
+class _AppSearchInputState extends State<AppSearchInput> {
+  late TextEditingController _controller;
+  bool _hasText = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller ?? TextEditingController();
+    _hasText = _controller.text.isNotEmpty;
+    _controller.addListener(_onTextChanged);
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller == null) {
+      _controller.dispose();
+    } else {
+      _controller.removeListener(_onTextChanged);
+    }
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    final hasText = _controller.text.isNotEmpty;
+    if (hasText != _hasText) {
+      setState(() {
+        _hasText = hasText;
+      });
+    }
+  }
+
+  void _onClear() {
+    _controller.clear();
+    widget.onClear?.call();
+    widget.onChanged?.call('');
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: padding ?? EdgeInsets.zero,
+      padding: widget.padding ?? EdgeInsets.zero,
       child: TextField(
-        controller: controller,
-        onChanged: onChanged,
-        autofocus: autofocus,
-        style: AppTypography.bodyL.copyWith(
+        controller: _controller,
+        onChanged: widget.onChanged,
+        autofocus: widget.autofocus,
+        style: AppTypography.bodyM.copyWith(
           color: AppColors.textPrimary,
         ),
         decoration: InputDecoration(
-          hintText: hintText,
+          hintText: widget.hintText,
           hintStyle: AppTypography.bodyM.copyWith(
-            color: AppColors.textSecondary,
+            color: AppColors.textHint,
           ),
           prefixIcon: Icon(
             PhosphorIcons.magnifyingGlass(),
             size: 20,
-            color: AppColors.textSecondary,
+            color: AppColors.textHint,
           ),
-          suffixIcon: controller != null && controller!.text.isNotEmpty
+          suffixIcon: _hasText
               ? GestureDetector(
-                  onTap: () {
-                    controller?.clear();
-                    onClear?.call();
-                    onChanged?.call('');
-                  },
+                  onTap: _onClear,
                   child: Icon(
                     PhosphorIcons.x(),
-                    size: 18,
-                    color: AppColors.textSecondary,
+                    size: 20,
+                    color: AppColors.textHint,
                   ),
                 )
               : null,

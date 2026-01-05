@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
@@ -62,17 +61,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // App Header
-                UnifiedHeader.search(
-                  onNotificationTap: () {
-                    // TODO: Navigate to notifications
-                  },
-                  onCartTap: () {
-                    context.push('/cart');
-                  },
-                  onSearchTap: () {
-                    // TODO: Navigate to search
-                  },
-                ),
+                UnifiedHeader.search(),
 
                 // Title Header
                 _buildTitleHeader(state),

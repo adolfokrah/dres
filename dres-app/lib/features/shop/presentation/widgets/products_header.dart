@@ -24,24 +24,30 @@ class ProductsHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Title and item count
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title.toUpperCase(),
-                style: AppTypography.bodyL.copyWith(
-                  fontWeight: FontWeight.w700,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title.toUpperCase(),
+                  style: AppTypography.bodyL.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                itemCount > 999 ? '999+ items' : '$itemCount items',
-                style: AppTypography.bodyM,
-              ),
-            ],
+                const SizedBox(height: 2),
+                Text(
+                  itemCount > 999 ? '999+ items' : '$itemCount items',
+                  style: AppTypography.bodyM,
+                ),
+              ],
+            ),
           ),
-          
+
+          const SizedBox(width: 10),
+
           // Save this search button
           GestureDetector(
             onTap: onSaveSearch,

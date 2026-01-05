@@ -53,6 +53,7 @@ import 'package:dres/features/profile/data/repositories/seller_products_reposito
 import 'package:dres/features/profile/logic/seller_products_bloc/seller_products_bloc.dart';
 import 'package:dres/features/profile/data/repositories/withdrawal_account_repository.dart';
 import 'package:dres/features/profile/logic/withdrawal_account_bloc/withdrawal_account_bloc.dart';
+import 'package:dres/features/search/data/repositories/search_repository.dart';
 
 final getIt = GetIt.instance;
 
@@ -297,6 +298,11 @@ Future<void> setupDependencies() async {
     sellerProductsRepository: getIt<SellerProductsRepository>(),
   ));
 
+  // Search Repository
+  getIt.registerLazySingleton<SearchRepository>(() => SearchRepository(
+    getIt<ApiService>(),
+  ));
+
   // Withdrawal Account Repository
   getIt.registerLazySingleton<WithdrawalAccountRepository>(() => WithdrawalAccountRepository(
     apiService: getIt<ApiService>(),
@@ -443,6 +449,11 @@ Future<void> _setupDependenciesWithExistingStorage(StorageService storageService
   // Seller Products Repository
   getIt.registerLazySingleton<SellerProductsRepository>(() => SellerProductsRepository(
     apiService: getIt<ApiService>(),
+  ));
+
+  // Search Repository
+  getIt.registerLazySingleton<SearchRepository>(() => SearchRepository(
+    getIt<ApiService>(),
   ));
 
   // ========================
