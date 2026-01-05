@@ -11,7 +11,10 @@ import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/auth/data/models/auth_models.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_event.dart';
+import 'package:dres/features/home/logic/bloc/home_bloc.dart';
+import 'package:dres/features/home/logic/bloc/home_event.dart';
 import 'package:dres/l10n/app_localizations.dart';
+import 'package:dres/core/widgets/shopping_preference_sheet.dart';
 import 'package:go_router/go_router.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -89,9 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               value: department == 'women'
                                   ? l10n.women
                                   : l10n.men,
-                              onTap: () {
-                                // TODO: Navigate to shopping preference
-                              },
+                              onTap: () => _showShoppingPreferenceSheet(department),
                             );
                           },
                         ),
@@ -113,7 +114,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _buildMenuItem(
                           title: l10n.withdrawalAccount,
                           onTap: () {
-                            // TODO: Navigate to withdrawal account
+                            context.push('/profile/withdrawal-account');
                           },
                         ),
 
@@ -163,6 +164,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _showShoppingPreferenceSheet(String currentPreference) async {
+    final selected = await ShoppingPreferenceSheet.show(
+      context,
+      currentPreference: currentPreference,
+    );
+
+    if (selected != null && selected != currentPreference) {
+      await _storageService.setUserDepartment(selected);
+
+      // Refresh home page with new department's page slug
+      if (mounted) {
+        final pageSlug = selected == 'women' ? 'home-women' : 'home';
+        context.read<HomeBloc>().add(RefreshHomePage(slug: pageSlug));
+      }
+    }
   }
 
   Widget _buildProfileHeader(

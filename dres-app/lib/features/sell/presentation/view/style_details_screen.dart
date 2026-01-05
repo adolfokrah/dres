@@ -16,6 +16,7 @@ import 'package:dres/features/sell/logic/style_details_bloc/style_details_bloc.d
 import 'package:dres/features/sell/logic/variations_bloc/variations_bloc.dart';
 import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
 import 'package:dres/features/sell/data/models/variation_model.dart';
+import 'package:dres/features/profile/logic/user_products_bloc/user_products_bloc.dart';
 
 class StyleDetailsScreen extends StatefulWidget {
   /// The style ID (required - must be created before navigating here)
@@ -233,6 +234,30 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
               ),
             );
           }
+
+          // Handle publish success
+          if (state.status == StyleDetailsStatus.publishSuccess) {
+            getIt<SellBloc>().add(const SellRefreshRequested());
+            getIt<UserProductsBloc>().add(const UserProductsRefreshRequested());
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Product published successfully'),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          }
+
+          // Handle unpublish success
+          if (state.status == StyleDetailsStatus.unpublishSuccess) {
+            getIt<SellBloc>().add(const SellRefreshRequested());
+            getIt<UserProductsBloc>().add(const UserProductsRefreshRequested());
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Product unpublished successfully'),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          }
         },
         builder: (context, state) {
           final isLoading = state.status == StyleDetailsStatus.loading;
@@ -243,7 +268,10 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
               child: Column(
                 children: [
                   // Header
-                  const UnifiedHeader.titleOnly(title: 'Product Details'),
+                  UnifiedHeader.titleOnly(
+                    title: 'Product Details',
+                    rightWidget: _buildHeaderAction(state),
+                  ),
 
                   // Content
                   Expanded(
@@ -489,6 +517,151 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
         text: _isUpdating ? 'Saving...' : 'Save',
         onPressed: _canProceed && !_isUpdating ? _onSave : null,
       ),
+    );
+  }
+
+  Widget? _buildHeaderAction(StyleDetailsState state) {
+    final styleDetails = state.styleDetails;
+    if (styleDetails == null) return null;
+
+    final isPublishing = state.status == StyleDetailsStatus.publishing;
+    final isUnpublishing = state.status == StyleDetailsStatus.unpublishing;
+    final isProcessing = isPublishing || isUnpublishing;
+
+    if (styleDetails.isPublished) {
+      // Show unpublish action
+      return GestureDetector(
+        onTap: isProcessing ? null : () => _showUnpublishDialog(),
+        child: isUnpublishing
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.textPrimary,
+                ),
+              )
+            : Text(
+                'Unpublish',
+                style: AppTypography.bodyM.copyWith(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+      );
+    } else {
+      // Show publish action for drafts
+      return GestureDetector(
+        onTap: isProcessing ? null : () => _showPublishDialog(),
+        child: isPublishing
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.textPrimary,
+                ),
+              )
+            : Text(
+                'Publish',
+                style: AppTypography.bodyM.copyWith(
+                  color: AppColors.success,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+      );
+    }
+  }
+
+  void _showPublishDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          backgroundColor: AppColors.surface,
+          title: Text(
+            'Publish Product',
+            style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
+          ),
+          content: Text(
+            'Publishing this product will make it visible to all buyers on the marketplace. Are you sure you want to publish?',
+            style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                'Cancel',
+                style: AppTypography.bodyM.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                _styleDetailsBloc.add(
+                  StyleDetailsPublishRequested(styleId: widget.styleId),
+                );
+              },
+              child: Text(
+                'Publish',
+                style: AppTypography.bodyM.copyWith(
+                  color: AppColors.success,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showUnpublishDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          backgroundColor: AppColors.surface,
+          title: Text(
+            'Unpublish Product',
+            style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
+          ),
+          content: Text(
+            'Unpublishing this product will hide it from the marketplace. Buyers will no longer be able to see or purchase it. Are you sure you want to unpublish?',
+            style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                'Cancel',
+                style: AppTypography.bodyM.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                _styleDetailsBloc.add(
+                  StyleDetailsUnpublishRequested(styleId: widget.styleId),
+                );
+              },
+              child: Text(
+                'Unpublish',
+                style: AppTypography.bodyM.copyWith(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

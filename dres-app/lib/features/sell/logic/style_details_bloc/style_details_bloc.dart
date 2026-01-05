@@ -17,6 +17,8 @@ class StyleDetailsBloc extends Bloc<StyleDetailsEvent, StyleDetailsState> {
     on<StyleDetailsLoadRequested>(_onLoadRequested);
     on<StyleDetailsUpdateRequested>(_onUpdateRequested);
     on<StyleDetailsReset>(_onReset);
+    on<StyleDetailsPublishRequested>(_onPublishRequested);
+    on<StyleDetailsUnpublishRequested>(_onUnpublishRequested);
   }
 
   Future<void> _onCreateRequested(
@@ -106,5 +108,57 @@ class StyleDetailsBloc extends Bloc<StyleDetailsEvent, StyleDetailsState> {
 
   void _onReset(StyleDetailsReset event, Emitter<StyleDetailsState> emit) {
     emit(const StyleDetailsState());
+  }
+
+  Future<void> _onPublishRequested(
+    StyleDetailsPublishRequested event,
+    Emitter<StyleDetailsState> emit,
+  ) async {
+    emit(state.copyWith(status: StyleDetailsStatus.publishing));
+
+    try {
+      await _sellRepository.publishStyle(event.styleId);
+
+      // Reload the style details to get updated status
+      final details = await _sellRepository.getStyleDetails(event.styleId);
+
+      emit(state.copyWith(
+        status: StyleDetailsStatus.publishSuccess,
+        styleDetails: details,
+      ));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: StyleDetailsStatus.failure,
+          errorMessage: getErrorMessage(e),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onUnpublishRequested(
+    StyleDetailsUnpublishRequested event,
+    Emitter<StyleDetailsState> emit,
+  ) async {
+    emit(state.copyWith(status: StyleDetailsStatus.unpublishing));
+
+    try {
+      await _sellRepository.unpublishStyle(event.styleId);
+
+      // Reload the style details to get updated status
+      final details = await _sellRepository.getStyleDetails(event.styleId);
+
+      emit(state.copyWith(
+        status: StyleDetailsStatus.unpublishSuccess,
+        styleDetails: details,
+      ));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: StyleDetailsStatus.failure,
+          errorMessage: getErrorMessage(e),
+        ),
+      );
+    }
   }
 }

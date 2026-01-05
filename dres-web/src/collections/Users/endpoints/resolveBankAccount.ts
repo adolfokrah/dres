@@ -1,5 +1,6 @@
 import type { Endpoint } from 'payload'
 import { getBanks, resolveAccountNumber } from '../../../utilities/paystack'
+import { User } from '../../../payload-types'
 
 /**
  * Get list of banks for a country
@@ -96,6 +97,76 @@ export const resolveAccountEndpoint: Endpoint = {
       console.error('Error resolving account:', error)
       return Response.json(
         { error: 'Failed to resolve account' },
+        { status: 500 }
+      )
+    }
+  },
+}
+
+/**
+ * Save withdrawal account details for the authenticated user
+ * POST /api/users/withdrawal-account
+ * Body: { bankCode, bankName, accountNumber, accountName }
+ */
+export const saveWithdrawalAccountEndpoint: Endpoint = {
+  path: '/withdrawal-account',
+  method: 'post',
+  handler: async (req) => {
+    try {
+      // Check if user is authenticated
+      const user = req.user as User | undefined
+      if (!user) {
+        return Response.json(
+          { error: 'Authentication required' },
+          { status: 401 }
+        )
+      }
+
+      // Parse request body
+      const body = await req.json?.() as {
+        bankCode?: string
+        bankName?: string
+        accountNumber?: string
+        accountName?: string
+      } | undefined
+
+      if (!body) {
+        return Response.json(
+          { error: 'Request body is required' },
+          { status: 400 }
+        )
+      }
+
+      const { bankCode, bankName, accountNumber, accountName } = body
+
+      if (!bankCode || !bankName || !accountNumber || !accountName) {
+        return Response.json(
+          { error: 'bankCode, bankName, accountNumber, and accountName are required' },
+          { status: 400 }
+        )
+      }
+
+      // Update user's withdrawal account
+      await req.payload.update({
+        collection: 'users',
+        id: user.id,
+        data: {
+          withdrawalAccount: {
+            bank: bankName,
+            accountNumber: accountNumber,
+            accountName: accountName,
+          },
+        },
+      })
+
+      return Response.json({
+        success: true,
+        message: 'Withdrawal account saved successfully',
+      })
+    } catch (error) {
+      console.error('Error saving withdrawal account:', error)
+      return Response.json(
+        { error: 'Failed to save withdrawal account' },
         { status: 500 }
       )
     }

@@ -35,6 +35,7 @@ import 'package:dres/features/profile/presentation/view/user_profile_screen.dart
 import 'package:dres/features/profile/presentation/view/seller_profile_screen.dart';
 import 'package:dres/features/profile/presentation/view/personal_info_screen.dart';
 import 'package:dres/features/profile/presentation/view/vacation_mode_screen.dart';
+import 'package:dres/features/profile/presentation/view/withdrawal_account_screen.dart';
 import 'package:dres/features/orders/presentation/view/incoming_order_details_screen.dart';
 import 'package:dres/features/notifications/presentation/view/notifications_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
@@ -588,6 +589,12 @@ class AppRoutes {
                     path: 'vacation-mode',
                     name: 'vacation-mode',
                     builder: (context, state) => const VacationModeScreen(),
+                  ),
+                  // Withdrawal Account (nested under profile tab)
+                  GoRoute(
+                    path: 'withdrawal-account',
+                    name: 'withdrawal-account',
+                    builder: (context, state) => const WithdrawalAccountScreen(),
                   ),
                 ],
               ),

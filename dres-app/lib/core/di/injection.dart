@@ -51,6 +51,8 @@ import 'package:dres/features/profile/data/repositories/user_products_repository
 import 'package:dres/features/profile/logic/user_products_bloc/user_products_bloc.dart';
 import 'package:dres/features/profile/data/repositories/seller_products_repository.dart';
 import 'package:dres/features/profile/logic/seller_products_bloc/seller_products_bloc.dart';
+import 'package:dres/features/profile/data/repositories/withdrawal_account_repository.dart';
+import 'package:dres/features/profile/logic/withdrawal_account_bloc/withdrawal_account_bloc.dart';
 
 final getIt = GetIt.instance;
 
@@ -293,6 +295,16 @@ Future<void> setupDependencies() async {
   // Seller Products Bloc - Factory so each screen gets its own instance
   getIt.registerFactory<SellerProductsBloc>(() => SellerProductsBloc(
     sellerProductsRepository: getIt<SellerProductsRepository>(),
+  ));
+
+  // Withdrawal Account Repository
+  getIt.registerLazySingleton<WithdrawalAccountRepository>(() => WithdrawalAccountRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Withdrawal Account Bloc - Factory so each screen gets its own instance
+  getIt.registerFactory<WithdrawalAccountBloc>(() => WithdrawalAccountBloc(
+    repository: getIt<WithdrawalAccountRepository>(),
   ));
 }
 
@@ -544,5 +556,15 @@ Future<void> _setupDependenciesWithExistingStorage(StorageService storageService
   // Seller Products Bloc - Factory
   getIt.registerFactory<SellerProductsBloc>(() => SellerProductsBloc(
     sellerProductsRepository: getIt<SellerProductsRepository>(),
+  ));
+
+  // Withdrawal Account Repository
+  getIt.registerLazySingleton<WithdrawalAccountRepository>(() => WithdrawalAccountRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Withdrawal Account Bloc - Factory
+  getIt.registerFactory<WithdrawalAccountBloc>(() => WithdrawalAccountBloc(
+    repository: getIt<WithdrawalAccountRepository>(),
   ));
 }

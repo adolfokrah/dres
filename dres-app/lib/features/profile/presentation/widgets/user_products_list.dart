@@ -264,27 +264,12 @@ class _ProductTile extends StatelessWidget {
                     const SizedBox(height: 4),
                   ],
 
-                  // Stats row
-                  Row(
-                    children: [
-                      // Variations count
-                      Text(
-                        '${product.variationCount} variation${product.variationCount != 1 ? 's' : ''}',
-                        style: AppTypography.bodyM.copyWith(
-                          color: AppColors.textHint,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Stock
-                      Text(
-                        '${product.totalStock} in stock',
-                        style: AppTypography.bodyM.copyWith(
-                          color: product.totalStock > 0 
-                              ? AppColors.textHint 
-                              : AppColors.error,
-                        ),
-                      ),
-                    ],
+                  // Variations count
+                  Text(
+                    '${product.variationCount} variation${product.variationCount != 1 ? 's' : ''}',
+                    style: AppTypography.bodyM.copyWith(
+                      color: AppColors.textHint,
+                    ),
                   ),
                 ],
               ),

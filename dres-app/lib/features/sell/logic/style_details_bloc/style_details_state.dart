@@ -9,6 +9,10 @@ enum StyleDetailsStatus {
   loaded,
   updating,
   updateSuccess,
+  publishing,
+  publishSuccess,
+  unpublishing,
+  unpublishSuccess,
   failure,
 }
 

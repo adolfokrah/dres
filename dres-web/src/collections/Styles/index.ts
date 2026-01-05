@@ -6,6 +6,7 @@ import { getStyleReviewsEndpoint } from './endpoints/getStyleReviews'
 import { getMyDraftStyles } from './endpoints/getMyDraftStyles'
 import { getMyProducts } from './endpoints/getMyProducts'
 import { updateVariationsOnTitleChange } from './hooks/updateVariationsOnTitleChange'
+import { validatePublish } from './hooks/validatePublish'
 
 export const Styles: CollectionConfig = {
   slug: 'styles',
@@ -33,6 +34,8 @@ export const Styles: CollectionConfig = {
         }
         return data
       },
+      // Validate before publishing
+      validatePublish,
     ],
     afterChange: [
       // Update variation titles/slugs when style title changes

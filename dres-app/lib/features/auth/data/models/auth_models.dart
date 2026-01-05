@@ -63,6 +63,7 @@ class AuthUser {
   final int followersCount;
   final int followingCount;
   final int reviewsCount;
+  final WithdrawalAccount? withdrawalAccount;
 
   AuthUser({
     required this.id,
@@ -78,6 +79,7 @@ class AuthUser {
     this.followersCount = 0,
     this.followingCount = 0,
     this.reviewsCount = 0,
+    this.withdrawalAccount,
   });
 
   factory AuthUser.fromJson(Map<String, dynamic> json) {
@@ -98,7 +100,14 @@ class AuthUser {
     if (countryData is Map<String, dynamic>) {
       country = AuthCountry.fromJson(countryData);
     }
-    
+
+    // Handle withdrawal account
+    WithdrawalAccount? withdrawalAccount;
+    final withdrawalData = json['withdrawalAccount'];
+    if (withdrawalData is Map<String, dynamic>) {
+      withdrawalAccount = WithdrawalAccount.fromJson(withdrawalData);
+    }
+
     return AuthUser(
       id: json['id']?.toString() ?? '',
       email: json['email'] ?? '',
@@ -113,6 +122,7 @@ class AuthUser {
       followersCount: json['followersCount'] ?? 0,
       followingCount: json['followingCount'] ?? 0,
       reviewsCount: json['reviewsCount'] ?? 0,
+      withdrawalAccount: withdrawalAccount,
     );
   }
 
@@ -202,4 +212,31 @@ class AuthCurrency {
       symbol: json['symbol'] ?? '',
     );
   }
+}
+
+/// Withdrawal account model for auth user
+class WithdrawalAccount {
+  final String? bank;
+  final String? accountNumber;
+  final String? accountName;
+
+  WithdrawalAccount({
+    this.bank,
+    this.accountNumber,
+    this.accountName,
+  });
+
+  factory WithdrawalAccount.fromJson(Map<String, dynamic> json) {
+    return WithdrawalAccount(
+      bank: json['bank'] as String?,
+      accountNumber: json['accountNumber'] as String?,
+      accountName: json['accountName'] as String?,
+    );
+  }
+
+  bool get hasData =>
+      bank != null &&
+      bank!.isNotEmpty &&
+      accountNumber != null &&
+      accountNumber!.isNotEmpty;
 }

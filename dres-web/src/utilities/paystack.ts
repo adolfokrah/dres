@@ -378,6 +378,19 @@ export async function resolveAccountNumber(accountNumber: string, bankCode: stri
     }
   }
 
+  // Return mock data for test keys (Paystack resolve endpoint only works with live keys)
+  const isTestKey = PAYSTACK_SECRET_KEY.startsWith('sk_test_')
+  if (isTestKey) {
+    return {
+      success: true,
+      data: {
+        account_number: accountNumber,
+        account_name: 'TEST ACCOUNT HOLDER',
+        bank_id: 0,
+      },
+    }
+  }
+
   try {
     const params = new URLSearchParams({
       account_number: accountNumber,

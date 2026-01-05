@@ -111,3 +111,8 @@ class AuthUpdateEmailRequested extends AuthEvent {
 class AuthResendVerificationRequested extends AuthEvent {
   const AuthResendVerificationRequested();
 }
+
+/// Force refresh user data from server (unlike AuthCheckStatusRequested which skips if already authenticated)
+class AuthRefreshUserRequested extends AuthEvent {
+  const AuthRefreshUserRequested();
+}

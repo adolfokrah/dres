@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -10,10 +9,10 @@ import 'package:dres/core/widgets/profile_avatar.dart';
 import 'package:dres/core/widgets/app_text_field.dart';
 import 'package:dres/core/widgets/restart_widget.dart';
 import 'package:dres/core/utilities/image_picker_utils.dart';
-import 'package:dres/core/services/api_service.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/auth/data/models/auth_models.dart';
 import 'package:dres/features/auth/data/repositories/auth_repository.dart';
+import 'package:dres/core/widgets/country_picker_sheet.dart';
 
 /// Personal Info screen for viewing and editing user profile information
 class PersonalInfoScreen extends StatefulWidget {
@@ -577,9 +576,10 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     );
   }
 
-  Future<void> _pickProfilePhoto(BuildContext context) async {
-    final photo = await ImagePickerUtils.pickSingleImage(context);
-    if (photo != null) {
+  Future<void> _pickProfilePhoto(BuildContext ctx) async {
+    final photo = await ImagePickerUtils.pickSingleImage(ctx);
+    if (photo != null && mounted) {
+      // ignore: use_build_context_synchronously
       context.read<AuthBloc>().add(AuthUpdatePhotoRequested(photo.path));
     }
   }
@@ -661,126 +661,25 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     );
   }
 
-  void _showCountrySelector(BuildContext context) {
-    _fetchAndShowCountries(context);
-  }
+  Future<void> _showCountrySelector(BuildContext context) async {
+    final currentCountryId = context.read<AuthBloc>().state.user?.country?.id;
 
-  Future<void> _fetchAndShowCountries(BuildContext context) async {
-    // Show loading indicator
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
-      builder: (context) => const SafeArea(
-        child: SizedBox(
-          height: 200,
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      ),
+    final selectedCountry = await CountryPickerSheet.show(
+      context,
+      selectedCountryId: currentCountryId,
     );
 
-    try {
-      final apiService = getIt<ApiService>();
-      final response = await apiService.get('/countries?where[isActive][equals]=true&limit=100&depth=1');
-      
-      if (!context.mounted) return;
-      Navigator.pop(context); // Close loading
-      
-      final docs = response.data['docs'] as List<dynamic>? ?? [];
-      final countries = docs.map((c) => {
-        'id': c['id'],
-        'name': c['name'],
-        'code': c['code'],
-        'currency': c['currency'],
-      }).toList();
-
-      final currentCountryId = context.read<AuthBloc>().state.user?.country?.id;
-
-      showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.white,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero,
-        ),
-        isScrollControlled: true,
-        builder: (context) => SafeArea(
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.6,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: AppColors.secondary, width: 1),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Select Country',
-                        style: AppTypography.bodyL.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Icon(
-                          PhosphorIcons.x(),
-                          size: 20,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: countries.length,
-                    itemBuilder: (context, index) {
-                      final country = countries[index];
-                      final isSelected = country['id'] == currentCountryId;
-                      final currency = country['currency'];
-                      final currencyCode = currency is Map ? currency['code'] : '';
-                      
-                      return ListTile(
-                        title: Text(country['name'] ?? ''),
-                        subtitle: currencyCode.isNotEmpty 
-                            ? Text('Currency: $currencyCode')
-                            : null,
-                        trailing: isSelected
-                            ? Icon(PhosphorIcons.check(), color: AppColors.primary)
-                            : null,
-                        onTap: isSelected ? null : () {
-                          Navigator.pop(context);
-                          _updateCountry(country);
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      Navigator.pop(context); // Close loading
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load countries: $e')),
-      );
+    if (selectedCountry != null && selectedCountry.id != currentCountryId) {
+      _updateCountry(selectedCountry);
     }
   }
 
-  Future<void> _updateCountry(Map<String, dynamic> country) async {
+  Future<void> _updateCountry(CountryItem country) async {
     try {
       // Update country via API
       final authRepository = getIt<AuthRepository>();
-      await authRepository.updateProfile({'country': country['id']});
-      
+      await authRepository.updateProfile({'country': country.id});
+
       // Reset the entire app
       await RestartWidget.restartApp();
     } catch (e) {

@@ -43,12 +43,8 @@ class ApiException implements Exception {
         return data['error'].toString();
       }
 
-      // Check for 'message' field
-      if (data['message'] != null) {
-        return data['message'].toString();
-      }
-
-      // Check for Payload CMS 'errors' array format
+      // Check for Payload CMS 'errors' array format FIRST
+      // (Payload may include a generic top-level 'message' but specific error in 'errors' array)
       final errors = data['errors'] as List<dynamic>?;
       if (errors != null && errors.isNotEmpty) {
         final firstError = errors.first;
@@ -62,6 +58,11 @@ class ApiException implements Exception {
         if (firstError is String) {
           return firstError;
         }
+      }
+
+      // Check for 'message' field (fallback)
+      if (data['message'] != null) {
+        return data['message'].toString();
       }
     }
 

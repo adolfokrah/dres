@@ -1,3 +1,5 @@
+import { APIError } from 'payload'
+
 /**
  * Generate a unique 4-digit delivery code
  * @returns A 4-digit string code
@@ -35,5 +37,5 @@ export const generateUniqueDeliveryCode = async (
     }
   }
 
-  throw new Error('Failed to generate unique delivery code after maximum attempts')
+  throw new APIError('Failed to generate unique delivery code after maximum attempts', 500)
 }

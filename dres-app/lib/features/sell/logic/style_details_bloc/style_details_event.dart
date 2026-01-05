@@ -58,3 +58,23 @@ class StyleDetailsUpdateRequested extends StyleDetailsEvent {
 class StyleDetailsReset extends StyleDetailsEvent {
   const StyleDetailsReset();
 }
+
+/// Publish a style (make visible to buyers)
+class StyleDetailsPublishRequested extends StyleDetailsEvent {
+  final String styleId;
+
+  const StyleDetailsPublishRequested({required this.styleId});
+
+  @override
+  List<Object?> get props => [styleId];
+}
+
+/// Unpublish a style (hide from buyers)
+class StyleDetailsUnpublishRequested extends StyleDetailsEvent {
+  final String styleId;
+
+  const StyleDetailsUnpublishRequested({required this.styleId});
+
+  @override
+  List<Object?> get props => [styleId];
+}

@@ -28,6 +28,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthDeleteAccountRequested>(_onDeleteAccountRequested);
     on<AuthUpdateEmailRequested>(_onUpdateEmailRequested);
     on<AuthResendVerificationRequested>(_onResendVerificationRequested);
+    on<AuthRefreshUserRequested>(_onRefreshUserRequested);
   }
 
   void _onSetRedirect(
@@ -462,6 +463,27 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         status: AuthStatus.error,
         errorMessage: _parseError(e),
       ));
+    }
+  }
+
+  /// Force refresh user data from server (unlike AuthCheckStatusRequested which skips if already authenticated)
+  Future<void> _onRefreshUserRequested(
+    AuthRefreshUserRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    try {
+      debugPrint('🔵 AuthBloc: Force refreshing user data');
+      final user = await _authRepository.getCurrentUser();
+      if (user != null) {
+        debugPrint('🟢 AuthBloc: User data refreshed successfully');
+        emit(state.copyWith(
+          status: AuthStatus.authenticated,
+          user: user,
+        ));
+      }
+    } catch (e) {
+      debugPrint('🔴 AuthBloc: Error refreshing user: $e');
+      // Keep existing state on error, don't disrupt the user
     }
   }
 }
