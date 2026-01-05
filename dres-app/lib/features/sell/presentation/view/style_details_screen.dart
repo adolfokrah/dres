@@ -9,6 +9,7 @@ import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_text_field.dart';
 import 'package:dres/core/widgets/app_text_area.dart';
+import 'package:dres/core/widgets/app_snackbar.dart';
 import 'package:dres/features/sell/presentation/widgets/sell_selector_row.dart';
 import 'package:dres/features/sell/presentation/view/select_category_screen.dart';
 import 'package:dres/features/sell/presentation/view/select_brand_screen.dart';
@@ -162,12 +163,7 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
 
   void _onAddVariation() {
     if (_selectedCategoryId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a category first'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      AppSnackbar.error(context, 'Please select a category first');
       return;
     }
     // Create a new variation and navigate to its detail page
@@ -220,12 +216,7 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
             // Refetch drafts so it reflects the updated data
             getIt<SellBloc>().add(const SellRefreshRequested());
             // Show success message
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Style saved successfully'),
-                backgroundColor: AppColors.success,
-              ),
-            );
+            AppSnackbar.success(context, 'Style saved successfully');
             // Close and go back
             context.pop();
           }
@@ -233,36 +224,21 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
           // Handle failure
           if (state.status == StyleDetailsStatus.failure) {
             setState(() => _isUpdating = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage ?? 'Failed to update style'),
-                backgroundColor: AppColors.error,
-              ),
-            );
+            AppSnackbar.error(context, state.errorMessage ?? 'Failed to update style');
           }
 
           // Handle publish success
           if (state.status == StyleDetailsStatus.publishSuccess) {
             getIt<SellBloc>().add(const SellRefreshRequested());
             getIt<UserProductsBloc>().add(const UserProductsRefreshRequested());
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Product published successfully'),
-                backgroundColor: AppColors.success,
-              ),
-            );
+            AppSnackbar.success(context, 'Product published successfully');
           }
 
           // Handle unpublish success
           if (state.status == StyleDetailsStatus.unpublishSuccess) {
             getIt<SellBloc>().add(const SellRefreshRequested());
             getIt<UserProductsBloc>().add(const UserProductsRefreshRequested());
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Product unpublished successfully'),
-                backgroundColor: AppColors.success,
-              ),
-            );
+            AppSnackbar.success(context, 'Product unpublished successfully');
           }
         },
         builder: (context, state) {

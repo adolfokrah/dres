@@ -8,6 +8,7 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/app_button.dart';
+import 'package:dres/core/widgets/app_snackbar.dart';
 import 'package:dres/features/sell/logic/variation_detail_bloc/variation_detail_bloc.dart';
 import 'package:dres/features/sell/logic/variations_bloc/variations_bloc.dart';
 import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
@@ -90,35 +91,20 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
   void _onAddSku() {
     // Check if variation has saved attributes first
     if (!_hasVariationAttributes()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please save variation with attributes first before adding SKUs'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      AppSnackbar.error(context, 'Please save variation with attributes first before adding SKUs');
       return;
     }
 
     // Get SKU attribute from state (e.g., Size)
     final skuAttributes = _variationDetailBloc.state.skuAttributes;
     if (skuAttributes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No SKU attributes available'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      AppSnackbar.error(context, 'No SKU attributes available');
       return;
     }
 
     final skuAttribute = skuAttributes.first;
     if (skuAttribute.options.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No options available for SKU attribute'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      AppSnackbar.error(context, 'No options available for SKU attribute');
       return;
     }
 
@@ -290,12 +276,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
           if (state.status == VariationDetailStatus.failure) {
             _waitingForSkuCreation = false;
             _waitingForUpdate = false;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage ?? 'An error occurred'),
-                backgroundColor: AppColors.error,
-              ),
-            );
+            AppSnackbar.error(context, state.errorMessage ?? 'An error occurred');
           }
 
           // When image is removed successfully, refresh variations list
@@ -310,12 +291,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
             _waitingForUpdate = false;
             getIt<VariationsBloc>().add(const VariationsRefreshRequested());
             getIt<SellBloc>().add(const SellRefreshRequested());
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Variation saved'),
-                backgroundColor: AppColors.success,
-              ),
-            );
+            AppSnackbar.success(context, 'Variation saved');
             // Reload to get fresh data with saved attributes
             _variationDetailBloc.add(
               VariationDetailLoadRequested(
@@ -327,12 +303,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
 
           // When variation archive succeeds, navigate back
           if (state.status == VariationDetailStatus.archiveSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Variation removed'),
-                backgroundColor: AppColors.success,
-              ),
-            );
+            AppSnackbar.success(context, 'Variation removed');
             getIt<VariationsBloc>().add(const VariationsRefreshRequested());
             getIt<SellBloc>().add(const SellRefreshRequested());
             _navigateBack();
