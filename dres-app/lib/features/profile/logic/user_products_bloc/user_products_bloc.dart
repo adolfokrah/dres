@@ -16,6 +16,7 @@ class UserProductsBloc extends Bloc<UserProductsEvent, UserProductsState> {
     on<UserProductsFetchRequested>(_onFetchRequested);
     on<UserProductsRefreshRequested>(_onRefreshRequested);
     on<UserProductsLoadMoreRequested>(_onLoadMoreRequested);
+    on<UserProductsArchiveRequested>(_onArchiveRequested);
   }
 
   Future<void> _onFetchRequested(
@@ -80,6 +81,30 @@ class UserProductsBloc extends Bloc<UserProductsEvent, UserProductsState> {
         products: [...state.products, ...response.products],
         hasMore: response.hasNextPage,
         currentPage: nextPage,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: UserProductsStatus.error,
+        errorMessage: getErrorMessage(e),
+      ));
+    }
+  }
+
+  Future<void> _onArchiveRequested(
+    UserProductsArchiveRequested event,
+    Emitter<UserProductsState> emit,
+  ) async {
+    try {
+      await _userProductsRepository.archiveProduct(event.styleId);
+
+      // Remove the archived product from the list
+      final updatedProducts = state.products
+          .where((product) => product.id != event.styleId)
+          .toList();
+
+      emit(state.copyWith(
+        products: updatedProducts,
+        totalDocs: state.totalDocs - 1,
       ));
     } catch (e) {
       emit(state.copyWith(

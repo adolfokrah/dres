@@ -87,16 +87,19 @@ class _StyleVariationsScreenState extends State<StyleVariationsScreen> {
           }
 
           if (state.status == VariationsStatus.deleteSuccess) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('Variation deleted')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Variation deleted'),
+                backgroundColor: AppColors.success,
+              ),
+            );
           }
 
           if (state.status == VariationsStatus.failure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.errorMessage ?? 'An error occurred'),
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.error,
               ),
             );
           }

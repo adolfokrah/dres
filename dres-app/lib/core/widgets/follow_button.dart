@@ -54,9 +54,10 @@ class _FollowButtonState extends State<FollowButton> {
     final authState = getIt<AuthBloc>().state;
     if (authState.user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please log in to follow users'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: const Text('Please log in to follow users'),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 2),
         ),
       );
       context.push('/auth');
@@ -157,9 +158,10 @@ class _FollowButtonCompactState extends State<FollowButtonCompact> {
     final authState = getIt<AuthBloc>().state;
     if (authState.user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please log in to follow users'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: const Text('Please log in to follow users'),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 2),
         ),
       );
       context.push('/auth');

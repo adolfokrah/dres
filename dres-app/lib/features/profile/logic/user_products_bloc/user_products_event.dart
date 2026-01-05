@@ -21,3 +21,13 @@ class UserProductsRefreshRequested extends UserProductsEvent {
 class UserProductsLoadMoreRequested extends UserProductsEvent {
   const UserProductsLoadMoreRequested();
 }
+
+/// Archive a product (hide from seller's view)
+class UserProductsArchiveRequested extends UserProductsEvent {
+  final String styleId;
+
+  const UserProductsArchiveRequested({required this.styleId});
+
+  @override
+  List<Object?> get props => [styleId];
+}

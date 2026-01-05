@@ -356,23 +356,33 @@ class _AddressTile extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero,
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        backgroundColor: AppColors.surface,
+        title: Text(
+          'Delete Address',
+          style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
         ),
-        title: const Text('Delete Address'),
-        content: Text('Are you sure you want to delete the address "${address.fullName}"?'),
+        content: Text(
+          'Are you sure you want to delete the address "${address.fullName}"?',
+          style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: AppTypography.bodyM.copyWith(color: AppColors.textSecondary),
+            ),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(ctx).pop();
               onDelete?.call();
             },
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Delete'),
+            child: Text(
+              'Delete',
+              style: AppTypography.bodyM.copyWith(color: AppColors.error),
+            ),
           ),
         ],
       ),

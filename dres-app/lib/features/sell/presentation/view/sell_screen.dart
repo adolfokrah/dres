@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/app_colors.dart';
+import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
 import 'package:dres/features/sell/logic/style_details_bloc/style_details_bloc.dart';
@@ -106,12 +107,50 @@ class _SellScreenState extends State<SellScreen> {
         itemCount: state.drafts.length,
         itemBuilder: (context, index) {
           final draft = state.drafts[index];
-          return DraftStyleItem(
-            draft: draft,
-            onTap: () {
-              // TODO: Navigate to edit draft
-              _onDraftTapped(draft.id);
+          return Dismissible(
+            key: Key(draft.id),
+            direction: DismissDirection.endToStart,
+            background: Container(
+              color: AppColors.error,
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 20),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  PhosphorIcon(
+                    PhosphorIcons.archive(),
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Archive',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            confirmDismiss: (direction) async {
+              return await _showArchiveConfirmation(context, draft.title);
             },
+            onDismissed: (direction) {
+              getIt<SellBloc>().add(SellArchiveStyleRequested(styleId: draft.id));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Draft archived'),
+                  backgroundColor: AppColors.success,
+                ),
+              );
+            },
+            child: DraftStyleItem(
+              draft: draft,
+              onTap: () {
+                _onDraftTapped(draft.id);
+              },
+            ),
           );
         },
       ),
@@ -182,7 +221,7 @@ class _SellScreenState extends State<SellScreen> {
                       content: Text(
                         state.errorMessage ?? 'Failed to create style',
                       ),
-                      backgroundColor: Colors.red,
+                      backgroundColor: AppColors.error,
                     ),
                   );
                 }
@@ -236,5 +275,43 @@ class _SellScreenState extends State<SellScreen> {
   void _onStartSellingPressed(BuildContext context) {
     // Create a new empty style first
     context.read<StyleDetailsBloc>().add(const StyleDetailsCreateRequested());
+  }
+
+  Future<bool?> _showArchiveConfirmation(BuildContext dialogContext, String title) {
+    return showDialog<bool>(
+      context: dialogContext,
+      builder: (context) => AlertDialog(
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        backgroundColor: AppColors.surface,
+        title: Text(
+          'Archive Draft',
+          style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
+        ),
+        content: Text(
+          'Are you sure you want to archive "$title"? You will no longer see this draft in your list.',
+          style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancel',
+              style: AppTypography.bodyM.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              'Archive',
+              style: AppTypography.bodyM.copyWith(
+                color: AppColors.error,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

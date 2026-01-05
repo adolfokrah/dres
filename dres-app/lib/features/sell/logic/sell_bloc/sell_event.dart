@@ -16,3 +16,13 @@ class SellFetchDraftsRequested extends SellEvent {
 class SellRefreshRequested extends SellEvent {
   const SellRefreshRequested();
 }
+
+/// Archive a style (hide from seller's view)
+class SellArchiveStyleRequested extends SellEvent {
+  final String styleId;
+
+  const SellArchiveStyleRequested({required this.styleId});
+
+  @override
+  List<Object?> get props => [styleId];
+}

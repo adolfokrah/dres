@@ -14,6 +14,7 @@ class SellBloc extends Bloc<SellEvent, SellState> {
       super(const SellState()) {
     on<SellFetchDraftsRequested>(_onFetchDraftsRequested);
     on<SellRefreshRequested>(_onRefreshRequested);
+    on<SellArchiveStyleRequested>(_onArchiveStyleRequested);
   }
 
   Future<void> _onFetchDraftsRequested(
@@ -54,6 +55,34 @@ class SellBloc extends Bloc<SellEvent, SellState> {
     } catch (e) {
       emit(
         state.copyWith(status: SellStatus.failure, errorMessage: getErrorMessage(e)),
+      );
+    }
+  }
+
+  Future<void> _onArchiveStyleRequested(
+    SellArchiveStyleRequested event,
+    Emitter<SellState> emit,
+  ) async {
+    try {
+      await _sellRepository.archiveStyle(event.styleId);
+
+      // Remove the archived style from the list
+      final updatedDrafts = state.drafts
+          .where((draft) => draft.id != event.styleId)
+          .toList();
+
+      emit(
+        state.copyWith(
+          drafts: updatedDrafts,
+          totalDrafts: updatedDrafts.length,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: SellStatus.failure,
+          errorMessage: getErrorMessage(e),
+        ),
       );
     }
   }

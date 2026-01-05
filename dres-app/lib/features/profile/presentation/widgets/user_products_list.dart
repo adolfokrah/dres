@@ -155,9 +155,53 @@ class _UserProductsListState extends State<UserProductsList> {
                     }
 
                     final product = state.products[index];
-                    return _ProductTile(
-                      product: product,
-                      onTap: () => _onProductTap(product),
+                    return Dismissible(
+                      key: Key(product.id),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        color: AppColors.error,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            PhosphorIcon(
+                              PhosphorIcons.archive(),
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Archive',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      confirmDismiss: (direction) async {
+                        return await _showArchiveConfirmation(
+                          context,
+                          product.title.isNotEmpty ? product.title : 'Untitled',
+                        );
+                      },
+                      onDismissed: (direction) {
+                        _userProductsBloc.add(
+                          UserProductsArchiveRequested(styleId: product.id),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Product archived'),
+                            backgroundColor: AppColors.success,
+                          ),
+                        );
+                      },
+                      child: _ProductTile(
+                        product: product,
+                        onTap: () => _onProductTap(product),
+                      ),
                     );
                   },
                   childCount:
@@ -173,6 +217,44 @@ class _UserProductsListState extends State<UserProductsList> {
   void _onProductTap(ProductStyleModel product) {
     // Navigate to style details screen for editing
     context.push('/sell/style/${product.id}');
+  }
+
+  Future<bool?> _showArchiveConfirmation(BuildContext dialogContext, String title) {
+    return showDialog<bool>(
+      context: dialogContext,
+      builder: (context) => AlertDialog(
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        backgroundColor: AppColors.surface,
+        title: Text(
+          'Archive Product',
+          style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
+        ),
+        content: Text(
+          'Are you sure you want to archive "$title"? You will no longer see this product in your list.',
+          style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(
+              'Cancel',
+              style: AppTypography.bodyM.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(
+              'Archive',
+              style: AppTypography.bodyM.copyWith(
+                color: AppColors.error,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

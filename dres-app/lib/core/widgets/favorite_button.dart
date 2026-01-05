@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/features/favorites/logic/favorites_bloc/favorites_bloc.dart';
+import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 
 /// A standalone favorite button widget that communicates with the favorites API.
@@ -40,9 +41,10 @@ class FavoriteButton extends StatelessWidget {
     if (!isLoggedIn) {
       // Show login prompt and navigate to auth
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please log in to add favorites'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          content: const Text('Please log in to add favorites'),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 2),
         ),
       );
       context.push('/auth');

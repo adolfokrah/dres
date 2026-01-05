@@ -67,9 +67,10 @@ export const Styles: CollectionConfig = {
       options: [
         { label: 'Draft', value: 'draft' },
         { label: 'Published', value: 'published' },
+        { label: 'Archived', value: 'archived' },
       ],
       admin: {
-        description: 'Only published styles will be visible to buyers',
+        description: 'Only published styles will be visible to buyers. Archived styles are hidden from seller.',
         position: 'sidebar',
       },
     },

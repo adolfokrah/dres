@@ -75,14 +75,26 @@ class SellRepository {
     );
   }
 
+  /// Archive a style (hide from seller's view)
+  Future<void> archiveStyle(String styleId) async {
+    await _apiService.patch(
+      '/styles/$styleId',
+      data: {'status': 'archived'},
+    );
+  }
+
   // ==================== VARIATIONS ====================
 
-  /// Get variations for a style
+  /// Get variations for a style (excludes archived)
   Future<GetVariationsResponse> getStyleVariations(String styleId) async {
     try {
       final response = await _apiService.get(
         '/variations',
-        queryParameters: {'where[style][equals]': styleId, 'depth': '3'},
+        queryParameters: {
+          'where[style][equals]': styleId,
+          'where[status][not_equals]': 'archived',
+          'depth': '3',
+        },
       );
       return GetVariationsResponse.fromJson(response.data);
     } catch (e) {
@@ -150,13 +162,14 @@ class SellRepository {
 
   // ==================== SKUs ====================
 
-  /// Get SKUs for a variation
+  /// Get SKUs for a variation (excludes archived)
   Future<List<SkuModel>> getVariationSkus(String variationId) async {
     try {
       final response = await _apiService.get(
         '/skus',
         queryParameters: {
           'where[variation][equals]': variationId,
+          'where[status][not_equals]': 'archived',
           'depth': '1',
         },
       );

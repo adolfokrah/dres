@@ -37,12 +37,15 @@ export const getMyProducts: PayloadHandler = async (req) => {
     for (const style of stylesResult.docs) {
       // Get the first variation's image as thumbnail
       let thumbnail: string | null = null
-      let variationCount = 0
       let totalStock = 0
       let lowestPrice: number | null = null
 
-      const variations = style.variations?.docs || []
-      variationCount = variations.length
+      // Filter out archived variations
+      const allVariations = style.variations?.docs || []
+      const variations = allVariations.filter(
+        (v: any) => typeof v === 'object' && v.status !== 'archived'
+      )
+      const variationCount = variations.length
 
       for (const variation of variations) {
         if (typeof variation === 'string') continue
@@ -67,11 +70,15 @@ export const getMyProducts: PayloadHandler = async (req) => {
           }
         }
 
-        // Get SKUs for stock and price
-        const skus = variation.skus?.docs || []
+        // Get SKUs for stock and price (filter out archived SKUs)
+        const allSkus = variation.skus?.docs || []
+        const skus = allSkus.filter(
+          (s: any) => typeof s === 'object' && s.status !== 'archived'
+        )
+
         for (const sku of skus) {
           if (typeof sku === 'string') continue
-          
+
           // Add stock
           if (sku.stock !== undefined && sku.stock !== null) {
             totalStock += sku.stock

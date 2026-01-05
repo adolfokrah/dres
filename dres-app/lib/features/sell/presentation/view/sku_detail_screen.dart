@@ -112,14 +112,20 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
     if (_selectedAttributeId == null || _selectedOptionId == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Please select a value')));
+      ).showSnackBar(const SnackBar(
+        content: Text('Please select a value'),
+        backgroundColor: AppColors.error,
+      ));
       return;
     }
 
     final price = double.tryParse(_priceController.text);
     if (price == null || price <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid price')),
+        const SnackBar(
+          content: Text('Please enter a valid price'),
+          backgroundColor: AppColors.error,
+        ),
       );
       return;
     }
@@ -129,6 +135,7 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Compare price should be more than selling price'),
+          backgroundColor: AppColors.error,
         ),
       );
       return;
@@ -152,10 +159,12 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
     // Show confirmation dialog
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        backgroundColor: AppColors.surface,
         title: Text(
           'Remove SKU',
-          style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+          style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
         ),
         content: Text(
           'Are you sure you want to remove this SKU? It will be archived and can be restored later.',
@@ -163,20 +172,23 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
-              style: TextStyle(color: AppColors.textPrimary),
+              style: AppTypography.bodyM.copyWith(color: AppColors.textSecondary),
             ),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               _variationDetailBloc.add(
                 SkuArchiveRequested(skuId: widget.skuId),
               );
             },
-            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+            child: Text(
+              'Remove',
+              style: AppTypography.bodyM.copyWith(color: AppColors.error),
+            ),
           ),
         ],
       ),
@@ -203,7 +215,10 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
 
           if (state.status == VariationDetailStatus.skuUpdateSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('SKU updated successfully')),
+              const SnackBar(
+                content: Text('SKU updated successfully'),
+                backgroundColor: AppColors.success,
+              ),
             );
             // Refresh variation detail to show updated SKU data
             _variationDetailBloc.add(
@@ -218,9 +233,12 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
           }
 
           if (state.status == VariationDetailStatus.skuArchiveSuccess) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('SKU removed')));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('SKU removed'),
+                backgroundColor: AppColors.success,
+              ),
+            );
             getIt<VariationsBloc>().add(const VariationsRefreshRequested());
             getIt<SellBloc>().add(const SellRefreshRequested());
             context.pop();
@@ -230,7 +248,7 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.errorMessage ?? 'An error occurred'),
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.error,
               ),
             );
           }

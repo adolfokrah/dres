@@ -20,4 +20,12 @@ class UserProductsRepository {
     );
     return GetMyProductsResponse.fromJson(response.data);
   }
+
+  /// Archive a product (style)
+  Future<void> archiveProduct(String styleId) async {
+    await _apiService.patch(
+      '/styles/$styleId',
+      data: {'status': 'archived'},
+    );
+  }
 }

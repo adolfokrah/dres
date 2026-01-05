@@ -695,22 +695,33 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Account'),
-        content: const Text(
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        backgroundColor: AppColors.surface,
+        title: Text(
+          'Delete Account',
+          style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
+        ),
+        content: Text(
           'Are you sure you want to delete your account?\n\nYour account will be scheduled for deletion. All your data including styles, variations, and products will be permanently removed within 30 days.\n\nThis action cannot be undone.',
+          style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: AppTypography.bodyM.copyWith(color: AppColors.textSecondary),
+            ),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
               context.read<AuthBloc>().add(const AuthDeleteAccountRequested());
             },
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Delete Account'),
+            child: Text(
+              'Delete Account',
+              style: AppTypography.bodyM.copyWith(color: AppColors.error),
+            ),
           ),
         ],
       ),

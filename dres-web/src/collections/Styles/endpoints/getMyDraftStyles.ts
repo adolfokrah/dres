@@ -24,10 +24,12 @@ export const getMyDraftStyles: PayloadHandler = async (req) => {
   try {
     // Fetch all draft styles for the current user
     // Include styles where status is 'draft' OR status is not set (for backwards compatibility)
+    // Exclude archived styles
     const stylesResult = await payload.find({
       collection: 'styles',
       where: {
         seller: { equals: user.id },
+        status: { not_equals: 'archived' },
         or: [
           { status: { equals: 'draft' } },
           { status: { exists: false } },
@@ -44,13 +46,18 @@ export const getMyDraftStyles: PayloadHandler = async (req) => {
 
     for (const style of stylesResult.docs) {
       const stepsAnalysis = analyzeStyleCompletion(style)
-      
+
       // Only include styles that are incomplete (have steps left)
-        // Get the first variation's image as thumbnail
+        // Get the first non-archived variation's image as thumbnail
         let thumbnail: string | null = null
-        
-        if (style.variations?.docs && style.variations.docs.length > 0) {
-          const firstVariation = style.variations.docs[0]
+
+        // Filter out archived variations
+        const activeVariations = (style.variations?.docs || []).filter(
+          (v: any) => typeof v === 'object' && v.status !== 'archived'
+        )
+
+        if (activeVariations.length > 0) {
+          const firstVariation = activeVariations[0]
           if (typeof firstVariation === 'object' && firstVariation?.images && firstVariation.images.length > 0) {
             const firstImage = firstVariation.images[0]
             if (typeof firstImage === 'object' && 'url' in firstImage) {
@@ -127,6 +134,7 @@ interface StyleCompletionAnalysis {
 
 /**
  * Analyzes a style to determine what steps are remaining
+ * Only considers non-archived variations and SKUs
  */
 function analyzeStyleCompletion(style: any): StyleCompletionAnalysis {
   const missingSteps: string[] = []
@@ -146,7 +154,12 @@ function analyzeStyleCompletion(style: any): StyleCompletionAnalysis {
   }
 
   // Check if style has variations (Step 2)
-  const variations = style.variations?.docs || []
+  // Filter out archived variations
+  const allVariations = style.variations?.docs || []
+  const variations = allVariations.filter(
+    (v: any) => typeof v === 'object' && v.status !== 'archived'
+  )
+
   if (variations.length === 0) {
     missingSteps.push('variations')
     // If no variations, also missing SKUs
@@ -166,15 +179,19 @@ function analyzeStyleCompletion(style: any): StyleCompletionAnalysis {
       hasVariationWithImages = true
     }
 
-    // Check if variation has SKUs
-    const skus = variation.skus?.docs || []
+    // Check if variation has SKUs (filter out archived SKUs)
+    const allSkus = variation.skus?.docs || []
+    const skus = allSkus.filter(
+      (s: any) => typeof s === 'object' && s.status !== 'archived'
+    )
+
     if (skus.length > 0) {
       hasVariationWithSKUs = true
-      
+
       // Check SKU completeness
       for (const sku of skus) {
         if (typeof sku === 'string') continue
-        
+
         // Check if SKU has required fields
         if (!sku.price || sku.price <= 0) {
           if (!missingSteps.includes('sku_pricing')) {

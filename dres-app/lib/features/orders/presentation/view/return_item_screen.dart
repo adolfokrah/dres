@@ -66,7 +66,10 @@ class _ReturnItemScreenState extends State<ReturnItemScreen> {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(getErrorMessage(e))),
+          SnackBar(
+            content: Text(getErrorMessage(e)),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -84,9 +87,9 @@ class _ReturnItemScreenState extends State<ReturnItemScreen> {
   Future<void> _submitReturn() async {
     if (_selectedReason == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please select a reason for the return'),
-          backgroundColor: AppColors.textPrimary,
+        const SnackBar(
+          content: Text('Please select a reason for the return'),
+          backgroundColor: AppColors.error,
         ),
       );
       return;
@@ -94,9 +97,9 @@ class _ReturnItemScreenState extends State<ReturnItemScreen> {
 
     if (_selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please attach an image as evidence'),
-          backgroundColor: AppColors.textPrimary,
+        const SnackBar(
+          content: Text('Please attach an image as evidence'),
+          backgroundColor: AppColors.error,
         ),
       );
       return;
@@ -114,9 +117,9 @@ class _ReturnItemScreenState extends State<ReturnItemScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Return request submitted successfully'),
-            backgroundColor: Colors.green,
+          const SnackBar(
+            content: Text('Return request submitted successfully'),
+            backgroundColor: AppColors.success,
           ),
         );
         context.pop(true); // Return true to indicate success
@@ -126,7 +129,7 @@ class _ReturnItemScreenState extends State<ReturnItemScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(getErrorMessage(e)),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }

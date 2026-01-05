@@ -104,6 +104,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Please accept the terms and privacy policy'),
+            backgroundColor: AppColors.error,
           ),
         );
         return;

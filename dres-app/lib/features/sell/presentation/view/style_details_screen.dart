@@ -163,7 +163,10 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
   void _onAddVariation() {
     if (_selectedCategoryId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a category first')),
+        const SnackBar(
+          content: Text('Please select a category first'),
+          backgroundColor: AppColors.error,
+        ),
       );
       return;
     }
@@ -218,7 +221,10 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
             getIt<SellBloc>().add(const SellRefreshRequested());
             // Show success message
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Style saved successfully')),
+              const SnackBar(
+                content: Text('Style saved successfully'),
+                backgroundColor: AppColors.success,
+              ),
             );
             // Close and go back
             context.pop();
@@ -230,7 +236,7 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.errorMessage ?? 'Failed to update style'),
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.error,
               ),
             );
           }

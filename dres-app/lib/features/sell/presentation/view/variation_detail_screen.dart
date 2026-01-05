@@ -51,14 +51,20 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
   bool _attributesPopulated = false;
 
   /// Check if the variation form is valid (can be saved)
-  /// Requires: 3+ images, 1+ attribute selected, 1+ SKU
-  bool _isFormValid(List<String> existingImages, List<dynamic> skus) {
+  /// Requires: 3+ images, 1+ attribute selected
+  /// SKUs are added after variation is saved with attributes
+  bool _isFormValid(List<String> existingImages) {
     final totalImages = existingImages.length + _selectedImages.length;
     final hasEnoughImages = totalImages >= 3;
     final hasAttribute = _selectedAttributes.any((a) => a.isComplete);
-    final hasSku = skus.isNotEmpty;
 
-    return hasEnoughImages && hasAttribute && hasSku;
+    return hasEnoughImages && hasAttribute;
+  }
+
+  /// Check if variation has saved attributes (variants) - required before adding SKUs
+  bool _hasVariationAttributes() {
+    final variation = _variationDetailBloc.state.variation;
+    return variation != null && variation.variants.isNotEmpty;
   }
 
   @override
@@ -82,11 +88,25 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
   }
 
   void _onAddSku() {
+    // Check if variation has saved attributes first
+    if (!_hasVariationAttributes()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please save variation with attributes first before adding SKUs'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     // Get SKU attribute from state (e.g., Size)
     final skuAttributes = _variationDetailBloc.state.skuAttributes;
     if (skuAttributes.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No SKU attributes available')),
+        const SnackBar(
+          content: Text('No SKU attributes available'),
+          backgroundColor: AppColors.error,
+        ),
       );
       return;
     }
@@ -94,7 +114,10 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
     final skuAttribute = skuAttributes.first;
     if (skuAttribute.options.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No options available for SKU attribute')),
+        const SnackBar(
+          content: Text('No options available for SKU attribute'),
+          backgroundColor: AppColors.error,
+        ),
       );
       return;
     }
@@ -162,10 +185,12 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
     // Show confirmation dialog
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        backgroundColor: AppColors.surface,
         title: Text(
           'Remove Variation',
-          style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+          style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
         ),
         content: Text(
           'Are you sure you want to remove this variation? It will be archived and can be restored later.',
@@ -173,20 +198,23 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               'Cancel',
-              style: TextStyle(color: AppColors.textPrimary),
+              style: AppTypography.bodyM.copyWith(color: AppColors.textSecondary),
             ),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               _variationDetailBloc.add(
                 VariationArchiveRequested(variationId: widget.variationId),
               );
             },
-            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+            child: Text(
+              'Remove',
+              style: AppTypography.bodyM.copyWith(color: AppColors.error),
+            ),
           ),
         ],
       ),
@@ -265,7 +293,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.errorMessage ?? 'An error occurred'),
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.error,
               ),
             );
           }
@@ -276,19 +304,34 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
             getIt<SellBloc>().add(const SellRefreshRequested());
           }
 
-          // When variation update succeeds, navigate back and refresh
+          // When variation update succeeds, stay on screen and show success
           if (state.status == VariationDetailStatus.updateSuccess &&
               _waitingForUpdate) {
             _waitingForUpdate = false;
             getIt<VariationsBloc>().add(const VariationsRefreshRequested());
             getIt<SellBloc>().add(const SellRefreshRequested());
-            _navigateBack();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Variation saved'),
+                backgroundColor: AppColors.success,
+              ),
+            );
+            // Reload to get fresh data with saved attributes
+            _variationDetailBloc.add(
+              VariationDetailLoadRequested(
+                variationId: widget.variationId,
+                categoryId: widget.categoryId,
+              ),
+            );
           }
 
           // When variation archive succeeds, navigate back
           if (state.status == VariationDetailStatus.archiveSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Variation removed')),
+              const SnackBar(
+                content: Text('Variation removed'),
+                backgroundColor: AppColors.success,
+              ),
             );
             getIt<VariationsBloc>().add(const VariationsRefreshRequested());
             getIt<SellBloc>().add(const SellRefreshRequested());
@@ -393,7 +436,6 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
                   // Bottom button
                   _buildBottomSection(
                     existingImages: variation?.images ?? [],
-                    skus: skus,
                     isUpdating: isUpdating,
                   ),
                 ],
@@ -406,6 +448,8 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
   }
 
   Widget _buildSkusSection(List<dynamic> skus, bool isCreating) {
+    final hasAttributes = _hasVariationAttributes();
+
     return Column(
       children: [
         // Header
@@ -441,7 +485,9 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
                         'ADD',
                         style: AppTypography.bodyM.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                          color: hasAttributes
+                              ? AppColors.textPrimary
+                              : AppColors.textHint,
                         ),
                       ),
               ),
@@ -470,7 +516,9 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tap + to add size and price',
+                    hasAttributes
+                        ? 'Tap ADD to add size and price'
+                        : 'Save variation with attributes first',
                     style: AppTypography.bodyS.copyWith(
                       color: AppColors.textHint,
                     ),
@@ -529,10 +577,9 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
 
   Widget _buildBottomSection({
     required List<String> existingImages,
-    required List<dynamic> skus,
     required bool isUpdating,
   }) {
-    final isValid = _isFormValid(existingImages, skus);
+    final isValid = _isFormValid(existingImages);
 
     return Container(
       color: AppColors.background,

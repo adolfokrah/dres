@@ -153,6 +153,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           context: context,
           barrierDismissible: false, // User must tap OK
           builder: (dialogContext) => AlertDialog(
+            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+            backgroundColor: AppColors.surface,
             title: Row(
               children: [
                 PhosphorIcon(
@@ -161,17 +163,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   size: 24,
                 ),
                 const SizedBox(width: 8),
-                const Text('Order Issue'),
+                Text(
+                  'Order Issue',
+                  style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
+                ),
               ],
             ),
-            content: Text(errorMessage),
+            content: Text(
+              errorMessage,
+              style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+            ),
             actions: [
               TextButton(
                 onPressed: () {
                   debugPrint('🚨 Dialog OK pressed - dismissing');
                   Navigator.of(dialogContext).pop();
                 },
-                child: const Text('OK'),
+                child: Text(
+                  'OK',
+                  style: AppTypography.bodyM.copyWith(color: AppColors.primary),
+                ),
               ),
             ],
           ),

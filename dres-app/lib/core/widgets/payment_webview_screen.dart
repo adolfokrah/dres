@@ -119,25 +119,51 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
 
   void _onClose() {
     if (_hasHandledResult) return;
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Close Payment?'),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        backgroundColor: Colors.white,
+        title: const Text(
+          'Close Payment?',
+          style: TextStyle(
+            fontFamily: 'HelveticaNowText',
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         content: const Text(
           'Are you sure you want to close? We\'ll check your payment status.',
+          style: TextStyle(
+            fontFamily: 'HelveticaNowText',
+            fontSize: 16,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Continue Paying'),
+            child: const Text(
+              'Continue Paying',
+              style: TextStyle(
+                fontFamily: 'HelveticaNowText',
+                fontSize: 16,
+                color: Colors.grey,
+              ),
+            ),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(dialogContext).pop(); // Close dialog
               _closeWithResult(PaymentResult.closed);
             },
-            child: const Text('Close'),
+            child: const Text(
+              'Close',
+              style: TextStyle(
+                fontFamily: 'HelveticaNowText',
+                fontSize: 16,
+              ),
+            ),
           ),
         ],
       ),
