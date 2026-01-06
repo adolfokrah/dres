@@ -8,7 +8,7 @@ type UserSeedData = {
   lastName: string
   shopName?: string
   role: 'admin' | 'user'
-  accountStatus: 'active' | 'banned' | 'deleted'
+  accountStatus: 'active' | 'banned' | 'to-be-archived' | 'archived'
   language: 'de' | 'en' | 'es' | 'fr' | 'it' | 'ja' | 'ko' | 'nl' | 'pt' | 'zh'
   countryCode: string
 }

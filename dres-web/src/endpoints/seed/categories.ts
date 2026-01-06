@@ -153,11 +153,6 @@ export const seedCategories = async (payload: Payload): Promise<void> => {
       .map((name) => attributeMap.get(name))
       .filter((id): id is string => id !== undefined)
 
-    // Get variant attribute IDs (subset of attributes used for variations)
-    const variantAttributeIds = category.variantAttributes
-      .map((name) => attributeMap.get(name))
-      .filter((id): id is string => id !== undefined)
-
     // Validate that all relationships were found
     if (departmentIds.length === 0) {
       payload.logger.warn(`Category "${category.title}" has no valid departments! Expected: ${category.departments.join(', ')}`)
@@ -181,10 +176,9 @@ export const seedCategories = async (payload: Payload): Promise<void> => {
         collections: collectionIds,
         brands: brandIds,
         attributes: attributeIds,
-        variantAttributes: variantAttributeIds,
       },
     })
-    payload.logger.info(`Created category: ${category.title} (${collectionIds.length} collections, ${departmentIds.length} departments, ${brandIds.length} brands, ${attributeIds.length} attributes, ${variantAttributeIds.length} variant attributes)`)
+    payload.logger.info(`Created category: ${category.title} (${collectionIds.length} collections, ${departmentIds.length} departments, ${brandIds.length} brands, ${attributeIds.length} attributes)`)
     }
   }
 
