@@ -1,9 +1,13 @@
 import type { CollectionBeforeChangeHook } from 'payload'
 import { APIError } from 'payload'
 
-// Points redemption configuration
-// 100 points = 1 GHS (base currency)
-// When redeeming in other currencies, we convert based on exchange rate
+// Default redemption rate (used if site-settings not available)
+const DEFAULT_REDEMPTION_RATE = 1 // 1 point = 1 GHS
+
+interface SiteSettings {
+  pointsRedemptionRate?: number
+  pointsEnabled?: boolean
+}
 
 /**
  * Validates and calculates points redemption for the cart
@@ -11,9 +15,9 @@ import { APIError } from 'payload'
  * - Calculates pointsDiscount based on cart's currency
  * - Limits redemption to subtotal (can't make cart negative)
  * 
- * Points are stored in GHS equivalent, so when redeeming:
- * - If cart is in GHS: 100 points = 1 GHS discount
- * - If cart is in USD (1 USD = 15 GHS): 100 points = 0.067 USD discount (1/15)
+ * Points value is configured in site-settings (pointsRedemptionRate)
+ * Default: 1 point = 1 GHS
+ * When redeeming in other currencies, we convert based on exchange rate
  */
 export const applyPointsRedemption: CollectionBeforeChangeHook = async ({
   data,
@@ -58,6 +62,28 @@ export const applyPointsRedemption: CollectionBeforeChangeHook = async ({
   }
 
   try {
+    // Get points configuration from site-settings
+    let redemptionRate = DEFAULT_REDEMPTION_RATE
+    let pointsEnabled = true
+
+    try {
+      const siteSettings = await payload.findGlobal({
+        slug: 'site-settings',
+      }) as SiteSettings
+
+      redemptionRate = siteSettings?.pointsRedemptionRate ?? DEFAULT_REDEMPTION_RATE
+      pointsEnabled = siteSettings?.pointsEnabled ?? true
+    } catch (_error) {
+      payload.logger.warn('Could not fetch site-settings for points configuration, using defaults')
+    }
+
+    // If points system is disabled, don't allow redemption
+    if (!pointsEnabled) {
+      data.pointsToRedeem = 0
+      data.pointsDiscount = 0
+      return data
+    }
+
     // Get exchange rate for this cart's currency
     let exchangeRateToGHS = 1
     const currencyId = data?.currency
@@ -108,22 +134,22 @@ export const applyPointsRedemption: CollectionBeforeChangeHook = async ({
     const maxRedeemableAmount = Math.max(0, subtotal - discountAmount)
 
     // Calculate points discount in cart's currency
-    // 100 points = 1 GHS, so divide points by 100 first, then by exchange rate
-    // E.g., 1000 points = 10 GHS, if USD rate is 15: 10/15 = 0.67 USD discount
-    const pointsInGHS = pointsToRedeem / 100 // Convert points to GHS value
+    // pointsToRedeem * redemptionRate = GHS value, then convert to cart currency
+    // E.g., 10 points * 1 GHS/point = 10 GHS, if USD rate is 15: 10/15 = 0.67 USD discount
+    const pointsInGHS = pointsToRedeem * redemptionRate
     let pointsDiscount = pointsInGHS / exchangeRateToGHS
 
     // Can't redeem more than remaining subtotal after discount code
     if (pointsDiscount > maxRedeemableAmount) {
       pointsDiscount = maxRedeemableAmount
       // Adjust points to redeem (convert back to points)
-      data.pointsToRedeem = Math.floor(pointsDiscount * exchangeRateToGHS * 100)
+      data.pointsToRedeem = Math.floor((pointsDiscount * exchangeRateToGHS) / redemptionRate)
     }
 
     data.pointsDiscount = Math.round(pointsDiscount * 100) / 100
 
     payload.logger.info(
-      `Points redemption applied: ${data.pointsToRedeem} points (${pointsInGHS} GHS) = ${data.pointsDiscount} discount (rate: ${exchangeRateToGHS})`,
+      `Points redemption applied: ${data.pointsToRedeem} points (${pointsInGHS} GHS) = ${data.pointsDiscount} discount (rate: ${exchangeRateToGHS}, redemptionRate: ${redemptionRate})`,
     )
   } catch (error) {
     if (error instanceof APIError) {

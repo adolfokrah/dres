@@ -242,6 +242,7 @@ class OrderSellerModel {
   final String? username;
   final String? shopName;
   final String? profilePhoto;
+  final String? phone;
   final bool isTrustedSeller;
 
   OrderSellerModel({
@@ -251,6 +252,7 @@ class OrderSellerModel {
     this.username,
     this.shopName,
     this.profilePhoto,
+    this.phone,
     this.isTrustedSeller = false,
   });
 
@@ -291,6 +293,7 @@ class OrderSellerModel {
       username: json['username'],
       shopName: json['shopName'],
       profilePhoto: profilePhotoUrl,
+      phone: json['phone'],
       isTrustedSeller: json['isTrustedSeller'] ?? false,
     );
   }

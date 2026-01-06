@@ -3,6 +3,8 @@ import { enrichCartItems } from './enrichCartItems'
 
 // Default buyer protection fee in GHS when shipping is 0 or not available
 const DEFAULT_BUYER_PROTECTION_FEE_GHS = 50
+// Default shipping rate in GHS (fallback if not set in site settings)
+const DEFAULT_SHIPPING_RATE_GHS = 30
 
 interface ShippingRate {
   id: string
@@ -107,6 +109,22 @@ export const updateShipping: PayloadHandler = async (req) => {
       }
     }
     
+    // Fetch site settings for default shipping rate
+    let defaultShippingRateGHS = DEFAULT_SHIPPING_RATE_GHS
+    try {
+      const siteSettings = await payload.findGlobal({
+        slug: 'site-settings',
+      })
+      if (siteSettings?.defaultShippingRate) {
+        defaultShippingRateGHS = siteSettings.defaultShippingRate as number
+      }
+    } catch (_error) {
+      payload.logger.warn('Could not fetch site settings for default shipping rate, using fallback')
+    }
+    
+    // Convert default shipping rate from GHS to user's currency
+    const defaultShippingFee = defaultShippingRateGHS / exchangeRateToGHS
+    
     // Convert default buyer protection fee from GHS to user's currency
     const defaultBuyerProtectionFee = DEFAULT_BUYER_PROTECTION_FEE_GHS / exchangeRateToGHS
 
@@ -167,6 +185,8 @@ export const updateShipping: PayloadHandler = async (req) => {
     // Calculate shipping fee per seller (not per item)
     // Shipping is charged once per seller, applied to the first item of each seller
     const sellerShippingFees = new Map<string, number>()
+    const sellersUsingDefaultRate = new Set<string>()
+    
     for (const sellerId of sellerIds) {
       const rate = sellerShippingRates.get(sellerId)
       
@@ -183,8 +203,9 @@ export const updateShipping: PayloadHandler = async (req) => {
           sellerShippingFees.set(sellerId, rate.deliveryCost || 0)
         }
       } else {
-        // No rate found - seller doesn't deliver to this city
-        sellerShippingFees.set(sellerId, 0)
+        // No rate found - use default shipping rate from site settings
+        sellerShippingFees.set(sellerId, defaultShippingFee)
+        sellersUsingDefaultRate.add(sellerId)
       }
     }
 
@@ -284,6 +305,8 @@ export const updateShipping: PayloadHandler = async (req) => {
         totalBuyerProtection,
         sellersWithRates,
         sellersWithoutRates,
+        sellersUsingDefaultRate: sellersUsingDefaultRate.size,
+        defaultShippingFee: sellersUsingDefaultRate.size > 0 ? defaultShippingFee : null,
         // Include estimated delivery info from first rate (could improve this)
         estimatedDays: shippingRatesResult.docs[0]?.estimatedDays || null,
       },

@@ -56,6 +56,7 @@ class AuthUser {
   final String lastName;
   final String? shopName;
   final String? username;
+  final String? phone;
   final String? photo;
   final String? language;
   final AuthCountry? country;
@@ -72,6 +73,7 @@ class AuthUser {
     required this.lastName,
     this.shopName,
     this.username,
+    this.phone,
     this.photo,
     this.language,
     this.country,
@@ -115,6 +117,7 @@ class AuthUser {
       lastName: json['lastName'] ?? '',
       shopName: json['shopName'],
       username: json['username'],
+      phone: json['phone'],
       photo: photoUrl,
       language: json['language'] as String?,
       country: country,

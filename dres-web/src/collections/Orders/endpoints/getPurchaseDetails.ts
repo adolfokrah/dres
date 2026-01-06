@@ -4,6 +4,7 @@ interface SellerGroup {
   sellerId: string
   sellerName: string
   sellerImage: string | null
+  sellerPhone: string | null
   isTrustedSeller: boolean
   items: any[]
   shippingFee: number
@@ -111,11 +112,13 @@ export const getPurchaseDetails: PayloadHandler = async (req) => {
         sellerName = sellerName || 'Unknown Seller'
         
         const sellerImage = item.sellerImage || seller.profilePhoto?.url || null
+        const sellerPhone = typeof seller === 'object' ? seller.phone || null : null
 
         sellerGroupsMap.set(sellerId, {
           sellerId,
           sellerName,
           sellerImage,
+          sellerPhone,
           isTrustedSeller: seller.trustedSeller || false,
           items: [],
           shippingFee: item.shippingFee || 0, // One shipping fee per seller

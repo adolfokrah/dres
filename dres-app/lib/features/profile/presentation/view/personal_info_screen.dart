@@ -131,17 +131,31 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                   ),
                 ),
 
-                // Shop name (with thicker bottom border)
+                // Shop name
                 _buildInfoItem(
                   label: 'Shop name',
                   value: user.shopName ?? '',
-                  thickBorder: true,
                   onTap: () => _showEditBottomSheet(
                     context,
                     title: 'Edit Shop Name',
                     fieldName: 'shopName',
                     currentValue: user.shopName ?? '',
                     hint: 'Enter your shop name',
+                  ),
+                ),
+
+                // Phone number (for returns/support)
+                _buildInfoItem(
+                  label: 'Phone number',
+                  value: user.phone ?? '',
+                  thickBorder: true,
+                  onTap: () => _showEditBottomSheet(
+                    context,
+                    title: 'Edit Phone Number',
+                    fieldName: 'phone',
+                    currentValue: user.phone ?? '',
+                    hint: 'Enter your phone number',
+                    keyboardType: TextInputType.phone,
                   ),
                 ),
 
@@ -313,6 +327,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     required String fieldName,
     required String currentValue,
     required String hint,
+    TextInputType? keyboardType,
   }) {
     final controller = TextEditingController(text: currentValue);
 
@@ -367,7 +382,8 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                 child: AppTextField(
                   controller: controller,
                   hintText: hint,
-                  textCapitalization: fieldName == 'username' 
+                  keyboardType: keyboardType,
+                  textCapitalization: fieldName == 'username' || fieldName == 'phone'
                       ? TextCapitalization.none 
                       : TextCapitalization.words,
                 ),

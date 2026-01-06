@@ -70,6 +70,7 @@ class SellerGroupModel {
   final String sellerId;
   final String sellerName;
   final String? sellerImage;
+  final String? sellerPhone;
   final bool isTrustedSeller;
   final List<PurchaseItemModel> items;
   final double shippingFee;
@@ -82,6 +83,7 @@ class SellerGroupModel {
     required this.sellerId,
     required this.sellerName,
     this.sellerImage,
+    this.sellerPhone,
     required this.isTrustedSeller,
     required this.items,
     required this.shippingFee,
@@ -98,6 +100,7 @@ class SellerGroupModel {
       sellerImage: json['sellerImage'] != null
           ? MediaUtils.resolveUrl(json['sellerImage'])
           : null,
+      sellerPhone: json['sellerPhone'],
       isTrustedSeller: json['isTrustedSeller'] ?? false,
       items: (json['items'] as List<dynamic>?)
               ?.map((e) => PurchaseItemModel.fromJson(e))

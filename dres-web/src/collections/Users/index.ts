@@ -126,6 +126,13 @@ export const Users: CollectionConfig = {
               },
             },
             {
+              name: 'phone',
+              type: 'text',
+              admin: {
+                description: 'Contact phone number for returns and inquiries',
+              },
+            },
+            {
               name: 'photo',
               type: 'upload',
               relationTo: 'media',

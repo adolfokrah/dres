@@ -1,6 +1,30 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, PayloadHandler } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
+
+/**
+ * GET /api/shippingRates/me
+ * Get current user's shipping rates
+ */
+const getMyShippingRates: PayloadHandler = async (req) => {
+  const { payload, user } = req
+
+  if (!user) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const rates = await payload.find({
+    collection: 'shippingRates',
+    where: {
+      user: { equals: user.id },
+    },
+    depth: 2,
+    sort: '-createdAt',
+    limit: 100,
+  })
+
+  return Response.json(rates)
+}
 
 export const ShippingRates: CollectionConfig = {
   slug: 'shippingRates',
@@ -10,6 +34,13 @@ export const ShippingRates: CollectionConfig = {
     defaultColumns: ['user', 'cities', 'deliveryCost', 'updatedAt'],
     description: 'Shipping rates set by sellers for their products',
   },
+  endpoints: [
+    {
+      path: '/me',
+      method: 'get',
+      handler: getMyShippingRates,
+    },
+  ],
   access: {
     // Users can only read their own shipping rates or any for checkout
     read: ({ req: { user } }) => {
@@ -47,15 +78,24 @@ export const ShippingRates: CollectionConfig = {
   hooks: {
     beforeChange: [
       async ({ data, req, operation }) => {
-        // Auto-set country from user on create
-        if (operation === 'create' && data?.user && !data?.country) {
-          const user = await req.payload.findByID({
-            collection: 'users',
-            id: typeof data.user === 'object' ? data.user.id : data.user,
-            depth: 0,
-          })
-          if (user?.country) {
-            data.country = typeof user.country === 'object' ? user.country.id : user.country
+        // Auto-set user and country on create
+        if (operation === 'create') {
+          // Auto-set user to current user if not provided
+          if (!data?.user && req.user) {
+            data.user = req.user.id
+          }
+          
+          // Auto-set country from user
+          if (data?.user && !data?.country) {
+            const userId = typeof data.user === 'object' ? data.user.id : data.user
+            const user = await req.payload.findByID({
+              collection: 'users',
+              id: userId,
+              depth: 0,
+            })
+            if (user?.country) {
+              data.country = typeof user.country === 'object' ? user.country.id : user.country
+            }
           }
         }
         return data

@@ -1,10 +1,8 @@
 import type { CollectionAfterChangeHook } from 'payload'
 
-// Points configuration
-// Spend 100 GHS → earn 10 points (10% back)
-// 100 points = 1 GHS when redeeming
-const POINTS_PER_GHS = 0.1 // 0.1 points per 1 GHS spent (10% earning rate)
-const POINTS_MULTIPLIER = 1 // Can be increased for promotions
+// Default values (used if site-settings not available)
+const DEFAULT_POINTS_PER_GHS = 0.01
+const DEFAULT_POINTS_MULTIPLIER = 1
 
 interface OrderItem {
   id?: string
@@ -13,9 +11,16 @@ interface OrderItem {
   shippingStatus?: string
 }
 
+interface SiteSettings {
+  pointsEarningRate?: number
+  pointsMultiplier?: number
+  pointsEnabled?: boolean
+}
+
 /**
  * Award points to customer when order items are delivered
  * Points are calculated based on the item price converted to GHS (base currency)
+ * Configuration is read from site-settings global
  */
 export const awardPointsOnDelivery: CollectionAfterChangeHook = async ({
   doc,
@@ -29,6 +34,28 @@ export const awardPointsOnDelivery: CollectionAfterChangeHook = async ({
   const payload = req.payload
 
   try {
+    // Get points configuration from site-settings
+    let pointsPerGHS = DEFAULT_POINTS_PER_GHS
+    let pointsMultiplier = DEFAULT_POINTS_MULTIPLIER
+    let pointsEnabled = true
+
+    try {
+      const siteSettings = await payload.findGlobal({
+        slug: 'site-settings',
+      }) as SiteSettings
+
+      pointsPerGHS = siteSettings?.pointsEarningRate ?? DEFAULT_POINTS_PER_GHS
+      pointsMultiplier = siteSettings?.pointsMultiplier ?? DEFAULT_POINTS_MULTIPLIER
+      pointsEnabled = siteSettings?.pointsEnabled ?? true
+    } catch (_error) {
+      payload.logger.warn('Could not fetch site-settings for points configuration, using defaults')
+    }
+
+    // Skip if points system is disabled
+    if (!pointsEnabled) {
+      return doc
+    }
+
     const currentItems = (doc.items || []) as OrderItem[]
     const previousItems = (previousDoc?.items || []) as OrderItem[]
     const customerId = typeof doc.customer === 'object' ? doc.customer.id : doc.customer
@@ -68,7 +95,7 @@ export const awardPointsOnDelivery: CollectionAfterChangeHook = async ({
         // Calculate points for this item (price * quantity * exchange rate to GHS)
         const itemTotal = currentItem.price * currentItem.quantity
         const itemTotalInGHS = itemTotal * exchangeRateToGHS
-        const points = Math.floor(itemTotalInGHS * POINTS_PER_GHS * POINTS_MULTIPLIER)
+        const points = Math.floor(itemTotalInGHS * pointsPerGHS * pointsMultiplier)
         totalPointsToAward += points
         deliveredItems.push(currentItem.id || `item-${i}`)
       }

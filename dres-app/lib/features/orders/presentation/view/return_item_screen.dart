@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_button.dart';
@@ -275,21 +276,42 @@ class _ReturnItemScreenState extends State<ReturnItemScreen> {
                   ),
                 ),
 
+                // Return instructions
+                _buildReturnInstructions(item),
+
                 // Return notice
                 Container(
-                  margin: const EdgeInsets.all(20),
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.secondary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'You have 6 hours to package and ship the products. Failure to ship within 6 hours will result in the item being marked as delivered and refund will not be made.',
-                    style: AppTypography.bodyM.copyWith(
-                      color: AppColors.textPrimary,
+                    color: AppColors.error.withValues(alpha: 0.1),
+                    border: Border.all(
+                      color: AppColors.error.withValues(alpha: 0.3),
+                      width: 1,
                     ),
                   ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        PhosphorIcons.warning(),
+                        size: 18,
+                        color: AppColors.error,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'You have 6 hours to package and ship the products. Failure to ship within 6 hours will result in the item being marked as delivered and refund will not be made.',
+                          style: AppTypography.bodyM.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+
+                const SizedBox(height: 20),
 
                 // Reason selection
                 Padding(
@@ -326,23 +348,19 @@ class _ReturnItemScreenState extends State<ReturnItemScreen> {
                       GestureDetector(
                         onTap: _pickImage,
                         child: _selectedImage != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.file(
-                                  _selectedImage!,
-                                  width: 195,
-                                  height: 260,
-                                  fit: BoxFit.cover,
-                                ),
+                            ? Image.file(
+                                _selectedImage!,
+                                width: 195,
+                                height: 260,
+                                fit: BoxFit.cover,
                               )
                             : Container(
                                 width: 195,
                                 height: 260,
                                 decoration: BoxDecoration(
                                   color: AppColors.secondary,
-                                  borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
-                                    color: AppColors.textSecondary.withOpacity(0.3),
+                                    color: AppColors.textSecondary.withValues(alpha: 0.3),
                                     width: 1,
                                   ),
                                 ),
@@ -415,5 +433,111 @@ class _ReturnItemScreenState extends State<ReturnItemScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildReturnInstructions(OrderItemModel item) {
+    final sellerName = item.displaySellerName;
+    final sellerPhone = item.seller.phone;
+
+    return Container(
+      margin: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
+        color: AppColors.secondary,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                PhosphorIcons.info(),
+                size: 18,
+                color: AppColors.textPrimary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Return Instructions',
+                style: AppTypography.bodyL.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Please contact the seller to arrange the return pickup or drop-off location.',
+            style: AppTypography.bodyM.copyWith(
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Seller info
+          Row(
+            children: [
+              Icon(
+                PhosphorIcons.storefront(),
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Seller: $sellerName',
+                style: AppTypography.bodyM.copyWith(
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          if (sellerPhone != null && sellerPhone.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => _callSeller(sellerPhone),
+              child: Row(
+                children: [
+                  Icon(
+                    PhosphorIcons.phone(),
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    sellerPhone,
+                    style: AppTypography.bodyM.copyWith(
+                      color: AppColors.primary,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '(Tap to call)',
+                    style: AppTypography.bodyS.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            const SizedBox(height: 8),
+            Text(
+              'Contact seller through the app to arrange return.',
+              style: AppTypography.bodyS.copyWith(
+                color: AppColors.textSecondary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _callSeller(String phone) async {
+    final uri = Uri.parse('tel:$phone');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
   }
 }

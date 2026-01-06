@@ -115,6 +115,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                         ),
 
+                        _buildMenuItem(
+                          title: 'Shipping Rates',
+                          onTap: () {
+                            context.push('/profile/shipping-rates');
+                          },
+                        ),
+
                         // Info Section
                         _buildSectionHeader(l10n.info),
 

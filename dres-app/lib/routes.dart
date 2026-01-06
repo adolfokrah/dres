@@ -36,6 +36,7 @@ import 'package:dres/features/profile/presentation/view/seller_profile_screen.da
 import 'package:dres/features/profile/presentation/view/personal_info_screen.dart';
 import 'package:dres/features/profile/presentation/view/vacation_mode_screen.dart';
 import 'package:dres/features/profile/presentation/view/withdrawal_account_screen.dart';
+import 'package:dres/features/profile/presentation/view/shipping_rates_screen.dart';
 import 'package:dres/features/orders/presentation/view/incoming_order_details_screen.dart';
 import 'package:dres/features/notifications/presentation/view/notifications_screen.dart';
 import 'package:dres/features/search/presentation/view/search_screen.dart';
@@ -637,6 +638,12 @@ class AppRoutes {
                     path: 'withdrawal-account',
                     name: 'withdrawal-account',
                     builder: (context, state) => const WithdrawalAccountScreen(),
+                  ),
+                  // Shipping Rates (nested under profile tab)
+                  GoRoute(
+                    path: 'shipping-rates',
+                    name: 'shipping-rates',
+                    builder: (context, state) => const ShippingRatesScreen(),
                   ),
                 ],
               ),

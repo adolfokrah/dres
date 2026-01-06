@@ -53,6 +53,8 @@ import 'package:dres/features/profile/data/repositories/seller_products_reposito
 import 'package:dres/features/profile/logic/seller_products_bloc/seller_products_bloc.dart';
 import 'package:dres/features/profile/data/repositories/withdrawal_account_repository.dart';
 import 'package:dres/features/profile/logic/withdrawal_account_bloc/withdrawal_account_bloc.dart';
+import 'package:dres/features/profile/data/repositories/shipping_rates_repository.dart';
+import 'package:dres/features/profile/logic/shipping_rates_bloc/shipping_rates_bloc.dart';
 import 'package:dres/features/search/data/repositories/search_repository.dart';
 import 'package:dres/core/services/push_notification_service.dart';
 
@@ -317,6 +319,16 @@ Future<void> setupDependencies() async {
   // Withdrawal Account Bloc - Factory so each screen gets its own instance
   getIt.registerFactory<WithdrawalAccountBloc>(() => WithdrawalAccountBloc(
     repository: getIt<WithdrawalAccountRepository>(),
+  ));
+
+  // Shipping Rates Repository
+  getIt.registerLazySingleton<ShippingRatesRepository>(() => ShippingRatesRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Shipping Rates Bloc - Factory so each screen gets its own instance
+  getIt.registerFactory<ShippingRatesBloc>(() => ShippingRatesBloc(
+    repository: getIt<ShippingRatesRepository>(),
   ));
 }
 
@@ -583,5 +595,15 @@ Future<void> _setupDependenciesWithExistingStorage(StorageService storageService
   // Withdrawal Account Bloc - Factory
   getIt.registerFactory<WithdrawalAccountBloc>(() => WithdrawalAccountBloc(
     repository: getIt<WithdrawalAccountRepository>(),
+  ));
+
+  // Shipping Rates Repository
+  getIt.registerLazySingleton<ShippingRatesRepository>(() => ShippingRatesRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Shipping Rates Bloc - Factory
+  getIt.registerFactory<ShippingRatesBloc>(() => ShippingRatesBloc(
+    repository: getIt<ShippingRatesRepository>(),
   ));
 }
