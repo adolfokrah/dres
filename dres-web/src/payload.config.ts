@@ -45,6 +45,7 @@ import { Currencies } from './collections/Currencies'
 
 // Users
 import { Favorites } from './collections/Favorites'
+import { FCMTokens } from './collections/FCMTokens'
 import { Follows } from './collections/Follows'
 import { Notifications } from './collections/Notifications'
 import { Reviews } from './collections/Reviews'
@@ -170,6 +171,7 @@ export default buildConfig({
     Currencies,
     // Users
     Favorites,
+    FCMTokens,
     Follows,
     Notifications,
     Reviews,

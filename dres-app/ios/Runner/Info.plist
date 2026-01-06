@@ -59,6 +59,11 @@
 	</array>
 	<key>FlutterDeepLinkingEnabled</key>
 	<false/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>DRES needs access to your photo library to select images for product listings and returns.</string>
 	<key>NSCameraUsageDescription</key>

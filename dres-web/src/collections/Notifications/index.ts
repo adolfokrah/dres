@@ -7,6 +7,7 @@ import {
   markAsRead, 
   markAllAsRead 
 } from './endpoints/notificationEndpoints'
+import { sendPushNotificationHook } from './hooks/sendPushNotificationHook'
 
 export const Notifications: CollectionConfig = {
   slug: 'notifications',
@@ -58,6 +59,7 @@ export const Notifications: CollectionConfig = {
         return data
       },
     ],
+    afterChange: [sendPushNotificationHook],
   },
   endpoints: [
     {

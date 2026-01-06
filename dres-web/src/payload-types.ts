@@ -94,6 +94,7 @@ export interface Config {
     transactions: Transaction;
     currencies: Currency;
     favorites: Favorite;
+    'fcm-tokens': FcmToken;
     follows: Follow;
     notifications: Notification;
     reviews: Review;
@@ -181,6 +182,7 @@ export interface Config {
     transactions: TransactionsSelect<false> | TransactionsSelect<true>;
     currencies: CurrenciesSelect<false> | CurrenciesSelect<true>;
     favorites: FavoritesSelect<false> | FavoritesSelect<true>;
+    'fcm-tokens': FcmTokensSelect<false> | FcmTokensSelect<true>;
     follows: FollowsSelect<false> | FollowsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
@@ -368,9 +370,9 @@ export interface Variation {
 export interface Style {
   id: string;
   /**
-   * Only published styles will be visible to buyers
+   * Only published styles will be visible to buyers. Archived styles are hidden from seller.
    */
-  status?: ('draft' | 'published') | null;
+  status?: ('draft' | 'published' | 'archived') | null;
   /**
    * The user selling this product
    */
@@ -565,7 +567,7 @@ export interface User {
       }[]
     | null;
   role: 'admin' | 'user';
-  accountStatus: 'active' | 'banned' | 'deleted';
+  accountStatus: 'active' | 'banned' | 'to-be-archived' | 'archived';
   /**
    * When enabled, your products will be hidden from buyers
    */
@@ -1342,10 +1344,6 @@ export interface Category {
    * Attributes available for products in this category (e.g., Fit, Material, Style)
    */
   attributes?: (string | Attribute)[] | null;
-  /**
-   * Attributes used as variation types (e.g., Size, Color) - select from attributes above
-   */
-  variantAttributes?: (string | Attribute)[] | null;
   /**
    * Variation stats for this category (for top variations, sellers, brands)
    */
@@ -2249,7 +2247,7 @@ export interface ProductArchiveBlock {
   blockType: 'productArchive';
 }
 /**
- * Delivery confirmation codes for courier USSD verification
+ * Delivery confirmation codes for courier verification - per seller per order
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "delivery-codes".
@@ -2265,13 +2263,70 @@ export interface DeliveryCode {
    */
   order: string | Order;
   /**
+   * The seller whose items this code covers
+   */
+  seller: string | User;
+  /**
    * The customer who will provide this code to courier
    */
   buyer: string | User;
   /**
+   * The specific order items covered by this code
+   */
+  items: {
+    /**
+     * The ID of the order item
+     */
+    itemId: string;
+    /**
+     * SKU title for reference
+     */
+    skuTitle?: string | null;
+    id?: string | null;
+  }[];
+  /**
    * When this code expires (optional)
    */
   expiresAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Firebase Cloud Messaging tokens for push notifications
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "fcm-tokens".
+ */
+export interface FcmToken {
+  id: string;
+  /**
+   * The FCM token from the device
+   */
+  token: string;
+  /**
+   * The user this token belongs to
+   */
+  user: string | User;
+  /**
+   * The platform/device type
+   */
+  platform: 'ios' | 'android';
+  /**
+   * Optional device identifier for deduplication
+   */
+  deviceId?: string | null;
+  /**
+   * Optional device name (e.g., "iPhone 15 Pro")
+   */
+  deviceName?: string | null;
+  /**
+   * Last time this token was used/updated
+   */
+  lastUsed?: string | null;
+  /**
+   * Whether this token is still active
+   */
+  isActive?: boolean | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2288,6 +2343,10 @@ export interface Notification {
    */
   user: string | User;
   /**
+   * Type of notification
+   */
+  type?: ('price_drop' | 'order_update' | 'promotion' | 'system') | null;
+  /**
    * Notification image (e.g., product/variation image)
    */
   image?: (string | null) | Media;
@@ -2296,9 +2355,21 @@ export interface Notification {
    */
   message: string;
   /**
-   * Path to navigate to when notification is clicked
+   * Path to navigate to when notification is clicked (e.g., /orders/123, /products/abc)
    */
   path?: string | null;
+  /**
+   * Additional data for the notification (orderId, productId, etc.)
+   */
+  metadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   /**
    * Whether the notification has been read
    */
@@ -2682,6 +2753,10 @@ export interface PayloadLockedDocument {
         value: string | Favorite;
       } | null)
     | ({
+        relationTo: 'fcm-tokens';
+        value: string | FcmToken;
+      } | null)
+    | ({
         relationTo: 'follows';
         value: string | Follow;
       } | null)
@@ -2841,7 +2916,6 @@ export interface CategoriesSelect<T extends boolean = true> {
   departments?: T;
   brands?: T;
   attributes?: T;
-  variantAttributes?: T;
   variationStats?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -3344,7 +3418,15 @@ export interface CartsSelect<T extends boolean = true> {
 export interface DeliveryCodesSelect<T extends boolean = true> {
   code?: T;
   order?: T;
+  seller?: T;
   buyer?: T;
+  items?:
+    | T
+    | {
+        itemId?: T;
+        skuTitle?: T;
+        id?: T;
+      };
   expiresAt?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -3535,6 +3617,21 @@ export interface FavoritesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "fcm-tokens_select".
+ */
+export interface FcmTokensSelect<T extends boolean = true> {
+  token?: T;
+  user?: T;
+  platform?: T;
+  deviceId?: T;
+  deviceName?: T;
+  lastUsed?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "follows_select".
  */
 export interface FollowsSelect<T extends boolean = true> {
@@ -3549,9 +3646,11 @@ export interface FollowsSelect<T extends boolean = true> {
  */
 export interface NotificationsSelect<T extends boolean = true> {
   user?: T;
+  type?: T;
   image?: T;
   message?: T;
   path?: T;
+  metadata?: T;
   read?: T;
   updatedAt?: T;
   createdAt?: T;

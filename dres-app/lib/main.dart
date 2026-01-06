@@ -28,6 +28,7 @@ import 'package:dres/features/notifications/logic/notifications_bloc/notificatio
 import 'package:dres/features/profile/logic/user_products_bloc/user_products_bloc.dart';
 import 'package:dres/core/services/storage_service.dart';
 import 'package:dres/core/services/site_settings_service.dart';
+import 'package:dres/core/services/push_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,6 +43,9 @@ Future<void> main() async {
   
   // Setup dependency injection
   await setupDependencies();
+  
+  // Initialize push notifications
+  await getIt<PushNotificationService>().initialize();
   
   // Fetch site settings from CMS
   await getIt<SiteSettingsService>().fetchSettings();

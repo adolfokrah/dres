@@ -523,3 +523,9 @@ export const filteredVariations: PayloadHandler = async (req) => {
 //     message: 'Filtered variations',
 //   })
 // }
+
+// export const filteredVariations = async () => {
+//   return Response.json({
+//     message: 'Filtered variations',
+//   })
+// }

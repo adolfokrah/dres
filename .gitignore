@@ -50,3 +50,11 @@ next-env.d.ts
 # OS
 .DS_Store
 Thumbs.db
+
+# Firebase service account keys (sensitive - do not commit)
+dres-4f135-firebase-adminsdk*.json
+AuthKey_*.p8
+
+# Firebase service account keys (sensitive - do not commit)
+dres-4f135-firebase-adminsdk*.json
+AuthKey_*.p8

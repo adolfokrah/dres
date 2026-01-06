@@ -4,6 +4,8 @@ import 'package:equatable/equatable.dart';
 import 'package:dio/dio.dart';
 import 'package:dres/features/auth/data/models/auth_models.dart';
 import 'package:dres/features/auth/data/repositories/auth_repository.dart';
+import 'package:dres/core/di/injection.dart';
+import 'package:dres/core/services/push_notification_service.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -94,6 +96,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       final response = await _authRepository.login(request);
 
+      // Register FCM token for push notifications
+      await _registerFCMToken();
+
       debugPrint('🟢 AuthBloc: Login successful, current redirectTo=${state.redirectTo}');
       emit(state.copyWith(
         status: AuthStatus.authenticated,
@@ -108,6 +113,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  /// Register FCM token after successful authentication
+  Future<void> _registerFCMToken() async {
+    try {
+      await getIt<PushNotificationService>().registerToken();
+      debugPrint('🔔 FCM token registered after login');
+    } catch (e) {
+      debugPrint('🔔 Error registering FCM token: $e');
+      // Don't fail login if FCM registration fails
+    }
+  }
+
   Future<void> _onLogoutRequested(
     AuthLogoutRequested event,
     Emitter<AuthState> emit,
@@ -115,6 +131,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(state.copyWith(status: AuthStatus.loading));
 
     try {
+      // Delete FCM token from server
+      await getIt<PushNotificationService>().deleteToken();
       // Logout from social providers (Google/Apple)
       await _authRepository.socialSignOut();
       // Logout from backend
@@ -172,6 +190,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         debugPrint('🔵 AuthBloc: getCurrentUser returned user: ${user?.id}');
         if (user != null) {
           debugPrint('🟢 AuthBloc: Emitting authenticated state with user: ${user.id}');
+          
+          // Register FCM token for push notifications (if not already registered)
+          await _registerFCMToken();
+          
           emit(state.copyWith(
             status: AuthStatus.authenticated,
             user: user,
@@ -284,6 +306,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final response = await _authRepository.signInWithApple();
       
+      // Register FCM token for push notifications
+      await _registerFCMToken();
+      
       debugPrint('🍎 AuthBloc: Apple Sign In successful');
       emit(state.copyWith(
         status: AuthStatus.authenticated,
@@ -311,6 +336,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     try {
       final response = await _authRepository.signInWithGoogle();
+      
+      // Register FCM token for push notifications
+      await _registerFCMToken();
       
       debugPrint('🔵 AuthBloc: Google Sign In successful');
       emit(state.copyWith(
