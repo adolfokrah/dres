@@ -2,6 +2,7 @@ import type { PayloadHandler } from 'payload'
 import { transformVariation } from '../utils/transformVariation'
 import { getSellerData } from '../utils/getSellerData'
 import { getStyleReviews } from '../../../utilities/getStyleReviews'
+import { getUserCountryInfo } from '../../../utilities/countryUtils'
 
 export const getVariation: PayloadHandler = async (req) => {
   const { payload } = req
@@ -15,6 +16,10 @@ export const getVariation: PayloadHandler = async (req) => {
   }
 
   try {
+    // Get user's currency info
+    const countryInfo = await getUserCountryInfo(req)
+    const currency = countryInfo.currencySymbol
+
     // Fetch the variation with full depth by slug or id
     const variationResult = await payload.find({
       collection: 'variations',
@@ -165,6 +170,7 @@ export const getVariation: PayloadHandler = async (req) => {
               sellingPrice: sku.sellingPrice,
               compareAtPrice: sku.compareAtPrice || null,
               stock: sku.stock || 0,
+              currency,
             }
           })
         )
@@ -355,6 +361,7 @@ export const getVariation: PayloadHandler = async (req) => {
           sellingPrice: sku.sellingPrice,
           compareAtPrice: sku.compareAtPrice,
           stock: sku.stock,
+          currency,
         }
       })
     )

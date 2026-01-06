@@ -33,7 +33,7 @@ class PriceDisplay extends StatelessWidget {
         // Compare at price (if available)
         if (sku.compareAtPrice != null) ...[
           Text(
-            CurrencyUtils.format(sku.compareAtPrice!),
+            CurrencyUtils.format(sku.compareAtPrice!, symbol: sku.currency),
             style: AppTypography.bodyL.copyWith(
               decoration: TextDecoration.lineThrough,
               color: AppColors.textHint,
@@ -46,7 +46,7 @@ class PriceDisplay extends StatelessWidget {
 
         // Current price
         Text(
-          CurrencyUtils.format(sku.price),
+          CurrencyUtils.format(sku.price, symbol: sku.currency),
           style: AppTypography.bodyL.copyWith(
             fontWeight: FontWeight.w700,
             fontSize: 24,

@@ -31,6 +31,7 @@ interface PurchaseDetails {
     totalDiscount: number
     grandTotal: number
   }
+  currencySymbol: string
 }
 
 /**
@@ -167,6 +168,13 @@ export const getPurchaseDetails: PayloadHandler = async (req) => {
       grandTotal: order.grandTotal || 0,
     }
 
+    // Get currency symbol from order's currency relation
+    const currency = order.currency as { symbol?: string; code?: string } | string | null
+    let currencySymbol = '₵' // Default to Ghana Cedi
+    if (currency && typeof currency === 'object' && currency.symbol) {
+      currencySymbol = currency.symbol
+    }
+
     const purchaseDetails: PurchaseDetails = {
       order: {
         id: order.id,
@@ -178,6 +186,7 @@ export const getPurchaseDetails: PayloadHandler = async (req) => {
       shippingAddress: (order as any).shippingAddress || null,
       sellerGroups,
       summary,
+      currencySymbol,
     }
 
     return Response.json(purchaseDetails)

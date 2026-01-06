@@ -5,7 +5,7 @@ import type { PayloadHandler } from 'payload'
  * Fetch a seller's published variations (products for sale)
  */
 export const getSellerVariations: PayloadHandler = async (req) => {
-  const { payload, routeParams } = req
+  const { payload, routeParams, user } = req
   const sellerId = routeParams?.sellerId as string
 
   if (!sellerId) {
@@ -20,6 +20,27 @@ export const getSellerVariations: PayloadHandler = async (req) => {
   try {
     console.log('🛍️ getSellerVariations: sellerId =', sellerId)
     
+    // Get user's country for currency info
+    let userCountry: { currencyCode: string; currencySymbol: string } | null = null
+    if (user?.country) {
+      const countryId = typeof user.country === 'string' ? user.country : user.country.id
+      const country = await payload.findByID({
+        collection: 'countries',
+        id: countryId,
+        depth: 1,
+      })
+      if (country?.currency && typeof country.currency === 'object') {
+        userCountry = {
+          currencyCode: country.currency.code || 'GHS',
+          currencySymbol: country.currency.symbol || '₵',
+        }
+      }
+    }
+    // Default currency if not found
+    if (!userCountry) {
+      userCountry = { currencyCode: 'GHS', currencySymbol: '₵' }
+    }
+
     // First, find all PUBLISHED styles belonging to this seller
     // Query seller and status separately to debug
     const stylesResult = await payload.find({
@@ -111,6 +132,10 @@ export const getSellerVariations: PayloadHandler = async (req) => {
         colorName: variation.colorName || null,
         styleId: typeof variation.style === 'object' ? variation.style.id : variation.style,
         createdAt: variation.createdAt,
+        currency: {
+          code: userCountry.currencyCode,
+          symbol: userCountry.currencySymbol,
+        },
       }
     })
 
@@ -122,6 +147,10 @@ export const getSellerVariations: PayloadHandler = async (req) => {
       limit: variationsResult.limit,
       hasNextPage: variationsResult.hasNextPage,
       hasPrevPage: variationsResult.hasPrevPage,
+      currency: {
+        code: userCountry.currencyCode,
+        symbol: userCountry.currencySymbol,
+      },
     })
   } catch (error) {
     payload.logger.error(`Error fetching seller variations: ${error}`)

@@ -288,6 +288,7 @@ class IncomingOrderDetailsModel {
   final double shippingFee;
   final double subtotal;
   final DateTime createdAt;
+  final String currencySymbol;
 
   IncomingOrderDetailsModel({
     required this.id,
@@ -301,6 +302,7 @@ class IncomingOrderDetailsModel {
     required this.shippingFee,
     required this.subtotal,
     required this.createdAt,
+    required this.currencySymbol,
   });
 
   factory IncomingOrderDetailsModel.fromJson(Map<String, dynamic> json) {
@@ -321,6 +323,7 @@ class IncomingOrderDetailsModel {
       shippingFee: (json['shippingFee'] ?? 0).toDouble(),
       subtotal: (json['subtotal'] ?? 0).toDouble(),
       createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+      currencySymbol: json['currencySymbol'] ?? '₵',
     );
   }
 

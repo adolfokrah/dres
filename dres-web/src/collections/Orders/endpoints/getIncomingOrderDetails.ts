@@ -35,6 +35,7 @@ interface IncomingOrderDetails {
   shippingFee: number
   subtotal: number
   createdAt: string
+  currencySymbol: string
 }
 
 /**
@@ -185,6 +186,13 @@ export const getIncomingOrderDetails: PayloadHandler = async (req) => {
       sellerStatus = 'in_progress' // Mixed statuses default to in_progress
     }
 
+    // Get currency symbol from order's currency relation
+    const currency = order.currency as { symbol?: string; code?: string } | string | null
+    let currencySymbol = '₵' // Default to Ghana Cedi
+    if (currency && typeof currency === 'object' && currency.symbol) {
+      currencySymbol = currency.symbol
+    }
+
     const response: IncomingOrderDetails = {
       id: order.id,
       orderId: order.orderId as string,
@@ -197,6 +205,7 @@ export const getIncomingOrderDetails: PayloadHandler = async (req) => {
       shippingFee: Math.round(shippingFee * 100) / 100,
       subtotal: Math.round(subtotal * 100) / 100,
       createdAt: order.createdAt as string,
+      currencySymbol,
     }
 
     return Response.json(response)

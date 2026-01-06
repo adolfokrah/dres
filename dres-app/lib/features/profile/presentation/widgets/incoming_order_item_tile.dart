@@ -10,12 +10,14 @@ import 'package:dres/features/orders/data/models/incoming_order_details_model.da
 /// Incoming order item tile widget (seller's view)
 class IncomingOrderItemTile extends StatefulWidget {
   final IncomingOrderItemModel item;
+  final String currencySymbol;
   final VoidCallback? onNotAvailableTap;
   final VoidCallback? onAcceptReturnTap;
 
   const IncomingOrderItemTile({
     super.key,
     required this.item,
+    required this.currencySymbol,
     this.onNotAvailableTap,
     this.onAcceptReturnTap,
   });
@@ -103,7 +105,7 @@ class _IncomingOrderItemTileState extends State<IncomingOrderItemTile> {
               ),
               // Price at far right
               Text(
-                '₵${(widget.item.originalPrice * widget.item.quantity).toStringAsFixed(2)}',
+                '${widget.currencySymbol} ${(widget.item.originalPrice * widget.item.quantity).toStringAsFixed(2)}',
                 style: AppTypography.bodyL.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,

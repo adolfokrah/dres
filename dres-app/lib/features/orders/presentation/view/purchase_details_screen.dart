@@ -134,6 +134,7 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
                     return PurchaseSellerCard(
                       sellerGroup: sellerGroup,
                       orderId: widget.orderId,
+                      currencySymbol: purchaseDetails.currencySymbol,
                       onReturnItemTap: (item) async {
                         final result = await context.push<bool>(
                           '/orders/${widget.orderId}/return/${item.id}',
@@ -149,7 +150,10 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
                   }),
 
                   // Order summary
-                  OrderSummaryCard(summary: purchaseDetails.summary),
+                  OrderSummaryCard(
+                    summary: purchaseDetails.summary,
+                    currencySymbol: purchaseDetails.currencySymbol,
+                  ),
 
                   const SizedBox(height: 40),
                 ],

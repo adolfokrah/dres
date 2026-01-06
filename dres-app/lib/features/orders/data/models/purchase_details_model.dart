@@ -7,12 +7,14 @@ class PurchaseDetailsModel {
   final OrderShippingAddress? shippingAddress;
   final List<SellerGroupModel> sellerGroups;
   final PurchaseSummary summary;
+  final String currencySymbol;
 
   PurchaseDetailsModel({
     required this.order,
     this.shippingAddress,
     required this.sellerGroups,
     required this.summary,
+    required this.currencySymbol,
   });
 
   factory PurchaseDetailsModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class PurchaseDetailsModel {
               .toList() ??
           [],
       summary: PurchaseSummary.fromJson(json['summary'] ?? {}),
+      currencySymbol: json['currencySymbol'] ?? '₵',
     );
   }
 

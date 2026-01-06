@@ -192,6 +192,14 @@ export const Transactions: CollectionConfig = {
       },
     },
     {
+      name: 'currency',
+      type: 'relationship',
+      relationTo: 'currencies',
+      admin: {
+        description: 'The currency for this transaction',
+      },
+    },
+    {
       name: 'itemId',
       type: 'text',
       admin: {

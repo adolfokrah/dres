@@ -9,12 +9,14 @@ interface TransactionItem {
   fees: number
   orderId: string
   orderDisplayId: string
+  currencySymbol: string
   createdAt: string
 }
 
 interface UserTransactionsResponse {
-  totalEarned: number // Total from order_payment transactions
-  upcomingPayments: number // Total from completed + pending transactions
+  totalEarned: number // Total from order_payment transactions (converted to user's currency)
+  upcomingPayments: number // Total from completed + pending transactions (converted to user's currency)
+  currencySymbol: string // User's currency symbol for displaying totals
   transactions: TransactionItem[]
   totalDocs: number
   totalPages: number
@@ -27,7 +29,8 @@ interface UserTransactionsResponse {
 /**
  * GET /api/transactions/user-transactions
  * Fetch user's transactions (excludes deposits)
- * 
+ * Amounts are stored in GHS (base currency) and converted to user's currency
+ *
  * Query params:
  * - page: Page number (default: 1)
  * - limit: Items per page (default: 10)
@@ -44,6 +47,25 @@ export const getUserTransactions: PayloadHandler = async (req) => {
 
   if (!user) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Get user's currency for conversion
+  let userCurrencySymbol = '₵'
+  let userExchangeRate = 1 // Default to GHS (no conversion)
+
+  const userCountry = user.country
+  if (userCountry && typeof userCountry === 'object' && userCountry.currency) {
+    const currency = userCountry.currency
+    if (typeof currency === 'object') {
+      userCurrencySymbol = currency.symbol || '₵'
+      userExchangeRate = currency.exchangeRateToGHS || 1
+    }
+  }
+
+  // Helper to convert GHS amount to user's currency
+  const convertToUserCurrency = (amountInGHS: number): number => {
+    if (userExchangeRate === 1) return amountInGHS
+    return amountInGHS / userExchangeRate
   }
 
   try {
@@ -70,21 +92,25 @@ export const getUserTransactions: PayloadHandler = async (req) => {
       sort: '-createdAt',
       page,
       limit,
-      depth: 1,
+      depth: 2, // Depth 2 to get currency and order.currency populated
     })
 
-    // Transform transactions
+    // Transform transactions - convert amounts to user's currency
     const transactions: TransactionItem[] = transactionsResult.docs.map((txn: any) => {
       const order = txn.order
+      const amountInGHS = txn.amount || 0
+      const feesInGHS = txn.fees || 0
+
       return {
         id: txn.id,
         transactionId: txn.transactionId,
         type: txn.type,
         status: txn.status,
-        amount: txn.amount || 0,
-        fees: txn.fees || 0,
+        amount: Math.round(convertToUserCurrency(amountInGHS) * 100) / 100,
+        fees: Math.round(convertToUserCurrency(feesInGHS) * 100) / 100,
         orderId: typeof order === 'object' ? order.id : order,
         orderDisplayId: typeof order === 'object' ? order.orderId : '',
+        currencySymbol: userCurrencySymbol,
         createdAt: txn.createdAt,
       }
     })
@@ -99,7 +125,7 @@ export const getUserTransactions: PayloadHandler = async (req) => {
       limit: 0, // Get all for aggregation
     })
 
-    const totalEarned = orderPaymentTxns.docs.reduce((sum: number, txn: any) => {
+    const totalEarnedInGHS = orderPaymentTxns.docs.reduce((sum: number, txn: any) => {
       return sum + (txn.amount || 0)
     }, 0)
 
@@ -114,13 +140,14 @@ export const getUserTransactions: PayloadHandler = async (req) => {
       limit: 0, // Get all for aggregation
     })
 
-    const upcomingPayments = upcomingTxns.docs.reduce((sum: number, txn: any) => {
+    const upcomingPaymentsInGHS = upcomingTxns.docs.reduce((sum: number, txn: any) => {
       return sum + (txn.amount || 0)
     }, 0)
 
     const response: UserTransactionsResponse = {
-      totalEarned: Math.round(totalEarned * 100) / 100,
-      upcomingPayments: Math.round(upcomingPayments * 100) / 100,
+      totalEarned: Math.round(convertToUserCurrency(totalEarnedInGHS) * 100) / 100,
+      upcomingPayments: Math.round(convertToUserCurrency(upcomingPaymentsInGHS) * 100) / 100,
+      currencySymbol: userCurrencySymbol,
       transactions,
       totalDocs: transactionsResult.totalDocs ?? transactions.length,
       totalPages: transactionsResult.totalPages ?? 1,

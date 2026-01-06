@@ -88,6 +88,7 @@ class TransactionModel {
   final double fees;
   final String orderId;
   final String orderDisplayId;
+  final String currencySymbol;
   final DateTime createdAt;
 
   TransactionModel({
@@ -99,6 +100,7 @@ class TransactionModel {
     required this.fees,
     required this.orderId,
     required this.orderDisplayId,
+    required this.currencySymbol,
     required this.createdAt,
   });
 
@@ -112,8 +114,9 @@ class TransactionModel {
       fees: (json['fees'] ?? 0).toDouble(),
       orderId: json['orderId'] ?? '',
       orderDisplayId: json['orderDisplayId'] ?? '',
-      createdAt: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt']) 
+      currencySymbol: json['currencySymbol'] ?? '₵',
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
     );
   }
@@ -123,6 +126,7 @@ class TransactionModel {
 class UserTransactionsResponse {
   final double totalEarned;
   final double upcomingPayments;
+  final String currencySymbol;
   final List<TransactionModel> transactions;
   final int totalDocs;
   final int totalPages;
@@ -134,6 +138,7 @@ class UserTransactionsResponse {
   UserTransactionsResponse({
     required this.totalEarned,
     required this.upcomingPayments,
+    required this.currencySymbol,
     required this.transactions,
     required this.totalDocs,
     required this.totalPages,
@@ -147,6 +152,7 @@ class UserTransactionsResponse {
     return UserTransactionsResponse(
       totalEarned: (json['totalEarned'] ?? 0).toDouble(),
       upcomingPayments: (json['upcomingPayments'] ?? 0).toDouble(),
+      currencySymbol: json['currencySymbol'] ?? '₵',
       transactions: (json['transactions'] as List<dynamic>?)
               ?.map((e) => TransactionModel.fromJson(e))
               .toList() ??

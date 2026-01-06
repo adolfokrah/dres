@@ -3,6 +3,7 @@ import type { CollectionConfig, Where } from 'payload'
 import { anyone } from '../../access/anyone'
 import { authenticated } from '../../access/authenticated'
 import { generateSKUTitle } from './hooks/generateSKUTitle'
+import { notifyPriceDropHook } from './hooks/notifyPriceDropHook'
 
 interface SKUOptionItem {
   option?: string | { id: string }
@@ -41,6 +42,10 @@ export const SKUs: CollectionConfig = {
       },
       // Generate title from variation options + sku options + price
       generateSKUTitle,
+    ],
+    afterChange: [
+      // Notify users who favorited this variation when price drops
+      notifyPriceDropHook,
     ],
   },
   fields: [

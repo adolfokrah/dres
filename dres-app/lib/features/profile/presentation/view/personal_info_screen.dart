@@ -669,9 +669,50 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
       selectedCountryId: currentCountryId,
     );
 
-    if (selectedCountry != null && selectedCountry.id != currentCountryId) {
-      _updateCountry(selectedCountry);
+    if (selectedCountry != null && selectedCountry.id != currentCountryId && mounted) {
+      // Show confirmation dialog before updating
+      _showCountryChangeConfirmation(context, selectedCountry);
     }
+  }
+
+  void _showCountryChangeConfirmation(BuildContext context, CountryItem country) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        backgroundColor: AppColors.surface,
+        title: Text(
+          'Change Country',
+          style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
+        ),
+        content: Text(
+          'By changing your country to ${country.name}:\n\n'
+          '\u2022 Your products will only be available to buyers in ${country.name}\n\n'
+          '\u2022 You will only see products from sellers in ${country.name}\n\n'
+          '\u2022 Your favorites will only show items from ${country.name}',
+          style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(
+              'Cancel',
+              style: AppTypography.bodyM.copyWith(color: AppColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              _updateCountry(country);
+            },
+            child: Text(
+              'Continue',
+              style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _updateCountry(CountryItem country) async {

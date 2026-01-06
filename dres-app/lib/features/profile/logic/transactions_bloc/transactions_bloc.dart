@@ -49,6 +49,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
         transactions: response.transactions,
         totalEarned: response.totalEarned,
         upcomingPayments: response.upcomingPayments,
+        currencySymbol: response.currencySymbol,
         hasMore: response.hasNextPage,
         currentPage: response.page,
       ));

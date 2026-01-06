@@ -8,6 +8,7 @@ import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_text_field.dart';
 import 'package:dres/core/services/site_settings_service.dart';
+import 'package:dres/core/utilities/currency_utils.dart';
 import 'package:dres/features/sell/logic/variation_detail_bloc/variation_detail_bloc.dart';
 import 'package:dres/features/sell/logic/variations_bloc/variations_bloc.dart';
 import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
@@ -339,7 +340,7 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
                                   child: AppTextField(
                                     controller: _priceController,
                                     label: 'Price',
-                                    hintText: '₵ 200.00',
+                                    hintText: '${CurrencyUtils.currentSymbol} 200.00',
                                     keyboardType: TextInputType.number,
                                   ),
                                 ),
@@ -376,7 +377,7 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
                                           ),
                                         ),
                                         child: Text(
-                                          '₵ ${_sellingPrice.toStringAsFixed(2)}',
+                                          '${CurrencyUtils.currentSymbol} ${_sellingPrice.toStringAsFixed(2)}',
                                           style: AppTypography.bodyM.copyWith(
                                             color: AppColors.textSecondary,
                                           ),
@@ -427,7 +428,7 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
                                       const SizedBox(height: 8),
                                       AppTextField(
                                         controller: _comparePriceController,
-                                        hintText: '₵ 300.00',
+                                        hintText: '${CurrencyUtils.currentSymbol} 300.00',
                                         keyboardType: TextInputType.number,
                                       ),
                                       const SizedBox(height: 8),

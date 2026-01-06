@@ -114,6 +114,7 @@ class SkuModel {
   final double price;
   final double? compareAtPrice;
   final int? stock;
+  final String? currency;
 
   SkuModel({
     required this.id,
@@ -121,6 +122,7 @@ class SkuModel {
     required this.price,
     this.compareAtPrice,
     this.stock,
+    this.currency,
   });
 
   factory SkuModel.fromJson(Map<String, dynamic> json) {
@@ -133,6 +135,7 @@ class SkuModel {
       price: (json['sellingPrice'] ?? json['price'] ?? 0).toDouble(),
       compareAtPrice: json['compareAtPrice']?.toDouble(),
       stock: json['stock'],
+      currency: json['currency'],
     );
   }
 }

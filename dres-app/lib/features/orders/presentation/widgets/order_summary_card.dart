@@ -7,10 +7,12 @@ import 'package:dres/features/orders/data/models/purchase_details_model.dart';
 /// Order summary section showing totals
 class OrderSummaryCard extends StatelessWidget {
   final PurchaseSummary summary;
+  final String currencySymbol;
 
   const OrderSummaryCard({
     super.key,
     required this.summary,
+    required this.currencySymbol,
   });
 
   @override
@@ -25,7 +27,7 @@ class OrderSummaryCard extends StatelessWidget {
           _SummaryRow(
             label:
                 '${summary.totalItems} item${summary.totalItems != 1 ? 's' : ''}',
-            value: CurrencyUtils.format(summary.subtotal),
+            value: CurrencyUtils.format(summary.subtotal, symbol: currencySymbol),
           ),
           const SizedBox(height: 8),
 
@@ -33,7 +35,7 @@ class OrderSummaryCard extends StatelessWidget {
           if (summary.totalDiscount > 0) ...[
             _SummaryRow(
               label: 'Discount',
-              value: '-${CurrencyUtils.format(summary.totalDiscount)}',
+              value: '-${CurrencyUtils.format(summary.totalDiscount, symbol: currencySymbol)}',
             ),
             const SizedBox(height: 8),
           ],
@@ -41,14 +43,14 @@ class OrderSummaryCard extends StatelessWidget {
           // Shipping
           _SummaryRow(
             label: 'Shipping',
-            value: CurrencyUtils.format(summary.totalShipping),
+            value: CurrencyUtils.format(summary.totalShipping, symbol: currencySymbol),
           ),
           const SizedBox(height: 8),
 
           // Buyer protection
           _SummaryRow(
             label: 'Buyer Protection',
-            value: CurrencyUtils.format(summary.totalBuyerProtection),
+            value: CurrencyUtils.format(summary.totalBuyerProtection, symbol: currencySymbol),
           ),
 
           const SizedBox(height: 24),
@@ -65,7 +67,7 @@ class OrderSummaryCard extends StatelessWidget {
                 ),
               ),
               Text(
-                CurrencyUtils.format(summary.grandTotal),
+                CurrencyUtils.format(summary.grandTotal, symbol: currencySymbol),
                 style: AppTypography.bodyL.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,

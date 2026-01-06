@@ -154,6 +154,7 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
                 // Items list
                 ...order.items.map((item) => IncomingOrderItemTile(
                       item: item,
+                      currencySymbol: order.currencySymbol,
                       onNotAvailableTap: item.canMarkNotAvailable
                           ? () => _onMarkNotAvailable(item)
                           : null,
@@ -294,7 +295,7 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
                 ),
               ),
               Text(
-                CurrencyUtils.format(order.itemsTotal),
+                CurrencyUtils.format(order.itemsTotal, symbol: order.currencySymbol),
                 style: AppTypography.bodyM.copyWith(
                   color: AppColors.textPrimary,
                 ),
@@ -314,7 +315,7 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
                 ),
               ),
               Text(
-                CurrencyUtils.format(order.shippingFee),
+                CurrencyUtils.format(order.shippingFee, symbol: order.currencySymbol),
                 style: AppTypography.bodyM.copyWith(
                   color: AppColors.textPrimary,
                 ),
@@ -335,7 +336,7 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
                 ),
               ),
               Text(
-                CurrencyUtils.format(order.subtotal),
+                CurrencyUtils.format(order.subtotal, symbol: order.currencySymbol),
                 style: AppTypography.bodyL.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,

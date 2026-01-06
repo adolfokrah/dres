@@ -11,12 +11,14 @@ import 'package:dres/features/orders/presentation/widgets/purchase_item_tile.dar
 class PurchaseSellerCard extends StatelessWidget {
   final SellerGroupModel sellerGroup;
   final String orderId;
+  final String currencySymbol;
   final void Function(PurchaseItemModel item)? onReturnItemTap;
 
   const PurchaseSellerCard({
     super.key,
     required this.sellerGroup,
     required this.orderId,
+    required this.currencySymbol,
     this.onReturnItemTap,
   });
 
@@ -84,6 +86,7 @@ class PurchaseSellerCard extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 13),
               child: PurchaseItemTile(
                 item: item,
+                currencySymbol: currencySymbol,
                 onReturnItemTap: onReturnItemTap,
               ),
             ),
@@ -94,12 +97,14 @@ class PurchaseSellerCard extends StatelessWidget {
             icon: PhosphorIcons.truck(),
             label: 'Direct shipping',
             amount: sellerGroup.shippingFee,
+            currencySymbol: currencySymbol,
           ),
           const SizedBox(height: 14),
           _FeeRow(
             icon: PhosphorIcons.shield(),
             label: 'Buyer protection fee',
             amount: sellerGroup.buyerProtectionFee,
+            currencySymbol: currencySymbol,
           ),
 
           const SizedBox(height: 14),
@@ -115,7 +120,7 @@ class PurchaseSellerCard extends StatelessWidget {
                 ),
               ),
               Text(
-                CurrencyUtils.format(sellerGroup.total),
+                CurrencyUtils.format(sellerGroup.total, symbol: currencySymbol),
                 style: AppTypography.bodyM.copyWith(
                   color: AppColors.textPrimary,
                 ),
@@ -138,11 +143,13 @@ class _FeeRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final double amount;
+  final String currencySymbol;
 
   const _FeeRow({
     required this.icon,
     required this.label,
     required this.amount,
+    required this.currencySymbol,
   });
 
   @override
@@ -161,7 +168,7 @@ class _FeeRow extends StatelessWidget {
           ],
         ),
         Text(
-          CurrencyUtils.format(amount),
+          CurrencyUtils.format(amount, symbol: currencySymbol),
           style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
         ),
       ],

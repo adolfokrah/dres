@@ -10,11 +10,13 @@ import 'package:dres/features/orders/presentation/widgets/shipping_status_badge.
 /// Purchase item tile widget (uses PurchaseItemModel)
 class PurchaseItemTile extends StatelessWidget {
   final PurchaseItemModel item;
+  final String currencySymbol;
   final void Function(PurchaseItemModel item)? onReturnItemTap;
 
   const PurchaseItemTile({
     super.key,
     required this.item,
+    required this.currencySymbol,
     this.onReturnItemTap,
   });
 
@@ -90,7 +92,7 @@ class PurchaseItemTile extends StatelessWidget {
             ),
             // Price
             Text(
-              CurrencyUtils.format(item.itemTotal),
+              CurrencyUtils.format(item.itemTotal, symbol: currencySymbol),
               style: AppTypography.bodyL.copyWith(
                 fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,

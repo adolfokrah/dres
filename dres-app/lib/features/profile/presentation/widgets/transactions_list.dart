@@ -107,7 +107,7 @@ class _TransactionsListState extends State<TransactionsList> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            CurrencyUtils.formatCompact(state.totalEarned),
+                            CurrencyUtils.formatCompact(state.totalEarned, symbol: state.currencySymbol),
                             style: AppTypography.bodyL.copyWith(
                               fontWeight: FontWeight.w700,
                               color: AppColors.textPrimary,
@@ -143,7 +143,7 @@ class _TransactionsListState extends State<TransactionsList> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            CurrencyUtils.formatCompact(state.upcomingPayments),
+                            CurrencyUtils.formatCompact(state.upcomingPayments, symbol: state.currencySymbol),
                             style: AppTypography.bodyL.copyWith(
                               fontWeight: FontWeight.w700,
                               color: AppColors.textPrimary,
@@ -308,7 +308,7 @@ class _TransactionCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                CurrencyUtils.format(transaction.amount),
+                CurrencyUtils.format(transaction.amount, symbol: transaction.currencySymbol),
                 style: AppTypography.bodyM.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,

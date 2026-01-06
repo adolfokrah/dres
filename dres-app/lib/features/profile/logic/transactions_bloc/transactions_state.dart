@@ -8,6 +8,7 @@ class TransactionsState extends Equatable {
   final List<TransactionModel> transactions;
   final double totalEarned;
   final double upcomingPayments;
+  final String currencySymbol;
   final String? error;
   final bool hasMore;
   final int currentPage;
@@ -19,6 +20,7 @@ class TransactionsState extends Equatable {
     this.transactions = const [],
     this.totalEarned = 0,
     this.upcomingPayments = 0,
+    this.currencySymbol = '₵',
     this.error,
     this.hasMore = true,
     this.currentPage = 1,
@@ -31,6 +33,7 @@ class TransactionsState extends Equatable {
     List<TransactionModel>? transactions,
     double? totalEarned,
     double? upcomingPayments,
+    String? currencySymbol,
     String? error,
     bool? hasMore,
     int? currentPage,
@@ -44,6 +47,7 @@ class TransactionsState extends Equatable {
       transactions: transactions ?? this.transactions,
       totalEarned: totalEarned ?? this.totalEarned,
       upcomingPayments: upcomingPayments ?? this.upcomingPayments,
+      currencySymbol: currencySymbol ?? this.currencySymbol,
       error: error,
       hasMore: hasMore ?? this.hasMore,
       currentPage: currentPage ?? this.currentPage,
@@ -58,6 +62,7 @@ class TransactionsState extends Equatable {
         transactions,
         totalEarned,
         upcomingPayments,
+        currencySymbol,
         error,
         hasMore,
         currentPage,
