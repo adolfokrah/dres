@@ -165,38 +165,47 @@ export const SKUs: CollectionConfig = {
       ],
     },
     {
-      name: 'price',
-      type: 'number',
-      required: true,
-      min: 0,
-      admin: {
-        description: 'Base price for this SKU',
-      },
-    },
-    {
-      name: 'sellingPrice',
-      type: 'number',
-      admin: {
-        description: 'Final selling price (auto-calculated: price + platform fee)',
-        readOnly: true,
-      },
-    },
-    {
-      name: 'compareAtPrice',
-      type: 'number',
-      min: 0,
-      admin: {
-        description: 'Original price before discount (shows as crossed out)',
-      },
-    },
-    {
-      name: 'stock',
-      type: 'number',
-      min: 0,
-      defaultValue: 0,
-      admin: {
-        description: 'Available quantity (0 = sold out)',
-      },
+      type: 'row',
+      fields: [
+        {
+          name: 'price',
+          type: 'number',
+          required: true,
+          min: 0,
+          admin: {
+            description: 'Base price for this SKU',
+            width: '25%',
+          },
+        },
+        {
+          name: 'sellingPrice',
+          type: 'number',
+          admin: {
+            description: 'Final selling price (auto-calculated: price + platform fee)',
+            readOnly: true,
+            width: '25%',
+          },
+        },
+        {
+          name: 'compareAtPrice',
+          type: 'number',
+          min: 0,
+          admin: {
+            description: 'Original price before discount (shows as crossed out)',
+            width: '25%',
+          },
+        },
+        {
+          name: 'stock',
+          type: 'number',
+          min: 0,
+          defaultValue: 0,
+          admin: {
+            description: 'Available quantity (0 = sold out)',
+            width: '25%',
+          },
+        },
+      ],
     },
     {
       name: 'isActive',

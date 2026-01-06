@@ -22,15 +22,25 @@ export const notifyPriceDropHook: CollectionAfterChangeHook<Skus> = async ({
     return doc
   }
 
-  // Check if item is newly on sale (compareAtPrice added)
-  const wasOnSale = previousDoc?.compareAtPrice && previousDoc.compareAtPrice > 0
-  const isNowOnSale = doc.compareAtPrice && doc.compareAtPrice > 0
+  // Check if item is newly on sale OR compareAtPrice increased (bigger sale)
+  const previousCompareAtPrice = previousDoc?.compareAtPrice ?? 0
+  const newCompareAtPrice = doc.compareAtPrice ?? 0
+  const wasOnSale = previousCompareAtPrice > 0
+  const isNowOnSale = newCompareAtPrice > 0
   const newlyOnSale = !wasOnSale && isNowOnSale
+  const saleIncreased = wasOnSale && isNowOnSale && newCompareAtPrice > previousCompareAtPrice
 
   // Check if price actually dropped
-  const previousPrice = previousDoc?.sellingPrice ?? previousDoc?.price
-  const newPrice = doc.sellingPrice ?? doc.price
-  const priceDropped = previousPrice && newPrice && newPrice < previousPrice
+  const previousPrice = previousDoc?.sellingPrice ?? previousDoc?.price ?? 0
+  const newPrice = doc.sellingPrice ?? doc.price ?? 0
+  const priceDropped = previousPrice > 0 && newPrice > 0 && newPrice < previousPrice
+
+  // Log for debugging
+  req.payload.logger.info(`🔔 SKU ${doc.id} price check:`)
+  req.payload.logger.info(`   Previous: price=${previousPrice}, compareAt=${previousCompareAtPrice}`)
+  req.payload.logger.info(`   New: price=${newPrice}, compareAt=${newCompareAtPrice}`)
+  req.payload.logger.info(`   wasOnSale=${wasOnSale}, isNowOnSale=${isNowOnSale}, newlyOnSale=${newlyOnSale}, saleIncreased=${saleIncreased}`)
+  req.payload.logger.info(`   priceDropped=${priceDropped}`)
 
   // Calculate discount percentages
   let priceDropPercent = 0
@@ -40,13 +50,17 @@ export const notifyPriceDropHook: CollectionAfterChangeHook<Skus> = async ({
     priceDropPercent = Math.round(((previousPrice - newPrice) / previousPrice) * 100)
   }
 
-  if (newlyOnSale && doc.compareAtPrice && newPrice) {
-    salePercent = Math.round(((doc.compareAtPrice - newPrice) / doc.compareAtPrice) * 100)
+  if (isNowOnSale && newCompareAtPrice > newPrice) {
+    salePercent = Math.round(((newCompareAtPrice - newPrice) / newCompareAtPrice) * 100)
   }
 
-  // Only notify if there's a significant price drop (5%+) or item went on sale
+  req.payload.logger.info(`   priceDropPercent=${priceDropPercent}%, salePercent=${salePercent}%`)
+
+  // Only notify if there's a significant price drop (5%+) or item went on sale/sale increased with 5%+ discount
   const shouldNotifyPriceDrop = priceDropped && priceDropPercent >= 5
-  const shouldNotifySale = newlyOnSale && salePercent >= 5
+  const shouldNotifySale = (newlyOnSale || saleIncreased) && salePercent >= 5
+
+  req.payload.logger.info(`   shouldNotifyPriceDrop=${shouldNotifyPriceDrop}, shouldNotifySale=${shouldNotifySale}`)
 
   if (!shouldNotifyPriceDrop && !shouldNotifySale) {
     return doc
@@ -92,10 +106,14 @@ export const notifyPriceDropHook: CollectionAfterChangeHook<Skus> = async ({
         variation: { equals: variationId },
       },
       limit: 500,
-      depth: 1, // Need depth to get user's country
+      depth: 2, // Need depth to get user's country
     })
 
+    req.payload.logger.info(`🔔 Found ${favorites.docs.length} favorites for variation ${variationId}`)
+    req.payload.logger.info(`🔔 Seller country ID: ${sellerCountryId}`)
+
     if (favorites.docs.length === 0) {
+      req.payload.logger.info(`🔔 No favorites found, skipping notification`)
       return doc
     }
 
@@ -103,18 +121,26 @@ export const notifyPriceDropHook: CollectionAfterChangeHook<Skus> = async ({
     const userIds = favorites.docs
       .filter((fav) => {
         const user = fav.user as User | string | undefined
-        if (!user || typeof user === 'string') return false
+        if (!user || typeof user === 'string') {
+          req.payload.logger.info(`🔔 Skipping favorite - user is string or undefined: ${typeof user}`)
+          return false
+        }
 
         const userCountryId = typeof user.country === 'string'
           ? user.country
           : (user.country as Country | undefined)?.id
+
+        req.payload.logger.info(`🔔 User ${user.id} country: ${userCountryId}, seller country: ${sellerCountryId}, match: ${userCountryId === sellerCountryId}`)
 
         return userCountryId === sellerCountryId
       })
       .map((fav) => (typeof fav.user === 'string' ? fav.user : (fav.user as User)?.id))
       .filter((id): id is string => Boolean(id))
 
+    req.payload.logger.info(`🔔 Filtered to ${userIds.length} users in same country`)
+
     if (userIds.length === 0) {
+      req.payload.logger.info(`🔔 No users in same country, skipping notification`)
       return doc
     }
 
@@ -177,7 +203,7 @@ export const notifyPriceDropHook: CollectionAfterChangeHook<Skus> = async ({
           user: userId,
           type: notificationType,
           message: notificationMessage,
-          path: `/product/${variation.slug || variationId}`,
+          path: `/products/${variation.slug || variationId}`,
           image: imageId,
           metadata: {
             variationId,
