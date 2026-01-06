@@ -2,8 +2,8 @@ import type { CollectionAfterChangeHook } from 'payload'
 import type { Skus, Variation, Style, User, Country, Currency } from '../../../payload-types'
 
 /**
- * Hook to notify users when a SKU's price drops
- * Finds users who have favorited the variation and sends them a price drop notification
+ * Hook to notify users when a SKU's price drops or goes on sale
+ * Finds users who have favorited the variation and sends them a notification
  */
 export const notifyPriceDropHook: CollectionAfterChangeHook<Skus> = async ({
   doc,
@@ -16,25 +16,39 @@ export const notifyPriceDropHook: CollectionAfterChangeHook<Skus> = async ({
     return doc
   }
 
-  // Check if price actually dropped
-  const previousPrice = previousDoc?.sellingPrice ?? previousDoc?.price
-  const newPrice = doc.sellingPrice ?? doc.price
-
-  if (!previousPrice || !newPrice || newPrice >= previousPrice) {
-    return doc
-  }
-
-  // Calculate discount percentage
-  const discountPercent = Math.round(((previousPrice - newPrice) / previousPrice) * 100)
-
-  // Only notify if discount is at least 5%
-  if (discountPercent < 5) {
-    return doc
-  }
-
   const variationId = typeof doc.variation === 'string' ? doc.variation : doc.variation?.id
 
   if (!variationId) {
+    return doc
+  }
+
+  // Check if item is newly on sale (compareAtPrice added)
+  const wasOnSale = previousDoc?.compareAtPrice && previousDoc.compareAtPrice > 0
+  const isNowOnSale = doc.compareAtPrice && doc.compareAtPrice > 0
+  const newlyOnSale = !wasOnSale && isNowOnSale
+
+  // Check if price actually dropped
+  const previousPrice = previousDoc?.sellingPrice ?? previousDoc?.price
+  const newPrice = doc.sellingPrice ?? doc.price
+  const priceDropped = previousPrice && newPrice && newPrice < previousPrice
+
+  // Calculate discount percentages
+  let priceDropPercent = 0
+  let salePercent = 0
+
+  if (priceDropped) {
+    priceDropPercent = Math.round(((previousPrice - newPrice) / previousPrice) * 100)
+  }
+
+  if (newlyOnSale && doc.compareAtPrice && newPrice) {
+    salePercent = Math.round(((doc.compareAtPrice - newPrice) / doc.compareAtPrice) * 100)
+  }
+
+  // Only notify if there's a significant price drop (5%+) or item went on sale
+  const shouldNotifyPriceDrop = priceDropped && priceDropPercent >= 5
+  const shouldNotifySale = newlyOnSale && salePercent >= 5
+
+  if (!shouldNotifyPriceDrop && !shouldNotifySale) {
     return doc
   }
 
@@ -50,37 +64,54 @@ export const notifyPriceDropHook: CollectionAfterChangeHook<Skus> = async ({
       return doc
     }
 
-    // Get currency from seller's country
+    // Get currency and country from seller
     let currencySymbol = '₵' // Default to GHS
     let currencyCode = 'GHS'
-    
+
     const style = variation.style as Style | undefined
     const seller = style?.seller as User | undefined
-    const country = seller?.country as Country | undefined
-    const currency = country?.currency as Currency | undefined
-    
+    const sellerCountry = seller?.country as Country | undefined
+    const sellerCountryId = sellerCountry?.id || (typeof seller?.country === 'string' ? seller.country : null)
+    const currency = sellerCountry?.currency as Currency | undefined
+
     if (currency) {
       currencySymbol = currency.symbol || '₵'
       currencyCode = currency.code || 'GHS'
     }
 
-    // Find all users who favorited this variation
+    // If we can't determine seller's country, skip notification
+    if (!sellerCountryId) {
+      req.payload.logger.warn(`Cannot send price notification: seller country not found for variation ${variationId}`)
+      return doc
+    }
+
+    // Find all users who favorited this variation AND are in the same country as the seller
     const favorites = await req.payload.find({
       collection: 'favorites',
       where: {
         variation: { equals: variationId },
       },
-      limit: 500, // Process in batches if needed
-      depth: 0,
+      limit: 500,
+      depth: 1, // Need depth to get user's country
     })
 
     if (favorites.docs.length === 0) {
       return doc
     }
 
-    // Get unique user IDs
+    // Filter to users in the same country as the seller
     const userIds = favorites.docs
-      .map((fav) => (typeof fav.user === 'string' ? fav.user : fav.user?.id))
+      .filter((fav) => {
+        const user = fav.user as User | string | undefined
+        if (!user || typeof user === 'string') return false
+
+        const userCountryId = typeof user.country === 'string'
+          ? user.country
+          : (user.country as Country | undefined)?.id
+
+        return userCountryId === sellerCountryId
+      })
+      .map((fav) => (typeof fav.user === 'string' ? fav.user : (fav.user as User)?.id))
       .filter((id): id is string => Boolean(id))
 
     if (userIds.length === 0) {
@@ -103,34 +134,57 @@ export const notifyPriceDropHook: CollectionAfterChangeHook<Skus> = async ({
     const variationTitle = variation.title || 'An item you favorited'
 
     // Format prices with currency
-    const formattedPreviousPrice = formatPrice(previousPrice, currencyCode, currencySymbol)
     const formattedNewPrice = formatPrice(newPrice, currencyCode, currencySymbol)
+    const formattedComparePrice = doc.compareAtPrice
+      ? formatPrice(doc.compareAtPrice, currencyCode, currencySymbol)
+      : null
 
-    // Create notification for each user and send push notification
-    const notificationPromises = userIds.map(async (userId) => {
-      // Get image ID for notification
-      let imageId: string | undefined
-      if (images && images.length > 0) {
-        const firstImage = images[0]?.image
-        if (firstImage) {
-          imageId = typeof firstImage === 'string' ? firstImage : (firstImage as { id?: string })?.id
-        }
+    // Get image ID for notification
+    let imageId: string | undefined
+    if (images && images.length > 0) {
+      const firstImage = images[0]?.image
+      if (firstImage) {
+        imageId = typeof firstImage === 'string' ? firstImage : (firstImage as { id?: string })?.id
       }
+    }
 
-      // Create in-app notification
+    // Determine notification type and message
+    let notificationType: 'price_drop' | 'promotion'
+    let notificationMessage: string
+    let discountPercent: number
+    let logEmoji: string
+
+    if (shouldNotifySale) {
+      // Item newly on sale - prioritize this notification
+      notificationType = 'promotion'
+      discountPercent = salePercent
+      notificationMessage = `🏷️ ${variationTitle} is now on sale! ${discountPercent}% off - was ${formattedComparePrice}, now ${formattedNewPrice}`
+      logEmoji = '🏷️ Sale'
+    } else {
+      // Price dropped
+      notificationType = 'price_drop'
+      discountPercent = priceDropPercent
+      const formattedPreviousPrice = formatPrice(previousPrice!, currencyCode, currencySymbol)
+      notificationMessage = `${variationTitle} dropped ${discountPercent}% from ${formattedPreviousPrice} to ${formattedNewPrice}!`
+      logEmoji = '📉 Price drop'
+    }
+
+    // Create notification for each user
+    const notificationPromises = userIds.map(async (userId) => {
       await req.payload.create({
         collection: 'notifications',
         data: {
           user: userId,
-          type: 'price_drop',
-          message: `${variationTitle} dropped ${discountPercent}% from ${formattedPreviousPrice} to ${formattedNewPrice}!`,
+          type: notificationType,
+          message: notificationMessage,
           path: `/product/${variation.slug || variationId}`,
           image: imageId,
           metadata: {
             variationId,
             skuId: doc.id,
-            previousPrice,
+            previousPrice: previousPrice || null,
             newPrice,
+            compareAtPrice: doc.compareAtPrice || null,
             discountPercent,
             currency: currencyCode,
           },
@@ -141,10 +195,10 @@ export const notifyPriceDropHook: CollectionAfterChangeHook<Skus> = async ({
     await Promise.all(notificationPromises)
 
     req.payload.logger.info(
-      `📉 Price drop: Notified ${userIds.length} users about ${variationTitle} (${discountPercent}% off)`,
+      `${logEmoji}: Notified ${userIds.length} users about ${variationTitle} (${discountPercent}% off)`,
     )
   } catch (error) {
-    req.payload.logger.error(`Error sending price drop notifications: ${error}`)
+    req.payload.logger.error(`Error sending price/promotion notifications: ${error}`)
   }
 
   return doc

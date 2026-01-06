@@ -5,8 +5,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:dres/core/services/api_service.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/features/notifications/logic/notifications_bloc/notifications_bloc.dart';
-import 'package:dres/features/notifications/logic/notifications_bloc/notifications_event.dart';
 import 'package:dres/routes.dart';
+import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 
 /// Background message handler - must be a top-level function
 @pragma('vm:entry-point')
@@ -222,10 +222,10 @@ class PushNotificationService {
   /// Handle foreground message
   void _handleForegroundMessage(RemoteMessage message) {
     debugPrint('🔔 Foreground message: ${message.notification?.title}');
-    
+
     final notification = message.notification;
     final android = message.notification?.android;
-    
+
     // Build payload with notificationId and path
     final notificationId = message.data['notificationId'] as String?;
     final path = message.data['path'] as String?;
@@ -235,7 +235,10 @@ class PushNotificationService {
     } else if (path != null) {
       payload = path;
     }
-    
+
+    // Refresh notifications list if user is authenticated
+    _refreshNotifications();
+
     // Show local notification when app is in foreground
     if (notification != null) {
       _localNotifications.show(
@@ -259,6 +262,20 @@ class PushNotificationService {
         ),
         payload: payload,
       );
+    }
+  }
+
+  /// Refresh notifications list when a push is received
+  void _refreshNotifications() {
+    try {
+      // Only refresh if user is authenticated
+      final authBloc = getIt<AuthBloc>();
+      if (authBloc.state.status == AuthStatus.authenticated) {
+        getIt<NotificationsBloc>().add(const NotificationsRefreshRequested());
+        debugPrint('🔔 Triggered notifications refresh');
+      }
+    } catch (e) {
+      debugPrint('🔔 Error refreshing notifications: $e');
     }
   }
 
