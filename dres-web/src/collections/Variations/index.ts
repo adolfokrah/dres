@@ -28,6 +28,12 @@ export const Variations: CollectionConfig = {
     defaultColumns: ['title', 'style', 'images', 'variants'],
     description: 'Product variations - specific color/size combinations',
   },
+  indexes: [
+    { fields: ['style'] },
+    { fields: ['status'] },
+    // Useful for lookups from views/favorites etc.
+    { fields: ['slug'], unique: true },
+  ],
   access: {
     create: authenticated,
     delete: authenticated,
@@ -107,6 +113,7 @@ export const Variations: CollectionConfig = {
       admin: {
         description: 'The style this variation belongs to',
       },
+      index: true,
     },
     {
       label: 'Attributes',
@@ -227,6 +234,7 @@ export const Variations: CollectionConfig = {
         description: 'URL-friendly slug',
         readOnly: true,
       },
+      index: true,
     },
     {
       name: 'stats',
@@ -251,6 +259,7 @@ export const Variations: CollectionConfig = {
         },
       ],
       defaultValue: 'active',
+      index: true,
     }
   ],
 }

@@ -20,6 +20,14 @@ export const SKUs: CollectionConfig = {
     description: 'SKUs - inventory tracking with pricing for each variation',
     useAsTitle: 'title',
   },
+  indexes: [
+    { fields: ['variation'] },
+    { fields: ['status'] },
+    { fields: ['isActive'] },
+    // Nested indexes on option/value used in filtering
+    { fields: ['skuOptions.option'] },
+    { fields: ['skuOptions.value'] },
+  ],
   access: {
     read: anyone,
     create: authenticated,
@@ -142,6 +150,7 @@ export const SKUs: CollectionConfig = {
           admin: {
             description: 'Select the attribute type (e.g., Size)',
           },
+          index: true,
         },
         {
           name: 'value',
@@ -167,6 +176,7 @@ export const SKUs: CollectionConfig = {
               return Boolean(data?.option)
             },
           },
+          index: true,
         },
       ],
     },
@@ -220,6 +230,7 @@ export const SKUs: CollectionConfig = {
       admin: {
         description: 'Whether this SKU is available for purchase',
       },
+      index: true,
     },
     {
       name: 'barcode',
@@ -250,6 +261,7 @@ export const SKUs: CollectionConfig = {
         },
       ],
       defaultValue: 'active',
+      index: true,
     },
   ],
   timestamps: true,
