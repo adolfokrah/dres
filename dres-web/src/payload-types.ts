@@ -2250,9 +2250,9 @@ export interface ProductArchiveBlock {
    */
   seeAllText?: string | null;
   /**
-   * Filter products by department
+   * Filter products by department (uses slug). Leave empty to use user preference.
    */
-  department?: ('694eee871a36e6d75fbb15af' | '694eee871a36e6d75fbb15b1' | '694eee871a36e6d75fbb15b3') | null;
+  department?: ('men' | 'women' | 'kids') | null;
   /**
    * Number of products to display
    */

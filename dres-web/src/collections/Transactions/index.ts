@@ -4,6 +4,7 @@ import { authenticated } from '../../access/authenticated'
 import { paystackWebhook } from './endpoints/paystackWebhook'
 import { checkTransactionStatus } from './endpoints/checkStatus'
 import { getUserTransactions } from './endpoints/getUserTransactions'
+import { calculateCommissionForOrder } from '../Orders/hooks/calculateCommissionForOrder'
 
 // Generate unique transaction ID: TXN-YYYYMMDD-XXXXXX-XXXX
 const generateTransactionId = (): string => {
@@ -81,20 +82,10 @@ export const Transactions: CollectionConfig = {
         // Recalculate order commission when a transaction with fees is created/updated
         if (doc.order && (doc.type === 'transfer' || doc.type === 'order_payment')) {
           const orderId = typeof doc.order === 'object' ? doc.order.id : doc.order
-          try {
-            // Trigger order update to recalculate commission
-            await req.payload.update({
-              collection: 'orders',
-              id: orderId,
-              data: {
-                // Just touch the order to trigger commission recalculation
-                updatedAt: new Date().toISOString(),
-              },
-            })
-            req.payload.logger.info(`Triggered commission recalculation for order ${orderId}`)
-          } catch (error) {
-            req.payload.logger.error(`Error triggering commission recalculation: ${error}`)
-          }
+          req.payload.logger.info(`Transaction ${doc.transactionId} changed, recalculating commission for order ${orderId}`)
+          
+          // Directly calculate commission instead of triggering another order update
+          await calculateCommissionForOrder(req.payload, orderId)
         }
         return doc
       },
@@ -104,20 +95,10 @@ export const Transactions: CollectionConfig = {
         // Recalculate order commission when a transaction is deleted
         if (doc.order && (doc.type === 'transfer' || doc.type === 'order_payment')) {
           const orderId = typeof doc.order === 'object' ? doc.order.id : doc.order
-          try {
-            // Trigger order update to recalculate commission
-            await req.payload.update({
-              collection: 'orders',
-              id: orderId,
-              data: {
-                // Just touch the order to trigger commission recalculation
-                updatedAt: new Date().toISOString(),
-              },
-            })
-            req.payload.logger.info(`Triggered commission recalculation for order ${orderId} after transaction deletion`)
-          } catch (error) {
-            req.payload.logger.error(`Error triggering commission recalculation: ${error}`)
-          }
+          req.payload.logger.info(`Transaction ${doc.transactionId} deleted, recalculating commission for order ${orderId}`)
+          
+          // Directly calculate commission instead of triggering another order update
+          await calculateCommissionForOrder(req.payload, orderId)
         }
         return doc
       },

@@ -4,7 +4,6 @@ import { authenticated } from '../../access/authenticated'
 import { createSellerTransactionOnDelivery } from './hooks/createSellerTransactionOnDelivery'
 import { createRefundTransaction } from './hooks/createRefundTransaction'
 import { calculateOrderTotalsAndStatus } from './hooks/calculateOrderTotalsAndStatus'
-import { calculateTotalCommission } from './hooks/calculateTotalCommission'
 import { updateSalesStats } from './hooks/updateSalesStats'
 import { reduceStockOnOrder } from './hooks/reduceStockOnOrder'
 import { restoreStockOnReturn } from './hooks/restoreStockOnReturn'
@@ -23,6 +22,7 @@ import {
   markAllOutForDelivery,
 } from './endpoints/updateIncomingOrderItemStatus'
 import { resolveDispute } from './endpoints/resolveDispute'
+import { recalculateCommission } from './endpoints/recalculateCommission'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -76,6 +76,12 @@ export const Orders: CollectionConfig = {
       method: 'post',
       handler: resolveDispute,
     },
+    // Admin only - recalculate commission
+    {
+      path: '/:id/recalculate-commission',
+      method: 'post',
+      handler: recalculateCommission,
+    },
   ],
   access: {
     // Users can only read their own orders
@@ -108,8 +114,9 @@ export const Orders: CollectionConfig = {
   },
   hooks: {
     beforeChange: [calculateOrderTotalsAndStatus],
-    // Reduce stock on order creation, restore stock on return/cancel, notify sellers, create delivery codes, create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats, award points, notify customer, then calculate commission
-    afterChange: [reduceStockOnOrder, restoreStockOnReturn, restoreStockOnCancel, notifySellersOnOrderPlaced, createDeliveryCodeOnOutForDelivery, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats, awardPointsOnDelivery, notifyCustomerOnStatusChange, calculateTotalCommission],
+    // Reduce stock on order creation, restore stock on return/cancel, notify sellers, create delivery codes, create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats, award points, notify customer
+    // Note: Commission calculation is now triggered from Transaction's afterChange hook
+    afterChange: [reduceStockOnOrder, restoreStockOnReturn, restoreStockOnCancel, notifySellersOnOrderPlaced, createDeliveryCodeOnOutForDelivery, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats, awardPointsOnDelivery, notifyCustomerOnStatusChange],
   },
   fields: [
     {
