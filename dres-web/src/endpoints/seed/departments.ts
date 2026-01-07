@@ -1,6 +1,10 @@
 import type { Payload } from 'payload'
 
-const departments = ['Men', 'Women', 'Kids']
+const departments = [
+  { name: 'Men', slug: 'men' },
+  { name: 'Women', slug: 'women' },
+  { name: 'Kids', slug: 'kids' },
+]
 
 export const seedDepartments = async (payload: Payload): Promise<void> => {
   payload.logger.info('Clearing departments...')
@@ -21,12 +25,12 @@ export const seedDepartments = async (payload: Payload): Promise<void> => {
   payload.logger.info(`Deleted ${existingDepartments.docs.length} departments`)
   payload.logger.info('Seeding departments...')
 
-  for (const name of departments) {
+  for (const dept of departments) {
     await payload.create({
       collection: 'departments',
-      data: { name },
+      data: { name: dept.name, slug: dept.slug },
     })
-    payload.logger.info(`Created department: ${name}`)
+    payload.logger.info(`Created department: ${dept.name}`)
   }
 
   payload.logger.info(`Departments seeding complete! (${departments.length} departments)`)
