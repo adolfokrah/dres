@@ -68,63 +68,141 @@ const ghanaRegionsAndCities = [
   },
 ]
 
-export const seedRegionsAndCities = async (payload: Payload): Promise<void> => {
-  payload.logger.info('Seeding Ghana regions and cities...')
+// Nigeria's States with major cities
+const nigeriaStatesAndCities = [
+  {
+    name: 'Lagos',
+    cities: ['Lagos Island', 'Victoria Island', 'Ikeja', 'Lekki', 'Surulere', 'Yaba', 'Ikoyi', 'Ajah', 'Festac', 'Oshodi', 'Mushin', 'Agege', 'Apapa', 'Maryland', 'Gbagada', 'Ogudu', 'Magodo', 'Ilupeju', 'Ojota'],
+  },
+  {
+    name: 'Abuja FCT',
+    cities: ['Abuja', 'Garki', 'Wuse', 'Maitama', 'Asokoro', 'Gwarinpa', 'Kubwa', 'Lugbe', 'Nyanya', 'Karu', 'Jabi', 'Utako', 'Life Camp'],
+  },
+  {
+    name: 'Rivers',
+    cities: ['Port Harcourt', 'Obio-Akpor', 'Eleme', 'Bonny', 'Okrika', 'Oyigbo', 'Omoku', 'Ahoada'],
+  },
+  {
+    name: 'Kano',
+    cities: ['Kano', 'Fagge', 'Nassarawa', 'Tarauni', 'Ungogo', 'Dala', 'Gwale', 'Kumbotso'],
+  },
+  {
+    name: 'Oyo',
+    cities: ['Ibadan', 'Ogbomosho', 'Oyo', 'Iseyin', 'Saki', 'Eruwa', 'Igboho'],
+  },
+  {
+    name: 'Kaduna',
+    cities: ['Kaduna', 'Zaria', 'Kafanchan', 'Kagoro', 'Kachia'],
+  },
+  {
+    name: 'Delta',
+    cities: ['Warri', 'Asaba', 'Sapele', 'Ughelli', 'Agbor', 'Ozoro', 'Effurun'],
+  },
+  {
+    name: 'Ogun',
+    cities: ['Abeokuta', 'Sagamu', 'Ijebu Ode', 'Ota', 'Ilaro', 'Ifo'],
+  },
+  {
+    name: 'Anambra',
+    cities: ['Onitsha', 'Awka', 'Nnewi', 'Ekwulobia', 'Ihiala', 'Ogidi'],
+  },
+  {
+    name: 'Enugu',
+    cities: ['Enugu', 'Nsukka', 'Agbani', 'Oji River', 'Udi'],
+  },
+  {
+    name: 'Edo',
+    cities: ['Benin City', 'Auchi', 'Ekpoma', 'Uromi', 'Irrua'],
+  },
+  {
+    name: 'Imo',
+    cities: ['Owerri', 'Orlu', 'Okigwe', 'Oguta', 'Mbaise'],
+  },
+  {
+    name: 'Kwara',
+    cities: ['Ilorin', 'Offa', 'Jebba', 'Omu-Aran', 'Lafiagi'],
+  },
+  {
+    name: 'Osun',
+    cities: ['Osogbo', 'Ile-Ife', 'Ilesa', 'Ede', 'Ikirun', 'Iwo'],
+  },
+  {
+    name: 'Ondo',
+    cities: ['Akure', 'Ondo', 'Owo', 'Ikare', 'Okitipupa'],
+  },
+  {
+    name: 'Ekiti',
+    cities: ['Ado Ekiti', 'Ikere', 'Ijero', 'Iyin', 'Omuo'],
+  },
+  {
+    name: 'Cross River',
+    cities: ['Calabar', 'Ikom', 'Ogoja', 'Obudu', 'Ugep'],
+  },
+  {
+    name: 'Akwa Ibom',
+    cities: ['Uyo', 'Eket', 'Ikot Ekpene', 'Oron', 'Abak'],
+  },
+]
 
-  // Get Ghana country ID
-  const ghanaResult = await payload.find({
+async function seedCountryLocations(
+  payload: Payload,
+  countryName: string,
+  regionsData: { name: string; cities: string[] }[]
+): Promise<void> {
+  // Get country ID
+  const countryResult = await payload.find({
     collection: 'countries',
     where: {
-      name: {
-        equals: 'Ghana',
-      },
+      name: { equals: countryName },
     },
     limit: 1,
   })
 
-  if (ghanaResult.docs.length === 0) {
-    payload.logger.error('Ghana country not found! Please seed countries first.')
+  if (countryResult.docs.length === 0) {
+    payload.logger.warn(`${countryName} country not found! Skipping...`)
     return
   }
 
-  const ghanaId = ghanaResult.docs[0].id
+  const countryId = countryResult.docs[0].id
+  payload.logger.info(`Seeding ${countryName} regions and cities...`)
 
-  for (const regionData of ghanaRegionsAndCities) {
+  for (const regionData of regionsData) {
     // Check if region already exists
     const existingRegion = await payload.find({
       collection: 'regions',
       where: {
-        name: {
-          equals: regionData.name,
-        },
+        name: { equals: regionData.name },
+        country: { equals: countryId },
       },
       limit: 1,
     })
 
+    let regionId: string
+
     if (existingRegion.docs.length > 0) {
       payload.logger.info(`Region already exists: ${regionData.name}`)
-      continue
+      regionId = existingRegion.docs[0].id
+    } else {
+      // Create region
+      const createdRegion = await payload.create({
+        collection: 'regions',
+        data: {
+          name: regionData.name,
+          country: countryId,
+        },
+      })
+      payload.logger.info(`Created region: ${regionData.name}`)
+      regionId = createdRegion.id
     }
-
-    // Create region first
-    const createdRegion = await payload.create({
-      collection: 'regions',
-      data: {
-        name: regionData.name,
-        country: ghanaId,
-      },
-    })
-    payload.logger.info(`Created region: ${regionData.name}`)
 
     // Create cities with country and region references
     for (const cityName of regionData.cities) {
-      // Check if city already exists
+      // Check if city already exists in this region
       const existingCity = await payload.find({
         collection: 'cities',
         where: {
-          name: {
-            equals: cityName,
-          },
+          name: { equals: cityName },
+          region: { equals: regionId },
         },
         limit: 1,
       })
@@ -134,8 +212,8 @@ export const seedRegionsAndCities = async (payload: Payload): Promise<void> => {
           collection: 'cities',
           data: {
             name: cityName,
-            country: ghanaId,
-            region: createdRegion.id,
+            country: countryId,
+            region: regionId,
           },
         })
         payload.logger.info(`  Created city: ${cityName}`)
@@ -143,7 +221,17 @@ export const seedRegionsAndCities = async (payload: Payload): Promise<void> => {
     }
   }
 
-  payload.logger.info('Ghana regions and cities seeding complete!')
+  payload.logger.info(`${countryName} regions and cities seeding complete!`)
+}
+
+export const seedRegionsAndCities = async (payload: Payload): Promise<void> => {
+  // Seed Ghana locations
+  await seedCountryLocations(payload, 'Ghana', ghanaRegionsAndCities)
+  
+  // Seed Nigeria locations
+  await seedCountryLocations(payload, 'Nigeria', nigeriaStatesAndCities)
+  
+  payload.logger.info('All regions and cities seeding complete!')
 }
 
 // Helper to get city ID by name
