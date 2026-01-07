@@ -81,43 +81,21 @@ export const getStyleDetails: PayloadHandler = async (req) => {
         // Transform variant attributes
         const attributes = Array.isArray(variation.variants)
           ? await Promise.all(
-              variation.variants.map(async (variant: any) => {
-                const attributeId =
-                  typeof variant.variant === 'object' ? variant.variant.id : variant.variant
-                const valueId = typeof variant.value === 'object' ? variant.value.id : variant.value
+              variation.variants
+                .filter((variant: any) => variant.variant && variant.value)
+                .map(async (variant: any) => {
+                  try {
+                    const attributeId =
+                      typeof variant.variant === 'object' ? variant.variant.id : variant.variant
+                    const valueId = typeof variant.value === 'object' ? variant.value.id : variant.value
 
-                const attribute = await payload.findByID({
-                  collection: 'attributes',
-                  id: attributeId,
-                })
+                    if (!attributeId || !valueId) {
+                      return null
+                    }
 
-                const value = await payload.findByID({
-                  collection: 'attributeOptions',
-                  id: valueId,
-                })
-
-                return {
-                  name: attribute.name,
-                  value: value.name,
-                }
-              }),
-            )
-          : []
-
-        // Transform SKUs
-        const skus = await Promise.all(
-          skusResult.docs.map(async (sku: any) => {
-            const options = Array.isArray(sku.skuOptions)
-              ? await Promise.all(
-                  sku.skuOptions.map(async (skuOption: any) => {
-                    const optionId =
-                      typeof skuOption.option === 'object' ? skuOption.option.id : skuOption.option
-                    const valueId =
-                      typeof skuOption.value === 'object' ? skuOption.value.id : skuOption.value
-
-                    const option = await payload.findByID({
+                    const attribute = await payload.findByID({
                       collection: 'attributes',
-                      id: optionId,
+                      id: attributeId,
                     })
 
                     const value = await payload.findByID({
@@ -126,11 +104,55 @@ export const getStyleDetails: PayloadHandler = async (req) => {
                     })
 
                     return {
-                      option: option.name,
-                      value: value.name,
+                      name: attribute?.name || 'Unknown',
+                      value: value?.name || 'Unknown',
                     }
-                  }),
-                )
+                  } catch (e) {
+                    payload.logger.error(`Error fetching attribute: ${e}`)
+                    return null
+                  }
+                }),
+            ).then(results => results.filter(Boolean))
+          : []
+
+        // Transform SKUs
+        const skus = await Promise.all(
+          skusResult.docs.map(async (sku: any) => {
+            const options = Array.isArray(sku.skuOptions)
+              ? await Promise.all(
+                  sku.skuOptions
+                    .filter((skuOption: any) => skuOption.option && skuOption.value)
+                    .map(async (skuOption: any) => {
+                      try {
+                        const optionId =
+                          typeof skuOption.option === 'object' ? skuOption.option.id : skuOption.option
+                        const valueId =
+                          typeof skuOption.value === 'object' ? skuOption.value.id : skuOption.value
+
+                        if (!optionId || !valueId) {
+                          return null
+                        }
+
+                        const option = await payload.findByID({
+                          collection: 'attributes',
+                          id: optionId,
+                        })
+
+                        const value = await payload.findByID({
+                          collection: 'attributeOptions',
+                          id: valueId,
+                        })
+
+                        return {
+                          option: option?.name || 'Unknown',
+                          value: value?.name || 'Unknown',
+                        }
+                      } catch (e) {
+                        payload.logger.error(`Error fetching SKU option: ${e}`)
+                        return null
+                      }
+                    }),
+                ).then(results => results.filter(Boolean))
               : []
 
             return {

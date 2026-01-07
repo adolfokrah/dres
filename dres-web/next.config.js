@@ -13,12 +13,6 @@ const nextConfig = {
     // your project has ESLint errors/warnings.
     ignoreDuringBuilds: true,
   },
-  // Increase body size limit for file uploads (default is 1mb)
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '10mb',
-    },
-  },
   images: {
     remotePatterns: [
       ...[NEXT_PUBLIC_SERVER_URL, 'http://dres.app', /* 'https://example.com' */].map((item) => {

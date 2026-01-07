@@ -385,6 +385,10 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
   }
 
   Widget _buildVariationsSection({required bool isCreating}) {
+    // Only allow adding variations if style has a title
+    final hasTitle = _titleController.text.trim().isNotEmpty;
+    final canAddVariation = hasTitle && !isCreating;
+    
     return Column(
       children: [
         // Separator between brand and variations
@@ -409,7 +413,7 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
                 ),
               ),
               GestureDetector(
-                onTap: isCreating ? null : _onAddVariation,
+                onTap: canAddVariation ? _onAddVariation : null,
                 child: isCreating
                     ? const SizedBox(
                         width: 20,
@@ -423,7 +427,9 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
                         'ADD',
                         style: AppTypography.bodyM.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                          color: canAddVariation 
+                              ? AppColors.textPrimary 
+                              : AppColors.textSecondary,
                         ),
                       ),
               ),
