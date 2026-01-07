@@ -11,6 +11,10 @@ const attributesData = [
   { name: 'Length', level: 'variation' as const },
   { name: 'Condition', level: 'variation' as const },
   { name: 'Heel Height', level: 'sku' as const },
+  // African Fashion Attributes
+  { name: 'Print/Pattern', level: 'variation' as const },
+  { name: 'Weave Type', level: 'variation' as const },
+  { name: 'Occasion', level: 'variation' as const },
 ]
 
 export const seedAttributes = async (payload: Payload): Promise<void> => {
