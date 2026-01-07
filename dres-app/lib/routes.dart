@@ -4,7 +4,6 @@ import 'package:dres/features/splash/splash.dart';
 import 'package:dres/features/home/home.dart';
 import 'package:dres/features/sell/sell.dart';
 import 'package:dres/features/sell/presentation/view/style_details_screen.dart';
-import 'package:dres/features/sell/presentation/view/style_variations_screen.dart';
 import 'package:dres/features/sell/presentation/view/variation_detail_screen.dart';
 import 'package:dres/features/sell/presentation/view/sku_detail_screen.dart';
 import 'package:dres/features/sell/presentation/view/select_department_screen.dart';
@@ -184,6 +183,28 @@ class AppRoutes {
         name: 'notifications',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const NotificationsScreen(),
+      ),
+
+      // SKU Detail (outside shell for both internal navigation and deep linking)
+      GoRoute(
+        path: '/sku-detail/:styleId/:variationId/:skuId',
+        name: 'sku-detail',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final styleId = state.pathParameters['styleId']!;
+          final variationId = state.pathParameters['variationId']!;
+          final skuId = state.pathParameters['skuId']!;
+          final extra = state.extra as Map<String, dynamic>?;
+          final variationName = extra?['variationName'] as String?;
+          final categoryId = extra?['categoryId'] as String?;
+          return SkuDetailScreen(
+            styleId: styleId,
+            variationId: variationId,
+            skuId: skuId,
+            variationName: variationName,
+            categoryId: categoryId,
+          );
+        },
       ),
 
       // Search (outside shell, full screen)
@@ -475,22 +496,6 @@ class AppRoutes {
                       return StyleDetailsScreen(styleId: styleId);
                     },
                     routes: [
-                      // Style Variations (Step 2)
-                      GoRoute(
-                        path: 'variations',
-                        name: 'style-variations',
-                        builder: (context, state) {
-                          final styleId = state.pathParameters['styleId']!;
-                          final extra = state.extra as Map<String, dynamic>?;
-                          final styleTitle = extra?['styleTitle'] as String?;
-                          final categoryId = extra?['categoryId'] as String?;
-                          return StyleVariationsScreen(
-                            styleId: styleId,
-                            styleTitle: styleTitle,
-                            categoryId: categoryId,
-                          );
-                        },
-                      ),
                       // Variation Detail
                       GoRoute(
                         path: 'variation/:variationId',
@@ -511,10 +516,10 @@ class AppRoutes {
                           );
                         },
                         routes: [
-                          // SKU Detail
+                          // SKU Detail (inside shell for internal navigation)
                           GoRoute(
                             path: 'sku/:skuId',
-                            name: 'sku-detail',
+                            name: 'sku-detail-shell',
                             builder: (context, state) {
                               final styleId = state.pathParameters['styleId']!;
                               final variationId =

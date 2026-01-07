@@ -5,6 +5,7 @@ import { authenticated } from '../../access/authenticated'
 import { generateSKUTitle } from './hooks/generateSKUTitle'
 import { notifyPriceDropHook } from './hooks/notifyPriceDropHook'
 import { notifyBackInStockHook } from './hooks/notifyBackInStockHook'
+import { notifySellerLowStockHook } from './hooks/notifySellerLowStockHook'
 
 interface SKUOptionItem {
   option?: string | { id: string }
@@ -49,6 +50,8 @@ export const SKUs: CollectionConfig = {
       notifyPriceDropHook,
       // Notify users who subscribed to stock notifications when back in stock
       notifyBackInStockHook,
+      // Notify seller when stock is low or out of stock
+      notifySellerLowStockHook,
     ],
   },
   fields: [

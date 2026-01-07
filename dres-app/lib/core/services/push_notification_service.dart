@@ -297,7 +297,7 @@ class PushNotificationService {
         _markAsReadAndNavigate(notificationId, path);
       } else {
         // Legacy format - just path
-        AppRoutes.router.push(response.payload!);
+        _navigateToPath(response.payload!);
       }
     }
   }
@@ -306,18 +306,18 @@ class PushNotificationService {
   void _navigateFromNotification(Map<String, dynamic> data) {
     final notificationId = data['notificationId'] as String?;
     final path = data['path'] as String?;
-    
+
     if (notificationId != null && path != null && path.isNotEmpty) {
       _markAsReadAndNavigate(notificationId, path);
     } else if (path != null && path.isNotEmpty) {
-      AppRoutes.router.push(path);
+      _navigateToPath(path);
     }
   }
-  
+
   /// Mark notification as read and navigate to path
   void _markAsReadAndNavigate(String notificationId, String path) {
     debugPrint('🔔 Marking notification $notificationId as read and navigating to $path');
-    
+
     // Mark notification as read via NotificationsBloc
     try {
       getIt<NotificationsBloc>().add(
@@ -326,9 +326,31 @@ class PushNotificationService {
     } catch (e) {
       debugPrint('🔔 Error marking notification as read: $e');
     }
-    
-    // Navigate to the path
-    AppRoutes.router.push(path);
+
+    _navigateToPath(path);
+  }
+
+  /// Navigate to a path from notification
+  void _navigateToPath(String path) {
+    debugPrint('🔔 Navigating to: $path');
+
+    // Handle SKU detail deep links - convert backend path to app path
+    // Backend path: /sell/style/:styleId/variation/:variationId/sku/:skuId
+    // App path: /sku-detail/:styleId/:variationId/:skuId
+    final skuMatch = RegExp(r'^/sell/style/([^/]+)/variation/([^/]+)/sku/([^/]+)$').firstMatch(path);
+    if (skuMatch != null) {
+      final styleId = skuMatch.group(1)!;
+      final variationId = skuMatch.group(2)!;
+      final skuId = skuMatch.group(3)!;
+      final convertedPath = '/sku-detail/$styleId/$variationId/$skuId';
+      debugPrint('🔔 Converted path: $convertedPath');
+      // Use go() to navigate to the outside-shell route
+      AppRoutes.router.go(convertedPath);
+      return;
+    }
+
+    // For other routes, use standard go()
+    AppRoutes.router.go(path);
   }
 
   /// Subscribe to a topic

@@ -199,10 +199,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (path != null && path.isNotEmpty) {
       try {
         debugPrint('Navigating to path: $path');
-        context.push(path);
+        // Convert backend paths to app paths
+        final convertedPath = _convertPath(path);
+        debugPrint('Converted path: $convertedPath');
+        context.push(convertedPath);
       } catch (e) {
         debugPrint('Failed to navigate to path: $path, error: $e');
       }
     }
+  }
+
+  /// Convert backend paths to app paths
+  String _convertPath(String path) {
+    // Handle SKU detail deep links
+    // Backend path: /sell/style/:styleId/variation/:variationId/sku/:skuId
+    // App path: /sku-detail/:styleId/:variationId/:skuId
+    final skuMatch = RegExp(r'^/sell/style/([^/]+)/variation/([^/]+)/sku/([^/]+)$').firstMatch(path);
+    if (skuMatch != null) {
+      final styleId = skuMatch.group(1)!;
+      final variationId = skuMatch.group(2)!;
+      final skuId = skuMatch.group(3)!;
+      return '/sku-detail/$styleId/$variationId/$skuId';
+    }
+    return path;
   }
 }

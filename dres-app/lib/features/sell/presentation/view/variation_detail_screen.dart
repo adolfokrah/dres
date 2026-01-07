@@ -126,7 +126,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
   }
 
   void _onSkuTap(dynamic sku) async {
-    // Navigate to SKU detail page and wait for result
+    // Navigate to SKU detail page (inside shell) and wait for result
     await context.push(
       '/sell/style/${widget.styleId}/variation/${widget.variationId}/sku/${sku.id}',
       extra: {
@@ -256,6 +256,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
             // Get the newly created SKU (last in list)
             if (state.skus.isNotEmpty) {
               final newSku = state.skus.last;
+              // Navigate inside shell
               context.push(
                 '/sell/style/${widget.styleId}/variation/${widget.variationId}/sku/${newSku.id}',
                 extra: {

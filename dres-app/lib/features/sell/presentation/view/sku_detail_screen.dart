@@ -51,6 +51,8 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
 
   double _sellingPrice = 0.0;
   bool _dataPopulated = false;
+  bool _isUpdating = false;
+  bool _isArchiving = false;
 
   double get _commissionRate => _siteSettingsService.commissionRate;
   double get _commissionDecimal => _siteSettingsService.commissionDecimal;
@@ -144,6 +146,7 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
 
     final stock = int.tryParse(_stockController.text);
 
+    _isUpdating = true;
     _variationDetailBloc.add(
       SkuUpdateRequested(
         skuId: widget.skuId,
@@ -182,6 +185,7 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);
+              _isArchiving = true;
               _variationDetailBloc.add(
                 SkuArchiveRequested(skuId: widget.skuId),
               );
@@ -214,7 +218,9 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
             }
           }
 
-          if (state.status == VariationDetailStatus.skuUpdateSuccess) {
+          // Only handle success states if this screen initiated the action
+          if (state.status == VariationDetailStatus.skuUpdateSuccess && _isUpdating) {
+            _isUpdating = false;
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('SKU updated successfully'),
@@ -233,7 +239,8 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
             context.pop();
           }
 
-          if (state.status == VariationDetailStatus.skuArchiveSuccess) {
+          if (state.status == VariationDetailStatus.skuArchiveSuccess && _isArchiving) {
+            _isArchiving = false;
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('SKU removed'),

@@ -203,7 +203,7 @@ export const notifyPriceDropHook: CollectionAfterChangeHook<Skus> = async ({
           user: userId,
           type: notificationType,
           message: notificationMessage,
-          path: `/products/${variation.slug || variationId}`,
+          path: `/products/${variation.slug || variationId}?skuId=${doc.id}`,
           image: imageId,
           metadata: {
             variationId,
