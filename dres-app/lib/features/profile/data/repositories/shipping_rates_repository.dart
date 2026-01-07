@@ -55,14 +55,20 @@ class ShippingRatesRepository {
     double? deliveryCost,
     double? freeShippingThreshold,
     bool? isActive,
+    bool clearFreeShipping = false,
   }) async {
     final data = <String, dynamic>{};
 
     if (cityIds != null) data['cities'] = cityIds;
     if (deliveryCost != null) data['deliveryCost'] = deliveryCost;
-    if (freeShippingThreshold != null) {
+    
+    // Handle free shipping threshold - allow setting to 0 or clearing
+    if (clearFreeShipping) {
+      data['freeShippingThreshold'] = null;
+    } else if (freeShippingThreshold != null) {
       data['freeShippingThreshold'] = freeShippingThreshold;
     }
+    
     if (isActive != null) data['isActive'] = isActive;
 
     final response = await _apiService.patch(

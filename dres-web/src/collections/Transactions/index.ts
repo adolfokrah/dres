@@ -78,8 +78,8 @@ export const Transactions: CollectionConfig = {
     ],
     afterChange: [
       async ({ doc, req }) => {
-        // Recalculate order commission when a transfer transaction is created/updated
-        if (doc.type === 'transfer' && doc.order) {
+        // Recalculate order commission when a transaction with fees is created/updated
+        if (doc.order && (doc.type === 'transfer' || doc.type === 'order_payment')) {
           const orderId = typeof doc.order === 'object' ? doc.order.id : doc.order
           try {
             // Trigger order update to recalculate commission
@@ -101,8 +101,8 @@ export const Transactions: CollectionConfig = {
     ],
     afterDelete: [
       async ({ doc, req }) => {
-        // Recalculate order commission when a transfer transaction is deleted
-        if (doc.type === 'transfer' && doc.order) {
+        // Recalculate order commission when a transaction is deleted
+        if (doc.order && (doc.type === 'transfer' || doc.type === 'order_payment')) {
           const orderId = typeof doc.order === 'object' ? doc.order.id : doc.order
           try {
             // Trigger order update to recalculate commission

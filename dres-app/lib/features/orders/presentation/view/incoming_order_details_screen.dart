@@ -108,7 +108,15 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
           PhosphorIcons.caretLeft(),
           color: AppColors.textPrimary,
         ),
-        onPressed: () => context.pop(),
+        onPressed: () {
+          // Check if we can pop, otherwise go to sell tab (incoming orders)
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            // Navigate to sell tab when opened from deep link
+            context.go('/sell');
+          }
+        },
       ),
       title: BlocBuilder<IncomingOrderDetailsBloc, IncomingOrderDetailsState>(
         bloc: _bloc,
@@ -160,6 +168,9 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
                           : null,
                       onAcceptReturnTap: item.hasReturnInProgress
                           ? () => _onAcceptReturn(item)
+                          : null,
+                      onRejectReturnTap: item.hasReturnInProgress
+                          ? () => _onRejectReturn(item)
                           : null,
                     )),
 
@@ -377,6 +388,56 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
 
   void _onAcceptReturn(IncomingOrderItemModel item) {
     _bloc.add(IncomingOrderAcceptReturn(itemId: item.id));
+  }
+
+  void _onRejectReturn(IncomingOrderItemModel item) {
+    // Show confirmation dialog before rejecting return
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.background,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.zero,
+        ),
+        title: Text(
+          'Reject Return Request',
+          style: AppTypography.bodyL.copyWith(
+            color: AppColors.textPrimary,
+          ),
+        ),
+        content: Text(
+          'This action will trigger an admin review of this return request.\n\n'
+          'Please be ready to provide the admin with any details, information, or documentation needed to assist with your case.',
+          style: AppTypography.bodyM.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Cancel',
+              style: AppTypography.bodyM.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _bloc.add(IncomingOrderRejectReturn(itemId: item.id));
+            },
+            child: Text(
+              'Reject Return',
+              style: AppTypography.bodyM.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _onMarkAllOutForDelivery() {

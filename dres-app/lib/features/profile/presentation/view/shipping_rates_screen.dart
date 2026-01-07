@@ -434,6 +434,7 @@ class _ShippingRateFormSheetState extends State<_ShippingRateFormSheet> {
     }
 
     final freeShipping = double.tryParse(_freeShippingController.text);
+    final clearFreeShipping = _freeShippingController.text.trim().isEmpty;
 
     if (_isEditing) {
       context.read<ShippingRatesBloc>().add(ShippingRateUpdateRequested(
@@ -441,6 +442,7 @@ class _ShippingRateFormSheetState extends State<_ShippingRateFormSheet> {
             cityIds: _selectedCityIds.toList(),
             deliveryCost: deliveryCost,
             freeShippingThreshold: freeShipping,
+            clearFreeShipping: clearFreeShipping,
           ));
     } else {
       context.read<ShippingRatesBloc>().add(ShippingRateCreateRequested(

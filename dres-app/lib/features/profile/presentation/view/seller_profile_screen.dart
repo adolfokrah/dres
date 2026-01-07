@@ -105,7 +105,13 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
           color: AppColors.textPrimary,
           size: 20,
         ),
-        onPressed: () => context.pop(),
+        onPressed: () {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/');
+          }
+        },
       ),
       title: Text(
         title,

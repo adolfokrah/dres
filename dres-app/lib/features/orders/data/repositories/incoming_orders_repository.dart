@@ -108,6 +108,21 @@ class IncomingOrdersRepository {
     debugPrint('🟢 IncomingOrdersRepository: Accepted return for item $itemId');
   }
 
+  /// Reject/Dispute return for an item
+  Future<void> rejectReturn({
+    required String orderId,
+    required String itemId,
+  }) async {
+    await _apiService.post(
+      '/orders/$orderId/update-item-status',
+      data: {
+        'action': 'reject_return',
+        'itemId': itemId,
+      },
+    );
+    debugPrint('🟢 IncomingOrdersRepository: Rejected return for item $itemId');
+  }
+
   /// Mark all seller's items as out for delivery
   Future<void> markAllOutForDelivery({
     required String orderId,

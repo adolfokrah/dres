@@ -41,3 +41,13 @@ class IncomingOrderAcceptReturn extends IncomingOrderDetailsEvent {
   @override
   List<Object?> get props => [itemId];
 }
+
+/// Reject/Dispute return for an item
+class IncomingOrderRejectReturn extends IncomingOrderDetailsEvent {
+  final String itemId;
+
+  const IncomingOrderRejectReturn({required this.itemId});
+
+  @override
+  List<Object?> get props => [itemId];
+}

@@ -9,7 +9,8 @@ enum IncomingItemStatus {
   returnInProgress('return_in_progress'),
   returned('returned'),
   notAvailable('not_available'),
-  cancelled('cancelled');
+  cancelled('cancelled'),
+  disputed('disputed');
 
   const IncomingItemStatus(this.value);
   final String value;
@@ -39,6 +40,8 @@ enum IncomingItemStatus {
         return 'Not available';
       case IncomingItemStatus.cancelled:
         return 'Cancelled';
+      case IncomingItemStatus.disputed:
+        return 'Disputed';
     }
   }
 
@@ -57,6 +60,7 @@ enum IncomingItemStatus {
       case IncomingItemStatus.returnInProgress:
       case IncomingItemStatus.notAvailable:
       case IncomingItemStatus.cancelled:
+      case IncomingItemStatus.disputed:
         return 0;
     }
   }
@@ -182,10 +186,11 @@ class IncomingOrderItemModel {
   bool get hasReturnInProgress =>
       shippingStatus == IncomingItemStatus.returnInProgress;
 
-  /// Check if item has return info to show (return in progress or returned)
+  /// Check if item has return info to show (return in progress, returned, or disputed)
   bool get hasReturnInfo =>
       shippingStatus == IncomingItemStatus.returnInProgress ||
-      shippingStatus == IncomingItemStatus.returned;
+      shippingStatus == IncomingItemStatus.returned ||
+      shippingStatus == IncomingItemStatus.disputed;
 
   /// Get return reason display label (backend returns label directly)
   String? get returnReasonLabel => returnReason;
@@ -335,7 +340,8 @@ class IncomingOrderDetailsModel {
         item.shippingStatus == IncomingItemStatus.delivered ||
         item.shippingStatus == IncomingItemStatus.returned ||
         item.shippingStatus == IncomingItemStatus.notAvailable ||
-        item.shippingStatus == IncomingItemStatus.cancelled);
+        item.shippingStatus == IncomingItemStatus.cancelled ||
+        item.shippingStatus == IncomingItemStatus.disputed);
   }
 
   /// Check if any items have return in progress

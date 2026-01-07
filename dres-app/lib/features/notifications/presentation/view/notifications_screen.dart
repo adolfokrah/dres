@@ -63,7 +63,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(PhosphorIcons.caretLeft(), color: AppColors.textPrimary),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/');
+            }
+          },
         ),
         title: Text(
           'Notifications',

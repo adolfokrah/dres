@@ -44,6 +44,7 @@ class ShippingRateUpdateRequested extends ShippingRatesEvent {
   final double? deliveryCost;
   final double? freeShippingThreshold;
   final bool? isActive;
+  final bool clearFreeShipping;
 
   const ShippingRateUpdateRequested({
     required this.id,
@@ -51,6 +52,7 @@ class ShippingRateUpdateRequested extends ShippingRatesEvent {
     this.deliveryCost,
     this.freeShippingThreshold,
     this.isActive,
+    this.clearFreeShipping = false,
   });
 
   @override
@@ -60,6 +62,7 @@ class ShippingRateUpdateRequested extends ShippingRatesEvent {
         deliveryCost,
         freeShippingThreshold,
         isActive,
+        clearFreeShipping,
       ];
 }
 

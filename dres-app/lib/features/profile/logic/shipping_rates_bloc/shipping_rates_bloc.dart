@@ -99,6 +99,7 @@ class ShippingRatesBloc extends Bloc<ShippingRatesEvent, ShippingRatesState> {
         deliveryCost: event.deliveryCost,
         freeShippingThreshold: event.freeShippingThreshold,
         isActive: event.isActive,
+        clearFreeShipping: event.clearFreeShipping,
       );
 
       final updatedRates = state.shippingRates.map((rate) {

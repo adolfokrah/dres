@@ -166,7 +166,13 @@ class _ReturnItemScreenState extends State<ReturnItemScreen> {
           color: AppColors.textPrimary,
           size: 20,
         ),
-        onPressed: () => context.pop(),
+        onPressed: () {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/');
+          }
+        },
       ),
       title: Text(
         'Report Product',

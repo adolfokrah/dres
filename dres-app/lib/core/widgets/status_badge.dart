@@ -101,6 +101,7 @@ class StatusBadge extends StatelessWidget {
     'returned': 'Returned',
     'not_available': 'Not Available',
     'cancelled': 'Cancelled',
+    'disputed': 'Disputed',
   };
 
   static const Map<String, String> _transactionStatusLabels = {

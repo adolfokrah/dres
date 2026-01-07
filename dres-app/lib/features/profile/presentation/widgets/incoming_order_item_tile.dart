@@ -13,6 +13,7 @@ class IncomingOrderItemTile extends StatefulWidget {
   final String currencySymbol;
   final VoidCallback? onNotAvailableTap;
   final VoidCallback? onAcceptReturnTap;
+  final VoidCallback? onRejectReturnTap;
 
   const IncomingOrderItemTile({
     super.key,
@@ -20,6 +21,7 @@ class IncomingOrderItemTile extends StatefulWidget {
     required this.currencySymbol,
     this.onNotAvailableTap,
     this.onAcceptReturnTap,
+    this.onRejectReturnTap,
   });
 
   @override
@@ -265,13 +267,26 @@ class _IncomingOrderItemTileState extends State<IncomingOrderItemTile> {
         // Accept return button - only for items with return in progress (not already returned)
         if (widget.item.hasReturnInProgress) ...[
           const SizedBox(height: 30),
-          SizedBox(
-            width: double.infinity,
-            child: AppButton.outlined(
-              text: 'Accept return',
-              onPressed: widget.onAcceptReturnTap,
-              height: 44,
-            ),
+          Row(
+            children: [
+              // Accept return button
+              Expanded(
+                child: AppButton.outlined(
+                  text: 'Accept',
+                  onPressed: widget.onAcceptReturnTap,
+                  height: 44,
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Reject return button
+              Expanded(
+                child: AppButton.outlined(
+                  text: 'Reject return',
+                  onPressed: widget.onRejectReturnTap,
+                  height: 44,
+                ),
+              ),
+            ],
           ),
         ],
       ],

@@ -21,6 +21,7 @@ class IncomingOrderDetailsBloc extends Bloc<IncomingOrderDetailsEvent, IncomingO
     on<IncomingOrderItemMarkNotAvailable>(_onMarkNotAvailable);
     on<IncomingOrderMarkAllOutForDelivery>(_onMarkAllOutForDelivery);
     on<IncomingOrderAcceptReturn>(_onAcceptReturn);
+    on<IncomingOrderRejectReturn>(_onRejectReturn);
   }
 
   Future<void> _onFetchRequested(
@@ -130,6 +131,35 @@ class IncomingOrderDetailsBloc extends Bloc<IncomingOrderDetailsEvent, IncomingO
       _refreshIncomingOrdersList();
     } catch (e) {
       debugPrint('📦 Error accepting return: $e');
+      emit(state.copyWith(
+        isUpdating: false,
+        error: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onRejectReturn(
+    IncomingOrderRejectReturn event,
+    Emitter<IncomingOrderDetailsState> emit,
+  ) async {
+    if (_currentOrderId == null) return;
+
+    emit(state.copyWith(isUpdating: true));
+
+    try {
+      debugPrint('📦 Rejecting/Disputing return for item ${event.itemId}');
+      await _repository.rejectReturn(
+        orderId: _currentOrderId!,
+        itemId: event.itemId,
+      );
+
+      // Refetch order details
+      await _refetchOrder(emit);
+
+      // Refresh incoming orders list
+      _refreshIncomingOrdersList();
+    } catch (e) {
+      debugPrint('📦 Error rejecting return: $e');
       emit(state.copyWith(
         isUpdating: false,
         error: e.toString(),

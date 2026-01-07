@@ -65,6 +65,8 @@ class StatusColors {
         return gray;
       case 'cancelled':
         return red;
+      case 'disputed':
+        return red;
       case 'placed':
       default:
         return purple;
