@@ -6,11 +6,11 @@ import { getUserCountryInfo } from '../../../utilities/countryUtils'
 
 export const getVariation: PayloadHandler = async (req) => {
   const { payload } = req
-  const { slug } = req.routeParams || {}
+  const { id } = req.routeParams || {}
 
-  if (!slug) {
+  if (!id) {
     return Response.json(
-      { error: 'Variation slug is required' },
+      { error: 'Variation ID or slug is required' },
       { status: 400 }
     )
   }
@@ -20,19 +20,19 @@ export const getVariation: PayloadHandler = async (req) => {
     const countryInfo = await getUserCountryInfo(req)
     const currency = countryInfo.currencySymbol
 
-    // Fetch the variation with full depth by slug or id
+    // Fetch the variation with full depth by id or slug
     const variationResult = await payload.find({
       collection: 'variations',
       where: {
         or: [
           {
-            slug: {
-              equals: slug as string,
+            id: {
+              equals: id as string,
             },
           },
           {
-            id: {
-              equals: slug as string,
+            slug: {
+              equals: id as string,
             },
           },
         ],

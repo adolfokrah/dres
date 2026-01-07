@@ -34,13 +34,10 @@ class SellRepository {
     return CreateStyleResponse.fromJson(response.data);
   }
 
-  /// Get style details by ID
+  /// Get style details by ID (with variations and SKUs included)
   Future<StyleDetailsModel> getStyleDetails(String styleId) async {
     try {
-      final response = await _apiService.get(
-        '/styles/$styleId',
-        queryParameters: {'depth': '2'},
-      );
+      final response = await _apiService.get('/styles/$styleId/details');
       return StyleDetailsModel.fromJson(response.data);
     } catch (e) {
       rethrow;

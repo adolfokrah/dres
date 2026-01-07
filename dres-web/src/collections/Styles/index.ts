@@ -5,6 +5,7 @@ import { anyone } from '../../access/anyone'
 import { getStyleReviewsEndpoint } from './endpoints/getStyleReviews'
 import { getMyDraftStyles } from './endpoints/getMyDraftStyles'
 import { getMyProducts } from './endpoints/getMyProducts'
+import { getStyleDetails } from './endpoints/getStyleDetails'
 import { updateVariationsOnTitleChange } from './hooks/updateVariationsOnTitleChange'
 import { validatePublish } from './hooks/validatePublish'
 
@@ -67,6 +68,11 @@ export const Styles: CollectionConfig = {
       path: '/my-products',
       method: 'get',
       handler: getMyProducts,
+    },
+    {
+      path: '/:id/details',
+      method: 'get',
+      handler: getStyleDetails,
     },
   ],
   fields: [

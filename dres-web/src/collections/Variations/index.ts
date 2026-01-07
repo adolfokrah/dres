@@ -66,7 +66,7 @@ export const Variations: CollectionConfig = {
       handler: filteredVariations,
     },
     {
-      path: '/:slug/details',
+      path: '/:id/details',
       method: 'get',
       handler: getVariation,
     },

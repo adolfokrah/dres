@@ -291,6 +291,10 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
           if (state.status == VariationDetailStatus.updateSuccess &&
               _waitingForUpdate) {
             _waitingForUpdate = false;
+            // Clear selected images since they've been uploaded
+            setState(() {
+              _selectedImages = [];
+            });
             getIt<VariationsBloc>().add(const VariationsRefreshRequested());
             getIt<SellBloc>().add(const SellRefreshRequested());
             AppSnackbar.success(context, 'Variation saved');
