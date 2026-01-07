@@ -172,7 +172,8 @@ export const featuredVariations: PayloadHandler = async (req: PayloadRequest) =>
               collection: 'variations',
               where: {
                 style: { equals: styleId },
-                id: { not_equals: variation.id }
+                id: { not_equals: variation.id },
+                status: { equals: 'active' }
               },
               limit: 10,
               depth: 2,
@@ -215,7 +216,7 @@ export const featuredVariations: PayloadHandler = async (req: PayloadRequest) =>
       })
     )
     
-    const transformedDocs = transformVariations(variationsWithSKUs, true)
+    const transformedDocs = transformVariations(variationsWithSKUs, false)
  
     return Response.json({
       docs: transformedDocs,

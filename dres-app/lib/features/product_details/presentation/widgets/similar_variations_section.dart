@@ -101,6 +101,7 @@ class _SimilarVariationsSectionState extends State<SimilarVariationsSection> {
                       showTopBorder: true, // Show top border for all items
                       isBoosted: variation.isBoosted,
                       sellerId: variation.sellerId,
+                      totalStock: variation.totalStock,
                     ),
                   );
                 },

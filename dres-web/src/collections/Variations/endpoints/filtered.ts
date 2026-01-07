@@ -416,7 +416,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
           fullVariation.style = fullStyle
         }
         
-        return transformVariation(fullVariation)
+        return transformVariation(fullVariation, false)
       })
     )
 
@@ -524,8 +524,3 @@ export const filteredVariations: PayloadHandler = async (req) => {
 //   })
 // }
 
-// export const filteredVariations = async () => {
-//   return Response.json({
-//     message: 'Filtered variations',
-//   })
-// }

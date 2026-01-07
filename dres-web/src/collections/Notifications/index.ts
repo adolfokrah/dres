@@ -99,6 +99,7 @@ export const Notifications: CollectionConfig = {
       defaultValue: 'system',
       options: [
         { label: 'Price Drop', value: 'price_drop' },
+        { label: 'Back In Stock', value: 'back_in_stock' },
         { label: 'Order Update', value: 'order_update' },
         { label: 'Promotion', value: 'promotion' },
         { label: 'System', value: 'system' },

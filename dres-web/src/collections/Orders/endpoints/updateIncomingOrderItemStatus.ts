@@ -1,10 +1,11 @@
 import type { PayloadHandler } from 'payload'
 
-type ItemStatusAction = 'not_available' | 'out_for_delivery' | 'accept_return'
+type ItemStatusAction = 'not_available' | 'out_for_delivery' | 'accept_return' | 'reject_return'
 
 interface UpdateItemStatusBody {
   action: ItemStatusAction
   itemId: string
+  rejectionReason?: string
 }
 
 /**
@@ -34,13 +35,13 @@ export const updateIncomingOrderItemStatus: PayloadHandler = async (req) => {
     return Response.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
-  const { action, itemId } = body
+  const { action, itemId, rejectionReason } = body
 
   if (!action || !itemId) {
     return Response.json({ error: 'Action and itemId are required' }, { status: 400 })
   }
 
-  const validActions: ItemStatusAction[] = ['not_available', 'out_for_delivery', 'accept_return']
+  const validActions: ItemStatusAction[] = ['not_available', 'out_for_delivery', 'accept_return', 'reject_return']
   if (!validActions.includes(action)) {
     return Response.json({ error: 'Invalid action' }, { status: 400 })
   }
@@ -114,6 +115,18 @@ export const updateIncomingOrderItemStatus: PayloadHandler = async (req) => {
         statusNote = 'Return accepted by seller'
         break
 
+      case 'reject_return':
+        // Can only reject return if item is in return_in_progress status
+        if (item.shippingStatus !== 'return_in_progress') {
+          return Response.json(
+            { error: 'Item can only have return rejected when in return_in_progress status' },
+            { status: 400 },
+          )
+        }
+        newStatus = 'disputed'
+        statusNote = `Return rejected by seller${rejectionReason ? `: ${rejectionReason}` : ''}. Escalated to admin for review.`
+        break
+
       default:
         return Response.json({ error: 'Invalid action' }, { status: 400 })
     }
@@ -137,14 +150,19 @@ export const updateIncomingOrderItemStatus: PayloadHandler = async (req) => {
     const allItemStatuses = updatedItems.map((i: any) => i.shippingStatus)
     let newOrderStatus = order.status
 
-    // If all items are delivered or returned or not_available, order is completed
-    const completedStatuses = ['delivered', 'returned', 'not_available', 'cancelled']
-    if (allItemStatuses.every((s: string) => completedStatuses.includes(s))) {
-      newOrderStatus = 'completed'
-    }
-    // If any item is out_for_delivery and order is not completed, set to in_progress
-    else if (allItemStatuses.some((s: string) => s === 'out_for_delivery')) {
-      newOrderStatus = 'in_progress'
+    // If any item is disputed, order status stays as is (admin will handle)
+    const hasDisputed = allItemStatuses.some((s: string) => s === 'disputed')
+    
+    if (!hasDisputed) {
+      // If all items are delivered or returned or not_available, order is completed
+      const completedStatuses = ['delivered', 'returned', 'not_available', 'cancelled']
+      if (allItemStatuses.every((s: string) => completedStatuses.includes(s))) {
+        newOrderStatus = 'completed'
+      }
+      // If any item is out_for_delivery and order is not completed, set to in_progress
+      else if (allItemStatuses.some((s: string) => s === 'out_for_delivery')) {
+        newOrderStatus = 'in_progress'
+      }
     }
 
     // Update the order - the afterChange hook will handle delivery code creation

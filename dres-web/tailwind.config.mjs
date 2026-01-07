@@ -82,6 +82,7 @@ const config = {
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
+          light: 'hsl(var(--primary-light))',
         },
         ring: 'hsl(var(--ring))',
         secondary: {
@@ -91,10 +92,36 @@ const config = {
         success: 'hsl(var(--success))',
         error: 'hsl(var(--error))',
         warning: 'hsl(var(--warning))',
+        info: 'hsl(var(--info))',
+        gray: 'hsl(var(--gray))',
+        divider: 'hsl(var(--divider))',
+        disabled: 'hsl(var(--disabled))',
+      },
+      textColor: {
+        primary: 'hsl(var(--text-primary))',
+        secondary: 'hsl(var(--text-secondary))',
+        hint: 'hsl(var(--text-hint))',
       },
       fontFamily: {
-        mono: ['var(--font-geist-mono)'],
-        sans: ['var(--font-geist-sans)'],
+        // Serif font for titles/headlines (Albra - matches Flutter app)
+        serif: ['Albra', 'Georgia', 'serif'],
+        // Sans font for body/UI (HelveticaNow - matches Flutter app)
+        sans: ['HelveticaNow', 'Helvetica', 'Arial', 'sans-serif'],
+        mono: ['var(--font-geist-mono)', 'monospace'],
+      },
+      fontSize: {
+        // Title styles (matches Flutter AppTypography)
+        'title-xl': ['24px', { lineHeight: '1.2', fontWeight: '600' }],
+        'title-l': ['24px', { lineHeight: '1.2', fontWeight: '600' }],
+        'title-xl-m': ['24px', { lineHeight: '1.2', fontWeight: '500' }],
+        'title-l-m': ['24px', { lineHeight: '1.2', fontWeight: '500' }],
+        // Body styles (matches Flutter AppTypography)
+        'body-l': ['18px', { lineHeight: '1.4', fontWeight: '400' }],
+        'body-m': ['16px', { lineHeight: '1.4', fontWeight: '400' }],
+        'body-s': ['12px', { lineHeight: '1.4', fontWeight: '400' }],
+        'body-xs': ['10px', { lineHeight: '1.4', fontWeight: '400' }],
+        // Button text
+        'button': ['14px', { lineHeight: '1.2', fontWeight: '700', letterSpacing: '0.5px' }],
       },
       keyframes: {
         'accordion-down': {
@@ -110,8 +137,8 @@ const config = {
         DEFAULT: {
           css: [
             {
-              '--tw-prose-body': 'var(--text)',
-              '--tw-prose-headings': 'var(--text)',
+              '--tw-prose-body': 'hsl(var(--text-primary))',
+              '--tw-prose-headings': 'hsl(var(--text-primary))',
               h1: {
                 fontWeight: 'normal',
                 marginBottom: '0.25em',

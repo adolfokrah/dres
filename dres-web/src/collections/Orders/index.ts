@@ -22,6 +22,7 @@ import {
   updateIncomingOrderItemStatus,
   markAllOutForDelivery,
 } from './endpoints/updateIncomingOrderItemStatus'
+import { resolveDispute } from './endpoints/resolveDispute'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -68,6 +69,12 @@ export const Orders: CollectionConfig = {
       path: '/:id/mark-all-out-for-delivery',
       method: 'post',
       handler: markAllOutForDelivery,
+    },
+    // Admin only - resolve disputed items
+    {
+      path: '/:id/resolve-dispute',
+      method: 'post',
+      handler: resolveDispute,
     },
   ],
   access: {
@@ -331,6 +338,7 @@ export const Orders: CollectionConfig = {
                     { label: 'Delivered', value: 'delivered' },
                     { label: 'Return in Progress', value: 'return_in_progress' },
                     { label: 'Returned', value: 'returned' },
+                    { label: 'Disputed', value: 'disputed' },
                     { label: 'Not Available', value: 'not_available' },
                     { label: 'Cancelled', value: 'cancelled' },
                   ],

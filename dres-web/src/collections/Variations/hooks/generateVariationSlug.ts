@@ -2,9 +2,10 @@ import type { CollectionBeforeChangeHook } from 'payload'
 
 /**
  * Generates a unique slug for variations in the format:
- * {style.title}-{variant1Value}-{variant2Value}-{variantNValue}-{variationId}
+ * {style.title}-{variantValue}-{variationId}
  * 
- * Example: "nike-air-max-red-42-abc123"
+ * Title format: "Style Name - Color" (prioritizes color, else uses first attribute)
+ * Example: "nike-air-max-red-abc123"
  */
 export const generateVariationSlug: CollectionBeforeChangeHook = async ({
   data,
@@ -45,26 +46,41 @@ export const generateVariationSlug: CollectionBeforeChangeHook = async ({
       styleTitle = style?.title || ''
     }
 
-    // Get variant value names from the variants array (only first 2)
-    const variantValueNames: string[] = []
+    // Get variant values with their attribute info
     const variants = data?.variants || originalDoc?.variants
+    let selectedVariantName: string | null = null
+    let colorVariantName: string | null = null
+    let firstVariantName: string | null = null
 
     if (variants && Array.isArray(variants)) {
-      // Only take first 2 variants for title and slug
-      const variantsToProcess = variants.slice(0, 2)
-      
-      for (const variantItem of variantsToProcess) {
+      for (const variantItem of variants) {
         const valueId = variantItem?.value
         if (valueId) {
           const valueIdStr = typeof valueId === 'object' ? valueId.id : valueId
           try {
+            // Fetch attribute option with its parent attribute
             const attributeOption = await payload.findByID({
               collection: 'attributeOptions',
               id: valueIdStr,
-              depth: 0,
+              depth: 1, // Get parent attribute
             })
+            
             if (attributeOption?.name) {
-              variantValueNames.push(attributeOption.name)
+              // Store first variant as fallback
+              if (!firstVariantName) {
+                firstVariantName = attributeOption.name
+              }
+              
+              // Check if this is a color attribute
+              const attribute = attributeOption.attribute
+              const attributeName = typeof attribute === 'object' 
+                ? attribute?.name?.toLowerCase() 
+                : null
+              
+              if (attributeName === 'color' || attributeName === 'colour') {
+                colorVariantName = attributeOption.name
+                break // Found color, no need to continue
+              }
             }
           } catch {
             // Attribute option not found, skip
@@ -73,6 +89,9 @@ export const generateVariationSlug: CollectionBeforeChangeHook = async ({
       }
     }
 
+    // Prioritize color, else use first available variant
+    selectedVariantName = colorVariantName || firstVariantName
+
     // Generate the slug
     const slugParts: string[] = []
 
@@ -80,11 +99,9 @@ export const generateVariationSlug: CollectionBeforeChangeHook = async ({
       slugParts.push(slugify(styleTitle))
     }
 
-    // Add all variant value names
-    for (const valueName of variantValueNames) {
-      if (valueName) {
-        slugParts.push(slugify(valueName))
-      }
+    // Add single variant value name
+    if (selectedVariantName) {
+      slugParts.push(slugify(selectedVariantName))
     }
 
     // Add a unique identifier (use existing ID or generate short ID)
@@ -93,15 +110,13 @@ export const generateVariationSlug: CollectionBeforeChangeHook = async ({
 
     data.slug = slugParts.join('-')
 
-    // Generate title: "Style Name - Variant1 - Variant2"
+    // Generate title: "Style Name - VariantValue"
     const titleParts: string[] = []
     if (styleTitle) {
       titleParts.push(styleTitle)
     }
-    for (const valueName of variantValueNames) {
-      if (valueName) {
-        titleParts.push(valueName)
-      }
+    if (selectedVariantName) {
+      titleParts.push(selectedVariantName)
     }
     data.title = titleParts.join(' - ') || `Variation ${uniqueId.toString().slice(-6)}`
 

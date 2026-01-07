@@ -166,7 +166,8 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
               collection: 'variations',
               where: {
                 style: { equals: styleId },
-                id: { not_equals: variation.id } // Exclude current variation
+                id: { not_equals: variation.id },
+                status: { equals: 'active' }
               },
               limit: 10,
               depth: 2,

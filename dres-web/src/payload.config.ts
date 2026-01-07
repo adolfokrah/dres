@@ -50,6 +50,7 @@ import { Follows } from './collections/Follows'
 import { Notifications } from './collections/Notifications'
 import { Reviews } from './collections/Reviews'
 import { StyleBoosts } from './collections/StyleBoosts'
+import { StockNotifications } from './collections/StockNotifications'
 import { UserPoints } from './collections/UserPoints'
 import { Users } from './collections/Users'
 
@@ -175,6 +176,7 @@ export default buildConfig({
     Follows,
     Notifications,
     Reviews,
+    StockNotifications,
     StyleBoosts,
     UserPoints,
     Users,

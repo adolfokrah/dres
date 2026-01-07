@@ -2,6 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Font Face Declarations - AlbraSerif (for titles/headlines) */
+@font-face {
+  font-family: 'Albra';
+  src: url('/fonts/AlbraTRIAL-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Albra';
+  src: url('/fonts/AlbraTRIAL-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Albra';
+  src: url('/fonts/AlbraTRIAL-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Albra';
+  src: url('/fonts/AlbraTRIAL-Semi.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Albra';
+  src: url('/fonts/AlbraTRIAL-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Font Face Declarations - HelveticaNow (for body/UI) */
+@font-face {
+  font-family: 'HelveticaNow';
+  src: url('/fonts/HelveticaNowText-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HelveticaNow';
+  src: url('/fonts/HelveticaNowText-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HelveticaNow';
+  src: url('/fonts/HelveticaNowText-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'HelveticaNow';
+  src: url('/fonts/HelveticaNowText-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   h1,
   h2,
@@ -14,39 +88,64 @@
   }
 
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Background colors */
+    --background: 0 0% 100%; /* #FFFFFF */
+    --foreground: 0 0% 0%; /* #000000 */
 
-    --card: 240 5% 96%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Card/Surface */
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 0 0% 0%; /* #000000 */
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%; /* #FFFFFF */
+    --popover-foreground: 0 0% 0%; /* #000000 */
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Black */
+    --primary: 0 0% 0%; /* #000000 */
+    --primary-foreground: 0 0% 100%; /* #FFFFFF */
+    --primary-light: 0 0% 20%; /* #333333 */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Light gray background */
+    --secondary: 0 0% 97%; /* #F8F8F8 */
+    --secondary-foreground: 0 0% 0%; /* #000000 */
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted */
+    --muted: 0 0% 97%; /* #F8F8F8 */
+    --muted-foreground: 0 0% 40%; /* #666666 */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent */
+    --accent: 0 0% 97%; /* #F8F8F8 */
+    --accent-foreground: 0 0% 0%; /* #000000 */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive/Error */
+    --destructive: 1 77% 55%; /* #E53935 */
+    --destructive-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --border: 240 6% 80%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Text colors */
+    --text-primary: 0 0% 0%; /* #000000 */
+    --text-secondary: 0 0% 40%; /* #666666 */
+    --text-hint: 0 0% 60%; /* #999999 */
 
-    --radius: 0.2rem;
+    /* Border colors */
+    --border: 0 0% 88%; /* #E0E0E0 */
+    --input: 0 0% 88%; /* #E0E0E0 */
+    --ring: 0 0% 0%; /* #000000 */
+    --divider: 0 0% 93%; /* #EEEEEE */
 
-    --success: 196 52% 74%;
-    --warning: 34 89% 85%;
-    --error: 10 100% 86%;
+    /* Status colors */
+    --success: 122 39% 49%; /* #4CAF50 */
+    --warning: 39 89% 79%; /* #F4D39D */
+    --error: 1 77% 55%; /* #E53935 */
+    --info: 189 79% 79%; /* #9DE5F4 */
+
+    /* Gray */
+    --gray: 0 0% 89%; /* #E3E3E3 */
+
+    /* Other */
+    --disabled: 0 0% 74%; /* #BDBDBD */
+    --shadow: 0 0% 0% / 0.1; /* #1A000000 */
+    --overlay: 0 0% 0% / 0.5; /* #80000000 */
+
+    --radius: 0rem; /* No border radius - matches Flutter app */
   }
 }
 
@@ -54,8 +153,18 @@
   * {
     @apply border-border;
   }
+  
+  html {
+    font-family: 'HelveticaNow', 'Helvetica', 'Arial', sans-serif;
+  }
+  
   body {
-    @apply bg-background text-foreground min-h-[100vh] flex flex-col;
+    @apply bg-background text-foreground min-h-[100vh] flex flex-col font-sans;
+  }
+  
+  /* Apply serif font to headings */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Albra', 'Georgia', serif;
   }
 }
 

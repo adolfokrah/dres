@@ -160,16 +160,50 @@ export const recentlyViewedVariations: PayloadHandler = async (req: PayloadReque
             limit: 100,
           })
 
+          // Fetch related variations (same style, different variation)
+          let relatedVariations: any[] = []
+          if (styleId) {
+            const relatedResult = await payload.find({
+              collection: 'variations',
+              where: {
+                style: { equals: styleId },
+                id: { not_equals: variation.id },
+                status: { equals: 'active' }
+              },
+              limit: 10,
+              depth: 2,
+            })
+
+            relatedVariations = await Promise.all(
+              relatedResult.docs.map(async (relatedVar: any) => {
+                const relatedSKUs = await payload.find({
+                  collection: 'skus',
+                  where: {
+                    variation: { equals: relatedVar.id }
+                  },
+                  depth: 3,
+                  limit: 100,
+                })
+                return {
+                  ...relatedVar,
+                  skus: { docs: relatedSKUs.docs }
+                }
+              })
+            )
+          }
+
           return {
             ...variation,
             style: fullStyle,
             skus: { docs: skusResult.docs },
+            relatedVariations: { docs: relatedVariations }
           }
         } catch (err) {
           console.error(`Error fetching data for variation ${variation.id}:`, err)
           return {
             ...variation,
             skus: { docs: [] },
+            relatedVariations: { docs: [] }
           }
         }
       })

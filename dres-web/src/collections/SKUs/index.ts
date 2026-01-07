@@ -4,6 +4,7 @@ import { anyone } from '../../access/anyone'
 import { authenticated } from '../../access/authenticated'
 import { generateSKUTitle } from './hooks/generateSKUTitle'
 import { notifyPriceDropHook } from './hooks/notifyPriceDropHook'
+import { notifyBackInStockHook } from './hooks/notifyBackInStockHook'
 
 interface SKUOptionItem {
   option?: string | { id: string }
@@ -46,6 +47,8 @@ export const SKUs: CollectionConfig = {
     afterChange: [
       // Notify users who favorited this variation when price drops
       notifyPriceDropHook,
+      // Notify users who subscribed to stock notifications when back in stock
+      notifyBackInStockHook,
     ],
   },
   fields: [

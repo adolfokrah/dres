@@ -105,13 +105,13 @@ export function ProductCard({
 
         {/* Price */}
         <div className="flex items-center gap-2">
-          {compareAtPrice && compareAtPrice > price && (
+          {compareAtPrice && price && compareAtPrice > price && (
             <p className="text-sm md:text-base text-gray-400 line-through">
               {currency?.symbol || currency?.code || 'GHS'} {compareAtPrice.toFixed(2)}
             </p>
           )}
-          <p className={`text-lg md:text-xl font-semibold ${compareAtPrice && compareAtPrice > price ? 'text-red-600' : ''}`}>
-            {currency?.symbol || currency?.code || 'GHS'} {price.toFixed(2)}
+          <p className={`text-lg md:text-xl font-semibold ${compareAtPrice && price && compareAtPrice > price ? 'text-red-600' : ''}`}>
+            {currency?.symbol || currency?.code || 'GHS'} {(price ?? 0).toFixed(2)}
           </p>
         </div>
       </div>

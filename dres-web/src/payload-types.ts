@@ -98,6 +98,7 @@ export interface Config {
     follows: Follow;
     notifications: Notification;
     reviews: Review;
+    'stock-notifications': StockNotification;
     'style-boosts': StyleBoost;
     'user-points': UserPoint;
     users: User;
@@ -186,6 +187,7 @@ export interface Config {
     follows: FollowsSelect<false> | FollowsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    'stock-notifications': StockNotificationsSelect<false> | StockNotificationsSelect<true>;
     'style-boosts': StyleBoostsSelect<false> | StyleBoostsSelect<true>;
     'user-points': UserPointsSelect<false> | UserPointsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -434,6 +436,10 @@ export interface User {
    * Your unique username (will be auto-generated if not provided)
    */
   username?: string | null;
+  /**
+   * Contact phone number for returns and inquiries
+   */
+  phone?: string | null;
   photo?: (string | null) | Media;
   /**
    * Your country (determines currency for products and shipping)
@@ -970,6 +976,7 @@ export interface Order {
       | 'delivered'
       | 'return_in_progress'
       | 'returned'
+      | 'disputed'
       | 'not_available'
       | 'cancelled';
     /**
@@ -1524,6 +1531,10 @@ export interface Transaction {
    * The order this transaction belongs to
    */
   order: string | Order;
+  /**
+   * The currency for this transaction
+   */
+  currency?: (string | null) | Currency;
   /**
    * The order item ID this transaction is for (used to prevent duplicates)
    */
@@ -2345,7 +2356,7 @@ export interface Notification {
   /**
    * Type of notification
    */
-  type?: ('price_drop' | 'order_update' | 'promotion' | 'system') | null;
+  type?: ('price_drop' | 'back_in_stock' | 'order_update' | 'promotion' | 'system') | null;
   /**
    * Notification image (e.g., product/variation image)
    */
@@ -2399,6 +2410,19 @@ export interface Review {
    * Review images
    */
   images?: (string | Media)[] | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Users who want to be notified when a SKU is back in stock
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stock-notifications".
+ */
+export interface StockNotification {
+  id: string;
+  user: string | User;
+  sku: string | Skus;
   updatedAt: string;
   createdAt: string;
 }
@@ -2767,6 +2791,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'reviews';
         value: string | Review;
+      } | null)
+    | ({
+        relationTo: 'stock-notifications';
+        value: string | StockNotification;
       } | null)
     | ({
         relationTo: 'style-boosts';
@@ -3575,6 +3603,7 @@ export interface TransactionsSelect<T extends boolean = true> {
   status?: T;
   user?: T;
   order?: T;
+  currency?: T;
   itemId?: T;
   amount?: T;
   fees?: T;
@@ -3670,6 +3699,16 @@ export interface ReviewsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stock-notifications_select".
+ */
+export interface StockNotificationsSelect<T extends boolean = true> {
+  user?: T;
+  sku?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "style-boosts_select".
  */
 export interface StyleBoostsSelect<T extends boolean = true> {
@@ -3714,6 +3753,7 @@ export interface UsersSelect<T extends boolean = true> {
   lastName?: T;
   shopName?: T;
   username?: T;
+  phone?: T;
   photo?: T;
   country?: T;
   language?: T;
@@ -4118,6 +4158,26 @@ export interface SiteSetting {
    * The buyer protection fee as a percentage of the item price (e.g., 8 for 8%)
    */
   buyerProtectionFeeRate: number;
+  /**
+   * Default shipping fee in GHS when seller has not set up shipping rates
+   */
+  defaultShippingRate: number;
+  /**
+   * Points earned per 1 GHS spent (e.g., 0.01 = 1 point per 100 GHS, 0.1 = 1 point per 10 GHS)
+   */
+  pointsEarningRate: number;
+  /**
+   * How much 1 point is worth in GHS when redeeming (e.g., 1 = 1 point = 1 GHS discount)
+   */
+  pointsRedemptionRate: number;
+  /**
+   * Bonus multiplier for points (e.g., 2 = double points promotion)
+   */
+  pointsMultiplier: number;
+  /**
+   * Enable or disable the rewards points system
+   */
+  pointsEnabled?: boolean | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -4174,6 +4234,11 @@ export interface FooterSelect<T extends boolean = true> {
 export interface SiteSettingsSelect<T extends boolean = true> {
   commissionRate?: T;
   buyerProtectionFeeRate?: T;
+  defaultShippingRate?: T;
+  pointsEarningRate?: T;
+  pointsRedemptionRate?: T;
+  pointsMultiplier?: T;
+  pointsEnabled?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

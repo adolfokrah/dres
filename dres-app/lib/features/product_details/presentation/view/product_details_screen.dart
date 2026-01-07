@@ -1,6 +1,7 @@
 import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/badge_widget.dart';
 import 'package:dres/core/widgets/accordion.dart';
+import 'package:dres/core/widgets/low_stock_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dres/core/di/injection.dart';
@@ -22,6 +23,7 @@ import 'package:dres/features/product_details/presentation/widgets/reviews_secti
 import 'package:dres/features/product_details/presentation/widgets/similar_variations_section.dart';
 import 'package:dres/features/product_details/presentation/widgets/recently_viewed_section.dart';
 import 'package:dres/features/product_details/presentation/widgets/add_to_bag_button.dart';
+import 'package:dres/features/product_details/presentation/widgets/notify_me_button.dart';
 import 'package:dres/core/widgets/favorite_button.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:share_plus/share_plus.dart';
@@ -135,6 +137,25 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                                  // Low stock indicator
+                              Builder(
+                                builder: (context) {
+                                  final selectedSkuId =
+                                      state.selectedSkuId ?? variation.defaultSku;
+                                  final selectedSku = variation.skus.firstWhere(
+                                    (sku) => sku.id == selectedSkuId,
+                                    orElse: () => variation.skus.first,
+                                  );
+                                  final stock = selectedSku.stock ?? 0;
+                                  if (LowStockIndicator.isLowStock(stock)) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 10),
+                                      child: LowStockIndicator(stock: stock),
+                                    );
+                                  }
+                                  return const SizedBox.shrink();
+                                },
+                              ),
                               // Tags (Vintage, We Love)
                               if (variation.isBoosted)
                                 const BadgeWidget(text: 'We Love'),
@@ -195,7 +216,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 10),
+                            
+
+                            
 
                               // Title and Variations
                               Column(
@@ -293,6 +316,15 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   final isOutOfStock =
                                       selectedSku.stock != null &&
                                       selectedSku.stock! <= 0;
+
+                                  // Show Notify Me button if out of stock
+                                  if (isOutOfStock) {
+                                    return NotifyMeButton(
+                                      skuId: selectedSkuId,
+                                      variationTitle: variation.title,
+                                      variationId: variation.id,
+                                    );
+                                  }
 
                                   return AddToBagButton(
                                     variationId: variation.id,

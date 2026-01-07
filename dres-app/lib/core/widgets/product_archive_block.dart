@@ -139,7 +139,7 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
         ),
         const SizedBox(height: 14),
                 SizedBox(
-                  height: 400,
+                  height: 450,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -164,6 +164,7 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
                           showLeftBorder: index == 0,
                           isBoosted: product.isBoosted,
                           sellerId: product.sellerId,
+                          totalStock: product.totalStock,
                         ),
                       );
                     },
@@ -240,6 +241,7 @@ class ProductCardData {
   final String slug;
   final bool isBoosted;
   final String? sellerId;
+  final int? totalStock;
 
   ProductCardData({
     required this.id,
@@ -254,6 +256,7 @@ class ProductCardData {
     required this.slug,
     this.isBoosted = false,
     this.sellerId,
+    this.totalStock,
   });
 
   factory ProductCardData.fromJson(Map<String, dynamic> json) {
@@ -277,6 +280,7 @@ class ProductCardData {
       slug: json['slug'],
       isBoosted: json['isBoosted'] ?? false,
       sellerId: json['sellerId'],
+      totalStock: json['totalStock'] as int?,
     );
   }
 }

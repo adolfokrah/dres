@@ -24,6 +24,7 @@ interface TransformedVariation {
   defaultSku?: string
   styleId?: string | null
   sellerId?: string | null
+  totalStock?: number
   relatedVariations?: Omit<TransformedVariation, 'relatedVariations'>[]
 }
 
@@ -120,6 +121,11 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
   const compareAtPrice = selectedSku && typeof selectedSku === 'object' && typeof selectedSku.compareAtPrice === 'number'
     ? selectedSku.compareAtPrice
     : undefined
+
+  // Get stock from the selected/default SKU
+  const totalStock = selectedSku && typeof selectedSku === 'object' && typeof selectedSku.stock === 'number'
+    ? selectedSku.stock
+    : 0
   
   const currency = selectedSku?.currency && typeof selectedSku.currency === 'object'
     ? {
@@ -217,6 +223,7 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
     defaultSku: selectedSku?.id || undefined,
     styleId: styleId || null,
     sellerId: sellerId || null,
+    totalStock,
     ...(includeRelated && { relatedVariations }),
   }
 }

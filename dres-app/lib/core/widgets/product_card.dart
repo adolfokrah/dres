@@ -6,6 +6,7 @@ import '../utilities/media_utils.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:dres/core/widgets/badge_widget.dart';
 import 'package:dres/core/widgets/favorite_button.dart';
+import 'package:dres/core/widgets/low_stock_indicator.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 
@@ -28,6 +29,8 @@ class ProductCard extends StatefulWidget {
   final bool isBoosted;
   /// Seller ID - if matches current user, hides favorite button
   final String? sellerId;
+  /// Total stock quantity across all SKUs
+  final int? totalStock;
 
   const ProductCard({
     super.key,
@@ -48,6 +51,7 @@ class ProductCard extends StatefulWidget {
     this.showTopBorder = true,
     this.isBoosted = false,
     this.sellerId,
+    this.totalStock,
   });
 
   @override
@@ -119,7 +123,7 @@ class _ProductCardState extends State<ProductCard> {
                             ),
                           ),
                   ),
-                  
+                
                 ],
               ),
             ),
@@ -130,6 +134,9 @@ class _ProductCardState extends State<ProductCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                      // Low stock indicator
+                  if (LowStockIndicator.isLowStock(widget.totalStock))
+                    LowStockIndicator(stock: widget.totalStock!),
                   // WE LOVE tag
                   if (widget.isBoosted) 
                     BadgeWidget(

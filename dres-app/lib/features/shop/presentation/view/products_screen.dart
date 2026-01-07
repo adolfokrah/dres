@@ -292,6 +292,7 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
             showLeftBorder: index % 2 == 0,
             showTopBorder: index < 2,
             sellerId: product.sellerId,
+            totalStock: product.totalStock,
             onFavoriteToggle: (id, isFavorited) {
               // TODO: Toggle favorite
             },
