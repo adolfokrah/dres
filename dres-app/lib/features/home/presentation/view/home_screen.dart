@@ -87,11 +87,15 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
         bottom: false,
         child: BlocBuilder<HomeBloc, HomeState>(
           builder: (context, state) {
-            if (state.status == HomeStatus.loading) {
+            final page = state.page;
+
+            // Show loading spinner on initial or loading state when no data
+            if ((state.status == HomeStatus.initial || state.status == HomeStatus.loading) && page == null) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            if (state.status == HomeStatus.failure) {
+            // Only show error screen if there's no existing data to display
+            if (state.status == HomeStatus.failure && page == null) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -112,7 +116,7 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
               );
             }
 
-            final page = state.page;
+            // No data at all - show empty
             if (page == null) {
               return const SizedBox.shrink();
             }
@@ -122,7 +126,16 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                 final storageService = getIt<StorageService>();
                 final department = storageService.getUserDepartment() ?? 'men';
                 final pageSlug = department == 'women' ? 'home-women' : 'home';
-                context.read<HomeBloc>().add(RefreshHomePage(slug: pageSlug));
+                final bloc = context.read<HomeBloc>();
+                bloc.add(RefreshHomePage(slug: pageSlug));
+                // Wait for bloc to finish - use take(1) with a timeout to avoid hangs
+                await bloc.stream
+                    .where((s) => s.status != HomeStatus.loading)
+                    .first
+                    .timeout(
+                      const Duration(seconds: 30),
+                      onTimeout: () => bloc.state,
+                    );
               },
               child: SingleChildScrollView(
                 controller: widget.scrollController,

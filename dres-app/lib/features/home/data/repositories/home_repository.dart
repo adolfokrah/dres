@@ -22,7 +22,7 @@ class HomeRepository {
 
       final docs = response.data['docs'] as List<dynamic>;
       if (docs.isEmpty) {
-        throw Exception('Home page not found');
+        throw Exception('Home page not found for slug: $slug');
       }
 
       return PageModel.fromJson(docs.first as Map<String, dynamic>);

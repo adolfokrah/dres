@@ -10,9 +10,12 @@ class ApiService {
   final StorageService _storageService;
 
   ApiService(this._storageService) {
+    final baseUrl = '${dotenv.env['NEXT_PUBLIC_SERVER_URL'] ?? 'http://localhost:3000'}/api';
+    print('🌐 ApiService initialized with baseUrl: $baseUrl');
+    
     _dio = Dio(
       BaseOptions(
-        baseUrl: '${dotenv.env['NEXT_PUBLIC_SERVER_URL'] ?? 'http://localhost:3000'}/api',
+        baseUrl: baseUrl,
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
         headers: {

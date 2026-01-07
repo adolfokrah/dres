@@ -461,16 +461,27 @@ export const filteredVariations: PayloadHandler = async (req) => {
         })
 
         // Build where clause for options
-        const optionsWhere: any = {
+        // If category is provided, include options that:
+        // 1. Have this category in their categories array, OR
+        // 2. Have no categories assigned (available to all)
+        let optionsWhere: any = {
           attribute: { equals: attributeId }
         }
         
         // Filter options by category if category is provided
         if (category) {
-          optionsWhere.or = [
-            { categories: { contains: category } },
-            { categories: { exists: false } }
-          ]
+          optionsWhere = {
+            and: [
+              { attribute: { equals: attributeId } },
+              {
+                or: [
+                  { categories: { contains: category } },
+                  { categories: { exists: false } },
+                  { categories: { equals: null } },
+                ]
+              }
+            ]
+          }
         }
 
         const optionsResult = await payload.find({
