@@ -230,6 +230,38 @@ const fashionBrands = [
   // Accessories
   { name: "Drake's", description: 'British accessories brand' },
   { name: 'Aquascutum', description: 'British luxury fashion brand' },
+
+  // African & Ghanaian Brands
+  { name: 'Christie Brown', description: 'Ghanaian luxury fashion brand by Aisha Ayensu' },
+  { name: 'Duaba Serwa', description: 'Ghanaian fashion brand known for contemporary African designs' },
+  { name: 'Pistis Ghana', description: 'Ghanaian fashion house specializing in bridal and evening wear' },
+  { name: 'Kiki Clothing', description: 'Ghanaian fashion brand blending African and Western styles' },
+  { name: 'Vlisco', description: 'Dutch-African wax print textile company' },
+  { name: 'Woodin', description: 'African fashion brand specializing in wax prints' },
+  { name: 'GTP', description: 'Ghana Textiles Printing - Ghanaian wax print manufacturer' },
+  { name: 'ATL', description: 'Akosombo Textiles Limited - Ghanaian textile manufacturer' },
+  { name: 'Batakari', description: 'Traditional Ghanaian smock and northern attire brand' },
+  { name: 'Afro Mod Trends', description: 'Ghanaian fashion brand by Ohemaa Poku' },
+  { name: 'Steve French', description: 'Ghanaian menswear designer' },
+  { name: 'Tongoro', description: 'Senegalese fashion brand by Sarah Diouf' },
+  { name: 'AAKS', description: 'Ghanaian handcrafted raffia bag brand' },
+  { name: 'Osei-Duro', description: 'Ghanaian-American fashion brand using traditional techniques' },
+  { name: 'Studio 189', description: 'African fashion brand by Rosario Dawson and Abrima Erwiah' },
+  { name: 'Orange Culture', description: 'Nigerian contemporary menswear brand' },
+  { name: 'Lisa Folawiyo', description: 'Nigerian fashion brand known for Ankara luxury fashion' },
+  { name: 'Maki Oh', description: 'Nigerian fashion brand by Amaka Osakwe' },
+  { name: 'Kenneth Ize', description: 'Nigerian fashion designer known for aso-oke fabrics' },
+  { name: 'Thebe Magugu', description: 'South African fashion designer, LVMH Prize winner' },
+  { name: 'Rich Mnisi', description: 'South African fashion brand' },
+  { name: 'MaXhosa by Laduma', description: 'South African knitwear brand inspired by Xhosa culture' },
+  { name: 'EDUN', description: 'African fashion brand promoting trade in Africa' },
+  { name: 'Sindiso Khumalo', description: 'South African sustainable fashion designer' },
+  { name: 'LaFalaise Dion', description: 'Ivorian haute couture fashion house' },
+  { name: 'Imane Ayissi', description: 'Cameroonian haute couture designer' },
+  { name: 'Maison ARTC', description: 'Moroccan luxury fashion house' },
+  { name: 'Tribal Marks', description: 'Ghanaian fashion brand celebrating African heritage' },
+  { name: 'Bestow Elan', description: 'Ghanaian bespoke menswear brand' },
+  { name: 'Casa Afia', description: 'Ghanaian fashion brand for contemporary African wear' },
 ]
 
 export const seedBrands = async (payload: Payload): Promise<void> => {

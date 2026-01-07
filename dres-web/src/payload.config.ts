@@ -64,6 +64,7 @@ import { getMenu } from './endpoints/menu'
 import { getSiteSettings } from './endpoints/siteSettings'
 import { search } from './endpoints/search'
 import { getTopSellers } from './endpoints/topSellers'
+import { seedEndpoint } from './endpoints/seed/endpoint'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -202,6 +203,11 @@ export default buildConfig({
       path: '/top-sellers',
       method: 'get',
       handler: getTopSellers,
+    },
+    {
+      path: '/seed',
+      method: 'post',
+      handler: seedEndpoint,
     },
   ],
   globals: [Header, Footer, SiteSettings],
