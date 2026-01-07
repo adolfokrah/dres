@@ -46,11 +46,14 @@ export const newArrivals: PayloadHandler = async (req: PayloadRequest) => {
       }
     }
 
-    // Filter by seller's country
+    // Filter by seller's country - show products from:
+    // 1. Sellers in the same country as the user
+    // 2. Sellers without a country set (default to showing)
     if (userCountry.countryId) {
-      where['style.seller.country'] = {
-        equals: userCountry.countryId
-      }
+      where.or = [
+        { 'style.seller.country': { equals: userCountry.countryId } },
+        { 'style.seller.country': { exists: false } },
+      ]
     }
 
     // Add department filter if provided

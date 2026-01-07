@@ -149,6 +149,25 @@ export const Users: CollectionConfig = {
               admin: {
                 description: 'Your country (determines currency for products and shipping)',
               },
+              // Default to Ghana - will be set on create via hook
+              hooks: {
+                beforeValidate: [
+                  async ({ value, req }) => {
+                    // If no country is set, default to Ghana
+                    if (!value) {
+                      const ghana = await req.payload.find({
+                        collection: 'countries',
+                        where: { code: { equals: 'GH' } },
+                        limit: 1,
+                      })
+                      if (ghana.docs.length > 0) {
+                        return ghana.docs[0].id
+                      }
+                    }
+                    return value
+                  },
+                ],
+              },
             },
             {
               name: 'language',

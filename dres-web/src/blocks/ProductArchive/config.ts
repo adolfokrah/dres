@@ -70,19 +70,19 @@ export const ProductArchiveBlock: Block = {
       options: [
         {
           label: 'Men',
-          value: '694eee871a36e6d75fbb15af',
+          value: 'men',
         },
         {
           label: 'Women',
-          value: '694eee871a36e6d75fbb15b1',
+          value: 'women',
         },
         {
           label: 'Kids',
-          value: '694eee871a36e6d75fbb15b3',
+          value: 'kids',
         },
       ],
       admin: {
-        description: 'Filter products by department',
+        description: 'Filter products by department (uses slug). Leave empty to use user preference.',
       },
     },
     {

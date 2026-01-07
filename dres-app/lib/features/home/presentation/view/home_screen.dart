@@ -142,8 +142,10 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   children: [
-                    // Render blocks from CMS
-                    ...page.layout.map((block) => _buildBlock(context, block)),
+                    // Render blocks from CMS with unique keys
+                    ...page.layout.asMap().entries.map(
+                      (entry) => _buildBlock(context, entry.value, entry.key),
+                    ),
                   ],
                 ),
               ),
@@ -154,7 +156,7 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
     );
   }
 
-  Widget _buildBlock(BuildContext context, BlockModel block) {
+  Widget _buildBlock(BuildContext context, BlockModel block, int index) {
     switch (block.blockType) {
       case 'promoBanner':
         final promoBanner = block as PromoBannerBlockModel;
@@ -182,8 +184,8 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
         final departmentSlug =
             productArchive.department ?? userDepartment ?? 'men';
         return ProductArchiveBlock(
-          // Key ensures widget is recreated when department changes
-          key: ValueKey('${productArchive.title}_$departmentSlug'),
+          // Key ensures widget is recreated when department changes - use index + id for uniqueness
+          key: ValueKey('productArchive_${index}_${productArchive.id ?? productArchive.title}_$departmentSlug'),
           title: productArchive.title,
           queryType: _getQueryType(productArchive.queryType),
           showSeeAll: productArchive.showSeeAll,
