@@ -21,7 +21,7 @@ export const SKUs: CollectionConfig = {
     useAsTitle: 'title',
   },
   indexes: [
-    { fields: ['variation'] },
+    // 'variation' already has field-level index: true below
     { fields: ['status'] },
     { fields: ['isActive'] },
     // Nested indexes on option/value used in filtering
@@ -150,7 +150,6 @@ export const SKUs: CollectionConfig = {
           admin: {
             description: 'Select the attribute type (e.g., Size)',
           },
-          index: true,
         },
         {
           name: 'value',
@@ -176,7 +175,6 @@ export const SKUs: CollectionConfig = {
               return Boolean(data?.option)
             },
           },
-          index: true,
         },
       ],
     },
@@ -230,7 +228,6 @@ export const SKUs: CollectionConfig = {
       admin: {
         description: 'Whether this SKU is available for purchase',
       },
-      index: true,
     },
     {
       name: 'barcode',
@@ -261,7 +258,6 @@ export const SKUs: CollectionConfig = {
         },
       ],
       defaultValue: 'active',
-      index: true,
     },
   ],
   timestamps: true,

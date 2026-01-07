@@ -31,8 +31,7 @@ export const Variations: CollectionConfig = {
   indexes: [
     { fields: ['style'] },
     { fields: ['status'] },
-    // Useful for lookups from views/favorites etc.
-    { fields: ['slug'], unique: true },
+    // Do not index slug here; the field's unique constraint already indexes it
   ],
   access: {
     create: authenticated,
@@ -113,7 +112,6 @@ export const Variations: CollectionConfig = {
       admin: {
         description: 'The style this variation belongs to',
       },
-      index: true,
     },
     {
       label: 'Attributes',
@@ -234,7 +232,6 @@ export const Variations: CollectionConfig = {
         description: 'URL-friendly slug',
         readOnly: true,
       },
-      index: true,
     },
     {
       name: 'stats',
@@ -259,7 +256,6 @@ export const Variations: CollectionConfig = {
         },
       ],
       defaultValue: 'active',
-      index: true,
     }
   ],
 }

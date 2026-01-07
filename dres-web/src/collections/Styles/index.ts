@@ -83,7 +83,6 @@ export const Styles: CollectionConfig = {
         description: 'Only published styles will be visible to buyers. Archived styles are hidden from seller.',
         position: 'sidebar',
       },
-      index: true,
     },
     {
       name: 'seller',
@@ -92,7 +91,6 @@ export const Styles: CollectionConfig = {
       admin: {
         description: 'The user selling this product',
       },
-      index: true,
     },
     {
       name: 'title',
@@ -136,7 +134,6 @@ export const Styles: CollectionConfig = {
         }
         return true
       },
-      index: true,
     },
     {
       name: 'category',
@@ -157,7 +154,6 @@ export const Styles: CollectionConfig = {
         description: 'Select a category',
         condition: (data) => Boolean(data?.collection),
       },
-      index: true,
     },
     {
       name: 'brand',
@@ -167,7 +163,6 @@ export const Styles: CollectionConfig = {
         description: 'Select a brand',
         condition: (data) => Boolean(data?.category),
       },
-      index: true,
     },
     {
       name: 'variations',
