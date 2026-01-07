@@ -12,6 +12,7 @@ import { awardPointsOnDelivery } from './hooks/awardPointsOnDelivery'
 import { notifySellersOnOrderPlaced } from './hooks/notifySellersOnOrderPlaced'
 import { notifyCustomerOnStatusChange } from './hooks/notifyCustomerOnStatusChange'
 import { createDeliveryCodeOnOutForDelivery } from './hooks/createDeliveryCodeOnOutForDelivery'
+import { calculateTotalCommission } from './hooks/calculateTotalCommission'
 import { returnItem } from './endpoints/returnItem'
 import { getPurchaseDetails } from './endpoints/getPurchaseDetails'
 import { getPurchases } from './endpoints/getPurchases'
@@ -115,8 +116,8 @@ export const Orders: CollectionConfig = {
   hooks: {
     beforeChange: [calculateOrderTotalsAndStatus],
     // Reduce stock on order creation, restore stock on return/cancel, notify sellers, create delivery codes, create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats, award points, notify customer
-    // Note: Commission calculation is now triggered from Transaction's afterChange hook
-    afterChange: [reduceStockOnOrder, restoreStockOnReturn, restoreStockOnCancel, notifySellersOnOrderPlaced, createDeliveryCodeOnOutForDelivery, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats, awardPointsOnDelivery, notifyCustomerOnStatusChange],
+    // calculateTotalCommission runs LAST to ensure all transactions are created first
+    afterChange: [reduceStockOnOrder, restoreStockOnReturn, restoreStockOnCancel, notifySellersOnOrderPlaced, createDeliveryCodeOnOutForDelivery, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats, awardPointsOnDelivery, notifyCustomerOnStatusChange, calculateTotalCommission],
   },
   fields: [
     {

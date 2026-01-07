@@ -1,7 +1,17 @@
 import type { CollectionAfterChangeHook } from 'payload'
+import type { Payload } from 'payload'
 
 interface OrderItem {
   buyerProtectionFee?: number
+}
+
+interface CommissionBreakdown {
+  totalTransactionFees?: number
+  totalPaystackFees?: number
+  totalBuyerProtectionFees?: number
+  discountAmount?: number
+  pointsDiscount?: number
+  totalCommission?: number
 }
 
 /**
@@ -15,25 +25,31 @@ interface OrderItem {
  * - Discount Amount = discount applied to the order
  * - Points Discount = points redeemed as discount
  * 
- * This runs AFTER order changes
+ * This runs AFTER order changes - deferred to avoid MongoDB write conflicts
  */
-export const calculateTotalCommission: CollectionAfterChangeHook = async ({
-  doc,
-  req,
-  context,
-}) => {
-  // Skip if this update was triggered by commission calculation (prevent infinite loop)
-  if (context?.skipCommissionCalculation) {
-    return doc
-  }
 
-  const payload = req.payload
-
+// Standalone function to calculate commission (can be called from anywhere)
+export async function recalculateOrderCommission(
+  payload: Payload,
+  orderId: string,
+): Promise<void> {
   try {
-    const items = (doc?.items || []) as OrderItem[]
-    const orderId = doc?.id
-    const discountAmount = doc?.discountAmount || 0
-    const pointsDiscount = doc?.pointsDiscount || 0
+    // Get the order
+    const order = await payload.findByID({
+      collection: 'orders',
+      id: orderId,
+    })
+
+    if (!order) {
+      payload.logger.error(`[Commission] Order ${orderId} not found`)
+      return
+    }
+
+    const items = (order.items || []) as OrderItem[]
+    const discountAmount = order.discountAmount || 0
+    const pointsDiscount = order.pointsDiscount || 0
+
+    payload.logger.info(`[Commission] Calculating commission for order ${orderId}`)
 
     // Get all non-cancelled transactions for this order
     const transactions = await payload.find({
@@ -46,6 +62,8 @@ export const calculateTotalCommission: CollectionAfterChangeHook = async ({
       },
       limit: 100,
     })
+
+    payload.logger.info(`[Commission] Found ${transactions.docs.length} non-cancelled transactions for order ${orderId}`)
 
     // Sum up fees from all non-cancelled transactions
     const totalTransactionFees = transactions.docs.reduce((sum, txn) => {
@@ -77,7 +95,7 @@ export const calculateTotalCommission: CollectionAfterChangeHook = async ({
     const roundedCommission = Math.round(totalCommission * 100) / 100
 
     // Check if any values have changed
-    const currentBreakdown = doc.commissionBreakdown || {}
+    const currentBreakdown = (order.commissionBreakdown || {}) as CommissionBreakdown
     const hasChanged = 
       currentBreakdown.totalTransactionFees !== roundedTransactionFees ||
       currentBreakdown.totalPaystackFees !== roundedPaystackFees ||
@@ -100,19 +118,46 @@ export const calculateTotalCommission: CollectionAfterChangeHook = async ({
             totalCommission: roundedCommission,
           },
         },
-        // Prevent infinite loop - don't trigger hooks
         context: {
           skipCommissionCalculation: true,
         },
       })
 
       payload.logger.info(
-        `Order commission updated: Transaction Fees: ${roundedTransactionFees}, Paystack Fees: ${roundedPaystackFees}, Buyer Protection: ${roundedBuyerProtectionFees}, Discount: ${roundedDiscountAmount}, Points: ${roundedPointsDiscount}, Total: ${roundedCommission}`,
+        `[Commission] Order ${orderId} updated: Transaction Fees: ${roundedTransactionFees}, Paystack Fees: ${roundedPaystackFees}, Buyer Protection: ${roundedBuyerProtectionFees}, Discount: ${roundedDiscountAmount}, Points: ${roundedPointsDiscount}, Total: ${roundedCommission}`,
       )
+    } else {
+      payload.logger.info(`[Commission] No changes needed for order ${orderId}`)
     }
   } catch (error) {
-    payload.logger.error(`Error calculating total commission: ${error}`)
+    payload.logger.error(`[Commission] Error calculating commission for order ${orderId}: ${error}`)
   }
+}
+
+export const calculateTotalCommission: CollectionAfterChangeHook = async ({
+  doc,
+  req,
+  context,
+}) => {
+  // Skip if this update was triggered by commission calculation (prevent infinite loop)
+  if (context?.skipCommissionCalculation) {
+    return doc
+  }
+
+  const payload = req.payload
+  const orderId = doc?.id
+
+  if (!orderId) {
+    return doc
+  }
+
+  // Defer the commission calculation to run AFTER the current transaction completes
+  // This avoids MongoDB write conflicts
+  setImmediate(() => {
+    recalculateOrderCommission(payload, orderId).catch((error) => {
+      payload.logger.error(`[Commission] Deferred calculation failed: ${error}`)
+    })
+  })
 
   return doc
 }

@@ -82,10 +82,14 @@ export const Transactions: CollectionConfig = {
         // Recalculate order commission when a transaction with fees is created/updated
         if (doc.order && (doc.type === 'transfer' || doc.type === 'order_payment')) {
           const orderId = typeof doc.order === 'object' ? doc.order.id : doc.order
-          req.payload.logger.info(`Transaction ${doc.transactionId} changed, recalculating commission for order ${orderId}`)
+          req.payload.logger.info(`Transaction ${doc.transactionId} changed, scheduling commission recalculation for order ${orderId}`)
           
-          // Directly calculate commission instead of triggering another order update
-          await calculateCommissionForOrder(req.payload, orderId)
+          // Defer to avoid MongoDB write conflicts
+          setImmediate(() => {
+            calculateCommissionForOrder(req.payload, orderId).catch((error) => {
+              req.payload.logger.error(`[Commission] Deferred calculation from Transaction hook failed: ${error}`)
+            })
+          })
         }
         return doc
       },
@@ -95,10 +99,14 @@ export const Transactions: CollectionConfig = {
         // Recalculate order commission when a transaction is deleted
         if (doc.order && (doc.type === 'transfer' || doc.type === 'order_payment')) {
           const orderId = typeof doc.order === 'object' ? doc.order.id : doc.order
-          req.payload.logger.info(`Transaction ${doc.transactionId} deleted, recalculating commission for order ${orderId}`)
+          req.payload.logger.info(`Transaction ${doc.transactionId} deleted, scheduling commission recalculation for order ${orderId}`)
           
-          // Directly calculate commission instead of triggering another order update
-          await calculateCommissionForOrder(req.payload, orderId)
+          // Defer to avoid MongoDB write conflicts
+          setImmediate(() => {
+            calculateCommissionForOrder(req.payload, orderId).catch((error) => {
+              req.payload.logger.error(`[Commission] Deferred calculation from Transaction delete hook failed: ${error}`)
+            })
+          })
         }
         return doc
       },
