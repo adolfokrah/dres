@@ -1,5 +1,5 @@
 import type { PayloadHandler } from 'payload'
-import { Types } from 'mongoose'
+import { ObjectId } from 'mongodb'
 import { transformVariation } from '../utils/transformVariation'
 import { getUserCountryInfo } from '../../../utilities/countryUtils'
 
@@ -96,7 +96,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
     if (userCountry.countryId) {
       pipeline.push({
         $match: {
-          'sellerData.country': new Types.ObjectId(userCountry.countryId)
+          'sellerData.country': new ObjectId(userCountry.countryId)
         }
       })
     }
@@ -150,24 +150,24 @@ export const filteredVariations: PayloadHandler = async (req) => {
 
     // Filter by department (convert string to ObjectId)
     if (department) {
-      matchConditions['styleData.department'] = new Types.ObjectId(department as string)
+      matchConditions['styleData.department'] = new ObjectId(department as string)
     }
 
     // Filter by collection (convert string to ObjectId)
     if (collection) {
-      matchConditions['styleData.collection'] = new Types.ObjectId(collection as string)
+      matchConditions['styleData.collection'] = new ObjectId(collection as string)
     }
 
     // Filter by category (convert string to ObjectId)
     if (category) {
-      matchConditions['styleData.category'] = new Types.ObjectId(category as string)
+      matchConditions['styleData.category'] = new ObjectId(category as string)
     }
 
     // Filter by brand (convert string to ObjectId if valid, otherwise keep as string)
     if (brand) {
       // The brand is stored as ObjectId reference in style.brand
       try {
-        matchConditions['styleData.brand'] = new Types.ObjectId(brand as string)
+        matchConditions['styleData.brand'] = new ObjectId(brand as string)
       } catch {
         matchConditions['styleData.brand'] = brand
       }
@@ -175,7 +175,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
 
     // Filter by style
     if (style) {
-      matchConditions['style'] = new Types.ObjectId(style as string)
+      matchConditions['style'] = new ObjectId(style as string)
     }
 
     // Filter by search query (search in variation title and style title)
@@ -221,8 +221,8 @@ export const filteredVariations: PayloadHandler = async (req) => {
             {
               variants: {
                 $elemMatch: {
-                  variant: new Types.ObjectId(attributeId),
-                  value: { $in: optionIds.map(id => new Types.ObjectId(id)) }
+                  variant: new ObjectId(attributeId),
+                  value: { $in: optionIds.map(id => new ObjectId(id)) }
                 }
               }
             },
@@ -230,8 +230,8 @@ export const filteredVariations: PayloadHandler = async (req) => {
             {
               'skuData.skuOptions': {
                 $elemMatch: {
-                  option: new Types.ObjectId(attributeId),
-                  value: { $in: optionIds.map(id => new Types.ObjectId(id)) }
+                  option: new ObjectId(attributeId),
+                  value: { $in: optionIds.map(id => new ObjectId(id)) }
                 }
               }
             }
