@@ -1,6 +1,7 @@
 import type { PayloadHandler, PayloadRequest } from 'payload'
 import { transformVariations } from '../utils/transformVariation'
 import { getUserCountryInfo } from '../../../utilities/countryUtils'
+import { resolveDepartmentId } from '../../../utilities/departmentUtils'
 
 /**
  * GET /api/variations/recently-viewed
@@ -10,7 +11,7 @@ import { getUserCountryInfo } from '../../../utilities/countryUtils'
  * 
  * Query params:
  * - limit: number of variations to return (default: 10, max: 50)
- * - department: department ID to filter by
+ * - department: department ID or slug to filter by (e.g., "men", "women")
  * - locale: language code (default: en)
  */
 export const recentlyViewedVariations: PayloadHandler = async (req: PayloadRequest) => {
@@ -19,9 +20,12 @@ export const recentlyViewedVariations: PayloadHandler = async (req: PayloadReque
 
   // Parse query params
   const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50)
-  const department = searchParams.get('department')
+  const departmentParam = searchParams.get('department')
   const localeParam = searchParams.get('locale') || 'en'
   const locale = (['en', 'fr', 'de', 'es', 'it'].includes(localeParam) ? localeParam : 'en') as 'en' | 'fr' | 'de' | 'es' | 'it'
+
+  // Resolve department slug to ID
+  const department = await resolveDepartmentId(payload, departmentParam)
 
   // Get user's country for currency info
   const userCountry = await getUserCountryInfo(req)

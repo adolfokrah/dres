@@ -1,6 +1,7 @@
 import type { PayloadHandler, PayloadRequest, Where } from 'payload'
 import { transformVariations } from '../utils/transformVariation'
 import { getUserCountryInfo } from '../../../utilities/countryUtils'
+import { resolveDepartmentId } from '../../../utilities/departmentUtils'
 
 type SupportedLocale = 'en' | 'fr' | 'de' | 'es' | 'it'
 
@@ -12,7 +13,7 @@ type SupportedLocale = 'en' | 'fr' | 'de' | 'es' | 'it'
  * 
  * Query params:
  * - limit: number of variations to return (default: 10, max: 50)
- * - department: filter by department ID
+ * - department: filter by department ID or slug (e.g., "men", "women")
  * - category: filter by category ID
  * - locale: language code (default: en)
  */
@@ -21,13 +22,16 @@ export const newArrivals: PayloadHandler = async (req: PayloadRequest) => {
 
   // Parse query params
   const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50)
-  const department = searchParams.get('department')
+  const departmentParam = searchParams.get('department')
   const category = searchParams.get('category')
   const localeParam = searchParams.get('locale') || 'en'
   const locale = (['en', 'fr', 'de', 'es', 'it'].includes(localeParam) ? localeParam : 'en') as SupportedLocale
 
   // Get user's country for filtering sellers
   const userCountry = await getUserCountryInfo(req)
+
+  // Resolve department slug to ID
+  const department = await resolveDepartmentId(req.payload, departmentParam)
 
   try {
     // Build where clause for filtering

@@ -7,11 +7,13 @@ class HomeState extends Equatable {
   final HomeStatus status;
   final PageModel? page;
   final String? errorMessage;
+  final String? currentSlug;
 
   const HomeState({
     this.status = HomeStatus.initial,
     this.page,
     this.errorMessage,
+    this.currentSlug,
   });
 
   /// Initial state
@@ -25,15 +27,17 @@ class HomeState extends Equatable {
       status: HomeStatus.loading,
       page: page,
       errorMessage: null,
+      currentSlug: currentSlug,
     );
   }
 
   /// Success state
-  HomeState copyWithSuccess(PageModel page) {
+  HomeState copyWithSuccess(PageModel page, {String? slug}) {
     return HomeState(
       status: HomeStatus.success,
       page: page,
       errorMessage: null,
+      currentSlug: slug ?? currentSlug,
     );
   }
 
@@ -43,9 +47,10 @@ class HomeState extends Equatable {
       status: HomeStatus.failure,
       page: page,
       errorMessage: message,
+      currentSlug: currentSlug,
     );
   }
 
   @override
-  List<Object?> get props => [status, page, errorMessage];
+  List<Object?> get props => [status, page, errorMessage, currentSlug];
 }

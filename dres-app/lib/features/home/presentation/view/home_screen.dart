@@ -175,20 +175,20 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
         );
       case 'productArchive':
         final productArchive = block as ProductArchiveBlockModel;
-        // Use block department or fall back to user's selected department
+        // Use block department or fall back to user's selected department (using slugs)
         final storageService = getIt<StorageService>();
         final userDepartment = storageService.getUserDepartment();
-        final departmentId =
-            productArchive.department ??
-            (userDepartment == 'women'
-                ? '694eee871a36e6d75fbb15b1'
-                : '694eee871a36e6d75fbb15af');
+        // Use department slug directly (e.g., "men", "women") instead of IDs
+        final departmentSlug =
+            productArchive.department ?? userDepartment ?? 'men';
         return ProductArchiveBlock(
+          // Key ensures widget is recreated when department changes
+          key: ValueKey('${productArchive.title}_$departmentSlug'),
           title: productArchive.title,
           queryType: _getQueryType(productArchive.queryType),
           showSeeAll: productArchive.showSeeAll,
           seeAllText: productArchive.seeAllText ?? 'See all',
-          department: departmentId,
+          department: departmentSlug,
           limit: productArchive.limit ?? 8,
         );
       case 'cta':

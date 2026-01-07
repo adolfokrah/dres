@@ -13,17 +13,12 @@ export const getStyleDetails: PayloadHandler = async (req) => {
   }
 
   try {
-    // Fetch the style by ID or slug
-    const styleResult = await payload.find({
+    // Fetch the style by ID
+    const style = await payload.findByID({
       collection: 'styles',
-      where: {
-        or: [{ id: { equals: id as string } }, { slug: { equals: id as string } }],
-      },
+      id: id as string,
       depth: 3,
-      limit: 1,
     })
-
-    const style = styleResult.docs[0]
 
     if (!style) {
       return Response.json({ error: 'Style not found' }, { status: 404 })

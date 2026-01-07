@@ -16,8 +16,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     FetchHomePage event,
     Emitter<HomeState> emit,
   ) async {
-    // Don't reload if already loaded
-    if (state.status == HomeStatus.success && state.page != null) {
+    // Don't reload if already loaded with the same slug
+    if (state.status == HomeStatus.success && 
+        state.page != null && 
+        state.currentSlug == event.slug) {
       return;
     }
 
@@ -28,7 +30,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         slug: event.slug,
         locale: event.locale,
       );
-      emit(state.copyWithSuccess(page));
+      emit(state.copyWithSuccess(page, slug: event.slug));
     } catch (e) {
       emit(state.copyWithFailure(getErrorMessage(e)));
     }
@@ -45,7 +47,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         slug: event.slug,
         locale: event.locale,
       );
-      emit(state.copyWithSuccess(page));
+      emit(state.copyWithSuccess(page, slug: event.slug));
     } catch (e) {
       emit(state.copyWithFailure(getErrorMessage(e)));
     }

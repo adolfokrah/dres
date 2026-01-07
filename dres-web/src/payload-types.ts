@@ -1392,6 +1392,10 @@ export interface Department {
   id: string;
   name: string;
   /**
+   * URL-friendly identifier (e.g., "men", "women")
+   */
+  slug: string;
+  /**
    * Categories in this department
    */
   categories?: {
@@ -2965,6 +2969,7 @@ export interface CollectionsSelect<T extends boolean = true> {
  */
 export interface DepartmentsSelect<T extends boolean = true> {
   name?: T;
+  slug?: T;
   categories?: T;
   updatedAt?: T;
   createdAt?: T;

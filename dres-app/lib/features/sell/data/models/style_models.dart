@@ -1,3 +1,5 @@
+import 'package:dres/features/sell/data/models/variation_model.dart';
+
 /// Response from create style endpoint
 class CreateStyleResponse {
   final String id;
@@ -190,6 +192,37 @@ class StyleVariationModel {
   bool get hasImages => images.isNotEmpty;
   bool get hasSkus => skus.isNotEmpty;
   String? get thumbnail => images.isNotEmpty ? images.first.url : null;
+
+  /// Convert to VariationModel for compatibility with variations list
+  VariationModel toVariationModel({String styleId = ''}) {
+    return VariationModel(
+      id: id,
+      styleId: styleId,
+      title: title ?? '',
+      imageObjects: images.map((img) => VariationImage(id: img.id, url: img.url)).toList(),
+      variants: attributes.map((attr) => VariantAttribute(
+        attributeId: '', // Not available in this model
+        attributeName: attr.name,
+        valueId: '', // Not available in this model
+        valueName: attr.value,
+      )).toList(),
+      skus: skus.map((sku) => SkuModel(
+        id: sku.id,
+        variationId: id,
+        price: sku.sellingPrice,
+        compareAtPrice: sku.compareAtPrice,
+        stock: sku.stock,
+        skuOptions: sku.options.map((opt) => SkuOptionModel(
+          attributeId: '',
+          attributeName: opt.option,
+          optionId: '',
+          optionName: opt.value,
+        )).toList(),
+      )).toList(),
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
 
   factory StyleVariationModel.fromJson(Map<String, dynamic> json) {
     final imagesList = json['images'] as List<dynamic>? ?? [];

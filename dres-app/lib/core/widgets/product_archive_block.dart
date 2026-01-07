@@ -46,8 +46,19 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
     _productsFuture = _fetchProducts();
   }
 
+  @override
+  void didUpdateWidget(ProductArchiveBlock oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Refetch products if department changes
+    if (oldWidget.department != widget.department) {
+      setState(() {
+        _productsFuture = _fetchProducts();
+      });
+    }
+  }
+
   Future<List<ProductCardData>> _fetchProducts() async {
-    final departmentId = widget.department ?? '694eee871a36e6d75fbb15af';
+    final departmentId = widget.department ?? 'men';
     final apiService = getIt<ApiService>();
     
     String endpoint;

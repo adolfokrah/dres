@@ -202,6 +202,17 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
           // Populate form when data is loaded
           if (state.status == StyleDetailsStatus.loaded) {
             _populateFromState(state);
+            // Also populate variations from style details
+            if (state.styleDetails != null && state.styleDetails!.variations.isNotEmpty) {
+              final convertedVariations = state.styleDetails!.variations
+                  .map((v) => v.toVariationModel(styleId: state.styleDetails!.id))
+                  .toList();
+              if (_variations.isEmpty || _variations.length != convertedVariations.length) {
+                setState(() {
+                  _variations = convertedVariations;
+                });
+              }
+            }
             setState(() {});
           }
 
