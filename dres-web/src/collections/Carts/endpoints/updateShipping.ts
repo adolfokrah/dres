@@ -6,6 +6,33 @@ const DEFAULT_BUYER_PROTECTION_FEE_GHS = 50
 // Default shipping rate in GHS (fallback if not set in site settings)
 const DEFAULT_SHIPPING_RATE_GHS = 30
 
+// Helper function to retry operations on write conflict
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  delay: number = 100
+): Promise<T> {
+  let lastError: unknown
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation()
+    } catch (error: unknown) {
+      lastError = error
+      const isWriteConflict = error instanceof Error && 
+        (error.message.includes('Write conflict') || 
+         error.message.includes('WriteConflict') ||
+         (error as { code?: number }).code === 112)
+      
+      if (isWriteConflict && attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, delay * attempt))
+        continue
+      }
+      throw error
+    }
+  }
+  throw lastError
+}
+
 interface ShippingRate {
   id: string
   user: string | { id: string }
@@ -253,14 +280,16 @@ export const updateShipping: PayloadHandler = async (req) => {
       }
     })
 
-    // Update the cart (without depth - just save the data)
-    await payload.update({
-      collection: 'carts',
-      id: cart.id,
-      data: {
-        items: updatedItems,
-      },
-      depth: 0,
+    // Update the cart with retry logic to handle write conflicts
+    await withRetry(async () => {
+      await payload.update({
+        collection: 'carts',
+        id: cart.id,
+        data: {
+          items: updatedItems,
+        },
+        depth: 0,
+      })
     })
 
     // Fetch the updated cart with full depth to get populated relationships

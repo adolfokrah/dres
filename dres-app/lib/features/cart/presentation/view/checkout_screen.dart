@@ -327,9 +327,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               if (selectedAddress != null && 
                   selectedAddress.cityId != null && 
                   selectedAddress.cityId != _lastShippingCityId) {
-                // City changed - update shipping fees
+                // City changed - update shipping fees (with small delay to avoid race conditions)
                 _lastShippingCityId = selectedAddress.cityId;
-                getIt<CartBloc>().add(CartUpdateShippingRequested(cityId: selectedAddress.cityId!));
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  if (mounted) {
+                    getIt<CartBloc>().add(CartUpdateShippingRequested(cityId: selectedAddress.cityId!));
+                  }
+                });
               }
             },
             child: BlocListener<CartBloc, CartState>(

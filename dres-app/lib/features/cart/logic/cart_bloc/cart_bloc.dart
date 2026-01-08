@@ -110,6 +110,12 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     CartUpdateShippingRequested event,
     Emitter<CartState> emit,
   ) async {
+    // Skip if we're already loading (another operation in progress)
+    if (state.status == CartStatus.loading) {
+      debugPrint('🛒 CartBloc: Skipping shipping update - cart is loading');
+      return;
+    }
+    
     emit(state.copyWith(status: CartStatus.loading));
 
     try {
