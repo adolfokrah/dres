@@ -144,26 +144,10 @@ export const Carts: CollectionConfig = {
           type: 'relationship',
           relationTo: 'variations',
           required: true,
-          // Filter variations to only show those where seller is from the same country as the cart user
-          filterOptions: ({ user }) => {
-            // Get the logged-in user's country
-            const userCountry = user?.country
-            
-            // If we have the user's country, filter variations by seller's country
-            if (userCountry) {
-              const countryId = typeof userCountry === 'object' ? userCountry.id : userCountry
-              return {
-                'style.seller.country': {
-                  equals: countryId,
-                },
-              }
-            }
-            
-            // Fallback: show all products if country not available
-            return true
-          },
+          // NOTE: filterOptions removed to prevent MongoDB transaction timeouts
+          // Variation/country validation is done in the addToCart endpoint instead
           admin: {
-            description: 'Variations available from sellers in your country',
+            description: 'Product variation',
           },
         },
         {
@@ -174,64 +158,8 @@ export const Carts: CollectionConfig = {
             description: 'Select a SKU for this variation',
             condition: (data, siblingData) => Boolean(siblingData?.variation),
           },
-          // Filter SKUs to only show those for the selected variation
-          filterOptions: ({ siblingData, data }): boolean | Where => {
-            const variation = (siblingData as Record<string, unknown>)?.variation as string | { id: string } | undefined
-            const variationId = variation
-              ? typeof variation === 'object'
-                ? variation.id
-                : variation
-              : null
-
-            if (!variationId) return false
-
-            // Get current SKU ID (to not exclude itself when editing)
-            const currentSku = (siblingData as Record<string, unknown>)?.sku as string | { id: string } | undefined
-            const currentSkuId = currentSku
-              ? typeof currentSku === 'object'
-                ? currentSku.id
-                : currentSku
-              : null
-
-            // Get all SKU IDs already in the cart (except current item)
-            const items = (data as Record<string, unknown>)?.items as Array<{
-              variation?: string | { id: string }
-              sku?: string | { id: string }
-            }> | undefined
-
-            const usedSkuIds: string[] = []
-            if (items && Array.isArray(items)) {
-              for (const item of items) {
-                const itemSku = item?.sku
-                if (itemSku) {
-                  const skuId = typeof itemSku === 'object' ? itemSku.id : itemSku
-                  // Don't exclude the current item's SKU
-                  if (skuId && skuId !== currentSkuId) {
-                    usedSkuIds.push(skuId)
-                  }
-                }
-              }
-            }
-
-            // Build filter
-            const filter: Where = {
-              variation: {
-                equals: variationId,
-              },
-              isActive: {
-                equals: true,
-              },
-            }
-
-            // Exclude already used SKUs
-            if (usedSkuIds.length > 0) {
-              filter.id = {
-                not_in: usedSkuIds,
-              }
-            }
-
-            return filter
-          },
+          // NOTE: filterOptions removed to prevent MongoDB transaction timeouts
+          // SKU validation is done in the addToCart endpoint instead
         },
         {
           name: 'price',
