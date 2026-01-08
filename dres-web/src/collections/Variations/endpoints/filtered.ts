@@ -3,6 +3,18 @@ import { ObjectId } from 'mongodb'
 import { transformVariation } from '../utils/transformVariation'
 import { getUserCountryInfo } from '../../../utilities/countryUtils'
 
+// Helper to safely convert a string to ObjectId
+const toObjectId = (id: string | undefined | null): ObjectId | null => {
+  if (!id || typeof id !== 'string') return null
+  // ObjectId must be a 24 character hex string
+  if (!/^[a-fA-F0-9]{24}$/.test(id)) return null
+  try {
+    return new ObjectId(id)
+  } catch {
+    return null
+  }
+}
+
 export const filteredVariations: PayloadHandler = async (req) => {
   const { payload } = req
   const { query, department, category, collection, style, brand, filterType, sortBy, sortPrice, attributes, minPrice, maxPrice, limit = 20, page = 1 } = req.query
@@ -94,11 +106,14 @@ export const filteredVariations: PayloadHandler = async (req) => {
 
     // Filter by seller's country (must match user's country)
     if (userCountry.countryId) {
-      pipeline.push({
-        $match: {
-          'sellerData.country': new ObjectId(userCountry.countryId)
-        }
-      })
+      const countryObjId = toObjectId(userCountry.countryId)
+      if (countryObjId) {
+        pipeline.push({
+          $match: {
+            'sellerData.country': countryObjId
+          }
+        })
+      }
     }
 
     // Lookup SKUs to check for on-sale items
@@ -150,32 +165,42 @@ export const filteredVariations: PayloadHandler = async (req) => {
 
     // Filter by department (convert string to ObjectId)
     if (department) {
-      matchConditions['styleData.department'] = new ObjectId(department as string)
+      const deptId = toObjectId(department as string)
+      if (deptId) {
+        matchConditions['styleData.department'] = deptId
+      }
     }
 
     // Filter by collection (convert string to ObjectId)
     if (collection) {
-      matchConditions['styleData.collection'] = new ObjectId(collection as string)
+      const collId = toObjectId(collection as string)
+      if (collId) {
+        matchConditions['styleData.collection'] = collId
+      }
     }
 
     // Filter by category (convert string to ObjectId)
     if (category) {
-      matchConditions['styleData.category'] = new ObjectId(category as string)
+      const catId = toObjectId(category as string)
+      if (catId) {
+        matchConditions['styleData.category'] = catId
+      }
     }
 
-    // Filter by brand (convert string to ObjectId if valid, otherwise keep as string)
+    // Filter by brand (convert string to ObjectId if valid, otherwise skip)
     if (brand) {
-      // The brand is stored as ObjectId reference in style.brand
-      try {
-        matchConditions['styleData.brand'] = new ObjectId(brand as string)
-      } catch {
-        matchConditions['styleData.brand'] = brand
+      const brandId = toObjectId(brand as string)
+      if (brandId) {
+        matchConditions['styleData.brand'] = brandId
       }
     }
 
     // Filter by style
     if (style) {
-      matchConditions['style'] = new ObjectId(style as string)
+      const styleId = toObjectId(style as string)
+      if (styleId) {
+        matchConditions['style'] = styleId
+      }
     }
 
     // Filter by search query (search in variation title and style title)
@@ -211,49 +236,71 @@ export const filteredVariations: PayloadHandler = async (req) => {
     // Apply attribute filters
     // Filter by BOTH variation-level (variants) and SKU-level (skuOptions) attributes
     if (Object.keys(attributeFilters).length > 0) {
-      const attributeConditions = Object.entries(attributeFilters).map(([attributeId, optionIds]) => {
-        payload.logger.info(`Creating condition for attribute ${attributeId} with options: ${optionIds.join(',')}`)
-        
-        // Check if variation has this attribute in variants OR any SKU has it in skuOptions
-        return {
-          $or: [
-            // Variation-level attribute (e.g., Color)
-            {
-              variants: {
-                $elemMatch: {
-                  variant: new ObjectId(attributeId),
-                  value: { $in: optionIds.map(id => new ObjectId(id)) }
+      const attributeConditions = Object.entries(attributeFilters)
+        .map(([attributeId, optionIds]) => {
+          payload.logger.info(`Creating condition for attribute ${attributeId} with options: ${optionIds.join(',')}`)
+          
+          // Validate attributeId
+          const attrObjId = toObjectId(attributeId)
+          if (!attrObjId) {
+            payload.logger.warn(`Invalid attribute ID: ${attributeId}`)
+            return null
+          }
+          
+          // Validate and convert option IDs
+          const validOptionIds = optionIds
+            .map(id => toObjectId(id))
+            .filter((id): id is ObjectId => id !== null)
+          
+          if (validOptionIds.length === 0) {
+            payload.logger.warn(`No valid option IDs for attribute: ${attributeId}`)
+            return null
+          }
+          
+          // Check if variation has this attribute in variants OR any SKU has it in skuOptions
+          return {
+            $or: [
+              // Variation-level attribute (e.g., Color)
+              {
+                variants: {
+                  $elemMatch: {
+                    variant: attrObjId,
+                    value: { $in: validOptionIds }
+                  }
+                }
+              },
+              // SKU-level attribute (e.g., Size)
+              {
+                'skuData.skuOptions': {
+                  $elemMatch: {
+                    option: attrObjId,
+                    value: { $in: validOptionIds }
+                  }
                 }
               }
-            },
-            // SKU-level attribute (e.g., Size)
-            {
-              'skuData.skuOptions': {
-                $elemMatch: {
-                  option: new ObjectId(attributeId),
-                  value: { $in: optionIds.map(id => new ObjectId(id)) }
-                }
-              }
-            }
-          ]
+            ]
         }
       })
+        .filter((condition): condition is NonNullable<typeof condition> => condition !== null)
       
-      // If we already have conditions in matchConditions, we need to combine them
-      const existingConditions = Object.entries(matchConditions).map(([key, value]) => ({ [key]: value }))
-      
-      // Create a new $and array with all conditions
-      if (existingConditions.length > 0) {
-        matchConditions = {
-          $and: [...existingConditions, ...attributeConditions]
+      // Only apply attribute conditions if we have valid ones
+      if (attributeConditions.length > 0) {
+        // If we already have conditions in matchConditions, we need to combine them
+        const existingConditions = Object.entries(matchConditions).map(([key, value]) => ({ [key]: value }))
+        
+        // Create a new $and array with all conditions
+        if (existingConditions.length > 0) {
+          matchConditions = {
+            $and: [...existingConditions, ...attributeConditions]
+          }
+        } else {
+          matchConditions = {
+            $and: attributeConditions
+          }
         }
-      } else {
-        matchConditions = {
-          $and: attributeConditions
-        }
+        
+        payload.logger.info(`Final match with attributes: ${JSON.stringify(matchConditions, null, 2)}`)
       }
-      
-      payload.logger.info(`Final match with attributes: ${JSON.stringify(matchConditions, null, 2)}`)
     }
 
     // Apply price range filter
