@@ -44,10 +44,7 @@ export const FCMTokens: CollectionConfig = {
     },
   },
   indexes: [
-    {
-      fields: ['token'],
-      unique: true,
-    },
+    // Note: token field has unique: true which auto-creates an index
     {
       fields: ['user', 'platform'],
     },

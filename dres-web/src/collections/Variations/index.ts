@@ -29,7 +29,7 @@ export const Variations: CollectionConfig = {
     description: 'Product variations - specific color/size combinations',
   },
   indexes: [
-    { fields: ['style'] },
+    // Note: style is a relationship field - Payload auto-indexes it
     { fields: ['status'] },
     // Do not index slug here; the field's unique constraint already indexes it
   ],

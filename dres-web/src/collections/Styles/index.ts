@@ -20,10 +20,7 @@ export const Styles: CollectionConfig = {
   indexes: [
     // Common catalog filters
     { fields: ['status'] },
-    { fields: ['collection'] },
-    { fields: ['category'] },
-    { fields: ['brand'] },
-    { fields: ['seller'] },
+    // Note: collection, category, brand, seller are relationship fields - Payload auto-indexes them
     // Compound index to accelerate multi-filter queries
     { fields: ['status', 'collection', 'category', 'brand'] },
   ],
