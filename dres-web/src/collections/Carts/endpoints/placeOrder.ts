@@ -174,6 +174,7 @@ export const placeOrder: PayloadHandler = async (req) => {
     })
 
     // Link the transaction to the order
+    // Use skipCommissionCalculation to avoid triggering commission hook and potential write conflicts
     await payload.update({
       collection: 'orders',
       id: order.id,
@@ -182,6 +183,9 @@ export const placeOrder: PayloadHandler = async (req) => {
       },
       overrideAccess: true,
       draft: false,
+      context: {
+        skipCommissionCalculation: true,
+      },
     })
 
     // Initialize Paystack payment with transaction ID as reference

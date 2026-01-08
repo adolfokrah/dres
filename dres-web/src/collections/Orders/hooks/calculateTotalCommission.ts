@@ -28,6 +28,33 @@ interface CommissionBreakdown {
  * This runs AFTER order changes - deferred to avoid MongoDB write conflicts
  */
 
+// Helper function to retry operations on write conflict
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  delay: number = 200
+): Promise<T> {
+  let lastError: unknown
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation()
+    } catch (error: unknown) {
+      lastError = error
+      const isWriteConflict = error instanceof Error && 
+        (error.message.includes('Write conflict') || 
+         error.message.includes('WriteConflict') ||
+         (error as { code?: number }).code === 112)
+      
+      if (isWriteConflict && attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, delay * attempt))
+        continue
+      }
+      throw error
+    }
+  }
+  throw lastError
+}
+
 // Standalone function to calculate commission (can be called from anywhere)
 export async function recalculateOrderCommission(
   payload: Payload,
@@ -105,22 +132,25 @@ export async function recalculateOrderCommission(
       currentBreakdown.totalCommission !== roundedCommission
 
     if (hasChanged) {
-      await payload.update({
-        collection: 'orders',
-        id: orderId,
-        data: {
-          commissionBreakdown: {
-            totalTransactionFees: roundedTransactionFees,
-            totalPaystackFees: roundedPaystackFees,
-            totalBuyerProtectionFees: roundedBuyerProtectionFees,
-            discountAmount: roundedDiscountAmount,
-            pointsDiscount: roundedPointsDiscount,
-            totalCommission: roundedCommission,
+      // Use retry to handle potential write conflicts
+      await withRetry(async () => {
+        await payload.update({
+          collection: 'orders',
+          id: orderId,
+          data: {
+            commissionBreakdown: {
+              totalTransactionFees: roundedTransactionFees,
+              totalPaystackFees: roundedPaystackFees,
+              totalBuyerProtectionFees: roundedBuyerProtectionFees,
+              discountAmount: roundedDiscountAmount,
+              pointsDiscount: roundedPointsDiscount,
+              totalCommission: roundedCommission,
+            },
           },
-        },
-        context: {
-          skipCommissionCalculation: true,
-        },
+          context: {
+            skipCommissionCalculation: true,
+          },
+        })
       })
 
       payload.logger.info(
@@ -144,6 +174,12 @@ export const calculateTotalCommission: CollectionAfterChangeHook = async ({
     return doc
   }
 
+  // Only calculate commission when order status is 'completed'
+  // Commission is only relevant once the order is fully delivered
+  if (doc?.status !== 'completed') {
+    return doc
+  }
+
   const payload = req.payload
   const orderId = doc?.id
 
@@ -151,13 +187,12 @@ export const calculateTotalCommission: CollectionAfterChangeHook = async ({
     return doc
   }
 
-  // Defer the commission calculation to run AFTER the current transaction completes
-  // This avoids MongoDB write conflicts
-  setImmediate(() => {
+  // Defer the commission calculation to avoid MongoDB write conflicts
+  setTimeout(() => {
     recalculateOrderCommission(payload, orderId).catch((error) => {
       payload.logger.error(`[Commission] Deferred calculation failed: ${error}`)
     })
-  })
+  }, 500) // 500ms delay
 
   return doc
 }
