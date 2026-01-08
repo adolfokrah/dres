@@ -16,6 +16,7 @@ import 'package:dres/features/sell/logic/variations_bloc/variations_bloc.dart';
 import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
 import 'package:dres/features/sell/presentation/widgets/item_photos_section.dart';
 import 'package:dres/features/sell/presentation/widgets/attributes_section.dart';
+import 'package:dres/features/profile/logic/user_products_bloc/user_products_bloc.dart';
 
 class VariationDetailScreen extends StatefulWidget {
   final String styleId;
@@ -308,6 +309,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
             imageCache.clearLiveImages();
             getIt<VariationsBloc>().add(const VariationsRefreshRequested());
             getIt<SellBloc>().add(const SellRefreshRequested());
+            getIt<UserProductsBloc>().add(const UserProductsRefreshRequested());
           }
 
           // When variation update succeeds, stay on screen and show success
@@ -320,6 +322,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
             });
             getIt<VariationsBloc>().add(const VariationsRefreshRequested());
             getIt<SellBloc>().add(const SellRefreshRequested());
+            getIt<UserProductsBloc>().add(const UserProductsRefreshRequested());
             AppSnackbar.success(context, 'Variation saved');
             // Reload to get fresh data with saved attributes
             _variationDetailBloc.add(
