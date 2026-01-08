@@ -5,9 +5,10 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/widgets/user_list_item.dart';
-import 'package:dres/features/profile/logic/community_bloc/community_bloc.dart';
+import 'package:dres/features/follows/logic/follows_bloc/follows_bloc.dart';
 
 /// Community list tab content (followers/following)
+/// Uses the global FollowsBloc for state management
 class CommunityList extends StatefulWidget {
   final BuildContext parentContext;
   final String userId;
@@ -23,35 +24,24 @@ class CommunityList extends StatefulWidget {
 }
 
 class _CommunityListState extends State<CommunityList> {
-  late final CommunityBloc _communityBloc;
-
   @override
   void initState() {
     super.initState();
-    // Create a new BLoC instance for this widget
-    _communityBloc = getIt<CommunityBloc>();
-
-    // Always fetch community when this widget is shown
-    _communityBloc.add(CommunityFetchRequested(userId: widget.userId, filter: 'followers'));
-  }
-
-  @override
-  void dispose() {
-    // Close the BLoC since it's a factory instance
-    _communityBloc.close();
-    super.dispose();
+    // Fetch community when this widget is shown using global FollowsBloc
+    getIt<FollowsBloc>().add(CommunityFetchRequested(userId: widget.userId, filter: 'followers'));
   }
 
   void _onScroll(ScrollNotification notification) {
     if (notification is ScrollEndNotification) {
       final metrics = notification.metrics;
       if (metrics.pixels >= metrics.maxScrollExtent - 200) {
-        _communityBloc.add(const CommunityLoadMoreRequested());
+        getIt<FollowsBloc>().add(const CommunityLoadMoreRequested());
       }
     }
   }
 
   void _showFilterMenu() {
+    final currentFilter = getIt<FollowsBloc>().state.communityFilter;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -59,10 +49,10 @@ class _CommunityListState extends State<CommunityList> {
         borderRadius: BorderRadius.zero,
       ),
       builder: (context) => _FilterBottomSheet(
-        currentFilter: _communityBloc.state.filter,
+        currentFilter: currentFilter,
         onFilterSelected: (filter) {
           Navigator.pop(context);
-          _communityBloc.add(CommunityFilterChanged(filter: filter));
+          getIt<FollowsBloc>().add(CommunityFilterChanged(filter: filter));
         },
       ),
     );
@@ -70,8 +60,15 @@ class _CommunityListState extends State<CommunityList> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<CommunityBloc, CommunityState>(
-      bloc: _communityBloc,
+    return BlocBuilder<FollowsBloc, FollowsState>(
+      bloc: getIt<FollowsBloc>(),
+      buildWhen: (previous, current) {
+        // Only rebuild when community-related state changes
+        return previous.communityStatus != current.communityStatus ||
+            previous.communityUsers != current.communityUsers ||
+            previous.communityFilter != current.communityFilter ||
+            previous.communityHasMore != current.communityHasMore;
+      },
       builder: (context, state) {
         return NotificationListener<ScrollNotification>(
           onNotification: (notification) {
@@ -100,7 +97,7 @@ class _CommunityListState extends State<CommunityList> {
     );
   }
 
-  Widget _buildFilterHeader(CommunityState state) {
+  Widget _buildFilterHeader(FollowsState state) {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -130,14 +127,14 @@ class _CommunityListState extends State<CommunityList> {
     );
   }
 
-  Widget _buildSliverContent(CommunityState state) {
-    if (state.status == CommunityStatus.loading && state.users.isEmpty) {
+  Widget _buildSliverContent(FollowsState state) {
+    if (state.communityStatus == CommunityStatus.loading && state.communityUsers.isEmpty) {
       return const SliverFillRemaining(
         child: Center(child: CircularProgressIndicator()),
       );
     }
 
-    if (state.status == CommunityStatus.error && state.users.isEmpty) {
+    if (state.communityStatus == CommunityStatus.error && state.communityUsers.isEmpty) {
       return SliverFillRemaining(
         child: Center(
           child: Padding(
@@ -146,7 +143,7 @@ class _CommunityListState extends State<CommunityList> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Failed to load ${state.filter}',
+                  'Failed to load \${state.communityFilter}',
                   style: AppTypography.bodyM.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -155,7 +152,7 @@ class _CommunityListState extends State<CommunityList> {
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: () =>
-                      _communityBloc.add(const CommunityRefreshRequested()),
+                      getIt<FollowsBloc>().add(const CommunityRefreshRequested()),
                   child: const Text('Retry'),
                 ),
               ],
@@ -165,11 +162,11 @@ class _CommunityListState extends State<CommunityList> {
       );
     }
 
-    if (state.users.isEmpty) {
+    if (state.communityUsers.isEmpty) {
       return SliverFillRemaining(
         child: Center(
           child: Text(
-            state.filter == 'followers'
+            state.communityFilter == 'followers'
                 ? 'No followers yet'
                 : 'Not following anyone yet',
             style: AppTypography.bodyM.copyWith(
@@ -183,19 +180,19 @@ class _CommunityListState extends State<CommunityList> {
     return SliverList(
       delegate: SliverChildBuilderDelegate(
         (context, index) {
-          if (index >= state.users.length) {
+          if (index >= state.communityUsers.length) {
             return const SizedBox.shrink();
           }
-          final user = state.users[index];
+          final user = state.communityUsers[index];
           return UserListItem(
             id: user.id,
             name: user.name,
             username: user.username,
             avatarUrl: user.avatar,
-            badge: state.filter == 'followers' ? 'Follower' : 'Following',
+            badge: state.communityFilter == 'followers' ? 'Follower' : 'Following',
           );
         },
-        childCount: state.users.length + (state.hasMore ? 1 : 0),
+        childCount: state.communityUsers.length + (state.communityHasMore ? 1 : 0),
       ),
     );
   }

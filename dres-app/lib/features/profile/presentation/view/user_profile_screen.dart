@@ -8,6 +8,7 @@ import 'package:dres/core/utilities/media_utils.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/widgets/profile_avatar.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
+import 'package:dres/features/follows/logic/follows_bloc/follows_bloc.dart';
 import 'package:dres/features/product_details/data/repositories/seller_repository.dart';
 import 'package:dres/features/product_details/data/models/seller_model.dart';
 import 'package:dres/features/profile/presentation/widgets/profile_stats_card.dart';
@@ -384,15 +385,31 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Stats card - using followers/following from auth user
-          ProfileStatsCard(
-            followers: authState.user?.followersCount ?? 0,
-            following: authState.user?.followingCount ?? 0,
-            onFollowersTap: () {
-              // TODO: Navigate to followers
-            },
-            onFollowingTap: () {
-              // TODO: Navigate to following
+          // Stats card - using followers/following from FollowsBloc for real-time updates
+          BlocBuilder<FollowsBloc, FollowsState>(
+            bloc: getIt<FollowsBloc>(),
+            buildWhen: (previous, current) =>
+                previous.myFollowersCount != current.myFollowersCount ||
+                previous.myFollowingCount != current.myFollowingCount,
+            builder: (context, followsState) {
+              // Use FollowsBloc counts if initialized, otherwise use auth state
+              final followersCount = followsState.myFollowersCount > 0
+                  ? followsState.myFollowersCount
+                  : (authState.user?.followersCount ?? 0);
+              final followingCount = followsState.myFollowingCount > 0
+                  ? followsState.myFollowingCount
+                  : (authState.user?.followingCount ?? 0);
+              
+              return ProfileStatsCard(
+                followers: followersCount,
+                following: followingCount,
+                onFollowersTap: () {
+                  // TODO: Navigate to followers
+                },
+                onFollowingTap: () {
+                  // TODO: Navigate to following
+                },
+              );
             },
           ),
         ],

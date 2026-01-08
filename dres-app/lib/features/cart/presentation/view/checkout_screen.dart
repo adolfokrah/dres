@@ -31,6 +31,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final TextEditingController _promoController = TextEditingController();
   String? _lastShippingCityId; // Track last city we calculated shipping for
   bool _isShowingErrorDialog = false; // Prevent duplicate error dialogs
+  bool _initialShippingCalculated = false; // Track if initial shipping was calculated
 
   @override
   void initState() {
@@ -39,9 +40,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Refresh cart to get latest validation/stock info
       getIt<CartBloc>().add(const CartFetchRequested());
-      // Fetch addresses
+      // Fetch addresses - shipping will be calculated when addresses load
       getIt<AddressBloc>().add(const AddressFetchRequested());
+      
+      // Also check if addresses are already loaded and trigger shipping calculation
+      _checkAndCalculateInitialShipping();
     });
+  }
+  
+  /// Check if addresses are already loaded and calculate shipping if needed
+  void _checkAndCalculateInitialShipping() {
+    final addressState = getIt<AddressBloc>().state;
+    if (addressState.status == AddressStatus.success && 
+        addressState.selectedAddress?.cityId != null &&
+        !_initialShippingCalculated) {
+      _initialShippingCalculated = true;
+      final cityId = addressState.selectedAddress!.cityId!;
+      _lastShippingCityId = cityId;
+      debugPrint('🚚 Checkout: Initial shipping calculation for city $cityId');
+      getIt<CartBloc>().add(CartUpdateShippingRequested(cityId: cityId));
+    }
   }
 
   @override
@@ -327,9 +345,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               if (selectedAddress != null && 
                   selectedAddress.cityId != null && 
                   selectedAddress.cityId != _lastShippingCityId) {
-                // City changed - update shipping fees (with small delay to avoid race conditions)
+                // City changed - update shipping fees
                 _lastShippingCityId = selectedAddress.cityId;
-                Future.delayed(const Duration(milliseconds: 300), () {
+                _initialShippingCalculated = true;
+                debugPrint('🚚 Checkout: Address changed, updating shipping for city ${selectedAddress.cityId}');
+                // Small delay to avoid race conditions with cart fetch
+                Future.delayed(const Duration(milliseconds: 100), () {
                   if (mounted) {
                     getIt<CartBloc>().add(CartUpdateShippingRequested(cityId: selectedAddress.cityId!));
                   }

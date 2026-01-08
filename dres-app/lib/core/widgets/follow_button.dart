@@ -17,6 +17,15 @@ class FollowButton extends StatefulWidget {
   /// The user ID to follow/unfollow
   final String userId;
   
+  /// User's name (for community list update)
+  final String? userName;
+  
+  /// User's username (for community list update)
+  final String? userUsername;
+  
+  /// User's avatar URL (for community list update)
+  final String? userAvatar;
+  
   /// Optional callback when follow state changes
   final ValueChanged<bool>? onChanged;
   
@@ -26,6 +35,9 @@ class FollowButton extends StatefulWidget {
   const FollowButton({
     super.key,
     required this.userId,
+    this.userName,
+    this.userUsername,
+    this.userAvatar,
     this.onChanged,
     this.outlined = false,
   });
@@ -69,10 +81,13 @@ class _FollowButtonState extends State<FollowButton> {
       return;
     }
 
-    // Dispatch toggle event
+    // Dispatch toggle event with user info for community list update
     getIt<FollowsBloc>().add(FollowsToggleRequested(
       userId: widget.userId,
       isCurrentlyFollowing: isCurrentlyFollowing,
+      userName: widget.userName,
+      userUsername: widget.userUsername,
+      userAvatar: widget.userAvatar,
     ));
 
     widget.onChanged?.call(!isCurrentlyFollowing);

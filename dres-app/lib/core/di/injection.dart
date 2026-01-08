@@ -246,9 +246,10 @@ Future<void> setupDependencies() async {
     apiService: getIt<ApiService>(),
   ));
 
-  // Follows Bloc - Singleton so follow state persists
+  // Follows Bloc - Singleton so follow state persists (includes Community functionality)
   getIt.registerLazySingleton<FollowsBloc>(() => FollowsBloc(
     followsRepository: getIt<FollowsRepository>(),
+    communityRepository: getIt<CommunityRepository>(),
   ));
 
   // Sell Repository
@@ -547,10 +548,8 @@ Future<void> _setupDependenciesWithExistingStorage(StorageService storageService
     favoritesRepository: getIt<FavoritesRepository>(),
   ));
 
-  // Follows Bloc - Factory
-  getIt.registerFactory<FollowsBloc>(() => FollowsBloc(
-    followsRepository: getIt<FollowsRepository>(),
-  ));
+  // Note: FollowsBloc is already registered as a singleton above (line ~250)
+  // Do NOT register it again as a factory here!
 
   // Sell Bloc - Factory
   getIt.registerFactory<SellBloc>(() => SellBloc(
