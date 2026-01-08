@@ -1,7 +1,9 @@
 import type { CollectionAfterChangeHook } from 'payload'
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
 import { removeBackgroundFromBuffer, isRemoveBgConfigured } from '@/utilities/removeBackground'
 import sharp from 'sharp'
+import { UTApi } from 'uploadthing/server'
+import path from 'path'
+import fs from 'fs/promises'
 
 // Image size configurations matching Payload's Media collection
 const IMAGE_SIZES = [
@@ -14,16 +16,13 @@ const IMAGE_SIZES = [
   { name: 'og', width: 1200, height: 630, crop: true },
 ] as const
 
-// Initialize S3 client for Supabase storage
-const getS3Client = () => {
-  return new S3Client({
-    credentials: {
-      accessKeyId: process.env.S3_ACCESS_KEY_ID || '',
-      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
-    },
-    region: process.env.S3_REGION || 'local',
-    endpoint: process.env.S3_ENDPOINT,
-    forcePathStyle: true,
+// Check if we're using UploadThing (production) or local storage
+const isUsingUploadThing = () => process.env.NODE_ENV === 'production' && !!process.env.UPLOADTHING_TOKEN
+
+// Initialize UploadThing API client
+const getUploadThingClient = () => {
+  return new UTApi({
+    token: process.env.UPLOADTHING_TOKEN,
   })
 }
 
@@ -36,9 +35,71 @@ interface MediaDoc {
 }
 
 /**
+ * Download image buffer from URL (works with UploadThing URLs)
+ */
+async function downloadImageFromUrl(url: string): Promise<Buffer> {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`)
+  }
+  const arrayBuffer = await response.arrayBuffer()
+  return Buffer.from(arrayBuffer)
+}
+
+/**
+ * Read image from local file system
+ */
+async function readImageFromLocal(filename: string): Promise<Buffer> {
+  const mediaDir = path.resolve(process.cwd(), 'media')
+  const filePath = path.join(mediaDir, filename)
+  return await fs.readFile(filePath)
+}
+
+/**
+ * Write image to local file system
+ */
+async function writeImageToLocal(filename: string, buffer: Buffer): Promise<boolean> {
+  try {
+    const mediaDir = path.resolve(process.cwd(), 'media')
+    const filePath = path.join(mediaDir, filename)
+    await fs.writeFile(filePath, new Uint8Array(buffer))
+    return true
+  } catch (error) {
+    console.error('Local file write error:', error)
+    return false
+  }
+}
+
+/**
+ * Upload image to UploadThing and return the new URL
+ */
+async function uploadToUploadThing(
+  utapi: UTApi, 
+  buffer: Buffer, 
+  filename: string, 
+  contentType: string
+): Promise<string | null> {
+  try {
+    // Convert Buffer to Uint8Array for File constructor
+    const uint8Array = new Uint8Array(buffer)
+    const blob = new Blob([uint8Array], { type: contentType })
+    const file = new File([blob], filename, { type: contentType })
+    const response = await utapi.uploadFiles([file])
+    
+    if (response[0]?.data?.ufsUrl) {
+      return response[0].data.ufsUrl
+    }
+    return null
+  } catch (error) {
+    console.error('UploadThing upload error:', error)
+    return null
+  }
+}
+
+/**
  * Hook to process the first product image and remove its background
  * This ensures the main product image (images[0]) has a clean white background
- * Works with S3/Supabase storage (compatible with Vercel's read-only filesystem)
+ * Works with both UploadThing (production) and local file storage (development)
  */
 export const processProductMainImage: CollectionAfterChangeHook = async ({
   doc,
@@ -67,9 +128,9 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
     : null
 
   // Skip if first image hasn't changed (unless it's a new product)
-//   if (operation === 'update' && firstImageId === previousFirstImageId) {
-//     return doc
-//   }
+  // if (operation === 'update' && firstImageId === previousFirstImageId) {
+  //   return doc
+  // }
 
   try {
     // Fetch the first image media document
@@ -96,33 +157,22 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
 
     req.payload.logger.info(`Processing background removal for product ${doc.id} main image: ${mediaDoc.filename}`)
 
-    // Download image from S3/Supabase
-    const s3Client = getS3Client()
-    const bucket = process.env.S3_BUCKET || ''
-    
+    const useUploadThing = isUsingUploadThing()
     let imageBuffer: Buffer
     
+    // Download the image
     try {
-      const getCommand = new GetObjectCommand({
-        Bucket: bucket,
-        Key: mediaDoc.filename,
-      })
-      
-      const response = await s3Client.send(getCommand)
-      
-      if (!response.Body) {
-        req.payload.logger.error(`Failed to download image from S3: ${mediaDoc.filename}`)
-        return doc
+      if (useUploadThing && mediaDoc.url) {
+        // Download from UploadThing URL
+        req.payload.logger.info(`Downloading image from UploadThing: ${mediaDoc.url}`)
+        imageBuffer = await downloadImageFromUrl(mediaDoc.url)
+      } else {
+        // Read from local file system
+        req.payload.logger.info(`Reading image from local storage: ${mediaDoc.filename}`)
+        imageBuffer = await readImageFromLocal(mediaDoc.filename)
       }
-      
-      // Convert stream to buffer
-      const chunks: Uint8Array[] = []
-      for await (const chunk of response.Body as AsyncIterable<Uint8Array>) {
-        chunks.push(chunk)
-      }
-      imageBuffer = Buffer.concat(chunks)
     } catch (error) {
-      req.payload.logger.error(`Failed to download image from S3: ${error}`)
+      req.payload.logger.error(`Failed to download/read image: ${error}`)
       return doc
     }
 
@@ -154,82 +204,90 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
         .toBuffer()
     }
     
-    // Upload processed main image to S3/Supabase (replace original file)
-    try {
-      const putCommand = new PutObjectCommand({
-        Bucket: bucket,
-        Key: mediaDoc.filename, // Keep original filename
-        Body: processedBuffer,
-        ContentType: contentType,
-      })
+    // Upload processed main image
+    let newUrl: string | undefined
+    
+    if (useUploadThing) {
+      // Upload to UploadThing
+      const utapi = getUploadThingClient()
+      req.payload.logger.info(`Uploading processed image to UploadThing: ${mediaDoc.filename}`)
       
-      await s3Client.send(putCommand)
-      req.payload.logger.info(`Uploaded processed image (replaced): ${mediaDoc.filename}`)
-    } catch (error) {
-      req.payload.logger.error(`Failed to upload processed image to S3: ${error}`)
-      return doc
-    }
-
-    // Generate and upload all resized versions (same format as original)
-    try {
-      const metadata = await sharp(result.buffer).metadata()
-      const originalWidth = metadata.width || 1920
-      const originalHeight = metadata.height || 1080
-      const baseFilename = mediaDoc.filename.replace(/\.[^/.]+$/, '')
-
-      for (const size of IMAGE_SIZES) {
-        try {
-          let resizedBuffer: Buffer
-          const sizeHeight = 'height' in size ? size.height : undefined
-          const sizeFilename = `${baseFilename}-${size.width}x${sizeHeight || Math.round((originalHeight / originalWidth) * size.width)}.${originalExtension}`
-
-          let sharpInstance = sharp(result.buffer)
-          
-          if (sizeHeight && 'crop' in size && size.crop) {
-            sharpInstance = sharpInstance.resize(size.width, sizeHeight, { fit: 'cover', position: 'center' })
-          } else if (sizeHeight) {
-            sharpInstance = sharpInstance.resize(size.width, sizeHeight, { fit: 'cover', position: 'center' })
-          } else {
-            sharpInstance = sharpInstance.resize(size.width, null, { withoutEnlargement: true })
-          }
-
-          if (isPng) {
-            resizedBuffer = await sharpInstance.png({ compressionLevel: 8 }).toBuffer()
-          } else {
-            // Flatten transparency to white for JPEG
-            resizedBuffer = await sharpInstance
-              .flatten({ background: { r: 255, g: 255, b: 255 } })
-              .jpeg({ quality: 85 })
-              .toBuffer()
-          }
-
-          const putCommand = new PutObjectCommand({
-            Bucket: bucket,
-            Key: sizeFilename,
-            Body: resizedBuffer,
-            ContentType: contentType,
-          })
-
-          await s3Client.send(putCommand)
-          req.payload.logger.info(`Uploaded resized image: ${sizeFilename}`)
-        } catch (sizeError) {
-          req.payload.logger.error(`Failed to generate ${size.name} size: ${sizeError}`)
-        }
+      const uploadedUrl = await uploadToUploadThing(utapi, processedBuffer, mediaDoc.filename, contentType)
+      if (!uploadedUrl) {
+        req.payload.logger.error(`Failed to upload processed image to UploadThing`)
+        return doc
       }
-    } catch (error) {
-      req.payload.logger.error(`Failed to generate resized images: ${error}`)
+      newUrl = uploadedUrl
+      req.payload.logger.info(`Uploaded processed image to UploadThing: ${uploadedUrl}`)
+    } else {
+      // Write to local file system
+      const success = await writeImageToLocal(mediaDoc.filename, processedBuffer)
+      if (!success) {
+        req.payload.logger.error(`Failed to write processed image to local storage`)
+        return doc
+      }
+      req.payload.logger.info(`Saved processed image locally: ${mediaDoc.filename}`)
+
+      // Generate and save all resized versions locally
+      try {
+        const metadata = await sharp(result.buffer).metadata()
+        const originalWidth = metadata.width || 1920
+        const originalHeight = metadata.height || 1080
+        const baseFilename = mediaDoc.filename.replace(/\.[^/.]+$/, '')
+
+        for (const size of IMAGE_SIZES) {
+          try {
+            let resizedBuffer: Buffer
+            const sizeHeight = 'height' in size ? size.height : undefined
+            const sizeFilename = `${baseFilename}-${size.width}x${sizeHeight || Math.round((originalHeight / originalWidth) * size.width)}.${originalExtension}`
+
+            let sharpInstance = sharp(result.buffer)
+            
+            if (sizeHeight && 'crop' in size && size.crop) {
+              sharpInstance = sharpInstance.resize(size.width, sizeHeight, { fit: 'cover', position: 'center' })
+            } else if (sizeHeight) {
+              sharpInstance = sharpInstance.resize(size.width, sizeHeight, { fit: 'cover', position: 'center' })
+            } else {
+              sharpInstance = sharpInstance.resize(size.width, null, { withoutEnlargement: true })
+            }
+
+            if (isPng) {
+              resizedBuffer = await sharpInstance.png({ compressionLevel: 8 }).toBuffer()
+            } else {
+              // Flatten transparency to white for JPEG
+              resizedBuffer = await sharpInstance
+                .flatten({ background: { r: 255, g: 255, b: 255 } })
+                .jpeg({ quality: 85 })
+                .toBuffer()
+            }
+
+            await writeImageToLocal(sizeFilename, resizedBuffer)
+            req.payload.logger.info(`Saved resized image locally: ${sizeFilename}`)
+          } catch (sizeError) {
+            req.payload.logger.error(`Failed to generate ${size.name} size: ${sizeError}`)
+          }
+        }
+      } catch (error) {
+        req.payload.logger.error(`Failed to generate resized images: ${error}`)
+      }
     }
 
-    // Mark the media as processed
+    // Mark the media as processed and update URL if using UploadThing
+    const updateData: Record<string, unknown> = {
+      backgroundRemoved: true,
+    }
+    
+    if (newUrl) {
+      updateData.url = newUrl
+    }
+    
     await req.payload.update({
       collection: 'media',
       id: mediaDoc.id,
-      data: {
-        backgroundRemoved: true,
-      },
+      data: updateData,
     })
 
-    req.payload.logger.info(`Background removed and resized for product ${doc.id} main image: ${mediaDoc.filename}`)
+    req.payload.logger.info(`Background removed for product ${doc.id} main image: ${mediaDoc.filename}`)
   } catch (error) {
     req.payload.logger.error(`Error processing product main image: ${error}`)
   }

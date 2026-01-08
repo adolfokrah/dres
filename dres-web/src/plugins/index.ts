@@ -10,7 +10,6 @@ import { FixedToolbarFeature, HeadingFeature, lexicalEditor } from '@payloadcms/
 import { searchFields } from '@/search/fieldOverrides'
 import { beforeSyncWithSearch } from '@/search/beforeSync'
 import { uploadthingStorage } from '@payloadcms/storage-uploadthing'
-import { s3Storage } from '@payloadcms/storage-s3'
 
 import { Page, Post } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
@@ -91,7 +90,7 @@ export const plugins: Plugin[] = [
       },
     },
   }),
-  // Use S3 locally, UploadThing in production
+  // Use UploadThing in production only (local uses default file storage)
   ...(process.env.NODE_ENV === 'production'
     ? [
         uploadthingStorage({
@@ -101,19 +100,5 @@ export const plugins: Plugin[] = [
           },
         }),
       ]
-    : [
-        s3Storage({
-          collections: { media: true },
-          bucket: process.env.S3_BUCKET || '',
-          config: {
-            credentials: {
-              accessKeyId: process.env.S3_ACCESS_KEY_ID || '',
-              secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
-            },
-            region: process.env.S3_REGION,
-            endpoint: process.env.S3_ENDPOINT,
-            forcePathStyle: true, // Required for Supabase S3
-          },
-        }),
-      ]),
+    : []),
 ]
