@@ -128,7 +128,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
         attributeId: skuAttribute.id,
         attributeOptionId: firstOption.id,
         price: 0, // Will be set in detail page
-        stock: 1,
+        stock: 0, // Will be set in detail page
       ),
     );
   }

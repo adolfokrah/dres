@@ -221,15 +221,13 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
             setState(() => _isUpdating = true);
           }
 
-          // Handle update success - close screen and refetch drafts
+          // Handle update success - show success message and stay on screen
           if (state.status == StyleDetailsStatus.updateSuccess) {
             setState(() => _isUpdating = false);
             // Refetch drafts so it reflects the updated data
             getIt<SellBloc>().add(const SellRefreshRequested());
             // Show success message
             AppSnackbar.success(context, 'Style saved successfully');
-            // Close and go back
-            context.pop();
           }
 
           // Handle failure
@@ -376,6 +374,7 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
                                         VariationsStatus.creating;
                                     return _buildVariationsSection(
                                       isCreating: isCreating,
+                                      state: state,
                                     );
                                   },
                                 ),
@@ -395,10 +394,14 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
     );
   }
 
-  Widget _buildVariationsSection({required bool isCreating}) {
-    // Only allow adding variations if style has a title
-    final hasTitle = _titleController.text.trim().isNotEmpty;
-    final canAddVariation = hasTitle && !isCreating;
+  Widget _buildVariationsSection({
+    required bool isCreating, 
+    required StyleDetailsState state,
+  }) {
+    // Only allow adding variations if style title has been saved to backend
+    final hasSavedTitle = state.styleDetails?.title != null && 
+        state.styleDetails!.title!.trim().isNotEmpty;
+    final canAddVariation = hasSavedTitle && !isCreating;
     
     return Column(
       children: [

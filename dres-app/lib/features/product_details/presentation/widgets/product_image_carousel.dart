@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/utilities/media_utils.dart';
 import 'package:dres/features/product_details/data/models/product_details_model.dart';
+import 'package:dres/features/product_details/presentation/widgets/full_screen_image_viewer.dart';
 
 class ProductImageCarousel extends StatefulWidget {
   final List<ImageModel> images;
@@ -23,6 +24,14 @@ class _ProductImageCarouselState extends State<ProductImageCarousel> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _openFullScreenViewer(int index) {
+    FullScreenImageViewer.show(
+      context,
+      images: widget.images,
+      initialIndex: index,
+    );
   }
 
   @override
@@ -54,15 +63,18 @@ class _ProductImageCarouselState extends State<ProductImageCarousel> {
             itemCount: widget.images.length,
             itemBuilder: (context, index) {
               final image = widget.images[index];
-              return Container(
-                width: double.infinity,
-                height: 440,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: NetworkImage(
-                      MediaUtils.resolveUrl(image.url) ?? '',
+              return GestureDetector(
+                onTap: () => _openFullScreenViewer(index),
+                child: Container(
+                  width: double.infinity,
+                  height: 440,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: NetworkImage(
+                        MediaUtils.resolveUrl(image.url) ?? '',
+                      ),
+                      fit: BoxFit.contain,
                     ),
-                    fit: BoxFit.contain,
                   ),
                 ),
               );

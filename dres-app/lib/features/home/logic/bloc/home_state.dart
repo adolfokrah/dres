@@ -8,12 +8,14 @@ class HomeState extends Equatable {
   final PageModel? page;
   final String? errorMessage;
   final String? currentSlug;
+  final DateTime? lastRefresh; // Force rebuild on refresh
 
   const HomeState({
     this.status = HomeStatus.initial,
     this.page,
     this.errorMessage,
     this.currentSlug,
+    this.lastRefresh,
   });
 
   /// Initial state
@@ -28,6 +30,7 @@ class HomeState extends Equatable {
       page: page,
       errorMessage: null,
       currentSlug: currentSlug,
+      lastRefresh: lastRefresh,
     );
   }
 
@@ -38,6 +41,7 @@ class HomeState extends Equatable {
       page: page,
       errorMessage: null,
       currentSlug: slug ?? currentSlug,
+      lastRefresh: DateTime.now(), // Update timestamp to force rebuild
     );
   }
 
@@ -48,9 +52,10 @@ class HomeState extends Equatable {
       page: page,
       errorMessage: message,
       currentSlug: currentSlug,
+      lastRefresh: lastRefresh,
     );
   }
 
   @override
-  List<Object?> get props => [status, page, errorMessage, currentSlug];
+  List<Object?> get props => [status, page, errorMessage, currentSlug, lastRefresh];
 }

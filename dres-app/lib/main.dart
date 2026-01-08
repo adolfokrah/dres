@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:app_links/app_links.dart';
 import 'package:provider/provider.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 import 'package:dres/firebase_options.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/theme.dart';
@@ -226,38 +227,41 @@ class _MainAppState extends State<MainApp> {
           },
           child: Consumer<LocaleProvider>(
             builder: (context, localeProvider, child) {
-              return MaterialApp.router(
-                debugShowCheckedModeBanner: false,
-                title: 'DRES',
-                theme: AppTheme.theme,
-                
-                // Localization
-                localizationsDelegates: const [
-                  AppLocalizations.delegate,
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                  GlobalCupertinoLocalizations.delegate,
-                ],
-                supportedLocales: const [
-                  Locale('en'),
-                  Locale('fr'),
-                ],
-                locale: localeProvider.locale,
-                
-                // GoRouter
-                routerConfig: AppRoutes.router,
-                
-                // Wrap with SafeArea on Android
-                builder: (context, child) {
-                  if (Platform.isAndroid) {
-                    return SafeArea(
-                      top: false,
-                      bottom: true,
-                      child: child ?? const SizedBox.shrink(),
-                    );
-                  }
-                  return child ?? const SizedBox.shrink();
-                },
+              return GlobalLoaderOverlay(
+                overlayColor: Colors.black.withValues(alpha: 0.5),
+                child: MaterialApp.router(
+                  debugShowCheckedModeBanner: false,
+                  title: 'DRES',
+                  theme: AppTheme.theme,
+                  
+                  // Localization
+                  localizationsDelegates: const [
+                    AppLocalizations.delegate,
+                    GlobalMaterialLocalizations.delegate,
+                    GlobalWidgetsLocalizations.delegate,
+                    GlobalCupertinoLocalizations.delegate,
+                  ],
+                  supportedLocales: const [
+                    Locale('en'),
+                    Locale('fr'),
+                  ],
+                  locale: localeProvider.locale,
+                  
+                  // GoRouter
+                  routerConfig: AppRoutes.router,
+                  
+                  // Wrap with SafeArea on Android
+                  builder: (context, child) {
+                    if (Platform.isAndroid) {
+                      return SafeArea(
+                        top: false,
+                        bottom: true,
+                        child: child ?? const SizedBox.shrink(),
+                      );
+                    }
+                    return child ?? const SizedBox.shrink();
+                  },
+                ),
               );
             },
           ),
