@@ -4,6 +4,7 @@ import { anyone } from '../../access/anyone'
 import { authenticated } from '../../access/authenticated'
 import { generateVariationSlug } from './hooks/generateVariationSlug'
 import { processProductMainImage } from './hooks/processProductMainImage'
+import { deleteRemovedImages } from './hooks/deleteRemovedImages'
 import { trendingVariations } from './endpoints/trending'
 import { newArrivals } from './endpoints/newArrivals'
 import { featuredVariations } from './endpoints/featured'
@@ -92,7 +93,7 @@ export const Variations: CollectionConfig = {
     },
   ],
   hooks: {
-    beforeChange: [generateVariationSlug],
+    beforeChange: [generateVariationSlug, deleteRemovedImages],
     afterChange: [processProductMainImage],
   },
   fields: [

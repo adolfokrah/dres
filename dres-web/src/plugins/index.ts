@@ -90,8 +90,8 @@ export const plugins: Plugin[] = [
       },
     },
   }),
-  // Use UploadThing in production only (local uses default file storage)
-  ...(process.env.NODE_ENV === 'production'
+  // Use UploadThing in production or when FORCE_UPLOADTHING=true (local uses default file storage)
+  ...(process.env.NODE_ENV === 'production' || process.env.FORCE_UPLOADTHING === 'true'
     ? [
         uploadthingStorage({
           collections: { media: true },

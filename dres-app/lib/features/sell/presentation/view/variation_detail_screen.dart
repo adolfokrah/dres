@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/di/injection.dart';
@@ -79,6 +80,12 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
         categoryId: widget.categoryId,
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    Loader.hide();
+    super.dispose();
   }
 
   void _onAddAttribute() {
@@ -278,11 +285,27 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
           if (state.status == VariationDetailStatus.failure) {
             _waitingForSkuCreation = false;
             _waitingForUpdate = false;
+            Loader.hide();
             AppSnackbar.error(context, state.errorMessage ?? 'An error occurred');
           }
 
-          // When image is removed successfully, refresh variations list
+          // Show loading overlay when image is being removed
+          if (state.status == VariationDetailStatus.imageRemoving) {
+            Loader.show(
+              context,
+              progressIndicator: const CircularProgressIndicator(
+                color: AppColors.textPrimary,
+              ),
+              overlayColor: Colors.black54,
+            );
+          }
+
+          // When image is removed successfully, hide loader, clear image cache and refresh
           if (state.status == VariationDetailStatus.imageRemoveSuccess) {
+            Loader.hide();
+            // Clear image cache to prevent showing old cached images
+            imageCache.clear();
+            imageCache.clearLiveImages();
             getIt<VariationsBloc>().add(const VariationsRefreshRequested());
             getIt<SellBloc>().add(const SellRefreshRequested());
           }

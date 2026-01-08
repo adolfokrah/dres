@@ -1,30 +1,6 @@
 import type { CollectionAfterChangeHook } from 'payload'
 import { removeBackgroundFromBuffer, isRemoveBgConfigured } from '@/utilities/removeBackground'
 import sharp from 'sharp'
-import { UTApi } from 'uploadthing/server'
-import path from 'path'
-import fs from 'fs/promises'
-
-// Image size configurations matching Payload's Media collection
-const IMAGE_SIZES = [
-  { name: 'thumbnail', width: 300 },
-  { name: 'square', width: 500, height: 500 },
-  { name: 'small', width: 600 },
-  { name: 'medium', width: 900 },
-  { name: 'large', width: 1400 },
-  { name: 'xlarge', width: 1920 },
-  { name: 'og', width: 1200, height: 630, crop: true },
-] as const
-
-// Check if we're using UploadThing (production) or local storage
-const isUsingUploadThing = () => process.env.NODE_ENV === 'production' && !!process.env.UPLOADTHING_TOKEN
-
-// Initialize UploadThing API client
-const getUploadThingClient = () => {
-  return new UTApi({
-    token: process.env.UPLOADTHING_TOKEN,
-  })
-}
 
 interface MediaDoc {
   id: string
@@ -35,7 +11,7 @@ interface MediaDoc {
 }
 
 /**
- * Download image buffer from URL (works with UploadThing URLs)
+ * Download image buffer from URL
  */
 async function downloadImageFromUrl(url: string): Promise<Buffer> {
   const response = await fetch(url)
@@ -47,59 +23,8 @@ async function downloadImageFromUrl(url: string): Promise<Buffer> {
 }
 
 /**
- * Read image from local file system
- */
-async function readImageFromLocal(filename: string): Promise<Buffer> {
-  const mediaDir = path.resolve(process.cwd(), 'media')
-  const filePath = path.join(mediaDir, filename)
-  return await fs.readFile(filePath)
-}
-
-/**
- * Write image to local file system
- */
-async function writeImageToLocal(filename: string, buffer: Buffer): Promise<boolean> {
-  try {
-    const mediaDir = path.resolve(process.cwd(), 'media')
-    const filePath = path.join(mediaDir, filename)
-    await fs.writeFile(filePath, new Uint8Array(buffer))
-    return true
-  } catch (error) {
-    console.error('Local file write error:', error)
-    return false
-  }
-}
-
-/**
- * Upload image to UploadThing and return the new URL
- */
-async function uploadToUploadThing(
-  utapi: UTApi, 
-  buffer: Buffer, 
-  filename: string, 
-  contentType: string
-): Promise<string | null> {
-  try {
-    // Convert Buffer to Uint8Array for File constructor
-    const uint8Array = new Uint8Array(buffer)
-    const blob = new Blob([uint8Array], { type: contentType })
-    const file = new File([blob], filename, { type: contentType })
-    const response = await utapi.uploadFiles([file])
-    
-    if (response[0]?.data?.ufsUrl) {
-      return response[0].data.ufsUrl
-    }
-    return null
-  } catch (error) {
-    console.error('UploadThing upload error:', error)
-    return null
-  }
-}
-
-/**
  * Hook to process the first product image and remove its background
- * This ensures the main product image (images[0]) has a clean white background
- * Works with both UploadThing (production) and local file storage (development)
+ * Uses Payload's local API to update the media document with the processed image
  */
 export const processProductMainImage: CollectionAfterChangeHook = async ({
   doc,
@@ -119,21 +44,21 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
 
   // Get the first image ID
   const firstImageId = typeof doc.images[0] === 'object' ? doc.images[0].id : doc.images[0]
-  
-  // Check if the first image changed
-  const previousFirstImageId = previousDoc?.images?.[0]
-    ? typeof previousDoc.images[0] === 'object' 
+
+  // On update, check if first image actually changed
+  if (operation === 'update' && previousDoc?.images?.length > 0) {
+    const previousFirstImageId = typeof previousDoc.images[0] === 'object' 
       ? previousDoc.images[0].id 
       : previousDoc.images[0]
-    : null
-
-  // Skip if first image hasn't changed (unless it's a new product)
-  // if (operation === 'update' && firstImageId === previousFirstImageId) {
-  //   return doc
-  // }
+    
+    // Skip if first image hasn't changed (e.g., just removing other images)
+    if (firstImageId === previousFirstImageId) {
+      return doc
+    }
+  }
 
   try {
-    // Fetch the first image media document
+    // 1. Fetch the first image media document to get its ID and details
     const mediaDoc = await req.payload.findByID({
       collection: 'media',
       id: firstImageId,
@@ -155,44 +80,40 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
       return doc
     }
 
-    req.payload.logger.info(`Processing background removal for product ${doc.id} main image: ${mediaDoc.filename}`)
+    req.payload.logger.info(`Processing background removal for media ${mediaDoc.id}: ${mediaDoc.filename}`)
 
-    const useUploadThing = isUsingUploadThing()
+    // Download the image from server
     let imageBuffer: Buffer
-    
-    // Download the image
     try {
-      if (useUploadThing && mediaDoc.url) {
-        // Download from UploadThing URL
-        req.payload.logger.info(`Downloading image from UploadThing: ${mediaDoc.url}`)
-        imageBuffer = await downloadImageFromUrl(mediaDoc.url)
-      } else {
-        // Read from local file system
-        req.payload.logger.info(`Reading image from local storage: ${mediaDoc.filename}`)
-        imageBuffer = await readImageFromLocal(mediaDoc.filename)
-      }
+      // Always download from server URL
+      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://dres.app'
+      const imageUrl = mediaDoc.url?.startsWith('http') 
+        ? mediaDoc.url 
+        : `${serverUrl}/api/media/file/${mediaDoc.filename}`
+      
+      req.payload.logger.info(`Downloading image from: ${imageUrl}`)
+      imageBuffer = await downloadImageFromUrl(imageUrl)
     } catch (error) {
-      req.payload.logger.error(`Failed to download/read image: ${error}`)
+      req.payload.logger.error(`Failed to download image: ${error}`)
       return doc
     }
 
-    // Remove background and keep it transparent
+    // 2. Remove background
     const result = await removeBackgroundFromBuffer(imageBuffer, {
       format: 'png',
     })
 
     if (!result.success || !result.buffer) {
-      req.payload.logger.error(`Failed to remove background for product ${doc.id}: ${result.error}`)
+      req.payload.logger.error(`Failed to remove background: ${result.error}`)
       return doc
     }
 
     // Get original file extension and determine format
     const originalExtension = mediaDoc.filename.split('.').pop()?.toLowerCase() || 'jpg'
     const isPng = originalExtension === 'png'
-    const contentType = isPng ? 'image/png' : 'image/jpeg'
+    const mimeType = isPng ? 'image/png' : 'image/jpeg'
     
     // Convert processed image to original format
-    // For non-PNG, flatten transparency to white background
     let processedBuffer: Buffer
     if (isPng) {
       processedBuffer = result.buffer
@@ -203,91 +124,25 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
         .jpeg({ quality: 90 })
         .toBuffer()
     }
-    
-    // Upload processed main image
-    let newUrl: string | undefined
-    
-    if (useUploadThing) {
-      // Upload to UploadThing
-      const utapi = getUploadThingClient()
-      req.payload.logger.info(`Uploading processed image to UploadThing: ${mediaDoc.filename}`)
-      
-      const uploadedUrl = await uploadToUploadThing(utapi, processedBuffer, mediaDoc.filename, contentType)
-      if (!uploadedUrl) {
-        req.payload.logger.error(`Failed to upload processed image to UploadThing`)
-        return doc
-      }
-      newUrl = uploadedUrl
-      req.payload.logger.info(`Uploaded processed image to UploadThing: ${uploadedUrl}`)
-    } else {
-      // Write to local file system
-      const success = await writeImageToLocal(mediaDoc.filename, processedBuffer)
-      if (!success) {
-        req.payload.logger.error(`Failed to write processed image to local storage`)
-        return doc
-      }
-      req.payload.logger.info(`Saved processed image locally: ${mediaDoc.filename}`)
 
-      // Generate and save all resized versions locally
-      try {
-        const metadata = await sharp(result.buffer).metadata()
-        const originalWidth = metadata.width || 1920
-        const originalHeight = metadata.height || 1080
-        const baseFilename = mediaDoc.filename.replace(/\.[^/.]+$/, '')
+    // 3. Use Payload local API to update the media document with the processed image
+    req.payload.logger.info(`Updating media ${mediaDoc.id} with processed image...`)
 
-        for (const size of IMAGE_SIZES) {
-          try {
-            let resizedBuffer: Buffer
-            const sizeHeight = 'height' in size ? size.height : undefined
-            const sizeFilename = `${baseFilename}-${size.width}x${sizeHeight || Math.round((originalHeight / originalWidth) * size.width)}.${originalExtension}`
-
-            let sharpInstance = sharp(result.buffer)
-            
-            if (sizeHeight && 'crop' in size && size.crop) {
-              sharpInstance = sharpInstance.resize(size.width, sizeHeight, { fit: 'cover', position: 'center' })
-            } else if (sizeHeight) {
-              sharpInstance = sharpInstance.resize(size.width, sizeHeight, { fit: 'cover', position: 'center' })
-            } else {
-              sharpInstance = sharpInstance.resize(size.width, null, { withoutEnlargement: true })
-            }
-
-            if (isPng) {
-              resizedBuffer = await sharpInstance.png({ compressionLevel: 8 }).toBuffer()
-            } else {
-              // Flatten transparency to white for JPEG
-              resizedBuffer = await sharpInstance
-                .flatten({ background: { r: 255, g: 255, b: 255 } })
-                .jpeg({ quality: 85 })
-                .toBuffer()
-            }
-
-            await writeImageToLocal(sizeFilename, resizedBuffer)
-            req.payload.logger.info(`Saved resized image locally: ${sizeFilename}`)
-          } catch (sizeError) {
-            req.payload.logger.error(`Failed to generate ${size.name} size: ${sizeError}`)
-          }
-        }
-      } catch (error) {
-        req.payload.logger.error(`Failed to generate resized images: ${error}`)
-      }
-    }
-
-    // Mark the media as processed and update URL if using UploadThing
-    const updateData: Record<string, unknown> = {
-      backgroundRemoved: true,
-    }
-    
-    if (newUrl) {
-      updateData.url = newUrl
-    }
-    
     await req.payload.update({
       collection: 'media',
       id: mediaDoc.id,
-      data: updateData,
+      data: {
+        backgroundRemoved: true,
+      },
+      file: {
+        data: processedBuffer,
+        name: mediaDoc.filename,
+        mimetype: mimeType,
+        size: processedBuffer.length,
+      },
     })
 
-    req.payload.logger.info(`Background removed for product ${doc.id} main image: ${mediaDoc.filename}`)
+    req.payload.logger.info(`Background removed for media ${mediaDoc.id}`)
   } catch (error) {
     req.payload.logger.error(`Error processing product main image: ${error}`)
   }
