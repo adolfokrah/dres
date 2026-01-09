@@ -15,6 +15,9 @@ export const reduceStockOnOrder: CollectionAfterChangeHook = async ({
   req,
   operation,
 }) => {
+  // Skip if context indicates we should skip hooks
+  if (req.context?.skipHooks) return doc
+  
   // Only trigger when order is created (cart converted to order)
   if (operation !== 'create') return doc
 

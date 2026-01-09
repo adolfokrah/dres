@@ -27,11 +27,23 @@ export const SiteSettings: GlobalConfig = {
       label: 'Buyer Protection Fee Rate (%)',
       type: 'number',
       required: true,
-      defaultValue: 8,
+      defaultValue: 10,
       min: 0,
       max: 100,
       admin: {
-        description: 'The buyer protection fee as a percentage of the item price (e.g., 8 for 8%)',
+        description: 'The buyer protection fee as a percentage of item price only (not shipping). e.g., 10 for 10%',
+      },
+    },
+    {
+      name: 'refundTransactionFeeRate',
+      label: 'Refund Transaction Fee Rate (%)',
+      type: 'number',
+      required: true,
+      defaultValue: 3,
+      min: 0,
+      max: 100,
+      admin: {
+        description: 'Fee deducted from refunds when customer has no buyer protection (e.g., 3 for 3%)',
       },
     },
     {
@@ -99,6 +111,6 @@ export const SiteSettings: GlobalConfig = {
           },
         },
       ],
-    },
+    }
   ],
 }

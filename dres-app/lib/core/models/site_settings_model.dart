@@ -22,7 +22,7 @@ class SiteSettingsModel {
   factory SiteSettingsModel.fromJson(Map<String, dynamic> json) {
     return SiteSettingsModel(
       commissionRate: (json['commissionRate'] ?? 10).toDouble(),
-      buyerProtectionFeeRate: (json['buyerProtectionFeeRate'] ?? 8).toDouble(),
+      buyerProtectionFeeRate: (json['buyerProtectionFeeRate'] ?? 10).toDouble(),
     );
   }
 
@@ -30,7 +30,7 @@ class SiteSettingsModel {
   factory SiteSettingsModel.defaults() {
     return SiteSettingsModel(
       commissionRate: 10,
-      buyerProtectionFeeRate: 8,
+      buyerProtectionFeeRate: 10,
     );
   }
 

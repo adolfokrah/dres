@@ -1,8 +1,6 @@
 import { PayloadHandler } from 'payload'
 import { enrichCartItems } from './enrichCartItems'
 
-// Default buyer protection fee in GHS when shipping is 0 or not available
-const DEFAULT_BUYER_PROTECTION_FEE_GHS = 50
 // Default shipping rate in GHS (fallback if not set in site settings)
 const DEFAULT_SHIPPING_RATE_GHS = 30
 
@@ -151,9 +149,6 @@ export const updateShipping: PayloadHandler = async (req) => {
     
     // Convert default shipping rate from GHS to user's currency
     const defaultShippingFee = defaultShippingRateGHS / exchangeRateToGHS
-    
-    // Convert default buyer protection fee from GHS to user's currency
-    const defaultBuyerProtectionFee = DEFAULT_BUYER_PROTECTION_FEE_GHS / exchangeRateToGHS
 
     // Get unique seller IDs from cart items
     const sellerIds = new Set<string>()
@@ -257,17 +252,11 @@ export const updateShipping: PayloadHandler = async (req) => {
         sellersWithShippingApplied.add(sellerId)
       }
 
-      // Calculate buyer protection fee:
-      // - If shipping fee exists: 80% of shipping fee
-      // - If no shipping or shipping is 0: default 50 GHS (converted to user's currency)
+      // Calculate buyer protection fee: 10% of item total (price × quantity)
       let buyerProtectionFee = 0
       if (item.buyerProtection) {
-        if (shippingFee > 0) {
-          buyerProtectionFee = shippingFee * 0.8
-        } else {
-          // Use default buyer protection fee (50 GHS converted to user's currency)
-          buyerProtectionFee = defaultBuyerProtectionFee
-        }
+        const itemTotal = (item.price || 0) * (item.quantity || 1)
+        buyerProtectionFee = Math.round(itemTotal * 0.10 * 100) / 100
       }
 
       return {

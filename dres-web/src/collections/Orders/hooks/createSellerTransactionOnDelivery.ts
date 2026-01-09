@@ -28,6 +28,9 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
   req,
   operation,
 }) => {
+  // Skip if context indicates we should skip hooks
+  if (req.context?.skipHooks) return doc
+  
   // Only process on update
   if (operation !== 'update') return doc
 
@@ -70,20 +73,17 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
           if (existingTransaction.docs.length > 0) {
             const tx = existingTransaction.docs[0]
             await payload.update({
-              collection: 'transactions',
-              id: tx.id,
-              data: {
-                status: 'cancelled',
-              },
-            })
-
-            payload.logger.info(
-              `Order payment transaction ${tx.id} cancelled - item "${currentItem.variationTitle}" return in progress. Will be recreated when all items reach final status.`,
-            )
+                collection: 'transactions',
+                id: tx.id,
+                data: {
+                  status: 'cancelled',
+                },
+              })
           }
         }
       }
     }
+
 
     // Group items by seller
     const itemsBySeller = new Map<string, OrderItem[]>()
@@ -137,8 +137,9 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
         where: {
           and: [
             { order: { equals: doc.id } },
-            { type: { equals: 'transfer' } },
+            { type: { equals: 'order_payment' } },
             { user: { equals: sellerId } },
+            { status: { not_equals: 'completed' } },
           ],
         },
         limit: 1,
@@ -197,37 +198,35 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
       // Note: Paystack transfer fee (1 cedi) only applies when we do actual 'transfer' payouts
       // For order_payment, we don't charge paystack fees yet
 
-      // Create ONE bulk transaction for this seller (order_payment type)
       await payload.create({
-        collection: 'transactions',
-        data: {
-          transactionId: generateTransactionId(),
-          type: 'order_payment',
-          status: 'completed',
-          user: sellerId,
-          order: doc.id,
-          itemId: itemIds.join(','), // Store all item IDs
-          amount: Math.round(sellerPayout * 100) / 100,
-          fees: platformFees > 0 ? Math.round(platformFees * 100) / 100 : 0,
-          paystackFees: 0, // Paystack fee only applies to 'transfer' type
-          commissionFees: platformFees > 0 ? Math.round(platformFees * 100) / 100 : 0,
-          billingDetails: {
-            accountName:
-              withdrawalAccount?.accountName ||
-              seller?.shopName ||
-              `${seller?.firstName || ''} ${seller?.lastName || ''}`.trim() ||
-              '',
-            accountNumber: withdrawalAccount?.accountNumber || '',
-            bank: withdrawalAccount?.bank || '',
+          collection: 'transactions',
+          data: {
+            transactionId: generateTransactionId(),
+            type: 'order_payment',
+            status: 'completed',
+            user: sellerId,
+            order: doc.id,
+            itemId: itemIds.join(','), // Store all item IDs
+            amount: Math.round(sellerPayout * 100) / 100,
+            fees: platformFees > 0 ? Math.round(platformFees * 100) / 100 : 0,
+            paystackFees: 0, // Paystack fee only applies to 'transfer' type
+            commissionFees: platformFees > 0 ? Math.round(platformFees * 100) / 100 : 0,
+            billingDetails: {
+              accountName:
+                withdrawalAccount?.accountName ||
+                seller?.shopName ||
+                `${seller?.firstName || ''} ${seller?.lastName || ''}`.trim() ||
+                '',
+              accountNumber: withdrawalAccount?.accountNumber || '',
+              bank: withdrawalAccount?.bank || '',
+            },
+            notes: `Bulk seller payout for ${deliveredItems.length} item(s): ${variationTitles.join(', ')}. Products: ${totalOriginalPrice}, Shipping: ${shippingFee}, Total: ${sellerPayout}`,
           },
-          notes: `Bulk seller payout for ${deliveredItems.length} item(s): ${variationTitles.join(', ')}. Products: ${totalOriginalPrice}, Shipping: ${shippingFee}, Total: ${sellerPayout}`,
-        },
-      })
+        })
 
-      payload.logger.info(
-        `Created BULK order_payment transaction for ${deliveredItems.length} delivered items. Seller: ${seller?.shopName || sellerId}, Payout: ${sellerPayout} (Products: ${totalOriginalPrice}, Shipping: ${shippingFee}), Fees: ${platformFees}`,
-      )
+      
     }
+
   } catch (error) {
     payload.logger.error(`Error creating seller transaction: ${error}`)
   }

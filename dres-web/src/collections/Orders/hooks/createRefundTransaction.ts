@@ -20,184 +20,195 @@ interface OrderItem {
   returnImage?: string | { id: string } | null
 }
 
+       
+
 export const createRefundTransaction: CollectionAfterChangeHook = async ({
   doc,
   previousDoc,
   req,
   operation,
 }) => {
+  // Skip if context indicates we should skip hooks
+  if (req.context?.skipHooks) return doc
+  
   // Only process on update
   if (operation !== 'update') return doc
 
   const payload = req.payload
 
+  payload.logger.info(`[Refund] Processing order ${doc.id} - checking for refundable items`)
+
   try {
-    // Fetch the full order with relationships populated
-    const fullOrder = await payload.findByID({
-      collection: 'orders',
-      id: doc.id,
-      depth: 1,
-    })
-    
-    const currentItems = (fullOrder.items || []) as OrderItem[]
+    const currentItems = (doc.items || []) as OrderItem[]
     const previousItems = (previousDoc?.items || []) as OrderItem[]
 
-    // Find items that changed to 'returned' or 'not_available'
-    for (let i = 0; i < currentItems.length; i++) {
-      const currentItem = currentItems[i]
-      const previousItem = previousItems[i]
-
-      // Get item ID for tracking
-      const itemId = currentItem.id || `${doc.id}-${i}`
-
-      const isNowRefundable =
-        currentItem.shippingStatus === 'returned' || currentItem.shippingStatus === 'not_available'
-      const wasRefundable =
-        previousItem?.shippingStatus === 'returned' || previousItem?.shippingStatus === 'not_available'
-
-      // Check if this item just changed to 'returned' or 'not_available' - create refund transaction for customer
+    // Find items that just changed to refundable status and calculate their totals
+    const itemsToRefund = currentItems.reduce<Array<{
+      item: OrderItem
+      itemId: string
+      itemTotal: number
+    }>>((acc, currentItem, i) => {
+      const previousItem = previousItems.find(p => p.id === currentItem.id) || previousItems[i]
+      const currentStatus = currentItem.shippingStatus
+      const previousStatus = previousItem?.shippingStatus
+      
+      const isNowRefundable = currentStatus === 'returned' || currentStatus === 'not_available'
+      const wasRefundable = previousStatus === 'returned' || previousStatus === 'not_available'
+      
       if (isNowRefundable && !wasRefundable) {
-        // Refund total = selling price (price × qty)
-        // If buyer protection is enabled, also refund shipping fee + buyer protection fee
-        const sellingPriceTotal = currentItem.price * currentItem.quantity
-        const hasBuyerProtection = currentItem.buyerProtection === true
-        const shippingFee = hasBuyerProtection ? (currentItem.shippingFee || 0) : 0
-        const buyerProtectionFee = hasBuyerProtection ? (currentItem.buyerProtectionFee || 0) : 0
-        const refundTotal = sellingPriceTotal + shippingFee 
-
-        // Check if a refund transaction already exists for this order item
-        const existingRefund = await payload.find({
-          collection: 'transactions',
-          where: {
-            and: [
-              { order: { equals: doc.id } },
-              { type: { equals: 'refund' } },
-              { itemId: { equals: itemId } },
-            ],
-          },
-          limit: 1,
+        acc.push({
+          item: currentItem,
+          itemId: currentItem.id || `${doc.id}-${i}`,
+          itemTotal: currentItem.price * currentItem.quantity,
         })
+      }
+      return acc
+    }, [])
 
-        // Skip if refund already exists
-        if (existingRefund.docs.length > 0) {
-          payload.logger.info(
-            `Refund transaction already exists for ${currentItem.variationTitle} - skipping`,
-          )
-          continue
-        }
+    // Exit early if no items to refund
+    if (itemsToRefund.length === 0) {
+      payload.logger.info(`[Refund] No items to refund for order ${doc.id}`)
+      return doc
+    }
 
-        // Get the customer ID from the order
-        const customerId = typeof doc.customer === 'object' ? doc.customer.id : doc.customer
+    payload.logger.info(`[Refund] Found ${itemsToRefund.length} items to refund`)
 
-        // Find the customer's deposit transaction to get billing details
-        const depositTransaction = await payload.find({
-          collection: 'transactions',
-          where: {
-            and: [
-              { order: { equals: doc.id } },
-              { type: { equals: 'deposit' } },
-              { user: { equals: customerId } },
-            ],
+    // Get site settings for refund transaction fee rate
+    let refundTransactionFeeRate = 0.05 // Default 5%
+    try {
+      const siteSettings = await payload.findGlobal({ slug: 'site-settings' })
+      if (siteSettings?.refundTransactionFeeRate) {
+        refundTransactionFeeRate = (siteSettings.refundTransactionFeeRate as number) / 100
+      }
+    } catch {
+      payload.logger.warn('[Refund] Could not fetch site settings, using default 3% fee')
+    }
+
+    // Get customer and deposit info (only once, outside the loop)
+    const customerId = typeof doc.customer === 'object' ? doc.customer.id : doc.customer
+    
+    const depositTransaction = await payload.find({
+      collection: 'transactions',
+      where: {
+        and: [
+          { order: { equals: doc.id } },
+          { type: { equals: 'deposit' } },
+          { user: { equals: customerId } },
+        ],
+      },
+      limit: 1,
+    })
+    const deposit = depositTransaction.docs[0]
+    
+    const billingDetails = (deposit?.billingDetails || {}) as {
+      accountName?: string
+      accountNumber?: string
+      bank?: string
+    }
+
+    // Create refund for each item
+    for (const { item, itemId, itemTotal } of itemsToRefund) {
+      // Check if refund already exists
+      const existingRefund = await payload.find({
+        collection: 'transactions',
+        where: {
+          and: [
+            { order: { equals: doc.id } },
+            { type: { equals: 'refund' } },
+            { itemId: { equals: itemId } },
+          ],
+        },
+        limit: 1,
+      })
+
+      if (existingRefund.docs.length > 0) {
+        payload.logger.info(`[Refund] Already exists for ${item.variationTitle} - skipping`)
+        continue
+      }
+
+      const hasBuyerProtection = item.buyerProtection === true
+      const shippingFee = item.shippingFee || 0
+      const transferFee = 1 // Paystack transfer fee is 1 cedi flat
+
+      let refundAmount: number
+      let refundNotes: string
+
+      if (hasBuyerProtection) {
+        // WITH BUYER PROTECTION: Full item price + shipping
+        refundAmount = itemTotal + shippingFee
+        refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Full refund (BP): Item ${itemTotal} + Shipping ${shippingFee} = ${refundAmount}`
+      } else {
+        // NO BUYER PROTECTION: Item price - transaction fee % - transfer fee
+        const feePercent = refundTransactionFeeRate * 100
+        const transactionFee = (itemTotal * refundTransactionFeeRate) + transferFee
+        refundAmount = Math.round((itemTotal - transactionFee) * 100) / 100
+        refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Item: ${itemTotal} - Fee (${feePercent}% + 1): ${transactionFee.toFixed(2)} = ${refundAmount}`
+      }
+
+      payload.logger.info(`[Refund] ${item.variationTitle}: ${hasBuyerProtection ? 'BP' : 'No BP'} - Refund: ${refundAmount}`)
+
+      // Create refund transaction for customer
+      await payload.create({
+        collection: 'transactions',
+        data: {
+          transactionId: generateTransactionId(),
+          type: 'refund',
+          status: 'pending',
+          user: customerId,
+          order: doc.id,
+          itemId: itemId,
+          amount: refundAmount,
+          fees: hasBuyerProtection ? 0 : (itemTotal * refundTransactionFeeRate) + transferFee,
+          paystackFees: transferFee,
+          billingDetails: {
+            accountName: billingDetails.accountName || '',
+            accountNumber: billingDetails.accountNumber || '',
+            bank: billingDetails.bank || '',
           },
-          limit: 1,
-        })
+          notes: refundNotes,
+        },
+      })
 
-        // Get billing details from the deposit transaction
-        const depositBillingDetails = depositTransaction.docs[0]?.billingDetails as
-          | {
-              accountName?: string
-              accountNumber?: string
-              bank?: string
-            }
-          | undefined
-
-        // Build refund notes
-        const refundNotes = hasBuyerProtection
-          ? `Refund for returned item "${currentItem.variationTitle}" (Qty: ${currentItem.quantity}). Product: ${sellingPriceTotal}, Shipping: ${shippingFee}. Total refund: ${refundTotal}`
-          : `Refund for returned item "${currentItem.variationTitle}" (Qty: ${currentItem.quantity}). Product only: ${sellingPriceTotal} (No buyer protection - shipping not refunded)`
-
-        // Create refund transaction for customer
-        await payload.create({
-          collection: 'transactions',
-          data: {
-            transactionId: generateTransactionId(),
-            type: 'refund',
-            status: 'pending',
-            user: customerId,
-            order: doc.id,
-            itemId: itemId,
-            amount: refundTotal,
-            billingDetails: {
-              accountName: depositBillingDetails?.accountName || '',
-              accountNumber: depositBillingDetails?.accountNumber || '',
-              bank: depositBillingDetails?.bank || '',
-            },
-            notes: refundNotes,
-          },
-        })
-
-        payload.logger.info(
-          `Created refund transaction for returned item: ${currentItem.variationTitle} - Amount: ${refundTotal} (Product: ${sellingPriceTotal}${hasBuyerProtection ? `, Shipping: ${shippingFee}, Protection: ${buyerProtectionFee}` : ' - No buyer protection'})`,
-        )
-
-        // TODO: Implement seller ban pattern for frequent returns instead of charging
-        // For now, we're not charging sellers for returned items
-        // We'll track return patterns and ban sellers who have too many returns
+      // Always pay seller the shipping fee (service was rendered)
+      if (shippingFee > 0) {
+        const sellerId = typeof item.seller === 'object' ? item.seller?.id : item.seller
         
-        /* COMMENTED OUT - Return charge logic disabled for now
-        // Create return charge transaction for seller (negative amount = platform's 10% fee)
-        const sellerData = currentItem.seller
-        payload.logger.info(`Seller data type: ${typeof sellerData}, value: ${JSON.stringify(sellerData)}`)
-        
-        const sellerId = typeof sellerData === 'object' && sellerData !== null ? (sellerData as any).id : sellerData
-        const originalPrice = currentItem.originalPrice ?? currentItem.price
-        const platformFee = Math.round(((currentItem.price * currentItem.quantity) - (originalPrice * currentItem.quantity)) * 100) / 100 // Round to 2 decimal places
-        
-        payload.logger.info(
-          `Return charge check - Seller ID: ${sellerId}, Platform Fee: ${platformFee}, Price: ${currentItem.price}, OriginalPrice: ${originalPrice}, Qty: ${currentItem.quantity}`,
-        )
-
-        // Check if a return charge transaction already exists for this seller/item
-        const existingReturnCharge = await payload.find({
-          collection: 'transactions',
-          where: {
-            and: [
-              { order: { equals: doc.id } },
-              { type: { equals: 'return_charge' } },
-              { itemId: { equals: itemId } },
-            ],
-          },
-          limit: 1,
-        })
-
-        // Create return charge if it doesn't exist and there's a fee to charge
-        if (existingReturnCharge.docs.length === 0 && sellerId && platformFee > 0) {
-          await payload.create({
+        if (sellerId) {
+          // Check if shipping payment already exists for this item
+          const existingShippingPayment = await payload.find({
             collection: 'transactions',
-            data: {
-              transactionId: generateTransactionId(),
-              type: 'return_charge',
-              status: 'completed',
-              user: sellerId,
-              order: doc.id,
-              itemId: itemId,
-              amount: -platformFee, // Negative amount - seller owes this to platform
-              fees: platformFee,
-              notes: `Return charge for "${currentItem.variationTitle}" (Qty: ${currentItem.quantity}). Platform fee: ${platformFee}`,
+            where: {
+              and: [
+                { order: { equals: doc.id } },
+                { type: { equals: 'shipping_payment' } },
+                { itemId: { equals: itemId } },
+              ],
             },
+            limit: 1,
           })
 
-          payload.logger.info(
-            `Created return charge transaction for seller: ${sellerId} - Fee: ${platformFee}`,
-          )
-        } else if (existingReturnCharge.docs.length > 0) {
-          payload.logger.info(
-            `Return charge already exists for ${currentItem.variationTitle} - skipping`,
-          )
+          if (existingShippingPayment.docs.length === 0) {
+            await payload.create({
+              collection: 'transactions',
+              data: {
+                transactionId: generateTransactionId(),
+                type: 'shipping_payment',
+                status: 'pending',
+                user: sellerId,
+                order: doc.id,
+                itemId: itemId,
+                amount: shippingFee,
+                fees: transferFee,
+                paystackFees: transferFee,
+                notes: `Shipping fee for returned item "${item.variationTitle}" (Qty: ${item.quantity})`,
+              },
+            })
+            payload.logger.info(`[Refund] Created shipping payment for seller: ${shippingFee}`)
+          }
         }
-        */
       }
     }
+
   } catch (error) {
     payload.logger.error(`Error creating refund transaction: ${error}`)
   }

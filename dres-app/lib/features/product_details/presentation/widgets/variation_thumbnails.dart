@@ -39,7 +39,7 @@ class VariationThumbnails extends StatelessWidget {
                   image: NetworkImage(
                     MediaUtils.resolveUrl(currentVariation.thumbnail) ?? '',
                   ),
-                  fit: BoxFit.cover,
+                  fit: BoxFit.contain,
                 ),
               ),
             );

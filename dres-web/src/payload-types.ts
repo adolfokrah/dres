@@ -1047,6 +1047,10 @@ export interface Order {
     totalTransactionFees?: number | null;
     totalPaystackFees?: number | null;
     totalBuyerProtectionFees?: number | null;
+    /**
+     * Shipping + transfer fees paid from BP on refunds
+     */
+    buyerProtectionCosts?: number | null;
     discountAmount?: number | null;
     pointsDiscount?: number | null;
     totalCommission?: number | null;
@@ -1530,7 +1534,7 @@ export interface Transaction {
   /**
    * Type of transaction
    */
-  type: 'order_payment' | 'transfer' | 'deposit' | 'refund' | 'return_charge';
+  type: 'order_payment' | 'transfer' | 'deposit' | 'refund' | 'return_charge' | 'shipping_payment';
   /**
    * Transaction status
    */
@@ -3565,6 +3569,7 @@ export interface OrdersSelect<T extends boolean = true> {
         totalTransactionFees?: T;
         totalPaystackFees?: T;
         totalBuyerProtectionFees?: T;
+        buyerProtectionCosts?: T;
         discountAmount?: T;
         pointsDiscount?: T;
         totalCommission?: T;
@@ -4176,9 +4181,13 @@ export interface SiteSetting {
    */
   commissionRate: number;
   /**
-   * The buyer protection fee as a percentage of the item price (e.g., 8 for 8%)
+   * The buyer protection fee as a percentage of item price only (not shipping). e.g., 10 for 10%
    */
   buyerProtectionFeeRate: number;
+  /**
+   * Fee deducted from refunds when customer has no buyer protection (e.g., 3 for 3%)
+   */
+  refundTransactionFeeRate: number;
   /**
    * Default shipping fee in GHS when seller has not set up shipping rates
    */
@@ -4255,6 +4264,7 @@ export interface FooterSelect<T extends boolean = true> {
 export interface SiteSettingsSelect<T extends boolean = true> {
   commissionRate?: T;
   buyerProtectionFeeRate?: T;
+  refundTransactionFeeRate?: T;
   defaultShippingRate?: T;
   pointsEarningRate?: T;
   pointsRedemptionRate?: T;

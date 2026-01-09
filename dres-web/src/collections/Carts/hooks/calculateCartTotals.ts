@@ -99,10 +99,11 @@ export const calculateCartTotals: CollectionBeforeChangeHook = async ({
         }
       }
 
-      // Calculate buyer protection fees
+      // Calculate buyer protection fees: 10% of item total (price × quantity)
       for (const item of data.items as CartItem[]) {
-        if (item.buyerProtection && item.shippingFee) {
-          item.buyerProtectionFee = Math.round(item.shippingFee * 0.8 * 100) / 100
+        if (item.buyerProtection) {
+          const itemTotal = (item.price || 0) * (item.quantity || 1)
+          item.buyerProtectionFee = Math.round(itemTotal * 0.10 * 100) / 100
         } else {
           item.buyerProtectionFee = 0
         }
@@ -255,8 +256,10 @@ export const calculateCartTotals: CollectionBeforeChangeHook = async ({
     const item = data.items[i] as CartItem
     const originalItem = originalItems[i]
 
-    const expectedFee = item.buyerProtection && item.shippingFee
-      ? Math.round(item.shippingFee * 0.8 * 100) / 100
+    // Buyer protection = 10% of item total (price × quantity)
+    const itemTotal = (item.price || 0) * (item.quantity || 1)
+    const expectedFee = item.buyerProtection
+      ? Math.round(itemTotal * 0.10 * 100) / 100
       : 0
 
     const currentFee = originalItem?.buyerProtectionFee ?? 0

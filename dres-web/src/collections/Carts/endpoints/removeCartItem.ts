@@ -117,10 +117,7 @@ export const removeCartItem: PayloadHandler = async (req) => {
           if (itemSellerId === removedSellerId) {
             // Transfer the shipping fee to this item
             (item as CartItem).shippingFee = removedItemShippingFee
-            // Recalculate buyer protection if enabled
-            if ((item as CartItem).buyerProtection) {
-              (item as CartItem).buyerProtectionFee = removedItemShippingFee * 0.8
-            }
+            // Buyer protection fee stays the same - it's based on item price, not shipping
             break
           }
         }

@@ -14,7 +14,7 @@ export const getSiteSettings: PayloadHandler = async (req) => {
     // Return default settings if not found
     return Response.json({
       commissionRate: 10,
-      buyerProtectionFeeRate: 8,
+      buyerProtectionFeeRate: 10,
     })
   }
 }

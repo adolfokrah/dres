@@ -132,10 +132,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               backgroundColor: AppColors.success,
             ),
           );
+          // Go to profile first (to have proper back stack), then push order details
+          context.go('/profile');
           if (orderDocId != null) {
-            context.go('/orders/$orderDocId');
-          } else {
-            context.go('/orders');
+            context.push('/orders/$orderDocId');
           }
         } else if (result == PaymentResult.failed) {
           // Payment failed
@@ -252,12 +252,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             backgroundColor: AppColors.success,
           ),
         );
-        // Navigate to order details
+        // Navigate to order details - go to profile first for proper back stack
         final orderIdToNavigate = response.order?.id ?? orderId;
+        context.go('/profile');
         if (orderIdToNavigate != null) {
-          context.go('/orders/$orderIdToNavigate');
-        } else {
-          context.go('/orders');
+          context.push('/orders/$orderIdToNavigate');
         }
       } else if (response.isPaymentFailed) {
         // Payment failed
@@ -271,37 +270,37 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         );
         context.go('/cart');
       } else if (response.isPaymentPending) {
-        // Still processing
+        // Still processing - go to profile where orders are accessible
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Payment is still processing. Please check your orders.'),
             backgroundColor: AppColors.warning,
           ),
         );
-        context.go('/orders');
+        context.go('/profile');
       } else {
-        // Unknown status - check orders
+        // Unknown status - go to profile where orders are accessible
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Please check your orders for payment status.'),
             backgroundColor: AppColors.warning,
           ),
         );
-        context.go('/orders');
+        context.go('/profile');
       }
     } catch (e) {
       if (!mounted) return;
       Navigator.of(context).pop(); // Close loading dialog
       
       debugPrint('Error verifying payment: $e');
-      // On error, still navigate to orders so user can check
+      // On error, go to profile where orders are accessible
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Could not verify payment. Please check your orders.'),
           backgroundColor: AppColors.warning,
         ),
       );
-      context.go('/orders');
+      context.go('/profile');
     }
   }
 

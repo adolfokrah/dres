@@ -4,16 +4,9 @@ import { authenticated } from '../../access/authenticated'
 import { paystackWebhook } from './endpoints/paystackWebhook'
 import { checkTransactionStatus } from './endpoints/checkStatus'
 import { getUserTransactions } from './endpoints/getUserTransactions'
-import { calculateCommissionForOrder } from '../Orders/hooks/calculateCommissionForOrder'
 
-// Generate unique transaction ID: TXN-YYYYMMDD-XXXXXX-XXXX
-const generateTransactionId = (): string => {
-  const date = new Date()
-  const dateStr = date.toISOString().slice(0, 10).replace(/-/g, '')
-  const timestamp = Date.now().toString(36).toUpperCase()
-  const random = crypto.randomUUID().split('-')[0].toUpperCase()
-  return `TXN-${dateStr}-${timestamp}-${random}`
-}
+import { setTransactionIdAndCurrency } from './hooks/setTransactionCurrency'
+import { updateOrderCommissionOnComplete } from './hooks/updateOrderCommissionOnComplete'
 
 export const Transactions: CollectionConfig = {
   slug: 'transactions',
@@ -68,49 +61,8 @@ export const Transactions: CollectionConfig = {
     },
   },
   hooks: {
-    beforeChange: [
-      ({ data, operation }) => {
-        // Generate transaction ID on create
-        if (operation === 'create' && !data?.transactionId) {
-          data.transactionId = generateTransactionId()
-        }
-        return data
-      },
-    ],
-    afterChange: [
-      async ({ doc, req }) => {
-        // Recalculate order commission when a transaction with fees is created/updated
-        if (doc.order && (doc.type === 'transfer' || doc.type === 'order_payment')) {
-          const orderId = typeof doc.order === 'object' ? doc.order.id : doc.order
-          req.payload.logger.info(`Transaction ${doc.transactionId} changed, scheduling commission recalculation for order ${orderId}`)
-          
-          // Defer to avoid MongoDB write conflicts
-          setImmediate(() => {
-            calculateCommissionForOrder(req.payload, orderId).catch((error) => {
-              req.payload.logger.error(`[Commission] Deferred calculation from Transaction hook failed: ${error}`)
-            })
-          })
-        }
-        return doc
-      },
-    ],
-    afterDelete: [
-      async ({ doc, req }) => {
-        // Recalculate order commission when a transaction is deleted
-        if (doc.order && (doc.type === 'transfer' || doc.type === 'order_payment')) {
-          const orderId = typeof doc.order === 'object' ? doc.order.id : doc.order
-          req.payload.logger.info(`Transaction ${doc.transactionId} deleted, scheduling commission recalculation for order ${orderId}`)
-          
-          // Defer to avoid MongoDB write conflicts
-          setImmediate(() => {
-            calculateCommissionForOrder(req.payload, orderId).catch((error) => {
-              req.payload.logger.error(`[Commission] Deferred calculation from Transaction delete hook failed: ${error}`)
-            })
-          })
-        }
-        return doc
-      },
-    ],
+    beforeChange: [setTransactionIdAndCurrency],
+    afterChange: [updateOrderCommissionOnComplete],
   },
   fields: [
     {
@@ -138,6 +90,7 @@ export const Transactions: CollectionConfig = {
             { label: 'Deposit (Customer Payment)', value: 'deposit' },
             { label: 'Refund', value: 'refund' },
             { label: 'Return Charge (Seller Fee)', value: 'return_charge' },
+            { label: 'Shipping Payment (Return)', value: 'shipping_payment' },
           ],
           admin: {
             description: 'Type of transaction',
@@ -211,7 +164,6 @@ export const Transactions: CollectionConfig = {
         {
           name: 'fees',
           type: 'number',
-          min: 0,
           defaultValue: 0,
           label: 'Fees (selling price - original price) × qty',
           admin: {
@@ -226,7 +178,6 @@ export const Transactions: CollectionConfig = {
         {
           name: 'paystackFees',
           type: 'number',
-          min: 0,
           defaultValue: 0,
           label: 'Paystack Fees ',
           admin: {
@@ -236,7 +187,6 @@ export const Transactions: CollectionConfig = {
         {
           name: 'commissionFees',
           type: 'number',
-          min: 0,
           defaultValue: 0,
           label: 'Commission Fees (fees - paystack fees)',
           admin: {

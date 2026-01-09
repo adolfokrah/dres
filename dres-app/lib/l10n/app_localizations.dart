@@ -473,7 +473,7 @@ abstract class AppLocalizations {
   /// Buyer protection description text
   ///
   /// In en, this message translates to:
-  /// **'Our Buyer Protection is a value added optional service to every purchase you make. Buyer Protection includes our Refund Policy.'**
+  /// **'With Buyer Protection, you get a FULL refund if you return an item (platform absorbs all transfer fees). Without it, refund fees (approx. 2% + transfer fee) are deducted from your refund amount.'**
   String get buyerProtectionDescription;
 
   /// Learn more link text

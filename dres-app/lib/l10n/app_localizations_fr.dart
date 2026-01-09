@@ -205,7 +205,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get buyerProtectionDescription =>
-      'Notre protection acheteur est un service optionnel à valeur ajoutée pour chaque achat que vous effectuez. La protection acheteur inclut notre politique de remboursement.';
+      'Avec la Protection Acheteur, vous obtenez un remboursement COMPLET si vous retournez un article (la plateforme absorbe tous les frais de transfert). Sans cette protection, les frais de remboursement (environ 2% + frais de transfert) sont déduits de votre montant de remboursement.';
 
   @override
   String get learnMore => 'En savoir plus';

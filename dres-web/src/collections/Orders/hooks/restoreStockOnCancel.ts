@@ -20,6 +20,9 @@ export const restoreStockOnCancel: CollectionAfterChangeHook = async ({
   req,
   operation,
 }) => {
+  // Skip if context indicates we should skip hooks
+  if (req.context?.skipHooks) return doc
+  
   // Only trigger on update operations
   if (operation !== 'update') return doc
 

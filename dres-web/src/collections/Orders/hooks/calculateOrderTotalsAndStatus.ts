@@ -25,7 +25,12 @@ interface OrderItem {
   statusLogs?: StatusLogEntry[]
 }
 
-export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = async ({ data, operation, originalDoc }) => {
+export const calculateOrderTotalsAndStatus: CollectionBeforeChangeHook = async ({ data, operation, originalDoc, req }) => {
+  // Skip if context indicates we should skip hooks (prevents write conflicts)
+  if (req.context?.skipHooks || req.context?.skipTotalsCalculation) {
+    return data
+  }
+
   // Generate order ID on create
   if (operation === 'create' && !data?.orderId) {
     data.orderId = generateOrderId()

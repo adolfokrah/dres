@@ -39,6 +39,18 @@ export const CommissionBreakdownTable: React.FC = () => {
   const pointsDiscount = breakdown.pointsDiscount || 0
   const totalCommission = breakdown.totalCommission || 0
 
+  // Calculate BP costs from items if not stored (for backwards compatibility)
+  let buyerProtectionCosts = breakdown.buyerProtectionCosts || 0
+  if (buyerProtectionCosts === 0 && doc?.items) {
+    for (const item of doc.items) {
+      const isReturned = item.shippingStatus === 'returned' || item.shippingStatus === 'not_available'
+      if (item.buyerProtection && isReturned) {
+        const shippingFee = item.shippingFee || 0
+        buyerProtectionCosts += shippingFee + 2 // shipping + 2 transfer fees
+      }
+    }
+  }
+
   return (
     <div style={{ 
       marginBottom: '24px',
@@ -95,7 +107,7 @@ export const CommissionBreakdownTable: React.FC = () => {
               fontFamily: 'monospace',
               color: '#ef4444',
             }}>
-              -{formatCurrency(totalPaystackFees)}
+              -{formatCurrency(Math.abs(totalPaystackFees))}
             </td>
           </tr>
           <tr style={{ borderBottom: '1px solid var(--theme-elevation-100)' }}>
@@ -114,6 +126,27 @@ export const CommissionBreakdownTable: React.FC = () => {
               +{formatCurrency(totalBuyerProtectionFees)}
             </td>
           </tr>
+          {buyerProtectionCosts > 0 && (
+            <tr style={{ borderBottom: '1px solid var(--theme-elevation-100)' }}>
+              <td style={{ 
+                padding: '10px 16px', 
+                color: 'var(--theme-elevation-800)',
+                paddingLeft: '32px',
+                fontSize: '13px',
+              }}>
+                Refund Costs Covered
+              </td>
+              <td style={{ 
+                padding: '10px 16px', 
+                textAlign: 'right',
+                fontFamily: 'monospace',
+                color: '#ef4444',
+                fontSize: '13px',
+              }}>
+                -{formatCurrency(buyerProtectionCosts)}
+              </td>
+            </tr>
+          )}
           <tr style={{ borderBottom: '1px solid var(--theme-elevation-100)' }}>
             <td style={{ 
               padding: '10px 16px', 
@@ -127,7 +160,7 @@ export const CommissionBreakdownTable: React.FC = () => {
               fontFamily: 'monospace',
               color: '#ef4444',
             }}>
-              -{formatCurrency(discountAmount)}
+              -{formatCurrency(Math.abs(discountAmount))}
             </td>
           </tr>
           <tr style={{ borderBottom: '1px solid var(--theme-elevation-100)' }}>
@@ -143,7 +176,7 @@ export const CommissionBreakdownTable: React.FC = () => {
               fontFamily: 'monospace',
               color: '#ef4444',
             }}>
-              -{formatCurrency(pointsDiscount)}
+              -{formatCurrency(Math.abs(pointsDiscount))}
             </td>
           </tr>
           <tr style={{ 

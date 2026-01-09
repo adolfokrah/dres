@@ -12,7 +12,7 @@ import { awardPointsOnDelivery } from './hooks/awardPointsOnDelivery'
 import { notifySellersOnOrderPlaced } from './hooks/notifySellersOnOrderPlaced'
 import { notifyCustomerOnStatusChange } from './hooks/notifyCustomerOnStatusChange'
 import { createDeliveryCodeOnOutForDelivery } from './hooks/createDeliveryCodeOnOutForDelivery'
-import { calculateTotalCommission } from './hooks/calculateTotalCommission'
+import { calculateCommissionOnOrderChange } from './hooks/calculateCommissionOnOrderChange'
 import { returnItem } from './endpoints/returnItem'
 import { getPurchaseDetails } from './endpoints/getPurchaseDetails'
 import { getPurchases } from './endpoints/getPurchases'
@@ -23,7 +23,6 @@ import {
   markAllOutForDelivery,
 } from './endpoints/updateIncomingOrderItemStatus'
 import { resolveDispute } from './endpoints/resolveDispute'
-import { recalculateCommission } from './endpoints/recalculateCommission'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -77,12 +76,6 @@ export const Orders: CollectionConfig = {
       method: 'post',
       handler: resolveDispute,
     },
-    // Admin only - recalculate commission
-    {
-      path: '/:id/recalculate-commission',
-      method: 'post',
-      handler: recalculateCommission,
-    },
   ],
   access: {
     // Users can only read their own orders
@@ -114,10 +107,12 @@ export const Orders: CollectionConfig = {
     },
   },
   hooks: {
-    beforeChange: [calculateOrderTotalsAndStatus],
-    // Reduce stock on order creation, restore stock on return/cancel, notify sellers, create delivery codes, create seller transaction when item is delivered, create refund when item is returned or not available, update sales stats, award points, notify customer
-    // calculateTotalCommission runs LAST to ensure all transactions are created first
-    afterChange: [reduceStockOnOrder, restoreStockOnReturn, restoreStockOnCancel, notifySellersOnOrderPlaced, createDeliveryCodeOnOutForDelivery, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats, awardPointsOnDelivery, notifyCustomerOnStatusChange, calculateTotalCommission],
+     beforeChange: [calculateOrderTotalsAndStatus],
+    // Reduce stock on order creation, restore stock on return/cancel, notify sellers, create delivery codes, 
+    // create seller transaction when item is delivered, create refund when item is returned or not available, 
+    // update sales stats, award points, notify customer
+    // NOTE: calculateCommissionOnOrderChange runs LAST to ensure all transactions are created first
+    afterChange: [reduceStockOnOrder, restoreStockOnReturn, restoreStockOnCancel, notifySellersOnOrderPlaced, createDeliveryCodeOnOutForDelivery, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats, awardPointsOnDelivery, notifyCustomerOnStatusChange, calculateCommissionOnOrderChange],
   },
   fields: [
     {
@@ -542,6 +537,14 @@ export const Orders: CollectionConfig = {
                   name: 'totalBuyerProtectionFees',
                   type: 'number',
                   defaultValue: 0,
+                },
+                {
+                  name: 'buyerProtectionCosts',
+                  type: 'number',
+                  defaultValue: 0,
+                  admin: {
+                    description: 'Shipping + transfer fees paid from BP on refunds',
+                  },
                 },
                 {
                   name: 'discountAmount',
