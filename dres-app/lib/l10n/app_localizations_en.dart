@@ -198,41 +198,38 @@ class AppLocalizationsEn extends AppLocalizations {
       'We cover the return delivery to the seller';
 
   @override
-  String get includeBuyerProtectionFee => 'Include Buyer Protection';
-
-  @override
-  String get buyerProtectionDescription =>
-      'Get a FULL refund on returns. We cover all fees.';
-
-  @override
   String get buyerProtectionTitle => 'Buyer Protection';
 
   @override
   String get buyerProtectionWhatYouGet => 'What you get:';
 
   @override
-  String get buyerProtectionBenefit1 => 'Full refund of item price if you return';
+  String get buyerProtectionBenefit1 =>
+      'Full refund of item price if you return';
 
   @override
   String get buyerProtectionBenefit2 => 'Full refund of shipping fee';
 
   @override
-  String get buyerProtectionBenefit3 => 'We cover all transfer fees - you pay nothing extra';
+  String get buyerProtectionBenefit3 =>
+      'We cover all transfer fees - you pay nothing extra';
 
   @override
   String get buyerProtectionWithout => 'Without Buyer Protection:';
 
   @override
-  String get buyerProtectionWithoutItem1 => 'A processing fee (3% + ¢1) is deducted from your refund';
+  String get buyerProtectionWithoutItem1 =>
+      'A processing fee is deducted from your refund';
 
   @override
   String get buyerProtectionWithoutItem2 => 'Shipping fee is not refunded';
 
   @override
-  String buyerProtectionCostInfo(String rate) => 'Buyer Protection costs just $rate% of the item price. A small fee for complete peace of mind.';
+  String get includeBuyerProtectionFee => 'Include Buyer Protection';
 
   @override
-  String get gotIt => 'Got it';
+  String get buyerProtectionDescription =>
+      'Add Buyer Protection so you can return this item for a full refund and we\'ll cover the return delivery cost.';
 
   @override
   String get learnMore => 'Learn more';

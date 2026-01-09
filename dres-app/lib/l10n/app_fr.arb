@@ -63,6 +63,38 @@
   "weCoverReturnDelivery": "Nous couvrons les frais de retour au vendeur",
   "includeBuyerProtectionFee": "Inclure les frais de protection acheteur",
   "buyerProtectionDescription": "Avec la Protection Acheteur, vous obtenez un remboursement COMPLET si vous retournez un article (la plateforme absorbe tous les frais de transfert). Sans cette protection, les frais de remboursement (environ 2% + frais de transfert) sont déduits de votre montant de remboursement.",
+    "buyerProtectionTitle": "Protection acheteur",
+    "@buyerProtectionTitle": {
+      "description": "Titre du modal de protection acheteur"
+    },
+    "buyerProtectionWhatYouGet": "Ce que vous obtenez :",
+    "@buyerProtectionWhatYouGet": {
+      "description": "Titre de section du modal de protection acheteur"
+    },
+    "buyerProtectionBenefit1": "Remboursement intégral du prix de l'article en cas de retour",
+    "@buyerProtectionBenefit1": {
+      "description": "Avantage 1 de la protection acheteur"
+    },
+    "buyerProtectionBenefit2": "Remboursement intégral des frais de livraison",
+    "@buyerProtectionBenefit2": {
+      "description": "Avantage 2 de la protection acheteur"
+    },
+    "buyerProtectionBenefit3": "Nous couvrons tous les frais de transfert - vous ne payez rien de plus",
+    "@buyerProtectionBenefit3": {
+      "description": "Avantage 3 de la protection acheteur"
+    },
+    "buyerProtectionWithout": "Sans Protection Acheteur :",
+    "@buyerProtectionWithout": {
+      "description": "Titre de section sans protection acheteur"
+    },
+    "buyerProtectionWithoutItem1": "Des frais de traitement sont déduits de votre remboursement",
+    "@buyerProtectionWithoutItem1": {
+      "description": "Point 1 sans protection acheteur"
+    },
+    "buyerProtectionWithoutItem2": "Les frais de livraison ne sont pas remboursés",
+    "@buyerProtectionWithoutItem2": {
+      "description": "Point 2 sans protection acheteur"
+    },
   "learnMore": "En savoir plus",
   "follow": "Suivre",
   "following": "Suivi",

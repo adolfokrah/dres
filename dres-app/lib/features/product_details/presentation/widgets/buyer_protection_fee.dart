@@ -22,12 +22,11 @@ class BuyerProtectionFee extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
+      builder: (context) => Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -41,7 +40,7 @@ class BuyerProtectionFee extends StatelessWidget {
                   height: 48,
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(100),
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: Center(
                     child: PhosphorIcon(
@@ -55,7 +54,7 @@ class BuyerProtectionFee extends StatelessWidget {
                 Expanded(
                   child: Text(
                     l10n.buyerProtectionTitle,
-                    style: AppTypography.headingM.copyWith(
+                    style: AppTypography.titleL.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -107,7 +106,7 @@ class BuyerProtectionFee extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.zero,
                 border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
               ),
               child: Row(
@@ -120,7 +119,7 @@ class BuyerProtectionFee extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      l10n.buyerProtectionCostInfo(feeRate.toStringAsFixed(0)),
+                      'Buyer Protection costs just ${feeRate.toStringAsFixed(0)}% of the item price.',
                       style: AppTypography.bodyM.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -132,7 +131,7 @@ class BuyerProtectionFee extends StatelessWidget {
             
             const SizedBox(height: 24),
             
-            // Got it button
+            // Close button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -142,11 +141,11 @@ class BuyerProtectionFee extends StatelessWidget {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.zero,
                   ),
                 ),
                 child: Text(
-                  l10n.gotIt,
+                  'Got it',
                   style: AppTypography.bodyL.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -221,7 +220,7 @@ class BuyerProtectionFee extends StatelessWidget {
                         height: 34,
                         decoration: BoxDecoration(
                           color: const Color(0xFFE5E5EA),
-                          borderRadius: BorderRadius.circular(100),
+                          borderRadius: BorderRadius.zero,
                         ),
                         child: Center(
                           child: PhosphorIcon(

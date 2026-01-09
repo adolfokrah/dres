@@ -248,13 +248,45 @@
   "@weCoverReturnDelivery": {
     "description": "Return delivery coverage text"
   },
-  "includeBuyerProtectionFee": "Include Buyer Protection Fee",
-  "@includeBuyerProtectionFee": {
-    "description": "Buyer protection fee checkbox title"
+  "buyerProtectionTitle": "Buyer Protection",
+  "@buyerProtectionTitle": {
+    "description": "Buyer protection modal title"
   },
-  "buyerProtectionDescription": "With Buyer Protection, you get a FULL refund if you return an item (platform absorbs all transfer fees). Without it, refund fees (approx. 2% + transfer fee) are deducted from your refund amount.",
+  "buyerProtectionWhatYouGet": "What you get:",
+  "@buyerProtectionWhatYouGet": {
+    "description": "Buyer protection modal section title"
+  },
+  "buyerProtectionBenefit1": "Full refund of item price if you return",
+  "@buyerProtectionBenefit1": {
+    "description": "Buyer protection benefit 1"
+  },
+  "buyerProtectionBenefit2": "Full refund of shipping fee",
+  "@buyerProtectionBenefit2": {
+    "description": "Buyer protection benefit 2"
+  },
+  "buyerProtectionBenefit3": "We cover all transfer fees - you pay nothing extra",
+  "@buyerProtectionBenefit3": {
+    "description": "Buyer protection benefit 3"
+  },
+  "buyerProtectionWithout": "Without Buyer Protection:",
+  "@buyerProtectionWithout": {
+    "description": "Without buyer protection section title"
+  },
+  "buyerProtectionWithoutItem1": "A processing fee is deducted from your refund",
+  "@buyerProtectionWithoutItem1": {
+    "description": "Without buyer protection point 1"
+  },
+  "buyerProtectionWithoutItem2": "Shipping fee is not refunded",
+  "@buyerProtectionWithoutItem2": {
+    "description": "Without buyer protection point 2"
+  },
+  "includeBuyerProtectionFee": "Include Buyer Protection",
+  "@includeBuyerProtectionFee": {
+    "description": "Buyer protection toggle title"
+  },
+  "buyerProtectionDescription": "Add Buyer Protection so you can return this item for a full refund and we'll cover the return delivery cost.",
   "@buyerProtectionDescription": {
-    "description": "Buyer protection description text"
+    "description": "Short summary explaining what Buyer Protection is"
   },
   "learnMore": "Learn more",
   "@learnMore": {

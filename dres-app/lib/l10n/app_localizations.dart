@@ -464,47 +464,65 @@ abstract class AppLocalizations {
   /// **'We cover the return delivery to the seller'**
   String get weCoverReturnDelivery;
 
-  /// Buyer protection fee checkbox title
+  /// Buyer protection modal title
+  ///
+  /// In en, this message translates to:
+  /// **'Buyer Protection'**
+  String get buyerProtectionTitle;
+
+  /// Buyer protection modal section title
+  ///
+  /// In en, this message translates to:
+  /// **'What you get:'**
+  String get buyerProtectionWhatYouGet;
+
+  /// Buyer protection benefit 1
+  ///
+  /// In en, this message translates to:
+  /// **'Full refund of item price if you return'**
+  String get buyerProtectionBenefit1;
+
+  /// Buyer protection benefit 2
+  ///
+  /// In en, this message translates to:
+  /// **'Full refund of shipping fee'**
+  String get buyerProtectionBenefit2;
+
+  /// Buyer protection benefit 3
+  ///
+  /// In en, this message translates to:
+  /// **'We cover all transfer fees - you pay nothing extra'**
+  String get buyerProtectionBenefit3;
+
+  /// Without buyer protection section title
+  ///
+  /// In en, this message translates to:
+  /// **'Without Buyer Protection:'**
+  String get buyerProtectionWithout;
+
+  /// Without buyer protection point 1
+  ///
+  /// In en, this message translates to:
+  /// **'A processing fee is deducted from your refund'**
+  String get buyerProtectionWithoutItem1;
+
+  /// Without buyer protection point 2
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping fee is not refunded'**
+  String get buyerProtectionWithoutItem2;
+
+  /// Buyer protection toggle title
   ///
   /// In en, this message translates to:
   /// **'Include Buyer Protection'**
   String get includeBuyerProtectionFee;
 
-  /// Buyer protection description text
+  /// Short summary explaining what Buyer Protection is
   ///
   /// In en, this message translates to:
-  /// **'Get a FULL refund on returns. We cover all fees.'**
+  /// **'Add Buyer Protection so you can return this item for a full refund and we\'ll cover the return delivery cost.'**
   String get buyerProtectionDescription;
-
-  /// Buyer protection modal title
-  String get buyerProtectionTitle;
-
-  /// What you get section header
-  String get buyerProtectionWhatYouGet;
-
-  /// Benefit 1: Full refund of item price
-  String get buyerProtectionBenefit1;
-
-  /// Benefit 2: Full refund of shipping
-  String get buyerProtectionBenefit2;
-
-  /// Benefit 3: We cover all transfer fees
-  String get buyerProtectionBenefit3;
-
-  /// Without protection section header
-  String get buyerProtectionWithout;
-
-  /// Without protection item 1
-  String get buyerProtectionWithoutItem1;
-
-  /// Without protection item 2
-  String get buyerProtectionWithoutItem2;
-
-  /// Cost info with rate parameter
-  String buyerProtectionCostInfo(String rate);
-
-  /// Got it button text
-  String get gotIt;
 
   /// Learn more link text
   ///

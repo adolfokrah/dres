@@ -97,15 +97,15 @@ class _AppSearchInputState extends State<AppSearchInput> {
           filled: true,
           fillColor: AppColors.secondary,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.zero,
             borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.zero,
             borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.zero,
             borderSide: BorderSide.none,
           ),
           contentPadding: const EdgeInsets.symmetric(
