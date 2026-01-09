@@ -126,27 +126,24 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
       const previouslyAllFinal = previousSellerItems.length > 0 && 
         previousSellerItems.every((item) => FINAL_STATUSES.includes(item.shippingStatus))
 
-      // Skip if seller items were already all final before this update
-      if (previouslyAllFinal) {
-        continue
-      }
-
       // Check if a bulk transaction already exists for this seller on this order
-      const existingTransactions = await payload.find({
+      // We should skip if there's already a completed or pending transaction
+      // But we should NOT skip if the existing transaction was cancelled (need to create a new one for delivered items)
+      const existingActiveTransactions = await payload.find({
         collection: 'transactions',
         where: {
           and: [
             { order: { equals: doc.id } },
             { type: { equals: 'order_payment' } },
             { user: { equals: sellerId } },
-            { status: { not_equals: 'completed' } },
+            { status: { in: ['pending', 'completed'] } },
           ],
         },
         limit: 1,
       })
 
-      // Skip if transaction already exists
-      if (existingTransactions.docs.length > 0) {
+      // Skip if there's an active (pending or completed) transaction
+      if (existingActiveTransactions.docs.length > 0) {
         payload.logger.info(
           `Bulk transaction already exists for seller ${sellerId} on order ${doc.id} - skipping`,
         )
@@ -186,8 +183,9 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
         variationTitles.push(`${item.variationTitle || 'Item'} (Qty: ${item.quantity})`)
       }
 
-      // Only ONE shipping fee per seller (from first delivered item)
-      const shippingFee = deliveredItems[0]?.shippingFee || 0
+      // Get shipping fee from ANY seller item (first item with shipping fee)
+      // This handles case where first item was returned but had the shipping fee
+      const shippingFee = sellerItems.find(item => item.shippingFee > 0)?.shippingFee || 0
 
       // Seller payout = total original prices + ONE shipping fee
       const sellerPayout = totalOriginalPrice + shippingFee

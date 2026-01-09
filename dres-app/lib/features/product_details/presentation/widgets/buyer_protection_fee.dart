@@ -9,12 +9,179 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/l10n/app_localizations.dart';
 
 class BuyerProtectionFee extends StatelessWidget {
-  final double feeRate; // Percentage rate (e.g., 8 for 8%)
+  final double feeRate; // Percentage rate (e.g., 10 for 10%)
 
   const BuyerProtectionFee({
     super.key,
     required this.feeRate,
   });
+
+  void _showBuyerProtectionInfo(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Center(
+                    child: PhosphorIcon(
+                      PhosphorIconsFill.shieldCheck,
+                      size: 24,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    l10n.buyerProtectionTitle,
+                    style: AppTypography.headingM.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: PhosphorIcon(
+                    PhosphorIconsRegular.x,
+                    size: 24,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            
+            // What you get section
+            Text(
+              l10n.buyerProtectionWhatYouGet,
+              style: AppTypography.bodyL.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildBenefitItem(context, PhosphorIconsFill.checkCircle, l10n.buyerProtectionBenefit1),
+            const SizedBox(height: 8),
+            _buildBenefitItem(context, PhosphorIconsFill.checkCircle, l10n.buyerProtectionBenefit2),
+            const SizedBox(height: 8),
+            _buildBenefitItem(context, PhosphorIconsFill.checkCircle, l10n.buyerProtectionBenefit3),
+            
+            const SizedBox(height: 24),
+            
+            // Without protection section
+            Text(
+              l10n.buyerProtectionWithout,
+              style: AppTypography.bodyL.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildBenefitItem(context, PhosphorIconsFill.xCircle, l10n.buyerProtectionWithoutItem1, isNegative: true),
+            const SizedBox(height: 8),
+            _buildBenefitItem(context, PhosphorIconsFill.xCircle, l10n.buyerProtectionWithoutItem2, isNegative: true),
+            
+            const SizedBox(height: 24),
+            
+            // Cost info
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  PhosphorIcon(
+                    PhosphorIconsFill.info,
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      l10n.buyerProtectionCostInfo(feeRate.toStringAsFixed(0)),
+                      style: AppTypography.bodyM.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // Got it button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  l10n.gotIt,
+                  style: AppTypography.bodyL.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBenefitItem(BuildContext context, IconData icon, String text, {bool isNegative = false}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        PhosphorIcon(
+          icon,
+          size: 20,
+          color: isNegative ? AppColors.error : AppColors.success,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            text,
+            style: AppTypography.bodyM.copyWith(
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,12 +254,15 @@ class BuyerProtectionFee extends StatelessWidget {
                             ),
 
                 const SizedBox(height: 10),
-                Text(
-                  l10n.learnMore,
-                  style: AppTypography.bodyM.copyWith(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
-                    decoration: TextDecoration.underline,
+                GestureDetector(
+                  onTap: () => _showBuyerProtectionInfo(context),
+                  child: Text(
+                    l10n.learnMore,
+                    style: AppTypography.bodyM.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      decoration: TextDecoration.underline,
+                    ),
                   ),
                 )
                           ],

@@ -169,19 +169,36 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
         },
       })
 
-      // Always pay seller the shipping fee (service was rendered)
-      if (shippingFee > 0) {
-        const sellerId = typeof item.seller === 'object' ? item.seller?.id : item.seller
+      // Check if ALL items from this seller are now returned/not_available
+      // Only create separate shipping_payment if ALL seller items are returned
+      // Otherwise, shipping will be included in order_payment when other items are delivered
+      const sellerId = typeof item.seller === 'object' ? item.seller?.id : item.seller
+      
+      if (sellerId) {
+        // Get all items from this seller in the order
+        const sellerItems = currentItems.filter(i => {
+          const itemSellerId = typeof i.seller === 'object' ? i.seller?.id : i.seller
+          return itemSellerId === sellerId
+        })
         
-        if (sellerId) {
-          // Check if shipping payment already exists for this item
+        // Check if ALL seller items are returned or not_available
+        const allSellerItemsReturned = sellerItems.every(i => 
+          i.shippingStatus === 'returned' || i.shippingStatus === 'not_available'
+        )
+        
+        // Get shipping fee from any seller item (first item with shipping fee)
+        const sellerShippingFee = sellerItems.find(i => i.shippingFee && i.shippingFee > 0)?.shippingFee || 0
+        
+        if (allSellerItemsReturned && sellerShippingFee > 0) {
+          // All items from seller are returned - create separate shipping payment
+          // Check if shipping payment already exists for this seller
           const existingShippingPayment = await payload.find({
             collection: 'transactions',
             where: {
               and: [
                 { order: { equals: doc.id } },
                 { type: { equals: 'shipping_payment' } },
-                { itemId: { equals: itemId } },
+                { user: { equals: sellerId } },
               ],
             },
             limit: 1,
@@ -196,15 +213,16 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
                 status: 'pending',
                 user: sellerId,
                 order: doc.id,
-                itemId: itemId,
-                amount: shippingFee,
+                amount: sellerShippingFee,
                 fees: transferFee,
                 paystackFees: transferFee,
-                notes: `Shipping fee for returned item "${item.variationTitle}" (Qty: ${item.quantity})`,
+                notes: `Shipping fee for returned items from seller (all items returned)`,
               },
             })
-            payload.logger.info(`[Refund] Created shipping payment for seller: ${shippingFee}`)
+            payload.logger.info(`[Refund] All seller items returned - created shipping payment: ${sellerShippingFee}`)
           }
+        } else if (!allSellerItemsReturned) {
+          payload.logger.info(`[Refund] Seller has other items not returned - shipping will be included in order_payment on delivery`)
         }
       }
     }

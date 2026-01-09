@@ -40,13 +40,36 @@ export const CommissionBreakdownTable: React.FC = () => {
   const totalCommission = breakdown.totalCommission || 0
 
   // Calculate BP costs from items if not stored (for backwards compatibility)
+  // Only shipping fees - transfer fees are already in Paystack fees
   let buyerProtectionCosts = breakdown.buyerProtectionCosts || 0
   if (buyerProtectionCosts === 0 && doc?.items) {
+    // Group items by seller
+    const itemsBySeller = new Map<string, any[]>()
     for (const item of doc.items) {
-      const isReturned = item.shippingStatus === 'returned' || item.shippingStatus === 'not_available'
-      if (item.buyerProtection && isReturned) {
-        const shippingFee = item.shippingFee || 0
-        buyerProtectionCosts += shippingFee + 2 // shipping + 2 transfer fees
+      const sellerId = typeof item.seller === 'object' ? item.seller?.id : item.seller
+      if (!sellerId) continue
+      if (!itemsBySeller.has(sellerId)) {
+        itemsBySeller.set(sellerId, [])
+      }
+      itemsBySeller.get(sellerId)!.push(item)
+    }
+    
+    // Calculate BP costs per seller - only shipping fees
+    for (const [, sellerItems] of itemsBySeller) {
+      const returnedItems = sellerItems.filter((item: any) => 
+        (item.shippingStatus === 'returned' || item.shippingStatus === 'not_available') && item.buyerProtection
+      )
+      
+      if (returnedItems.length === 0) continue
+      
+      const allSellerItemsReturned = sellerItems.every((item: any) => 
+        item.shippingStatus === 'returned' || item.shippingStatus === 'not_available'
+      )
+      
+      if (allSellerItemsReturned) {
+        // ALL items returned: BP covers shipping fee only (transfer fees in Paystack)
+        const shippingFee = sellerItems.find((item: any) => item.shippingFee && item.shippingFee > 0)?.shippingFee || 0
+        buyerProtectionCosts += shippingFee
       }
     }
   }

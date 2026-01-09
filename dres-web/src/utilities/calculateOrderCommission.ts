@@ -29,7 +29,13 @@ export async function calculateOrderCommission(payload: Payload, orderId: string
     return null
   }
 
-  const items = (order.items || []) as Array<{ buyerProtectionFee?: number; shippingFee?: number; buyerProtection?: boolean; shippingStatus?: string }>
+  const items = (order.items || []) as Array<{ 
+    buyerProtectionFee?: number
+    shippingFee?: number
+    buyerProtection?: boolean
+    shippingStatus?: string
+    seller?: string | { id: string }
+  }>
   const totalBuyerProtectionFees = items.reduce((sum, item) => {
     return sum + (item.buyerProtectionFee || 0)
   }, 0)
@@ -61,15 +67,39 @@ export async function calculateOrderCommission(payload: Payload, orderId: string
     return sum + (txn.fees || 0)
   }, 0)
 
-  // Calculate BP costs: shipping + transfer fees for items with BP that were refunded
+  // Calculate BP costs: only shipping fees for items with BP that were refunded
+  // Transfer fees are already counted in totalPaystackFees, so don't include them here
   let buyerProtectionCosts = 0
+  
+  // Group items by seller
+  const itemsBySeller = new Map<string, typeof items>()
   for (const item of items) {
-    const isReturned = item.shippingStatus === 'returned' || item.shippingStatus === 'not_available'
-    if (item.buyerProtection && isReturned) {
-      // BP covers: shipping fee + refund transfer (1) + seller shipping transfer (1)
-      const shippingFee = item.shippingFee || 0
-      buyerProtectionCosts += shippingFee + 2 // 2 = refund transfer + shipping payment transfer
+    const sellerId = typeof item.seller === 'object' ? item.seller?.id : item.seller
+    if (!sellerId) continue
+    if (!itemsBySeller.has(sellerId)) {
+      itemsBySeller.set(sellerId, [])
     }
+    itemsBySeller.get(sellerId)!.push(item)
+  }
+  
+  // Calculate BP costs per seller - only shipping fees, NOT transfer fees
+  for (const [, sellerItems] of itemsBySeller) {
+    const returnedItems = sellerItems.filter(item => 
+      (item.shippingStatus === 'returned' || item.shippingStatus === 'not_available') && item.buyerProtection
+    )
+    
+    if (returnedItems.length === 0) continue
+    
+    const allSellerItemsReturned = sellerItems.every(item => 
+      item.shippingStatus === 'returned' || item.shippingStatus === 'not_available'
+    )
+    
+    if (allSellerItemsReturned) {
+      // ALL items returned: BP covers the shipping fee (transfer fees are in Paystack fees)
+      const shippingFee = sellerItems.find(item => item.shippingFee && item.shippingFee > 0)?.shippingFee || 0
+      buyerProtectionCosts += shippingFee
+    }
+    // If SOME delivered: shipping goes with order_payment, no cost from BP
   }
 
   const discountAmount = order.discountAmount || 0

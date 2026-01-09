@@ -467,14 +467,44 @@ abstract class AppLocalizations {
   /// Buyer protection fee checkbox title
   ///
   /// In en, this message translates to:
-  /// **'Include Buyer Protection Fee'**
+  /// **'Include Buyer Protection'**
   String get includeBuyerProtectionFee;
 
   /// Buyer protection description text
   ///
   /// In en, this message translates to:
-  /// **'With Buyer Protection, you get a FULL refund if you return an item (platform absorbs all transfer fees). Without it, refund fees (approx. 2% + transfer fee) are deducted from your refund amount.'**
+  /// **'Get a FULL refund on returns. We cover all fees.'**
   String get buyerProtectionDescription;
+
+  /// Buyer protection modal title
+  String get buyerProtectionTitle;
+
+  /// What you get section header
+  String get buyerProtectionWhatYouGet;
+
+  /// Benefit 1: Full refund of item price
+  String get buyerProtectionBenefit1;
+
+  /// Benefit 2: Full refund of shipping
+  String get buyerProtectionBenefit2;
+
+  /// Benefit 3: We cover all transfer fees
+  String get buyerProtectionBenefit3;
+
+  /// Without protection section header
+  String get buyerProtectionWithout;
+
+  /// Without protection item 1
+  String get buyerProtectionWithoutItem1;
+
+  /// Without protection item 2
+  String get buyerProtectionWithoutItem2;
+
+  /// Cost info with rate parameter
+  String buyerProtectionCostInfo(String rate);
+
+  /// Got it button text
+  String get gotIt;
 
   /// Learn more link text
   ///

@@ -201,11 +201,41 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get includeBuyerProtectionFee =>
-      'Inclure les frais de protection acheteur';
+      'Inclure la Protection Acheteur';
 
   @override
   String get buyerProtectionDescription =>
-      'Avec la Protection Acheteur, vous obtenez un remboursement COMPLET si vous retournez un article (la plateforme absorbe tous les frais de transfert). Sans cette protection, les frais de remboursement (environ 2% + frais de transfert) sont déduits de votre montant de remboursement.';
+      'Remboursement COMPLET en cas de retour. Nous couvrons tous les frais.';
+
+  @override
+  String get buyerProtectionTitle => 'Protection Acheteur';
+
+  @override
+  String get buyerProtectionWhatYouGet => 'Ce que vous obtenez :';
+
+  @override
+  String get buyerProtectionBenefit1 => 'Remboursement intégral du prix de l\'article en cas de retour';
+
+  @override
+  String get buyerProtectionBenefit2 => 'Remboursement intégral des frais de livraison';
+
+  @override
+  String get buyerProtectionBenefit3 => 'Nous couvrons tous les frais de transfert - vous ne payez rien de plus';
+
+  @override
+  String get buyerProtectionWithout => 'Sans Protection Acheteur :';
+
+  @override
+  String get buyerProtectionWithoutItem1 => 'Des frais de traitement (3% + 1¢) sont déduits de votre remboursement';
+
+  @override
+  String get buyerProtectionWithoutItem2 => 'Les frais de livraison ne sont pas remboursés';
+
+  @override
+  String buyerProtectionCostInfo(String rate) => 'La Protection Acheteur ne coûte que $rate% du prix de l\'article. Un petit frais pour une tranquillité d\'esprit totale.';
+
+  @override
+  String get gotIt => 'Compris';
 
   @override
   String get learnMore => 'En savoir plus';

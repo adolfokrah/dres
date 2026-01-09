@@ -134,8 +134,9 @@ export const updateShipping: PayloadHandler = async (req) => {
       }
     }
     
-    // Fetch site settings for default shipping rate
+    // Fetch site settings for default shipping rate and buyer protection fee rate
     let defaultShippingRateGHS = DEFAULT_SHIPPING_RATE_GHS
+    let buyerProtectionFeeRate = 0.10 // Default 10%
     try {
       const siteSettings = await payload.findGlobal({
         slug: 'site-settings',
@@ -143,8 +144,11 @@ export const updateShipping: PayloadHandler = async (req) => {
       if (siteSettings?.defaultShippingRate) {
         defaultShippingRateGHS = siteSettings.defaultShippingRate as number
       }
+      if (siteSettings?.buyerProtectionFeeRate) {
+        buyerProtectionFeeRate = (siteSettings.buyerProtectionFeeRate as number) / 100
+      }
     } catch (_error) {
-      payload.logger.warn('Could not fetch site settings for default shipping rate, using fallback')
+      payload.logger.warn('Could not fetch site settings, using fallbacks')
     }
     
     // Convert default shipping rate from GHS to user's currency
@@ -252,11 +256,11 @@ export const updateShipping: PayloadHandler = async (req) => {
         sellersWithShippingApplied.add(sellerId)
       }
 
-      // Calculate buyer protection fee: 10% of item total (price × quantity)
+      // Calculate buyer protection fee: % of item total (from CMS settings)
       let buyerProtectionFee = 0
       if (item.buyerProtection) {
         const itemTotal = (item.price || 0) * (item.quantity || 1)
-        buyerProtectionFee = Math.round(itemTotal * 0.10 * 100) / 100
+        buyerProtectionFee = Math.round(itemTotal * buyerProtectionFeeRate * 100) / 100
       }
 
       return {
