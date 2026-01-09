@@ -33,6 +33,7 @@ class ImageManagementScreen extends StatefulWidget {
 class _ImageManagementScreenState extends State<ImageManagementScreen> {
   late List<Map<String, String>> _existingImages; // Store {url, id} objects
   late List<File> _selectedImages;
+  late List<Map<String, dynamic>> _allImages; // Store the ordered list of all images
 
   @override
   void initState() {
@@ -43,19 +44,23 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
       'id': item['id'] as String,
     }).toList();
     _selectedImages = List.from(widget.selectedImages);
+    
+    // Initialize the ordered list
+    _initializeAllImages();
+    
     print('🖼️ Image Management Screen initialized');
     print('📷 Existing images received: ${_existingImages.length}');
     print('📷 Selected images received: ${_selectedImages.length}');
     print('📷 Existing image URLs: ${_existingImages.map((e) => e['url']).take(3).join(' | ')}');
   }
 
-  List<Map<String, dynamic>> get _allImages {
-    List<Map<String, dynamic>> combined = [];
+  void _initializeAllImages() {
+    _allImages = [];
     
     // Add existing images (with their ObjectIds)
     for (int i = 0; i < _existingImages.length; i++) {
       final existingImage = _existingImages[i];
-      combined.add({
+      _allImages.add({
         'id': 'existing_$i',
         'url': existingImage['url'],
         'objectId': existingImage['id'], // Store the real ObjectId
@@ -67,7 +72,7 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
     
     // Add selected local images
     for (int i = 0; i < _selectedImages.length; i++) {
-      combined.add({
+      _allImages.add({
         'id': 'selected_$i',
         'url': null,
         'file': _selectedImages[i],
@@ -75,23 +80,19 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
         'originalIndex': i,
       });
     }
-    
-    return combined;
   }
 
-  int get _totalImages => _existingImages.length + _selectedImages.length;
+  int get _totalImages => _allImages.length;
 
   void _onReorder(int oldIndex, int newIndex) {
-    setState(() {
-      final images = _allImages;
-      
+    setState(() {      
       // Validate indices
-      if (oldIndex < 0 || oldIndex >= images.length) {
+      if (oldIndex < 0 || oldIndex >= _allImages.length) {
         return;
       }
       
-      if (newIndex > images.length) {
-        newIndex = images.length;
+      if (newIndex > _allImages.length) {
+        newIndex = _allImages.length;
       }
       
       // If moving to the same position, do nothing
@@ -100,39 +101,24 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
       }
       
       // Remove item from old position
-      final item = images.removeAt(oldIndex);
+      final item = _allImages.removeAt(oldIndex);
       
       // Adjust newIndex if we removed an item from before the insertion point
       final adjustedNewIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
       
       // Insert at new position (ensure it's within bounds)
-      final finalIndex = adjustedNewIndex.clamp(0, images.length);
-      images.insert(finalIndex, item);
+      final finalIndex = adjustedNewIndex.clamp(0, _allImages.length);
+      _allImages.insert(finalIndex, item);
       
-      // Rebuild the lists
-      _existingImages.clear();
-      _selectedImages.clear();
-      
-      for (final imageData in images) {
-        if (imageData['isExisting']) {
-          _existingImages.add({'url': imageData['url'], 'id': imageData['objectId']});
-        } else {
-          _selectedImages.add(imageData['file']);
-        }
-      }
+      print('📋 Reordered: moved item from $oldIndex to $finalIndex');
     });
   }
 
   void _onRemoveImage(int index) {
     setState(() {
-      final images = _allImages;
-      final removedImage = images[index];
-      
-      if (removedImage['isExisting']) {
-        // Remove from existing images by finding the matching object
-        _existingImages.removeWhere((img) => img['url'] == removedImage['url']);
-      } else {
-        _selectedImages.remove(removedImage['file']);
+      if (index >= 0 && index < _allImages.length) {
+        final removedImage = _allImages.removeAt(index);
+        print('📋 Removed image at index $index: ${removedImage['isExisting'] ? 'existing' : 'new'}');
       }
     });
   }
@@ -153,7 +139,17 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
 
     if (files.isNotEmpty) {
       setState(() {
-        _selectedImages.addAll(files);
+        // Add new images to the _allImages list
+        for (final file in files) {
+          _allImages.add({
+            'id': 'selected_${_allImages.length}',
+            'url': null,
+            'file': file,
+            'isExisting': false,
+            'originalIndex': _allImages.length,
+          });
+        }
+        print('📋 Added ${files.length} new images. Total: ${_allImages.length}');
       });
     }
   }
@@ -161,13 +157,12 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
   void _onSave() async {
     print('💾 Saving from Image Management Screen');
     
-    // Get all images in their current order
-    final allImages = _allImages;
+    // Get all images in their current order from _allImages
     final allImageUrls = <String>[];
     final allImageIds = <String>[]; // Track ObjectIds separately
     
     // Count how many new images need uploading
-    final newImagesCount = allImages.where((img) => !img['isExisting']).length;
+    final newImagesCount = _allImages.where((img) => !img['isExisting']).length;
     
     if (newImagesCount > 0) {
       // Show loading overlay
@@ -184,7 +179,7 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
       int uploadedCount = 0;
       
       // Process images one by one to avoid overwhelming the server
-      for (final imageData in allImages) {
+      for (final imageData in _allImages) {
         if (imageData['isExisting']) {
           // Existing image - use the URL for display and the stored ObjectId
           allImageUrls.add(imageData['url']);
@@ -261,8 +256,6 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final images = _allImages;
-
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
@@ -310,14 +303,14 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
                   const SizedBox(height: 20),
                   
                   // Images list
-                  if (images.isEmpty)
+                  if (_allImages.isEmpty)
                     _buildEmptyState()
                   else
                     Padding(
                       padding: const EdgeInsets.all(20),
                       child: ReorderableColumn(
                         onReorder: _onReorder,
-                        children: images.asMap().entries.map((entry) {
+                        children: _allImages.asMap().entries.map((entry) {
                           final index = entry.key;
                           final imageData = entry.value;
                           return _buildImageListItem(
