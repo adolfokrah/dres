@@ -17,7 +17,7 @@ const queryProductBySlug = cache(async ({ slug }: { slug: string }) => {
   const serverUrl = getServerSideURL()
   
   try {
-    const response = await fetch(`${serverUrl}/api/variations/${slug}`, {
+    const response = await fetch(`${serverUrl}/api/variations/${slug}/details`, {
       next: { revalidate: 60 }, // Revalidate every 60 seconds
     })
     
