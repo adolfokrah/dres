@@ -8,6 +8,7 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/app_button.dart';
+import 'package:dres/core/widgets/app_info_banner.dart';
 import 'package:dres/features/sell/presentation/widgets/sell_step_indicator.dart';
 import 'package:dres/features/sell/logic/variations_bloc/variations_bloc.dart';
 import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
@@ -153,25 +154,11 @@ class _StyleVariationsScreenState extends State<StyleVariationsScreen> {
   }
 
   Widget _buildInfoBanner() {
-    return Container(
-      width: double.infinity,
+    return Padding(
       padding: const EdgeInsets.all(20),
-      color: AppColors.secondary,
-      child: RichText(
-        text: TextSpan(
-          style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
-          children: const [
-            TextSpan(
-              text:
-                  'Add variations of your product (e.g. different colors or material type).',
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-            TextSpan(
-              text:
-                  '\nTap + to create a new variation, then review and edit each one before finishing.',
-            ),
-          ],
-        ),
+      child: AppInfoBanner(
+        title: 'Add variations of your product (e.g. different colors or material type).',
+        text: 'Tap + to create a new variation, then review and edit each one before finishing.',
       ),
     );
   }

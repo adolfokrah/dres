@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -10,6 +11,7 @@ import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_text_field.dart';
 import 'package:dres/core/widgets/app_text_area.dart';
 import 'package:dres/core/widgets/app_snackbar.dart';
+import 'package:dres/core/widgets/app_info_banner.dart';
 import 'package:dres/features/sell/presentation/widgets/sell_selector_row.dart';
 import 'package:dres/features/sell/presentation/view/select_category_screen.dart';
 import 'package:dres/features/sell/presentation/view/select_brand_screen.dart';
@@ -491,24 +493,11 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
   }
 
   Widget _buildInfoBanner() {
-    return Container(
-      width: double.infinity,
+    return Padding(
       padding: const EdgeInsets.all(20),
-      color: AppColors.secondary,
-      child: RichText(
-        text: TextSpan(
-          style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
-          children: const [
-            TextSpan(
-              text: 'Fill in your product details to create your listing.\n',
-              style: TextStyle(fontWeight: FontWeight.w700),
-            ),
-            TextSpan(
-              text:
-                  'Add a clear title, a good description, and select the correct category and brand before continuing.',
-            ),
-          ],
-        ),
+      child: AppInfoBanner(
+        title: 'Fill in your product details to create your listing.',
+        text: 'Add a clear title, a good description, and select the correct category and brand before continuing.',
       ),
     );
   }

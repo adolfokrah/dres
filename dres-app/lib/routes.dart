@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dres/features/splash/splash.dart';
@@ -39,6 +40,8 @@ import 'package:dres/features/profile/presentation/view/shipping_rates_screen.da
 import 'package:dres/features/orders/presentation/view/incoming_order_details_screen.dart';
 import 'package:dres/features/notifications/presentation/view/notifications_screen.dart';
 import 'package:dres/features/search/presentation/view/search_screen.dart';
+import 'package:dres/features/variations/presentation/view/photo_tips_screen.dart';
+import 'package:dres/features/sell/presentation/view/image_management_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
 import 'package:dres/core/models/menu_model.dart';
 
@@ -183,6 +186,30 @@ class AppRoutes {
         name: 'notifications',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const NotificationsScreen(),
+      ),
+
+      // Photo Tips (outside shell, full screen)
+      GoRoute(
+        path: '/photo-tips',
+        name: 'photo-tips',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const PhotoTipsScreen(),
+      ),
+
+      // Image Management (outside shell, full screen)
+      GoRoute(
+        path: '/image-management',
+        name: 'image-management',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          return ImageManagementScreen(
+            existingImages: (extra?['existingImages'] as List?)?.cast<Map<String, String>>() ?? [],
+            selectedImages: (extra?['selectedImages'] as List<File>?) ?? [],
+            onImagesChanged: extra?['onImagesChanged'] ?? (_, __) {},
+            maxImages: extra?['maxImages'] ?? 10,
+          );
+        },
       ),
 
       // SKU Detail (outside shell for both internal navigation and deep linking)

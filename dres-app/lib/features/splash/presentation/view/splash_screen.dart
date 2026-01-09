@@ -54,6 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // Check for pending deep link
     final pendingDeepLink = AppRoutes.pendingDeepLink;
     if (pendingDeepLink != null) {
+      debugPrint('🔗 Splash: Processing pending deep link: $pendingDeepLink');
       // Clear the pending deep link
       AppRoutes.pendingDeepLink = null;
       // First go to home to initialize the shell, then push the deep link
@@ -61,10 +62,12 @@ class _SplashScreenState extends State<SplashScreen> {
       // Use Future.microtask to ensure home is rendered first
       Future.microtask(() {
         if (mounted) {
+          debugPrint('🔗 Splash: Pushing deep link: $pendingDeepLink');
           context.push(pendingDeepLink);
         }
       });
     } else {
+      debugPrint('🔗 Splash: No pending deep link, going to home');
       // Normal navigation to home
       context.go(AppRoutes.home);
     }

@@ -19,6 +19,7 @@ class VariationDetailBloc
     on<VariationUpdateRequested>(_onUpdateRequested);
     on<VariationArchiveRequested>(_onVariationArchiveRequested);
     on<VariationImageRemoveRequested>(_onImageRemoveRequested);
+    on<VariationImagesReorderRequested>(_onImagesReorderRequested);
     on<SkuCreateRequested>(_onSkuCreateRequested);
     on<SkuUpdateRequested>(_onSkuUpdateRequested);
     on<SkuDeleteRequested>(_onSkuDeleteRequested);
@@ -94,7 +95,8 @@ class VariationDetailBloc
       // Upload new images first and collect their IDs
       final List<String> uploadedImageIds = [];
       for (final image in event.newImages) {
-        final mediaId = await _sellRepository.uploadImage(image);
+        final uploadResult = await _sellRepository.uploadImage(image);
+        final mediaId = uploadResult['id']!; // Extract ObjectId from Map
         uploadedImageIds.add(mediaId);
       }
 
@@ -162,6 +164,40 @@ class VariationDetailBloc
       emit(
         state.copyWith(
           status: VariationDetailStatus.imageRemoveSuccess,
+          variation: variation,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          status: VariationDetailStatus.failure,
+          errorMessage: getErrorMessage(e),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onImagesReorderRequested(
+    VariationImagesReorderRequested event,
+    Emitter<VariationDetailState> emit,
+  ) async {
+    emit(state.copyWith(status: VariationDetailStatus.updating));
+
+    try {
+      // Update variation with the reordered images
+      await _sellRepository.reorderVariationImages(
+        variationId: event.variationId,
+        reorderedImages: event.reorderedImages,
+      );
+
+      // Refresh variation details
+      final variation = await _sellRepository.getVariationDetails(
+        event.variationId,
+      );
+
+      emit(
+        state.copyWith(
+          status: VariationDetailStatus.loaded,
           variation: variation,
         ),
       );

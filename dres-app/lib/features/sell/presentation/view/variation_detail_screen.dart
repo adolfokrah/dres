@@ -54,6 +54,15 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
   // Track if attributes have been populated from loaded data
   bool _attributesPopulated = false;
 
+  // Track if we're waiting for image reorder to complete
+  bool _waitingForImageReorder = false;
+
+  // Store reordered images locally until variation updates
+  List<String>? _reorderedImages;
+  
+  // Store ObjectIds separately for server requests
+  List<String>? _reorderedImageIds;
+
   /// Check if the variation form is valid (can be saved)
   /// Requires: 3+ images, 1+ attribute selected
   /// SKUs are added after variation is saved with attributes
@@ -160,9 +169,15 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
         )
         .toList();
 
-    // Get existing image IDs from the loaded variation
-    final existingImageIds =
-        _variationDetailBloc.state.variation?.imageIds ?? [];
+    // Use the ObjectIds we stored from image management screen
+    final finalImageIds = _reorderedImageIds ?? _variationDetailBloc.state.variation?.imageIds ?? [];
+    
+    print('🔍 DEBUG: Using stored ObjectIds for server:');
+    for (int i = 0; i < finalImageIds.length; i++) {
+      print('  [$i]: "${finalImageIds[i]}"');
+    }
+    
+    print('📷 Final ObjectIds for update: ${finalImageIds.length}');
 
     // Always update - even if no attributes, we need to save images
     _waitingForUpdate = true;
@@ -170,8 +185,8 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
       VariationUpdateRequested(
         variationId: widget.variationId,
         variants: variants,
-        existingImageIds: existingImageIds,
-        newImages: _selectedImages,
+        existingImageIds: finalImageIds, // Use final ordered image IDs
+        newImages: [], // No new images since they were already uploaded in image management
       ),
     );
   }
@@ -312,6 +327,22 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
             getIt<UserProductsBloc>().add(const UserProductsRefreshRequested());
           }
 
+          // When images are reordered successfully, clear cache and refresh
+          if (state.status == VariationDetailStatus.loaded && 
+              state.variation != null &&
+              _waitingForImageReorder) {
+            print('✅ Image reorder completed successfully');
+            print('📷 Updated variation images: ${state.variation?.images}');
+            _waitingForImageReorder = false;
+            // Clear local reordered images since variation is now updated
+            _reorderedImages = null;
+            // Clear image cache to ensure updated images are shown
+            imageCache.clear();
+            imageCache.clearLiveImages();
+            // Force UI rebuild
+            setState(() {});
+          }
+
           // When variation update succeeds, stay on screen and show success
           if (state.status == VariationDetailStatus.updateSuccess &&
               _waitingForUpdate) {
@@ -395,23 +426,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 // Photos section
-                                ItemPhotosSection(
-                                  existingImages: variation?.images ?? [],
-                                  selectedImages: _selectedImages,
-                                  onImagesChanged: (images) {
-                                    setState(() {
-                                      _selectedImages = images;
-                                    });
-                                  },
-                                  onExistingImageRemoved: (index) {
-                                    _variationDetailBloc.add(
-                                      VariationImageRemoveRequested(
-                                        variationId: widget.variationId,
-                                        imageIndex: index,
-                                      ),
-                                    );
-                                  },
-                                ),
+                                _buildPhotosSection(variation),
 
                                 // Attributes section
                                 AttributesSection(
@@ -438,7 +453,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
 
                   // Bottom button
                   _buildBottomSection(
-                    existingImages: variation?.images ?? [],
+                    existingImages: _reorderedImages ?? variation?.images ?? [],
                     isUpdating: isUpdating,
                   ),
                 ],
@@ -598,6 +613,134 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
               onPressed: isValid && !isUpdating ? _onDone : null,
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+
+
+  Widget _buildPhotosSection(dynamic variation) {
+    // Use reordered images if available, otherwise fall back to variation images
+    final images = _reorderedImages ?? variation?.images ?? [];
+    
+    return GestureDetector(
+      onTap: () async {
+        print('🚀 Opening image management screen');
+        print('📷 Passing images: ${images.length}');
+        print('📷 Image URLs: ${images.take(3).join(' | ')}');
+        
+        final result = await context.push(
+          '/image-management',
+          extra: {
+            'existingImages': images.map((url) {
+              final index = images.indexOf(url);
+              return {
+                'url': url,
+                'id': index < (variation?.imageIds.length ?? 0) 
+                    ? variation!.imageIds[index] 
+                    : 'MISSING_ID'
+              };
+            }).toList(),
+            'selectedImages': _selectedImages,
+            'maxImages': 15,
+            'onImagesChanged': (List<String> allOrderedImages) {
+              setState(() {
+                // Store display URLs for UI
+                _reorderedImages = allOrderedImages;
+                debugPrint('✅ Received ${allOrderedImages.length} total images');
+                debugPrint('📷 All images: ${allOrderedImages.map((i) => i.split('/').last).take(3).join(' | ')}');
+              });
+            },
+          },
+        );
+        
+        // Handle the result Map with both URLs and ObjectIds
+        if (result is Map<String, dynamic>) {
+          final imageUrls = result['imageUrls'] as List<String>?;
+          final imageIds = result['imageIds'] as List<String>?;
+          
+          if (imageUrls != null && imageIds != null) {
+            setState(() {
+              _reorderedImages = imageUrls;  // For display
+              _reorderedImageIds = imageIds; // For server
+            });
+            
+            print('✅ Received from image management:');
+            print('📷 URLs: ${imageUrls.length}');
+            print('📷 ObjectIds: ${imageIds.length}');
+          }
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: AppColors.secondary, width: 1),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top row: Photos label and chevron
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Photos',
+                  style: AppTypography.bodyM.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                PhosphorIcon(
+                  PhosphorIconsRegular.caretRight,
+                  size: 14,
+                  color: AppColors.textPrimary,
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 8),
+            
+            // Bottom row: Images preview
+            if (images.isNotEmpty) 
+              Row(
+                children: [
+                  // Show first 3 images as small thumbnails
+                  ...images.take(3).map((imageUrl) => Container(
+                    margin: const EdgeInsets.only(right: 1),
+                    child: Container(
+                      width: 32,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: NetworkImage(imageUrl),
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  )),
+                  
+                  // Show "+ X more" text if there are more than 3 images
+                  if (images.length > 3) ...[
+                    const SizedBox(width: 14),
+                    Text(
+                      '+ ${images.length - 3} more',
+                      style: AppTypography.bodyM.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ],
+              )
+            else
+              Text(
+                'Add photos',
+                style: AppTypography.bodyM.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+          ],
         ),
       ),
     );

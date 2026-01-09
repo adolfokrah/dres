@@ -152,3 +152,17 @@ class VariationImageRemoveRequested extends VariationDetailEvent {
   @override
   List<Object?> get props => [variationId, imageIndex];
 }
+
+/// Reorder existing images in a variation
+class VariationImagesReorderRequested extends VariationDetailEvent {
+  final String variationId;
+  final List<String> reorderedImages;
+
+  const VariationImagesReorderRequested({
+    required this.variationId,
+    required this.reorderedImages,
+  });
+
+  @override
+  List<Object?> get props => [variationId, reorderedImages];
+}

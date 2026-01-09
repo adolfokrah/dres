@@ -56,15 +56,23 @@ Future<void> main() async {
   final appLinks = AppLinks();
   final initialLink = await appLinks.getInitialLink();
   if (initialLink != null) {
+    debugPrint('🔗 Initial deep link: $initialLink');
     
-    // Construct the full path from host + path
     String fullPath;
-    if (initialLink.host.isNotEmpty) {
-      fullPath = '/${initialLink.host}${initialLink.path}';
+    if (initialLink.scheme == 'dres') {
+      // Custom scheme: dres://products/slug => host=products, path=/slug => /products/slug
+      if (initialLink.host.isNotEmpty) {
+        fullPath = '/${initialLink.host}${initialLink.path}';
+      } else {
+        fullPath = initialLink.path;
+      }
     } else {
+      // HTTP/HTTPS: https://dres.app/products/slug => just use path: /products/slug
       fullPath = initialLink.path;
     }
+    
     AppRoutes.pendingDeepLink = fullPath;
+    debugPrint('🔗 Pending deep link set to: $fullPath');
   } else {
     debugPrint('🔗 No initial deep link');
   }
@@ -87,19 +95,26 @@ class _MainAppState extends State<MainApp> {
     super.initState();
     // Listen for deep links while app is running (warm start)
     widget.appLinks.uriLinkStream.listen((uri) {
-      // Construct the full path from host + path
-      // dres://products/slug => host=products, path=/slug => /products/slug
+      debugPrint('🔗 Runtime deep link received: $uri');
+      
       String fullPath;
-      if (uri.host.isNotEmpty) {
-        fullPath = '/${uri.host}${uri.path}';
+      if (uri.scheme == 'dres') {
+        // Custom scheme: dres://products/slug => host=products, path=/slug => /products/slug
+        if (uri.host.isNotEmpty) {
+          fullPath = '/${uri.host}${uri.path}';
+        } else {
+          fullPath = uri.path;
+        }
       } else {
+        // HTTP/HTTPS: https://dres.app/products/slug => just use path: /products/slug
         fullPath = uri.path;
       }
       
-      
+      debugPrint('🔗 Navigating to: $fullPath');
       if (fullPath.isNotEmpty && fullPath != '/') {
         // Use push to add on top of current stack (avoid shell conflict)
         AppRoutes.router.push(fullPath);
+        debugPrint('🔗 Navigation pushed');
       }
     });
   }

@@ -11,6 +11,7 @@ class ItemPhotosSection extends StatefulWidget {
   final List<File> selectedImages; // Locally selected images
   final Function(List<File>) onImagesChanged;
   final Function(int)? onExistingImageRemoved; // Callback when existing image is removed
+  final VoidCallback? onEditPhotosTap; // Callback to navigate to edit photos screen
   final VoidCallback? onPhotoTipsTap;
   final int maxImages;
 
@@ -20,6 +21,7 @@ class ItemPhotosSection extends StatefulWidget {
     this.selectedImages = const [],
     required this.onImagesChanged,
     this.onExistingImageRemoved,
+    this.onEditPhotosTap,
     this.onPhotoTipsTap,
     this.maxImages = 10,
   });
@@ -72,6 +74,10 @@ class _ItemPhotosSectionState extends State<ItemPhotosSection> {
       _selectedImages.removeAt(index);
     });
     widget.onImagesChanged(_selectedImages);
+  }
+
+  void _onEditPhotos() {
+    widget.onEditPhotosTap?.call();
   }
 
   int get _totalImageCount =>
@@ -201,7 +207,7 @@ class _ItemPhotosSectionState extends State<ItemPhotosSection> {
       spacing: 10,
       runSpacing: 10,
       children: [
-        // Existing images (already uploaded)
+        // Existing images
         ...widget.existingImages.asMap().entries.map((entry) {
           return _buildImageThumbnail(
             imageUrl: entry.value,
@@ -213,12 +219,12 @@ class _ItemPhotosSectionState extends State<ItemPhotosSection> {
         ..._selectedImages.asMap().entries.map((entry) {
           return _buildImageThumbnail(
             file: entry.value,
-            index: entry.key,
+            index: entry.key + widget.existingImages.length,
             isExisting: false,
           );
         }),
-        // Add more button if under limit
-        if (_totalImageCount < widget.maxImages) _buildAddMoreThumbnail(),
+        // Edit/Add button as thumbnail
+        _buildEditThumbnail(),
       ],
     );
   }
@@ -245,16 +251,17 @@ class _ItemPhotosSectionState extends State<ItemPhotosSection> {
             ),
           ),
         ),
-        // Remove button (for both local and existing images)
+        // Remove button
         Positioned(
           top: 4,
           right: 4,
           child: GestureDetector(
             onTap: () {
               if (isExisting) {
-                widget.onExistingImageRemoved?.call(index);
+                widget.onExistingImageRemoved?.call(
+                    isExisting ? index : widget.existingImages.length + index);
               } else {
-                _onRemoveImage(index);
+                _onRemoveImage(index - widget.existingImages.length);
               }
             },
             child: Container(
@@ -268,16 +275,15 @@ class _ItemPhotosSectionState extends State<ItemPhotosSection> {
             ),
           ),
         ),
-        // First image badge
-        if (index == 0 && isExisting ||
-            (index == 0 && widget.existingImages.isEmpty && !isExisting))
+        // Main image badge (first image only)
+        if (index == 0)
           Positioned(
             bottom: 4,
             left: 4,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(2),
               ),
               child: Text(
@@ -285,6 +291,7 @@ class _ItemPhotosSectionState extends State<ItemPhotosSection> {
                 style: AppTypography.bodyS.copyWith(
                   color: Colors.white,
                   fontSize: 10,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
@@ -293,38 +300,42 @@ class _ItemPhotosSectionState extends State<ItemPhotosSection> {
     );
   }
 
-  Widget _buildAddMoreThumbnail() {
+  Widget _buildEditThumbnail() {
     return GestureDetector(
-      onTap: _onAddPhotos,
+      onTap: _totalImageCount > 0 ? _onEditPhotos : _onAddPhotos,
       child: Container(
         width: 80,
         height: 80,
         decoration: BoxDecoration(
           border: Border.all(
-            color: AppColors.textHint,
+            color: AppColors.secondary,
+            width: 1,
             style: BorderStyle.solid,
           ),
           borderRadius: BorderRadius.circular(4),
+          color: AppColors.primary.withValues(alpha: 0.05),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             PhosphorIcon(
-              PhosphorIcons.plus(),
-              color: AppColors.textHint,
+              _totalImageCount > 0 
+                ? PhosphorIconsRegular.pencilSimple
+                : PhosphorIconsRegular.plus,
+              color: AppColors.primary,
               size: 24,
             ),
             const SizedBox(height: 4),
             Text(
-              'Add',
+              _totalImageCount > 0 ? 'Edit' : 'Add',
               style: AppTypography.bodyS.copyWith(
-                color: AppColors.textHint,
+                color: AppColors.primary,
                 fontSize: 10,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
         ),
       ),
     );
-  }
-}
+  }}

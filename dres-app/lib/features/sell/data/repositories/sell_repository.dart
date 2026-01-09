@@ -6,6 +6,8 @@ import 'package:dres/features/sell/data/models/attribute_model.dart';
 import 'package:dres/features/sell/data/models/draft_styles_response.dart';
 import 'package:dres/features/sell/data/models/style_models.dart';
 import 'package:dres/features/sell/data/models/variation_model.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path/path.dart' as path;
 
 export 'package:dres/features/sell/data/models/attribute_model.dart';
 export 'package:dres/features/sell/data/models/draft_style_model.dart';
@@ -127,18 +129,63 @@ class SellRepository {
     return VariationModel.fromJson(response.data);
   }
 
-  /// Upload an image to media collection and return the media ID
-  Future<String> uploadImage(File image) async {
-    final formData = FormData.fromMap({
-      'file': await MultipartFile.fromFile(
-        image.path,
-        filename: 'variation_${DateTime.now().millisecondsSinceEpoch}.jpg',
-      ),
-    });
+  /// Upload an image to media collection and return both ObjectId and URL
+  Future<Map<String, String>> uploadImage(File image) async {
+    print('📷 Starting image upload: ${image.path}');
+    
+    try {
+      // Create FormData with the image file
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          image.path,
+          filename: path.basename(image.path),
+        ),
+      });
 
-    final response = await _apiService.post('/media', data: formData);
-    final mediaId = response.data['doc']['id'] as String;
-    return mediaId;
+      print('📷 Uploading to: ${_apiService.dio.options.baseUrl}/media');
+      
+      // Use existing API service but override Content-Type for multipart
+      final response = await _apiService.post(
+        '/media',
+        data: formData,
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            // Remove Content-Type to let Dio set multipart/form-data automatically
+          },
+          contentType: null, // This removes the JSON content-type override
+        ),
+      );
+      
+      print('📷 Upload success: ${response.statusCode}');
+      print('📷 Response data: ${response.data}');
+      
+      final doc = response.data['doc'];
+      final mediaId = doc['id'] as String; // ObjectId for server
+      final relativeUrl = doc['thumbnailURL'] as String; // URL for display
+      
+      print('📷 Media ObjectId: $mediaId');
+      print('📷 Media URL: $relativeUrl');
+      
+      // Construct full URL for display
+      final baseUrl = _apiService.dio.options.baseUrl.replaceAll('/api', '');
+      final fullUrl = '$baseUrl$relativeUrl';
+      
+      // Return both the ObjectId and the display URL
+      return {
+        'id': mediaId,       // For server (variations update)
+        'url': fullUrl,      // For display (UI)
+      };
+      
+    } catch (e) {
+      print('❌ Upload error: $e');
+      if (e is DioException) {
+        print('❌ Dio error type: ${e.type}');
+        print('❌ Dio error message: ${e.message}');
+        print('❌ Response: ${e.response?.data}');
+      }
+      rethrow;
+    }
   }
 
   /// Update a variation with variants and images
@@ -149,6 +196,8 @@ class SellRepository {
   }) async {
 
     final data = <String, dynamic>{'variants': variants};
+
+    print(imageIds);
 
     if (imageIds.isNotEmpty) {
       data['images'] = imageIds;
@@ -276,6 +325,17 @@ class SellRepository {
     await _apiService.patch(
       '/variations/$variationId',
       data: {'images': imageIds},
+    );
+  }
+
+  /// Reorder images in a variation by updating the images array
+  Future<void> reorderVariationImages({
+    required String variationId,
+    required List<String> reorderedImages,
+  }) async {
+    await _apiService.patch(
+      '/variations/$variationId',
+      data: {'images': reorderedImages},
     );
   }
 }
