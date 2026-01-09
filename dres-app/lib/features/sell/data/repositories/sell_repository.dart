@@ -219,12 +219,11 @@ class SellRepository {
         {'option': attributeId, 'value': attributeOptionId},
       ],
       'price': price,
+      // Always send stock - null means "don't track stock"
+      'stock': stock,
     };
     if (compareAtPrice != null) {
       data['compareAtPrice'] = compareAtPrice;
-    }
-    if (stock != null) {
-      data['stock'] = stock;
     }
     await _apiService.patch('/skus/$skuId', data: data);
   }

@@ -5,6 +5,7 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/features/cart/data/repositories/cart_repository.dart';
+import 'package:dres/features/cart/data/repositories/address_repository.dart';
 import 'package:dres/features/cart/data/models/seller_group.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_state.dart';
@@ -28,12 +29,37 @@ class _CartScreenState extends State<CartScreen> {
   final Map<String, bool> _loadingItems = {};
   // Optimistic quantity updates - key: variationId_skuId, value: quantity
   final Map<String, int> _optimisticQuantities = {};
+  bool _hasCalculatedShipping = false;
 
   @override
   void initState() {
     super.initState();
     // Refresh cart when screen opens
     context.read<CartBloc>().add(const CartFetchRequested());
+    // Calculate shipping based on default address
+    _calculateShippingFromDefaultAddress();
+  }
+
+  /// Calculate shipping fees based on user's default address
+  Future<void> _calculateShippingFromDefaultAddress() async {
+    try {
+      final addressRepo = getIt<AddressRepository>();
+      final addresses = await addressRepo.getAddresses();
+      
+      // Find default address or use first one
+      final defaultAddress = addresses.firstWhere(
+        (addr) => addr.isDefault,
+        orElse: () => addresses.isNotEmpty ? addresses.first : throw Exception('No addresses'),
+      );
+      
+      // If address has a city, update shipping
+      if (defaultAddress.cityId != null && mounted && !_hasCalculatedShipping) {
+        _hasCalculatedShipping = true;
+        context.read<CartBloc>().add(CartUpdateShippingRequested(cityId: defaultAddress.cityId!));
+      }
+    } catch (_) {
+      // No addresses or error - shipping will be calculated when user selects address at checkout
+    }
   }
 
   void _toggleEditMode() {

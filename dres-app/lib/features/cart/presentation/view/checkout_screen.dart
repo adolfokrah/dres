@@ -44,13 +44,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       getIt<AddressBloc>().add(const AddressFetchRequested());
       
       // Also check if addresses are already loaded and trigger shipping calculation
-      _checkAndCalculateInitialShipping();
+      // Use a slight delay to ensure bloc listener is set up
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted) {
+          _checkAndCalculateInitialShipping();
+        }
+      });
     });
   }
   
   /// Check if addresses are already loaded and calculate shipping if needed
   void _checkAndCalculateInitialShipping() {
     final addressState = getIt<AddressBloc>().state;
+    debugPrint('🚚 _checkAndCalculateInitialShipping: status=${addressState.status}, initialCalculated=$_initialShippingCalculated');
+    
     if (addressState.status == AddressStatus.success && 
         addressState.selectedAddress?.cityId != null &&
         !_initialShippingCalculated) {
@@ -339,16 +346,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: BlocProvider.value(
           value: getIt<AddressBloc>(),
           child: BlocListener<AddressBloc, AddressState>(
+            listenWhen: (previous, current) {
+              // Listen when status becomes success OR when selected address changes
+              final statusBecameSuccess = previous.status != AddressStatus.success && 
+                  current.status == AddressStatus.success;
+              final addressChanged = previous.selectedAddress?.cityId != current.selectedAddress?.cityId;
+              return statusBecameSuccess || addressChanged;
+            },
             listener: (context, addressState) {
               // When addresses are loaded or changed, update shipping if there's a selected address
               final selectedAddress = addressState.selectedAddress;
-              if (selectedAddress != null && 
+              debugPrint('🚚 AddressBloc listener: status=${addressState.status}, selectedCity=${selectedAddress?.cityId}, lastCity=$_lastShippingCityId');
+              
+              if (addressState.status == AddressStatus.success &&
+                  selectedAddress != null && 
                   selectedAddress.cityId != null && 
                   selectedAddress.cityId != _lastShippingCityId) {
-                // City changed - update shipping fees
+                // City changed or first load - update shipping fees
                 _lastShippingCityId = selectedAddress.cityId;
                 _initialShippingCalculated = true;
-                debugPrint('🚚 Checkout: Address changed, updating shipping for city ${selectedAddress.cityId}');
+                debugPrint('🚚 Checkout: Address changed/loaded, updating shipping for city ${selectedAddress.cityId}');
                 // Small delay to avoid race conditions with cart fetch
                 Future.delayed(const Duration(milliseconds: 100), () {
                   if (mounted) {

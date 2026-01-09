@@ -221,11 +221,13 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
             setState(() => _isUpdating = true);
           }
 
-          // Handle update success - show success message and stay on screen
+          // Handle update success - show success message and reload style details
           if (state.status == StyleDetailsStatus.updateSuccess) {
             setState(() => _isUpdating = false);
             // Refetch drafts so it reflects the updated data
             getIt<SellBloc>().add(const SellRefreshRequested());
+            // Reload style details to refresh the UI (enables ADD variation button)
+            _styleDetailsBloc.add(StyleDetailsLoadRequested(styleId: widget.styleId));
             // Show success message
             AppSnackbar.success(context, 'Style saved successfully');
           }

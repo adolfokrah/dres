@@ -78,19 +78,20 @@ export async function recalculateOrderCommission(
 
     payload.logger.info(`[Commission] Calculating commission for order ${orderId}`)
 
-    // Get all non-cancelled transactions for this order
+    // Get all COMPLETED transactions for this order (not just non-cancelled)
+    // Commission should only count transactions that have been fully processed
     const transactions = await payload.find({
       collection: 'transactions',
       where: {
         and: [
           { order: { equals: orderId } },
-          { status: { not_equals: 'cancelled' } },
+          { status: { equals: 'completed' } },
         ],
       },
       limit: 100,
     })
 
-    payload.logger.info(`[Commission] Found ${transactions.docs.length} non-cancelled transactions for order ${orderId}`)
+    payload.logger.info(`[Commission] Found ${transactions.docs.length} completed transactions for order ${orderId}`)
 
     // Sum up fees from all non-cancelled transactions
     const totalTransactionFees = transactions.docs.reduce((sum, txn) => {

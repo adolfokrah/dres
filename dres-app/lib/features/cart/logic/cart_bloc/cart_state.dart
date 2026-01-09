@@ -48,6 +48,9 @@ class CartState extends Equatable {
   final PlaceOrderStatus placeOrderStatus;
   final PlaceOrderResponse? placeOrderResponse;
   final String? placeOrderError;
+  
+  // Pending shipping city to update after cart loads
+  final String? pendingShippingCityId;
 
   const CartState({
     this.status = CartStatus.initial,
@@ -61,6 +64,7 @@ class CartState extends Equatable {
     this.placeOrderStatus = PlaceOrderStatus.initial,
     this.placeOrderResponse,
     this.placeOrderError,
+    this.pendingShippingCityId,
   }) : _manualPromoCode = appliedPromoCode;
 
   /// Get total item count in cart
@@ -118,6 +122,8 @@ class CartState extends Equatable {
     PlaceOrderResponse? placeOrderResponse,
     String? placeOrderError,
     bool clearPlaceOrder = false,
+    String? pendingShippingCityId,
+    bool clearPendingCityId = false,
   }) {
     return CartState(
       status: status ?? this.status,
@@ -131,9 +137,10 @@ class CartState extends Equatable {
       placeOrderStatus: clearPlaceOrder ? PlaceOrderStatus.initial : (placeOrderStatus ?? this.placeOrderStatus),
       placeOrderResponse: clearPlaceOrder ? null : (placeOrderResponse ?? this.placeOrderResponse),
       placeOrderError: clearPlaceOrder ? null : (placeOrderError ?? this.placeOrderError),
+      pendingShippingCityId: clearPendingCityId ? null : (pendingShippingCityId ?? this.pendingShippingCityId),
     );
   }
 
   @override
-  List<Object?> get props => [status, cart, errorMessage, validation, promoStatus, promoMessage, promoError, _manualPromoCode, placeOrderStatus, placeOrderResponse, placeOrderError];
+  List<Object?> get props => [status, cart, errorMessage, validation, promoStatus, promoMessage, promoError, _manualPromoCode, placeOrderStatus, placeOrderResponse, placeOrderError, pendingShippingCityId];
 }

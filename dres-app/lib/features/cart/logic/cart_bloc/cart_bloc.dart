@@ -60,6 +60,14 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           cart: response.cart,
           validation: _toCartValidation(response.validation),
         ));
+        
+        // If there's a pending shipping city, process it now
+        if (state.pendingShippingCityId != null) {
+          final pendingCityId = state.pendingShippingCityId!;
+          debugPrint('🛒 CartBloc: Processing pending shipping update for city $pendingCityId');
+          // Clear pending and trigger shipping update
+          add(CartUpdateShippingRequested(cityId: pendingCityId));
+        }
       }
     } catch (e) {
       emit(state.copyWith(
@@ -110,13 +118,15 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     CartUpdateShippingRequested event,
     Emitter<CartState> emit,
   ) async {
-    // Skip if we're already loading (another operation in progress)
+    // If cart is loading, store the city ID to process after cart loads
     if (state.status == CartStatus.loading) {
-      debugPrint('🛒 CartBloc: Skipping shipping update - cart is loading');
+      debugPrint('🛒 CartBloc: Cart is loading, storing pending shipping city: ${event.cityId}');
+      emit(state.copyWith(pendingShippingCityId: event.cityId));
       return;
     }
     
-    emit(state.copyWith(status: CartStatus.loading));
+    // Clear pending city ID and update shipping
+    emit(state.copyWith(status: CartStatus.loading, clearPendingCityId: true));
 
     try {
       debugPrint('🛒 CartBloc: Updating shipping for city ${event.cityId}...');
