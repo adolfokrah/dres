@@ -13,7 +13,7 @@ import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:reorderables/reorderables.dart';
 
 class ImageManagementScreen extends StatefulWidget {
-  final List<Map<String, String>> existingImages; // List of {url, id} objects
+  final List<Map<String, dynamic>> existingImages; // Accept dynamic, we'll cast it properly
   final List<File> selectedImages;
   final Function(List<String>) onImagesChanged;
   final int maxImages;
@@ -37,7 +37,11 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
   @override
   void initState() {
     super.initState();
-    _existingImages = List.from(widget.existingImages);
+    // Cast to the correct type to avoid runtime errors
+    _existingImages = widget.existingImages.map((item) => {
+      'url': item['url'] as String,
+      'id': item['id'] as String,
+    }).toList();
     _selectedImages = List.from(widget.selectedImages);
     print('🖼️ Image Management Screen initialized');
     print('📷 Existing images received: ${_existingImages.length}');
@@ -179,7 +183,7 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
     try {
       int uploadedCount = 0;
       
-      // Process images one by one (not in parallel) to avoid overwhelming the server
+      // Process images one by one to avoid overwhelming the server
       for (final imageData in allImages) {
         if (imageData['isExisting']) {
           // Existing image - use the URL for display and the stored ObjectId
@@ -190,6 +194,7 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
           final file = imageData['file'] as File;
           uploadedCount++;
           print('📤 Uploading image $uploadedCount of $newImagesCount...');
+          print('📂 File size: ${(await file.length() / 1024 / 1024).toStringAsFixed(2)} MB');
           
           // Wait for this upload to complete before starting the next one
           final uploadResult = await getIt<SellRepository>().uploadImage(file);

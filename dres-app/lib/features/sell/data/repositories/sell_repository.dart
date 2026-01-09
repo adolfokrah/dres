@@ -144,16 +144,17 @@ class SellRepository {
 
       print('📷 Uploading to: ${_apiService.dio.options.baseUrl}/media');
       
-      // Use existing API service but override Content-Type for multipart
-      final response = await _apiService.post(
+      // Use Dio directly to avoid ApiService JSON content-type override
+      final response = await _apiService.dio.post(
         '/media',
         data: formData,
         options: Options(
           headers: {
             'Accept': 'application/json',
-            // Remove Content-Type to let Dio set multipart/form-data automatically
+            // Let Dio set Content-Type automatically for multipart/form-data
           },
-          contentType: null, // This removes the JSON content-type override
+          receiveTimeout: const Duration(minutes: 2), // Increase timeout to 2 minutes
+          sendTimeout: const Duration(minutes: 2), // Increase send timeout too
         ),
       );
       

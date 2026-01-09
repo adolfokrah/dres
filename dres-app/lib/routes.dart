@@ -204,7 +204,7 @@ class AppRoutes {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
           return ImageManagementScreen(
-            existingImages: (extra?['existingImages'] as List?)?.cast<Map<String, String>>() ?? [],
+            existingImages: (extra?['existingImages'] as List?)?.cast<Map<String, dynamic>>() ?? [],
             selectedImages: (extra?['selectedImages'] as List<File>?) ?? [],
             onImagesChanged: extra?['onImagesChanged'] ?? (_, __) {},
             maxImages: extra?['maxImages'] ?? 10,
