@@ -6,6 +6,7 @@ import 'package:dres/core/widgets/product_card.dart';
 import 'package:dres/core/widgets/product_archive_block.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/services/api_service.dart';
+import 'package:dres/core/services/storage_service.dart';
 import 'package:dres/core/constants/api_endpoints.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
 import 'package:dres/l10n/app_localizations.dart';
@@ -32,11 +33,16 @@ class _RecentlyViewedSectionState extends State<RecentlyViewedSection> {
 
   Future<List<ProductCardData>> _fetchRecentlyViewed() async {
     final apiService = getIt<ApiService>();
+    final storageService = getIt<StorageService>();
+    final department = storageService.getUserDepartment() ?? 'men';
 
     try {
       final response = await apiService.dio.get(
         recentlyViewedVariations,
-        queryParameters: {'limit': 20},
+        queryParameters: {
+          'limit': 20,
+          'department': department,
+        },
       );
 
       // Update currency from API response
