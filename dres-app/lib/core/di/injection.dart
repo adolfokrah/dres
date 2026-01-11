@@ -41,10 +41,12 @@ import 'package:dres/features/favorites/logic/favorites_bloc/favorites_bloc.dart
 import 'package:dres/features/follows/data/repositories/follows_repository.dart';
 import 'package:dres/features/follows/logic/follows_bloc/follows_bloc.dart';
 import 'package:dres/features/sell/data/repositories/sell_repository.dart';
+import 'package:dres/features/sell/data/repositories/boost_tiers_repository.dart';
 import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
 import 'package:dres/features/sell/logic/style_details_bloc/style_details_bloc.dart';
 import 'package:dres/features/sell/logic/variations_bloc/variations_bloc.dart';
 import 'package:dres/features/sell/logic/variation_detail_bloc/variation_detail_bloc.dart';
+import 'package:dres/features/payment/data/repositories/payment_repository.dart';
 import 'package:dres/features/notifications/data/repositories/notifications_repository.dart';
 import 'package:dres/features/notifications/logic/notifications_bloc/notifications_bloc.dart';
 import 'package:dres/features/profile/data/repositories/user_products_repository.dart';
@@ -137,6 +139,11 @@ Future<void> setupDependencies() async {
 
   // Orders Repository
   getIt.registerLazySingleton<OrdersRepository>(() => OrdersRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Payment Repository
+  getIt.registerLazySingleton<PaymentRepository>(() => PaymentRepository(
     apiService: getIt<ApiService>(),
   ));
 
@@ -254,6 +261,11 @@ Future<void> setupDependencies() async {
 
   // Sell Repository
   getIt.registerLazySingleton<SellRepository>(() => SellRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Boost Tiers Repository
+  getIt.registerLazySingleton<BoostTiersRepository>(() => BoostTiersRepository(
     apiService: getIt<ApiService>(),
   ));
 
@@ -415,6 +427,11 @@ Future<void> _setupDependenciesWithExistingStorage(StorageService storageService
     apiService: getIt<ApiService>(),
   ));
 
+  // Payment Repository
+  getIt.registerLazySingleton<PaymentRepository>(() => PaymentRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
   // Purchases Repository
   getIt.registerLazySingleton<PurchasesRepository>(() => PurchasesRepository(
     apiService: getIt<ApiService>(),
@@ -450,8 +467,19 @@ Future<void> _setupDependenciesWithExistingStorage(StorageService storageService
     apiService: getIt<ApiService>(),
   ));
 
+  // Follows Bloc - Singleton so follow state persists
+  getIt.registerLazySingleton<FollowsBloc>(() => FollowsBloc(
+    followsRepository: getIt<FollowsRepository>(),
+    communityRepository: getIt<CommunityRepository>(),
+  ));
+
   // Sell Repository
   getIt.registerLazySingleton<SellRepository>(() => SellRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Boost Tiers Repository
+  getIt.registerLazySingleton<BoostTiersRepository>(() => BoostTiersRepository(
     apiService: getIt<ApiService>(),
   ));
 
@@ -547,9 +575,6 @@ Future<void> _setupDependenciesWithExistingStorage(StorageService storageService
   getIt.registerLazySingleton<FavoritesBloc>(() => FavoritesBloc(
     favoritesRepository: getIt<FavoritesRepository>(),
   ));
-
-  // Note: FollowsBloc is already registered as a singleton above (line ~250)
-  // Do NOT register it again as a factory here!
 
   // Sell Bloc - Factory
   getIt.registerFactory<SellBloc>(() => SellBloc(

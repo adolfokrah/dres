@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:dres/core/di/injection.dart';
-import 'package:dres/features/orders/data/repositories/orders_repository.dart';
+import 'package:dres/features/payment/data/repositories/payment_repository.dart';
 
 /// Result from payment webview
 enum PaymentResult {
@@ -12,25 +12,48 @@ enum PaymentResult {
   closed, // User closed the WebView manually (will verify)
 }
 
-/// In-app browser screen for Paystack payment
-class PaymentWebViewScreen extends StatefulWidget {
+/// In-app browser screen for payments (Paystack, etc.)
+/// 
+/// Usage:
+/// ```dart
+/// final result = await openPaymentScreen(
+///   context,
+///   paymentUrl: 'https://checkout.paystack.com/...',
+///   transactionId: 'TXN-123456',
+///   title: 'Pay for Order #123',
+///   onSuccess: () {
+///     context.push('/orders/$orderId');
+///   },
+///   onFailure: () {
+///     ScaffoldMessenger.of(context).showSnackBar(...);
+///   },
+/// );
+/// ```
+class PaymentScreen extends StatefulWidget {
   final String paymentUrl;
-  final String? orderId;
-  final String? transactionId;
+  final String transactionId;
+  final String? title;
+  final VoidCallback? onSuccess;
+  final VoidCallback? onFailure;
+  final VoidCallback? onClosed;
 
-  const PaymentWebViewScreen({
+  const PaymentScreen({
     super.key,
     required this.paymentUrl,
-    this.orderId,
-    this.transactionId,
+    required this.transactionId,
+    this.title,
+    this.onSuccess,
+    this.onFailure,
+    this.onClosed,
   });
 
   @override
-  State<PaymentWebViewScreen> createState() => _PaymentWebViewScreenState();
+  State<PaymentScreen> createState() => _PaymentScreenState();
 }
 
-class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
+class _PaymentScreenState extends State<PaymentScreen> {
   late final WebViewController _controller;
+  late final PaymentRepository _paymentRepository;
   bool _isLoading = true;
   bool _hasHandledResult = false;
   Timer? _pollTimer;
@@ -38,11 +61,9 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
   @override
   void initState() {
     super.initState();
+    _paymentRepository = getIt<PaymentRepository>();
     _initWebView();
-    // Start polling for transaction status
-    if (widget.transactionId != null) {
-      _startPolling();
-    }
+    _startPolling();
   }
 
   @override
@@ -60,8 +81,8 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
       }
 
       try {
-        final response = await getIt<OrdersRepository>().checkTransactionStatus(
-          reference: widget.transactionId!,
+        final response = await _paymentRepository.checkTransactionStatus(
+          reference: widget.transactionId,
         );
 
         debugPrint('🔄 Poll: status=${response.status}, success=${response.success}');
@@ -111,9 +132,23 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
     if (_hasHandledResult) return;
     _hasHandledResult = true;
     _pollTimer?.cancel();
-    debugPrint('🌐 Closing with result: $result');
+    debugPrint('🌐 Closing payment with result: $result');
+    
     if (mounted) {
       Navigator.of(context).pop(result);
+      
+      // Execute callbacks after popping
+      switch (result) {
+        case PaymentResult.success:
+          widget.onSuccess?.call();
+          break;
+        case PaymentResult.failed:
+          widget.onFailure?.call();
+          break;
+        case PaymentResult.closed:
+          widget.onClosed?.call();
+          break;
+      }
     }
   }
 
@@ -181,9 +216,7 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.orderId != null 
-              ? 'Pay for ${widget.orderId}' 
-              : 'Complete Payment'),
+          title: Text(widget.title ?? 'Complete Payment'),
           leading: IconButton(
             icon: PhosphorIcon(PhosphorIconsRegular.x),
             onPressed: _onClose,
@@ -214,19 +247,28 @@ class _PaymentWebViewScreenState extends State<PaymentWebViewScreen> {
   }
 }
 
-/// Helper function to open payment webview
-Future<PaymentResult?> openPaymentWebView(
+/// Helper function to open payment screen
+/// 
+/// Returns [PaymentResult] indicating the outcome.
+/// Callbacks are optional and will be called after the screen is closed.
+Future<PaymentResult?> openPaymentScreen(
   BuildContext context, {
   required String paymentUrl,
-  String? orderId,
-  String? transactionId,
+  required String transactionId,
+  String? title,
+  VoidCallback? onSuccess,
+  VoidCallback? onFailure,
+  VoidCallback? onClosed,
 }) async {
   return Navigator.of(context).push<PaymentResult>(
     MaterialPageRoute(
-      builder: (context) => PaymentWebViewScreen(
+      builder: (context) => PaymentScreen(
         paymentUrl: paymentUrl,
-        orderId: orderId,
         transactionId: transactionId,
+        title: title,
+        onSuccess: onSuccess,
+        onFailure: onFailure,
+        onClosed: onClosed,
       ),
     ),
   );

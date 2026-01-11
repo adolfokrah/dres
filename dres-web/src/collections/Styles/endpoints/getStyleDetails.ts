@@ -20,6 +20,33 @@ export const getStyleDetails: PayloadHandler = async (req) => {
       depth: 3,
     })
 
+    // Check if style has an active boost
+    const now = new Date()
+    const activeBoost = await payload.find({
+      collection: 'style-boosts',
+      where: {
+        and: [
+          { style: { equals: id as string } },
+          { status: { equals: 'active' } },
+          { startDate: { less_than_equal: now.toISOString() } },
+          { endDate: { greater_than_equal: now.toISOString() } },
+        ],
+      },
+      limit: 1,
+      depth: 1, // Get tier details
+    })
+    const isBoosted = activeBoost.totalDocs > 0
+    const boostDetails = isBoosted && activeBoost.docs[0] ? {
+      id: activeBoost.docs[0].id,
+      startDate: activeBoost.docs[0].startDate,
+      endDate: activeBoost.docs[0].endDate,
+      tier: typeof activeBoost.docs[0].tier === 'object' ? {
+        id: activeBoost.docs[0].tier.id,
+        name: activeBoost.docs[0].tier.name,
+        duration: activeBoost.docs[0].tier.duration,
+      } : null,
+    } : null
+
     if (!style) {
       return Response.json({ error: 'Style not found' }, { status: 404 })
     }
@@ -222,6 +249,8 @@ export const getStyleDetails: PayloadHandler = async (req) => {
               businessName: (seller as any).businessName || null,
             }
           : null,
+        isBoosted,
+        boostDetails,
         createdAt: style.createdAt,
         updatedAt: style.updatedAt,
       },

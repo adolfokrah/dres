@@ -215,6 +215,7 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
                             'filterType': filterType,
                           };
                           if (widget.department != null) {
+                            // Pass as department (not departmentId) since it's a slug
                             queryParams['department'] = widget.department!;
                           }
                           

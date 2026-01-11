@@ -42,6 +42,7 @@ import { Transactions } from './collections/Transactions'
 
 // Settings
 import { Currencies } from './collections/Currencies'
+import { BoostTiers } from './collections/BoostTiers'
 
 // Users
 import { Favorites } from './collections/Favorites'
@@ -170,6 +171,7 @@ export default buildConfig({
     ShippingRates,
     Transactions,
     // Settings
+    BoostTiers,
     Currencies,
     // Users
     Favorites,

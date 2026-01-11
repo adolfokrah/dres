@@ -19,6 +19,7 @@ import 'package:dres/features/sell/logic/style_details_bloc/style_details_bloc.d
 import 'package:dres/features/sell/logic/variations_bloc/variations_bloc.dart';
 import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
 import 'package:dres/features/sell/data/models/variation_model.dart';
+import 'package:dres/features/sell/data/models/style_models.dart';
 import 'package:dres/features/profile/logic/user_products_bloc/user_products_bloc.dart';
 
 class StyleDetailsScreen extends StatefulWidget {
@@ -172,6 +173,25 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
     _variationsBloc.add(VariationCreateRequested(styleId: widget.styleId));
   }
 
+  void _onBoostTap(StyleDetailsState state) {
+    context.push(
+      '/sell/style/${widget.styleId}/boost',
+      extra: {
+        'styleTitle': state.styleDetails?.title,
+      },
+    ).then((result) {
+      // Refetch style details when returning from boost screen
+      // especially if boost was successful
+      if (result == true || result == null) {
+        _styleDetailsBloc.add(
+          StyleDetailsLoadRequested(
+            styleId: widget.styleId,
+          ),
+        );
+      }
+    });
+  }
+
   void _onVariationTap(VariationModel variation) {
     context.push(
       '/sell/style/${widget.styleId}/variation/${variation.id}',
@@ -280,6 +300,25 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // Active boost status banner (for boosted items)
+                                if (state.styleDetails?.isBoosted == true &&
+                                    state.styleDetails?.boostDetails != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
+                                    child: _buildActiveBoostBanner(state.styleDetails!.boostDetails!),
+                                  ),
+
+                                // Boost promotion banner (only for published items that are not boosted)
+                                if (state.styleDetails?.isPublished == true &&
+                                    state.styleDetails?.isBoosted == false)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
+                                    child: GestureDetector(
+                                      onTap: () => _onBoostTap(state),
+                                      child: _buildBoostBanner(),
+                                    ),
+                                  ),
+
                                 // Info banner
                                 _buildInfoBanner(),
 
@@ -498,6 +537,141 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
       child: AppInfoBanner(
         title: 'Fill in your product details to create your listing.',
         text: 'Add a clear title, a good description, and select the correct category and brand before continuing.',
+      ),
+    );
+  }
+
+  Widget _buildBoostBanner() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withOpacity(0.1),
+        border: Border.all(color: AppColors.warning, width: 1),
+      ),
+      child: Row(
+        children: [
+          PhosphorIcon(
+            PhosphorIcons.rocketLaunch(),
+            color: AppColors.warning,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Boost your listing',
+                  style: AppTypography.bodyM.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Get more visibility and sell faster by boosting your product.',
+                  style: AppTypography.bodyS.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          PhosphorIcon(
+            PhosphorIcons.caretRight(),
+            color: AppColors.textPrimary,
+            size: 16,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActiveBoostBanner(BoostDetailsModel boostDetails) {
+    final daysRemaining = boostDetails.daysRemaining;
+    final isExpiringSoon = boostDetails.isExpiringSoon;
+    
+    // Parse dates for display
+    String formattedEndDate = '';
+    if (boostDetails.endDate != null) {
+      final endDate = DateTime.parse(boostDetails.endDate!);
+      formattedEndDate = '${endDate.day}/${endDate.month}/${endDate.year}';
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isExpiringSoon 
+            ? AppColors.warning.withOpacity(0.1)
+            : AppColors.success.withOpacity(0.1),
+        border: Border.all(
+          color: isExpiringSoon ? AppColors.warning : AppColors.success, 
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isExpiringSoon 
+                  ? AppColors.warning.withOpacity(0.2)
+                  : AppColors.success.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: PhosphorIcon(
+              PhosphorIcons.rocketLaunch(),
+              color: isExpiringSoon ? AppColors.warning : AppColors.success,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      'Boost Active',
+                      style: AppTypography.bodyM.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: isExpiringSoon ? AppColors.warning : AppColors.success,
+                      ),
+                    ),
+                    if (boostDetails.tierName != null) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.textPrimary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          boostDetails.tierName!,
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  isExpiringSoon
+                      ? 'Expires soon! $daysRemaining day${daysRemaining == 1 ? '' : 's'} left (ends $formattedEndDate)'
+                      : '$daysRemaining day${daysRemaining == 1 ? '' : 's'} remaining • Ends $formattedEndDate',
+                  style: AppTypography.bodyS.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -56,14 +56,9 @@ export const StyleBoosts: CollectionConfig = {
       fields: [
         {
           name: 'tier',
-          type: 'select',
+          type: 'relationship',
+          relationTo: 'boost-tiers',
           required: true,
-          defaultValue: 'basic',
-          options: [
-            { label: 'Basic (7 days)', value: 'basic' },
-            { label: 'Standard (14 days)', value: 'standard' },
-            { label: 'Premium (30 days)', value: 'premium' },
-          ],
           admin: {
             description: 'Boost tier determines visibility priority and duration',
             width: '50%',

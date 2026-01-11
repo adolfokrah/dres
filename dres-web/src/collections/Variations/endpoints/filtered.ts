@@ -2,6 +2,7 @@ import type { PayloadHandler } from 'payload'
 import { ObjectId } from 'mongodb'
 import { transformVariation } from '../utils/transformVariation'
 import { getUserCountryInfo } from '../../../utilities/countryUtils'
+import { resolveDepartmentId } from '../../../utilities/departmentUtils'
 
 // Helper to safely convert a string to ObjectId
 const toObjectId = (id: string | undefined | null): ObjectId | null => {
@@ -17,7 +18,13 @@ const toObjectId = (id: string | undefined | null): ObjectId | null => {
 
 export const filteredVariations: PayloadHandler = async (req) => {
   const { payload } = req
-  const { query, department, category, collection, style, brand, filterType, sortBy, sortPrice, attributes, minPrice, maxPrice, limit = 20, page = 1 } = req.query
+  const { query, department: departmentParam, category, collection, style, brand, filterType, sortBy, sortPrice, attributes, minPrice, maxPrice, limit = 20, page = 1 } = req.query
+
+  // Resolve department slug to ID (e.g., "men" -> ObjectId)
+  const department = await resolveDepartmentId(payload, departmentParam as string | undefined)
+  
+  // Debug logging
+  payload.logger.info(`[filtered] departmentParam: ${departmentParam}, resolved department ID: ${department}`)
 
   // Get user's country for filtering sellers
   const userCountry = await getUserCountryInfo(req)
@@ -163,11 +170,12 @@ export const filteredVariations: PayloadHandler = async (req) => {
       'styleData.status': 'published'
     }
 
-    // Filter by department (convert string to ObjectId)
+    // Filter by department (already resolved from slug if needed)
     if (department) {
-      const deptId = toObjectId(department as string)
+      const deptId = toObjectId(department)
       if (deptId) {
         matchConditions['styleData.department'] = deptId
+        payload.logger.info(`[filtered] Filtering by department ID: ${deptId}`)
       }
     }
 

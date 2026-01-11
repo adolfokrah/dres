@@ -207,6 +207,16 @@ async function handleChargeSuccess(
 
   payload.logger.info(`🔔 handleChargeSuccess: Transaction ${reference} marked as completed`)
 
+  // Handle different transaction types
+  const transactionType = transaction.type
+
+  if (transactionType === 'boost_payment') {
+    // Handle boost payment - create StyleBoost
+    await handleBoostPaymentSuccess(payload, transaction, data)
+    return
+  }
+
+  // Handle order payment (deposit)
   // Get the order from the transaction
   const orderId = typeof transaction.order === 'object' ? transaction.order.id : transaction.order
 
@@ -225,6 +235,78 @@ async function handleChargeSuccess(
   })
 
   payload.logger.info(`🔔 handleChargeSuccess: Order ${orderId} status updated to 'placed'`)
+}
+
+/**
+ * Handle successful boost payment - create StyleBoost
+ */
+async function handleBoostPaymentSuccess(
+  payload: Parameters<PayloadHandler>[0]['payload'],
+  transaction: { id: string; transactionId: string; user?: unknown },
+  data: PaystackWebhookPayload['data']
+) {
+  const { reference, metadata } = data
+
+  payload.logger.info(`🔔 handleBoostPaymentSuccess: Processing boost payment ${reference}`)
+
+  // Get style and tier info from metadata
+  const styleId = metadata?.styleId as string | undefined
+  const tierId = metadata?.tierId as string | undefined
+  const tierDuration = metadata?.tierDuration as number | undefined
+
+  if (!styleId || !tierId) {
+    payload.logger.error(`🔔 handleBoostPaymentSuccess: Missing styleId or tierId in metadata`)
+    return
+  }
+
+  // Get tier info if duration not in metadata
+  let duration = tierDuration
+  if (!duration) {
+    const tier = await payload.findByID({
+      collection: 'boost-tiers',
+      id: tierId,
+      depth: 0,
+    })
+    duration = tier?.duration as number || 7
+  }
+
+  // Calculate start and end dates
+  const startDate = new Date()
+  const endDate = new Date()
+  endDate.setDate(endDate.getDate() + duration)
+
+  // Create the StyleBoost
+  const styleBoost = await payload.create({
+    collection: 'style-boosts',
+    data: {
+      style: styleId,
+      tier: tierId,
+      status: 'active',
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      transaction: transaction.id,
+      notes: `Boost activated via payment. Duration: ${duration} days.`,
+    },
+    overrideAccess: true,
+  })
+
+  payload.logger.info(`🔔 handleBoostPaymentSuccess: StyleBoost created ${styleBoost.id} for style ${styleId}`)
+
+  // Optionally update the style to mark it as boosted
+  try {
+    await payload.update({
+      collection: 'styles',
+      id: styleId,
+      data: {
+        isBoosted: true,
+      },
+      overrideAccess: true,
+    })
+    payload.logger.info(`🔔 handleBoostPaymentSuccess: Style ${styleId} marked as boosted`)
+  } catch (e) {
+    // Style may not have isBoosted field, that's ok
+    payload.logger.info(`🔔 handleBoostPaymentSuccess: Could not update style isBoosted flag (may not exist)`)
+  }
 }
 
 /**

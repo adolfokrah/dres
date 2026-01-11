@@ -73,6 +73,49 @@ class UpdateStyleDetailsRequest {
 }
 
 /// Model for style details data (loaded from API)
+/// Model for active boost details
+class BoostDetailsModel {
+  final String id;
+  final String? startDate;
+  final String? endDate;
+  final String? tierId;
+  final String? tierName;
+  final int? tierDuration;
+
+  BoostDetailsModel({
+    required this.id,
+    this.startDate,
+    this.endDate,
+    this.tierId,
+    this.tierName,
+    this.tierDuration,
+  });
+
+  factory BoostDetailsModel.fromJson(Map<String, dynamic> json) {
+    final tier = json['tier'] as Map<String, dynamic>?;
+    return BoostDetailsModel(
+      id: json['id'] ?? '',
+      startDate: json['startDate'],
+      endDate: json['endDate'],
+      tierId: tier?['id'],
+      tierName: tier?['name'],
+      tierDuration: tier?['duration'],
+    );
+  }
+
+  /// Calculate days remaining for the boost
+  int get daysRemaining {
+    if (endDate == null) return 0;
+    final end = DateTime.parse(endDate!);
+    final now = DateTime.now();
+    final diff = end.difference(now).inDays;
+    return diff > 0 ? diff : 0;
+  }
+
+  /// Check if boost is expiring soon (within 2 days)
+  bool get isExpiringSoon => daysRemaining <= 2;
+}
+
 class StyleDetailsModel {
   final String id;
   final String? title;
@@ -90,6 +133,8 @@ class StyleDetailsModel {
   final String? sellerFirstName;
   final String? sellerLastName;
   final String? sellerBusinessName;
+  final bool isBoosted;
+  final BoostDetailsModel? boostDetails;
   final List<StyleVariationModel> variations;
   final int totalVariations;
 
@@ -110,6 +155,8 @@ class StyleDetailsModel {
     this.sellerFirstName,
     this.sellerLastName,
     this.sellerBusinessName,
+    this.isBoosted = false,
+    this.boostDetails,
     this.variations = const [],
     this.totalVariations = 0,
   });
@@ -159,6 +206,10 @@ class StyleDetailsModel {
       sellerFirstName: extractName(styleData['seller'], fieldName: 'firstName'),
       sellerLastName: extractName(styleData['seller'], fieldName: 'lastName'),
       sellerBusinessName: extractName(styleData['seller'], fieldName: 'businessName'),
+      isBoosted: styleData['isBoosted'] ?? false,
+      boostDetails: styleData['boostDetails'] != null
+          ? BoostDetailsModel.fromJson(styleData['boostDetails'])
+          : null,
       variations: variations,
       totalVariations: json['totalVariations'] ?? variations.length,
     );

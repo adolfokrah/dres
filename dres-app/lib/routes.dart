@@ -11,6 +11,7 @@ import 'package:dres/features/sell/presentation/view/select_department_screen.da
 import 'package:dres/features/sell/presentation/view/select_collection_screen.dart';
 import 'package:dres/features/sell/presentation/view/select_category_screen.dart';
 import 'package:dres/features/sell/presentation/view/select_brand_screen.dart';
+import 'package:dres/features/sell/presentation/view/boost_style_screen.dart';
 import 'package:dres/features/favorites/presentation/view/favorites_screen.dart';
 import 'package:dres/features/profile/profile.dart';
 import 'package:dres/features/shop/presentation/view/shop_screen.dart';
@@ -523,6 +524,20 @@ class AppRoutes {
                       return StyleDetailsScreen(styleId: styleId);
                     },
                     routes: [
+                      // Boost Style
+                      GoRoute(
+                        path: 'boost',
+                        name: 'boost-style',
+                        builder: (context, state) {
+                          final styleId = state.pathParameters['styleId']!;
+                          final extra = state.extra as Map<String, dynamic>?;
+                          final styleTitle = extra?['styleTitle'] as String?;
+                          return BoostStyleScreen(
+                            styleId: styleId,
+                            styleTitle: styleTitle,
+                          );
+                        },
+                      ),
                       // Variation Detail
                       GoRoute(
                         path: 'variation/:variationId',

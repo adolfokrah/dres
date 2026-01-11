@@ -92,6 +92,7 @@ export interface Config {
     orders: Order;
     shippingRates: ShippingRate;
     transactions: Transaction;
+    'boost-tiers': BoostTier;
     currencies: Currency;
     favorites: Favorite;
     'fcm-tokens': FcmToken;
@@ -181,6 +182,7 @@ export interface Config {
     orders: OrdersSelect<false> | OrdersSelect<true>;
     shippingRates: ShippingRatesSelect<false> | ShippingRatesSelect<true>;
     transactions: TransactionsSelect<false> | TransactionsSelect<true>;
+    'boost-tiers': BoostTiersSelect<false> | BoostTiersSelect<true>;
     currencies: CurrenciesSelect<false> | CurrenciesSelect<true>;
     favorites: FavoritesSelect<false> | FavoritesSelect<true>;
     'fcm-tokens': FcmTokensSelect<false> | FcmTokensSelect<true>;
@@ -1534,7 +1536,7 @@ export interface Transaction {
   /**
    * Type of transaction
    */
-  type: 'order_payment' | 'transfer' | 'deposit' | 'refund' | 'return_charge' | 'shipping_payment';
+  type: 'order_payment' | 'transfer' | 'deposit' | 'refund' | 'return_charge' | 'shipping_payment' | 'boost_payment';
   /**
    * Transaction status
    */
@@ -1544,9 +1546,13 @@ export interface Transaction {
    */
   user: string | User;
   /**
-   * The order this transaction belongs to
+   * The order this transaction belongs to (for order payments)
    */
-  order: string | Order;
+  order?: (string | null) | Order;
+  /**
+   * The style this transaction is for (for boost payments)
+   */
+  style?: (string | null) | Style;
   /**
    * The currency for this transaction
    */
@@ -1642,7 +1648,7 @@ export interface StyleBoost {
   /**
    * Boost tier determines visibility priority and duration
    */
-  tier: 'basic' | 'standard' | 'premium';
+  tier: string | BoostTier;
   /**
    * Auto-calculated based on dates
    */
@@ -1663,6 +1669,49 @@ export interface StyleBoost {
    * Additional notes about this boost
    */
   notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Configure boost tier pricing and benefits
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "boost-tiers".
+ */
+export interface BoostTier {
+  id: string;
+  /**
+   * e.g., Basic, Standard, Premium
+   */
+  name: string;
+  /**
+   * Unique identifier (e.g., basic, standard, premium)
+   */
+  slug: string;
+  /**
+   * How many days the boost lasts
+   */
+  duration: number;
+  /**
+   * Price in Ghana Cedis
+   */
+  price: number;
+  /**
+   * List of benefits, one per line
+   */
+  benefits: string;
+  /**
+   * Show "POPULAR" badge on this tier
+   */
+  isPopular?: boolean | null;
+  /**
+   * Show this tier in the app
+   */
+  isActive?: boolean | null;
+  /**
+   * Lower numbers appear first
+   */
+  sortOrder?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2785,6 +2834,10 @@ export interface PayloadLockedDocument {
         value: string | Transaction;
       } | null)
     | ({
+        relationTo: 'boost-tiers';
+        value: string | BoostTier;
+      } | null)
+    | ({
         relationTo: 'currencies';
         value: string | Currency;
       } | null)
@@ -3629,6 +3682,7 @@ export interface TransactionsSelect<T extends boolean = true> {
   status?: T;
   user?: T;
   order?: T;
+  style?: T;
   currency?: T;
   itemId?: T;
   amount?: T;
@@ -3643,6 +3697,22 @@ export interface TransactionsSelect<T extends boolean = true> {
         bank?: T;
       };
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "boost-tiers_select".
+ */
+export interface BoostTiersSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  duration?: T;
+  price?: T;
+  benefits?: T;
+  isPopular?: T;
+  isActive?: T;
+  sortOrder?: T;
   updatedAt?: T;
   createdAt?: T;
 }

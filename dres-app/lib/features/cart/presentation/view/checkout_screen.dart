@@ -5,8 +5,8 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_button.dart';
-import 'package:dres/core/widgets/payment_webview_screen.dart';
 import 'package:dres/core/di/injection.dart';
+import 'package:dres/features/payment/presentation/view/payment_screen.dart';
 import 'package:dres/features/cart/data/models/seller_group.dart';
 import 'package:dres/features/cart/data/models/shipping_address.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
@@ -18,7 +18,7 @@ import 'package:dres/features/cart/presentation/widgets/seller_checkout_card.dar
 import 'package:dres/features/cart/presentation/widgets/promo_code_section.dart';
 import 'package:dres/features/cart/presentation/widgets/order_summary_section.dart';
 import 'package:dres/features/cart/presentation/widgets/checkout_bottom_bar.dart';
-import 'package:dres/features/orders/data/repositories/orders_repository.dart';
+import 'package:dres/features/payment/data/repositories/payment_repository.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -112,17 +112,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final transactionId = state.placeOrderResponse?.payment?.transactionId;
       
       if (paymentUrl != null && transactionId != null) {
-        // Open payment webview with long polling
-        final result = await openPaymentWebView(
+        // Open payment screen with long polling
+        final result = await openPaymentScreen(
           context,
           paymentUrl: paymentUrl,
-          orderId: orderId,
           transactionId: transactionId,
+          title: orderId != null ? 'Pay for $orderId' : 'Complete Payment',
         );
         
         if (!mounted) return;
         
-        // Handle result from WebView
+        // Handle result from payment screen
         if (result == PaymentResult.success) {
           // Payment successful - clear cart and navigate to order
           getIt<CartBloc>().add(const CartCleared());
@@ -236,7 +236,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
     
     try {
-      final response = await getIt<OrdersRepository>().checkTransactionStatus(
+      final response = await getIt<PaymentRepository>().checkTransactionStatus(
         reference: transactionId,
       );
       
@@ -253,10 +253,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         );
         // Navigate to order details - go to profile first for proper back stack
-        final orderIdToNavigate = response.order?.id ?? orderId;
         context.go('/profile');
-        if (orderIdToNavigate != null) {
-          context.push('/orders/$orderIdToNavigate');
+        if (orderId != null) {
+          context.push('/orders/$orderId');
         }
       } else if (response.isPaymentFailed) {
         // Payment failed

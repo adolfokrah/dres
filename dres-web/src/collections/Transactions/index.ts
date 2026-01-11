@@ -91,6 +91,7 @@ export const Transactions: CollectionConfig = {
             { label: 'Refund', value: 'refund' },
             { label: 'Return Charge (Seller Fee)', value: 'return_charge' },
             { label: 'Shipping Payment (Return)', value: 'shipping_payment' },
+            { label: 'Boost Payment', value: 'boost_payment' },
           ],
           admin: {
             description: 'Type of transaction',
@@ -128,9 +129,18 @@ export const Transactions: CollectionConfig = {
       name: 'order',
       type: 'relationship',
       relationTo: 'orders',
-      required: true,
       admin: {
-        description: 'The order this transaction belongs to',
+        description: 'The order this transaction belongs to (for order payments)',
+        condition: (data) => data.type !== 'boost_payment',
+      },
+    },
+    {
+      name: 'style',
+      type: 'relationship',
+      relationTo: 'styles',
+      admin: {
+        description: 'The style this transaction is for (for boost payments)',
+        condition: (data) => data.type === 'boost_payment',
       },
     },
     {
