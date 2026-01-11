@@ -6,6 +6,7 @@ import type { PayloadHandler, PayloadRequest } from 'payload'
  * Records a variation view for trending algorithm.
  * - If user is logged in, adds them to the users array of the variation-view
  * - Creates a new variation-view if one doesn't exist for this variation
+ * - Does NOT record views when seller views their own product
  * 
  * Body:
  * - variationId: string (required)
@@ -25,10 +26,11 @@ export const recordView: PayloadHandler = async (req: PayloadRequest) => {
 
     const { variationId } = body
 
-    // Verify variation exists
+    // Verify variation exists and get style info to check seller
     const variation = await payload.findByID({
       collection: 'variations',
       id: variationId,
+      depth: 1, // Get style info
     })
 
     if (!variation) {
@@ -36,6 +38,26 @@ export const recordView: PayloadHandler = async (req: PayloadRequest) => {
         { error: 'Variation not found' },
         { status: 404 }
       )
+    }
+
+    // Check if the logged-in user is the seller of this product
+    // If so, don't record the view (seller viewing own product)
+    if (user?.id) {
+      const style = variation.style
+      let sellerId: string | null = null
+      
+      if (style && typeof style === 'object' && 'seller' in style) {
+        const seller = (style as { seller?: string | { id: string } }).seller
+        sellerId = typeof seller === 'object' ? seller?.id : seller
+      }
+      
+      if (sellerId && sellerId === user.id) {
+        return Response.json({
+          success: true,
+          message: 'View not recorded - seller viewing own product',
+          skipped: true,
+        })
+      }
     }
 
     // Check if a variation-view record already exists for this variation

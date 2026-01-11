@@ -112,6 +112,15 @@ export const BoostTiers: CollectionConfig = {
       ],
     },
     {
+      name: 'hasAnalytics',
+      label: 'Include Analytics',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Allow access to style analytics/stats for this tier',
+      },
+    },
+    {
       name: 'sortOrder',
       label: 'Sort Order',
       type: 'number',

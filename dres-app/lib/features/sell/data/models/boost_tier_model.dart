@@ -8,6 +8,7 @@ class BoostTierModel {
   final double priceInGHS;
   final List<String> benefits;
   final bool isPopular;
+  final bool hasAnalytics;
 
   BoostTierModel({
     required this.id,
@@ -18,6 +19,7 @@ class BoostTierModel {
     required this.priceInGHS,
     required this.benefits,
     this.isPopular = false,
+    this.hasAnalytics = false,
   });
 
   /// Duration formatted as string (e.g., "7 days")
@@ -36,6 +38,7 @@ class BoostTierModel {
               .toList() ??
           [],
       isPopular: json['isPopular'] ?? false,
+      hasAnalytics: json['hasAnalytics'] ?? false,
     );
   }
 
@@ -49,6 +52,7 @@ class BoostTierModel {
       'priceInGHS': priceInGHS,
       'benefits': benefits,
       'isPopular': isPopular,
+      'hasAnalytics': hasAnalytics,
     };
   }
 }

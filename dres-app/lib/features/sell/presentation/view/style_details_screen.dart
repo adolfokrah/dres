@@ -192,6 +192,15 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
     });
   }
 
+  void _onStatsTap(StyleDetailsState state) {
+    context.push(
+      '/sell/style/${widget.styleId}/stats',
+      extra: {
+        'styleTitle': state.styleDetails?.title,
+      },
+    );
+  }
+
   void _onVariationTap(VariationModel variation) {
     context.push(
       '/sell/style/${widget.styleId}/variation/${variation.id}',
@@ -305,7 +314,12 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
                                     state.styleDetails?.boostDetails != null)
                                   Padding(
                                     padding: const EdgeInsets.only(top: 20, left: 20, right: 20),
-                                    child: _buildActiveBoostBanner(state.styleDetails!.boostDetails!),
+                                    child: GestureDetector(
+                                      onTap: state.styleDetails!.boostDetails!.hasAnalytics
+                                          ? () => _onStatsTap(state)
+                                          : null,
+                                      child: _buildActiveBoostBanner(state.styleDetails!.boostDetails!),
+                                    ),
                                   ),
 
                                 // Boost promotion banner (only for published items that are not boosted)
@@ -660,13 +674,45 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  isExpiringSoon
-                      ? 'Expires soon! $daysRemaining day${daysRemaining == 1 ? '' : 's'} left (ends $formattedEndDate)'
-                      : '$daysRemaining day${daysRemaining == 1 ? '' : 's'} remaining • Ends $formattedEndDate',
-                  style: AppTypography.bodyS.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        isExpiringSoon
+                            ? 'Expires soon! $daysRemaining day${daysRemaining == 1 ? '' : 's'} left (ends $formattedEndDate)'
+                            : '$daysRemaining day${daysRemaining == 1 ? '' : 's'} remaining • Ends $formattedEndDate',
+                        style: AppTypography.bodyS.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                    if (boostDetails.hasAnalytics) ...[
+                      const SizedBox(width: 8),
+                      Row(
+                        children: [
+                          PhosphorIcon(
+                            PhosphorIcons.chartBar(),
+                            size: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'View Stats',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.textSecondary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          PhosphorIcon(
+                            PhosphorIcons.caretRight(),
+                            size: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),

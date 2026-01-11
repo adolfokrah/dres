@@ -204,6 +204,12 @@ class _BoostStyleScreenState extends State<BoostStyleScreen> {
         title: 'Search Priority',
         description: 'Appear higher in search results and recommendations',
       ),
+      _BenefitItem(
+        icon: PhosphorIcons.chartBar(),
+        title: 'Analytics & Insights',
+        description: 'Track views, favorites, sales & conversion rates',
+        isPremium: true,
+      ),
     ];
 
     return Column(
@@ -224,12 +230,16 @@ class _BoostStyleScreenState extends State<BoostStyleScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.secondary,
+                      color: benefit.isPremium 
+                          ? AppColors.primary.withOpacity(0.1) 
+                          : AppColors.secondary,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: PhosphorIcon(
                       benefit.icon,
-                      color: AppColors.textPrimary,
+                      color: benefit.isPremium 
+                          ? AppColors.primary 
+                          : AppColors.textPrimary,
                       size: 20,
                     ),
                   ),
@@ -238,12 +248,37 @@ class _BoostStyleScreenState extends State<BoostStyleScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          benefit.title,
-                          style: AppTypography.bodyM.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              benefit.title,
+                              style: AppTypography.bodyM.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            if (benefit.isPremium) ...[
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'PREMIUM',
+                                  style: AppTypography.caption.copyWith(
+                                    color: AppColors.surface,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 9,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                         Text(
                           benefit.description,
@@ -389,6 +424,30 @@ class _BoostStyleScreenState extends State<BoostStyleScreen> {
                       ],
                     ),
                   )),
+              // Show Analytics badge if tier includes it
+              if (tier.hasAnalytics)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                      PhosphorIcon(
+                        PhosphorIcons.chartBar(),
+                        color: AppColors.primary,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Includes detailed analytics & insights',
+                          style: AppTypography.bodyS.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ],
         ),
@@ -557,10 +616,12 @@ class _BenefitItem {
   final IconData icon;
   final String title;
   final String description;
+  final bool isPremium;
 
   const _BenefitItem({
     required this.icon,
     required this.title,
     required this.description,
+    this.isPremium = false,
   });
 }

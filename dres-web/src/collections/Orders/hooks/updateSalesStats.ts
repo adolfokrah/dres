@@ -80,9 +80,32 @@ export const updateSalesStats: CollectionAfterChangeHook = async ({
 
     // Process this item - wrap in try-catch so one failure doesn't stop others
     try {
-      const saleAmount = currentItem.price * currentItem.quantity
       const itemsSold = currentItem.quantity
       const now = new Date().toISOString()
+
+      // Get the order's currency exchange rate to convert to GHS
+      let exchangeRateToGHS = 1
+      const orderCurrency = doc.currency
+      if (orderCurrency) {
+        let currencyData = orderCurrency
+        // If it's just an ID, fetch the full currency
+        if (typeof orderCurrency === 'string') {
+          currencyData = await payload.findByID({
+            collection: 'currencies',
+            id: orderCurrency,
+          })
+        }
+        if (currencyData && typeof currencyData === 'object' && 'exchangeRateToGHS' in currencyData) {
+          exchangeRateToGHS = (currencyData as { exchangeRateToGHS?: number }).exchangeRateToGHS || 1
+        }
+      }
+
+      // Convert sale amount from order currency to GHS
+      // Order stores prices in user's currency, we need to convert to GHS for stats
+      const saleAmountInOrderCurrency = currentItem.price * currentItem.quantity
+      const saleAmountInGHS = saleAmountInOrderCurrency * exchangeRateToGHS
+
+      payload.logger.info(`Item ${i}: Converting ${saleAmountInOrderCurrency} (order currency) to ${saleAmountInGHS} GHS (rate: ${exchangeRateToGHS})`)
 
       // Get seller ID
       const sellerId =
@@ -184,7 +207,7 @@ export const updateSalesStats: CollectionAfterChangeHook = async ({
           collection: 'variation-stats',
           id: stats.id,
           data: {
-            totalSales: (stats.totalSales || 0) + saleAmount,
+            totalSales: (stats.totalSales || 0) + saleAmountInGHS,
             totalOrders: (stats.totalOrders || 0) + 1,
             totalItemsSold: (stats.totalItemsSold || 0) + itemsSold,
             lastSaleAt: now,
@@ -203,7 +226,7 @@ export const updateSalesStats: CollectionAfterChangeHook = async ({
             collection: collectionId,
             category: categoryId,
             brand: brandId,
-            totalSales: saleAmount,
+            totalSales: saleAmountInGHS,
             totalOrders: 1,
             totalItemsSold: itemsSold,
             lastSaleAt: now,
@@ -212,7 +235,7 @@ export const updateSalesStats: CollectionAfterChangeHook = async ({
         payload.logger.info(`Created NEW stats record for SKU: ${skuId}`)
       }
 
-      payload.logger.info(`Stats updated - SKU: ${skuId}, Sales: ${saleAmount}, Items: ${itemsSold}`)
+      payload.logger.info(`Stats updated - SKU: ${skuId}, Sales (GHS): ${saleAmountInGHS}, Items: ${itemsSold}`)
     } catch (error) {
       payload.logger.error(`Error updating stats for item ${i} (SKU: ${skuId}): ${error}`)
       // Continue to next item

@@ -42,6 +42,7 @@ import 'package:dres/features/follows/data/repositories/follows_repository.dart'
 import 'package:dres/features/follows/logic/follows_bloc/follows_bloc.dart';
 import 'package:dres/features/sell/data/repositories/sell_repository.dart';
 import 'package:dres/features/sell/data/repositories/boost_tiers_repository.dart';
+import 'package:dres/features/sell/data/repositories/style_stats_repository.dart';
 import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
 import 'package:dres/features/sell/logic/style_details_bloc/style_details_bloc.dart';
 import 'package:dres/features/sell/logic/variations_bloc/variations_bloc.dart';
@@ -269,6 +270,11 @@ Future<void> setupDependencies() async {
     apiService: getIt<ApiService>(),
   ));
 
+  // Style Stats Repository
+  getIt.registerLazySingleton<StyleStatsRepository>(() => StyleStatsRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
   // Sell Bloc - Singleton so draft state persists
   getIt.registerLazySingleton<SellBloc>(() => SellBloc(
     sellRepository: getIt<SellRepository>(),
@@ -480,6 +486,11 @@ Future<void> _setupDependenciesWithExistingStorage(StorageService storageService
 
   // Boost Tiers Repository
   getIt.registerLazySingleton<BoostTiersRepository>(() => BoostTiersRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Style Stats Repository
+  getIt.registerLazySingleton<StyleStatsRepository>(() => StyleStatsRepository(
     apiService: getIt<ApiService>(),
   ));
 

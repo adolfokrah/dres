@@ -1709,6 +1709,10 @@ export interface BoostTier {
    */
   isActive?: boolean | null;
   /**
+   * Allow access to style analytics/stats for this tier
+   */
+  hasAnalytics?: boolean | null;
+  /**
    * Lower numbers appear first
    */
   sortOrder?: number | null;
@@ -3712,6 +3716,7 @@ export interface BoostTiersSelect<T extends boolean = true> {
   benefits?: T;
   isPopular?: T;
   isActive?: T;
+  hasAnalytics?: T;
   sortOrder?: T;
   updatedAt?: T;
   createdAt?: T;
