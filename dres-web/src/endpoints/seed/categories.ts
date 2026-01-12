@@ -47,22 +47,22 @@ const categoriesData = [
   { title: 'African Print Skirts', collections: ['Clothing'], departments: ['Women', 'Kids'], brands: ['Vlisco', 'Woodin', 'GTP', 'Christie Brown', 'Lisa Folawiyo', 'Duaba Serwa'], attributes: ['Size', 'Color', 'Length', 'Material', 'Print/Pattern', 'Occasion'], variantAttributes: ['Size', 'Color'] },
   { title: 'African Print Trousers', collections: ['Clothing'], departments: ['Women', 'Men', 'Kids'], brands: ['Vlisco', 'Woodin', 'GTP', 'Steve French', 'Orange Culture', 'Osei-Duro'], attributes: ['Size', 'Color', 'Fit', 'Material', 'Print/Pattern', 'Occasion'], variantAttributes: ['Size', 'Color'] },
   { title: 'Boubou / Kaftan', collections: ['Clothing'], departments: ['Women', 'Men'], brands: ['LaFalaise Dion', 'Imane Ayissi', 'Tongoro', 'Maison ARTC', 'Tribal Marks'], attributes: ['Size', 'Color', 'Material', 'Occasion'], variantAttributes: ['Size', 'Color'] },
-  { title: 'African Beads & Jewelry', collections: ['Jewelry'], departments: ['Women', 'Men'], brands: ['AAKS', 'Studio 189', 'Tribal Marks', 'Christie Brown'], attributes: ['Color', 'Material', 'Condition'], variantAttributes: ['Color'] },
-  { title: 'Raffia Bags', collections: ['Bags'], departments: ['Women'], brands: ['AAKS', 'Studio 189', 'Osei-Duro', 'Sindiso Khumalo'], attributes: ['Color', 'Material', 'Condition', 'Print/Pattern'], variantAttributes: ['Color'] },
-  { title: 'African Print Accessories', collections: ['Accessories'], departments: ['Women', 'Men', 'Kids'], brands: ['Vlisco', 'Woodin', 'GTP', 'AAKS', 'Christie Brown', 'Studio 189'], attributes: ['Color', 'Material', 'Print/Pattern'], variantAttributes: ['Color'] },
-  { title: 'Headwraps & Gele', collections: ['Accessories'], departments: ['Women'], brands: ['Vlisco', 'Woodin', 'GTP', 'Lisa Folawiyo', 'Tribal Marks'], attributes: ['Color', 'Material', 'Print/Pattern', 'Occasion'], variantAttributes: ['Color'] },
+  { title: 'African Beads & Jewelry', collections: ['Jewelry'], departments: ['Women', 'Men'], brands: ['AAKS', 'Studio 189', 'Tribal Marks', 'Christie Brown'], attributes: ['Size', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Raffia Bags', collections: ['Bags'], departments: ['Women'], brands: ['AAKS', 'Studio 189', 'Osei-Duro', 'Sindiso Khumalo'], attributes: ['Size', 'Color', 'Material', 'Condition', 'Print/Pattern'], variantAttributes: ['Size', 'Color'] },
+  { title: 'African Print Accessories', collections: ['Accessories'], departments: ['Women', 'Men', 'Kids'], brands: ['Vlisco', 'Woodin', 'GTP', 'AAKS', 'Christie Brown', 'Studio 189'], attributes: ['Size', 'Color', 'Material', 'Print/Pattern'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Headwraps & Gele', collections: ['Accessories'], departments: ['Women'], brands: ['Vlisco', 'Woodin', 'GTP', 'Lisa Folawiyo', 'Tribal Marks'], attributes: ['Size', 'Color', 'Material', 'Print/Pattern', 'Occasion'], variantAttributes: ['Size', 'Color'] },
   { title: 'African Sandals', collections: ['Shoes'], departments: ['Women', 'Men', 'Kids'], brands: ['Studio 189', 'Osei-Duro', 'Tribal Marks', 'Birkenstock'], attributes: ['Size', 'Color', 'Material'], variantAttributes: ['Size', 'Color'] },
 
   // Bags Categories
-  { title: 'Handbags', collections: ['Bags'], departments: ['Women'], brands: ['Hermès', 'Chanel', 'Louis Vuitton', 'Gucci', 'Prada', 'Bottega Veneta', 'Celine'], attributes: ['Color', 'Material', 'Condition'], variantAttributes: ['Color'] },
-  { title: 'Shoulder Bags', collections: ['Bags'], departments: ['Women', 'Men'], brands: ['Gucci', 'Saint Laurent', 'Prada', 'Balenciaga', 'Coach', 'Michael Kors'], attributes: ['Color', 'Material', 'Condition'], variantAttributes: ['Color'] },
-  { title: 'Crossbody Bags', collections: ['Bags'], departments: ['Women', 'Men'], brands: ['Louis Vuitton', 'Gucci', 'Coach', 'Kate Spade', 'Michael Kors', 'Marc Jacobs'], attributes: ['Color', 'Material', 'Condition'], variantAttributes: ['Color'] },
-  { title: 'Tote Bags', collections: ['Bags'], departments: ['Women', 'Men'], brands: ['Goyard', 'Louis Vuitton', 'Tory Burch', 'Longchamp', 'Coach', 'Celine'], attributes: ['Color', 'Material', 'Condition'], variantAttributes: ['Color'] },
-  { title: 'Clutches', collections: ['Bags'], departments: ['Women'], brands: ['Bottega Veneta', 'Jimmy Choo', 'Alexander McQueen', 'Saint Laurent', 'Judith Leiber'], attributes: ['Color', 'Material', 'Condition'], variantAttributes: ['Color'] },
-  { title: 'Backpacks', collections: ['Bags'], departments: ['Women', 'Men', 'Kids'], brands: ['Louis Vuitton', 'Gucci', 'Prada', 'The North Face', 'Fjällräven', 'Herschel'], attributes: ['Color', 'Material', 'Condition'], variantAttributes: ['Color'] },
-  { title: 'Travel Bags', collections: ['Bags'], departments: ['Women', 'Men'], brands: ['Louis Vuitton', 'Rimowa', 'Tumi', 'Hermès', 'Gucci', 'Prada'], attributes: ['Color', 'Material', 'Condition'], variantAttributes: ['Color'] },
-  { title: 'Wallets', collections: ['Bags', 'Accessories'], departments: ['Women', 'Men'], brands: ['Louis Vuitton', 'Gucci', 'Chanel', 'Hermès', 'Prada', 'Bottega Veneta'], attributes: ['Color', 'Material', 'Condition'], variantAttributes: ['Color'] },
-  { title: 'Belt Bags', collections: ['Bags'], departments: ['Women', 'Men'], brands: ['Gucci', 'Louis Vuitton', 'Prada', 'Fendi', 'Burberry', 'Balenciaga'], attributes: ['Color', 'Material', 'Condition'], variantAttributes: ['Color'] },
+  { title: 'Handbags', collections: ['Bags'], departments: ['Women'], brands: ['Hermès', 'Chanel', 'Louis Vuitton', 'Gucci', 'Prada', 'Bottega Veneta', 'Celine'], attributes: ['Size', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Shoulder Bags', collections: ['Bags'], departments: ['Women', 'Men'], brands: ['Gucci', 'Saint Laurent', 'Prada', 'Balenciaga', 'Coach', 'Michael Kors'], attributes: ['Size', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Crossbody Bags', collections: ['Bags'], departments: ['Women', 'Men'], brands: ['Louis Vuitton', 'Gucci', 'Coach', 'Kate Spade', 'Michael Kors', 'Marc Jacobs'], attributes: ['Size', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Tote Bags', collections: ['Bags'], departments: ['Women', 'Men'], brands: ['Goyard', 'Louis Vuitton', 'Tory Burch', 'Longchamp', 'Coach', 'Celine'], attributes: ['Size', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Clutches', collections: ['Bags'], departments: ['Women'], brands: ['Bottega Veneta', 'Jimmy Choo', 'Alexander McQueen', 'Saint Laurent', 'Judith Leiber'], attributes: ['Size', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Backpacks', collections: ['Bags'], departments: ['Women', 'Men', 'Kids'], brands: ['Louis Vuitton', 'Gucci', 'Prada', 'The North Face', 'Fjällräven', 'Herschel'], attributes: ['Size', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Travel Bags', collections: ['Bags'], departments: ['Women', 'Men'], brands: ['Louis Vuitton', 'Rimowa', 'Tumi', 'Hermès', 'Gucci', 'Prada'], attributes: ['Size', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Wallets', collections: ['Bags', 'Accessories'], departments: ['Women', 'Men'], brands: ['Louis Vuitton', 'Gucci', 'Chanel', 'Hermès', 'Prada', 'Bottega Veneta'], attributes: ['Size', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Belt Bags', collections: ['Bags'], departments: ['Women', 'Men'], brands: ['Gucci', 'Louis Vuitton', 'Prada', 'Fendi', 'Burberry', 'Balenciaga'], attributes: ['Size', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
 
   // Shoes Categories
   { title: 'Sneakers', collections: ['Shoes'], departments: ['Women', 'Men', 'Kids'], brands: ['Nike', 'Adidas', 'New Balance', 'Converse', 'Vans', 'Jordan', 'Puma'], attributes: ['Size', 'Color', 'Condition'], variantAttributes: ['Size', 'Color'] },
@@ -78,63 +78,30 @@ const categoriesData = [
 
   // Accessories Categories
   { title: 'Belts', collections: ['Accessories'], departments: ['Women', 'Men'], brands: ['Gucci', 'Hermès', 'Louis Vuitton', 'Bottega Veneta', 'Salvatore Ferragamo', 'Prada'], attributes: ['Size', 'Color', 'Material'], variantAttributes: ['Size', 'Color'] },
-  { title: 'Scarves', collections: ['Accessories'], departments: ['Women', 'Men'], brands: ['Hermès', 'Louis Vuitton', 'Gucci', 'Burberry', 'Loro Piana', 'Acne Studios'], attributes: ['Color', 'Material'], variantAttributes: ['Color'] },
+  { title: 'Scarves', collections: ['Accessories'], departments: ['Women', 'Men'], brands: ['Hermès', 'Louis Vuitton', 'Gucci', 'Burberry', 'Loro Piana', 'Acne Studios'], attributes: ['Size', 'Color', 'Material'], variantAttributes: ['Size', 'Color'] },
   { title: 'Hats', collections: ['Accessories'], departments: ['Women', 'Men', 'Kids'], brands: ['Gucci', 'Prada', 'Jacquemus', 'Maison Michel', 'Lack of Color', 'New Era'], attributes: ['Size', 'Color'], variantAttributes: ['Size', 'Color'] },
-  { title: 'Sunglasses', collections: ['Accessories'], departments: ['Women', 'Men', 'Kids'], brands: ['Ray-Ban', 'Oakley', 'Gucci', 'Prada', 'Dior', 'Celine', 'Tom Ford'], attributes: ['Color', 'Condition'], variantAttributes: ['Color'] },
+  { title: 'Sunglasses', collections: ['Accessories'], departments: ['Women', 'Men', 'Kids'], brands: ['Ray-Ban', 'Oakley', 'Gucci', 'Prada', 'Dior', 'Celine', 'Tom Ford'], attributes: ['Size', 'Color', 'Condition'], variantAttributes: ['Size', 'Color'] },
   { title: 'Gloves', collections: ['Accessories'], departments: ['Women', 'Men'], brands: ['Hermès', 'Bottega Veneta', 'Prada', 'Burberry', 'Dents', 'Mulberry'], attributes: ['Size', 'Color', 'Material'], variantAttributes: ['Size', 'Color'] },
-  { title: 'Hair Accessories', collections: ['Accessories'], departments: ['Women', 'Kids'], brands: ['Chanel', 'Prada', 'Gucci', 'Alexandre de Paris', 'Jennifer Behr'], attributes: ['Color', 'Material'], variantAttributes: ['Color'] },
+  { title: 'Hair Accessories', collections: ['Accessories'], departments: ['Women', 'Kids'], brands: ['Chanel', 'Prada', 'Gucci', 'Alexandre de Paris', 'Jennifer Behr'], attributes: ['Size', 'Color', 'Material'], variantAttributes: ['Size', 'Color'] },
   { title: 'Wigs', collections: ['Accessories'], departments: ['Women'], brands: [], attributes: ['Wig Size', 'Wig Length', 'Color', 'Wig Style', 'Hair Type'], variantAttributes: ['Wig Size', 'Wig Length', 'Color'] },
-  { title: 'Ties', collections: ['Accessories'], departments: ['Men'], brands: ['Hermès', 'Gucci', 'Dior', 'Tom Ford', 'Brioni', 'Salvatore Ferragamo'], attributes: ['Color', 'Material'], variantAttributes: ['Color'] },
-  { title: 'Pocket Squares', collections: ['Accessories'], departments: ['Men'], brands: ['Hermès', "Drake's", 'Tom Ford', 'Turnbull & Asser', 'Charvet'], attributes: ['Color', 'Material'], variantAttributes: ['Color'] },
+  { title: 'Ties', collections: ['Accessories'], departments: ['Men'], brands: ['Hermès', 'Gucci', 'Dior', 'Tom Ford', 'Brioni', 'Salvatore Ferragamo'], attributes: ['Size', 'Color', 'Material'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Pocket Squares', collections: ['Accessories'], departments: ['Men'], brands: ['Hermès', "Drake's", 'Tom Ford', 'Turnbull & Asser', 'Charvet'], attributes: ['Size', 'Color', 'Material'], variantAttributes: ['Size', 'Color'] },
 
   // Jewelry Categories
   { title: 'Necklaces', collections: ['Jewelry'], departments: ['Women', 'Men'], brands: ['Cartier', 'Tiffany & Co.', 'Van Cleef & Arpels', 'Bulgari', 'Chanel', 'Dior'], attributes: ['Length', 'Material', 'Condition'], variantAttributes: ['Length'] },
   { title: 'Bracelets', collections: ['Jewelry'], departments: ['Women', 'Men'], brands: ['Cartier', 'Tiffany & Co.', 'Van Cleef & Arpels', 'Hermès', 'Bulgari', 'David Yurman'], attributes: ['Size', 'Material', 'Condition'], variantAttributes: ['Size'] },
-  { title: 'Earrings', collections: ['Jewelry'], departments: ['Women'], brands: ['Cartier', 'Tiffany & Co.', 'Van Cleef & Arpels', 'Chanel', 'Dior', 'Celine'], attributes: ['Material', 'Condition'], variantAttributes: [] },
+  { title: 'Earrings', collections: ['Jewelry'], departments: ['Women'], brands: ['Cartier', 'Tiffany & Co.', 'Van Cleef & Arpels', 'Chanel', 'Dior', 'Celine'], attributes: ['Size', 'Material', 'Condition'], variantAttributes: ['Size'] },
   { title: 'Rings', collections: ['Jewelry'], departments: ['Women', 'Men'], brands: ['Cartier', 'Tiffany & Co.', 'Van Cleef & Arpels', 'Bulgari', 'Harry Winston', 'Pomellato'], attributes: ['Size', 'Material', 'Condition'], variantAttributes: ['Size'] },
-  { title: 'Brooches', collections: ['Jewelry'], departments: ['Women', 'Men'], brands: ['Chanel', 'Van Cleef & Arpels', 'Cartier', 'Dior', 'Gucci'], attributes: ['Material', 'Condition'], variantAttributes: [] },
-  { title: 'Cufflinks', collections: ['Jewelry', 'Accessories'], departments: ['Men'], brands: ['Cartier', 'Montblanc', 'Tom Ford', 'Tiffany & Co.', 'Dunhill'], attributes: ['Material', 'Condition'], variantAttributes: [] },
+  { title: 'Brooches', collections: ['Jewelry'], departments: ['Women', 'Men'], brands: ['Chanel', 'Van Cleef & Arpels', 'Cartier', 'Dior', 'Gucci'], attributes: ['Size', 'Material', 'Condition'], variantAttributes: ['Size'] },
+  { title: 'Cufflinks', collections: ['Jewelry', 'Accessories'], departments: ['Men'], brands: ['Cartier', 'Montblanc', 'Tom Ford', 'Tiffany & Co.', 'Dunhill'], attributes: ['Size', 'Material', 'Condition'], variantAttributes: ['Size'] },
 
   // Watch Categories
-  { title: 'Luxury Watches', collections: ['Watches'], departments: ['Women', 'Men'], brands: ['Rolex', 'Patek Philippe', 'Audemars Piguet', 'Omega', 'Cartier', 'IWC'], attributes: ['Condition', 'Material'], variantAttributes: [] },
-  { title: 'Sport Watches', collections: ['Watches'], departments: ['Women', 'Men'], brands: ['Rolex', 'Omega', 'TAG Heuer', 'Breitling', 'Tudor', 'Longines'], attributes: ['Condition', 'Material'], variantAttributes: [] },
-  { title: 'Fashion Watches', collections: ['Watches'], departments: ['Women', 'Men'], brands: ['Gucci', 'Chanel', 'Dior', 'Hermès', 'Bulgari', 'Cartier'], attributes: ['Condition', 'Material'], variantAttributes: [] },
+  { title: 'Luxury Watches', collections: ['Watches'], departments: ['Women', 'Men'], brands: ['Rolex', 'Patek Philippe', 'Audemars Piguet', 'Omega', 'Cartier', 'IWC'], attributes: ['Size', 'Condition', 'Material'], variantAttributes: ['Size'] },
+  { title: 'Sport Watches', collections: ['Watches'], departments: ['Women', 'Men'], brands: ['Rolex', 'Omega', 'TAG Heuer', 'Breitling', 'Tudor', 'Longines'], attributes: ['Size', 'Condition', 'Material'], variantAttributes: ['Size'] },
+  { title: 'Fashion Watches', collections: ['Watches'], departments: ['Women', 'Men'], brands: ['Gucci', 'Chanel', 'Dior', 'Hermès', 'Bulgari', 'Cartier'], attributes: ['Size', 'Condition', 'Material'], variantAttributes: ['Size'] },
 ]
 
 export const seedCategories = async (payload: Payload): Promise<void> => {
-  // Must delete variations first due to foreign key constraint on category
-  payload.logger.info('Clearing variations (required before categories)...')
-
-  const existingVariations = await payload.find({
-    collection: 'variations',
-    limit: 1000,
-  })
-
-  for (const doc of existingVariations.docs) {
-    await payload.delete({
-      collection: 'variations',
-      id: doc.id,
-    })
-  }
-
-  payload.logger.info(`Deleted ${existingVariations.docs.length} variations`)
-
-  payload.logger.info('Clearing categories...')
-
-  // Delete all existing categories
-  const existingCategories = await payload.find({
-    collection: 'categories',
-    limit: 1000,
-  })
-
-  for (const doc of existingCategories.docs) {
-    await payload.delete({
-      collection: 'categories',
-      id: doc.id,
-    })
-  }
-
-  payload.logger.info(`Deleted ${existingCategories.docs.length} categories`)
   payload.logger.info('Seeding categories with relationships...')
 
   // First, get all departments, collections and brands for mapping
@@ -196,18 +163,40 @@ export const seedCategories = async (payload: Payload): Promise<void> => {
       payload.logger.warn(`Category "${category.title}" has no valid attributes! Expected: ${category.attributes.join(', ')}`)
     }
 
-    await payload.create({
+    // Check if category already exists
+    const existing = await payload.find({
       collection: 'categories',
-      data: {
-        category: category.title,
-        departments: departmentIds,
-        collections: collectionIds,
-        brands: brandIds,
-        attributes: attributeIds,
-      },
+      where: { category: { equals: category.title } },
+      limit: 1,
     })
-    payload.logger.info(`Created category: ${category.title} (${collectionIds.length} collections, ${departmentIds.length} departments, ${brandIds.length} brands, ${attributeIds.length} attributes)`)
+
+    const categoryData = {
+      category: category.title,
+      departments: departmentIds,
+      collections: collectionIds,
+      brands: brandIds,
+      attributes: attributeIds,
+    }
+
+    if (existing.docs.length > 0) {
+      // Update existing category
+      await payload.update({
+        collection: 'categories',
+        id: existing.docs[0].id,
+        data: categoryData,
+      })
+      payload.logger.info(`Updated category: ${category.title} (${collectionIds.length} collections, ${departmentIds.length} departments, ${brandIds.length} brands, ${attributeIds.length} attributes)`)
+    } else {
+      // Create new category
+      await payload.create({
+        collection: 'categories',
+        data: categoryData,
+      })
+      payload.logger.info(`Created category: ${category.title} (${collectionIds.length} collections, ${departmentIds.length} departments, ${brandIds.length} brands, ${attributeIds.length} attributes)`)
     }
   }
+
+  payload.logger.info(`Categories seeding complete! (${categoriesData.length} categories)`)
+}
 
 
