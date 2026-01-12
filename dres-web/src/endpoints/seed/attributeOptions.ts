@@ -130,6 +130,32 @@ const attributeOptionsData: Record<string, AttributeOptionData[]> = {
     { name: 'XL (9.5-10")', slug: 'glove-xl', categories: ['Gloves'] },
     { name: '2XL (10.5-11")', slug: 'glove-2xl', categories: ['Gloves'] },
 
+    // Earring sizes
+    { name: 'Studs', slug: 'earring-studs', categories: ['Earrings'] },
+    { name: 'Small Drop', slug: 'earring-small-drop', categories: ['Earrings'] },
+    { name: 'Medium Drop', slug: 'earring-medium-drop', categories: ['Earrings'] },
+    { name: 'Statement', slug: 'earring-statement', categories: ['Earrings'] },
+    { name: 'Hoops Small', slug: 'earring-hoops-small', categories: ['Earrings'] },
+    { name: 'Hoops Medium', slug: 'earring-hoops-medium', categories: ['Earrings'] },
+    { name: 'Hoops Large', slug: 'earring-hoops-large', categories: ['Earrings'] },
+
+    // Watch sizes
+    { name: '36mm', slug: 'watch-36mm', categories: ['Luxury Watches', 'Sport Watches', 'Fashion Watches'] },
+    { name: '38mm', slug: 'watch-38mm', categories: ['Luxury Watches', 'Sport Watches', 'Fashion Watches'] },
+    { name: '40mm', slug: 'watch-40mm', categories: ['Luxury Watches', 'Sport Watches', 'Fashion Watches'] },
+    { name: '42mm', slug: 'watch-42mm', categories: ['Luxury Watches', 'Sport Watches', 'Fashion Watches'] },
+    { name: '44mm', slug: 'watch-44mm', categories: ['Luxury Watches', 'Sport Watches', 'Fashion Watches'] },
+    { name: '46mm', slug: 'watch-46mm', categories: ['Luxury Watches', 'Sport Watches', 'Fashion Watches'] },
+
+    // Brooch sizes
+    { name: 'Small (1-2")', slug: 'brooch-small', categories: ['Brooches'] },
+    { name: 'Medium (2-3")', slug: 'brooch-medium', categories: ['Brooches'] },
+    { name: 'Large (3-4")', slug: 'brooch-large', categories: ['Brooches'] },
+
+    // Cufflink sizes
+    { name: 'Standard', slug: 'cufflink-standard', categories: ['Cufflinks'] },
+    { name: 'Oversized', slug: 'cufflink-oversized', categories: ['Cufflinks'] },
+
     // Hat sizes
     { name: 'S (54-55cm)', slug: 'hat-s', categories: ['Hats'] },
     { name: 'M (56-57cm)', slug: 'hat-m', categories: ['Hats'] },

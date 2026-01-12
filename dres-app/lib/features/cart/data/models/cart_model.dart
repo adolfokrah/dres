@@ -2,20 +2,23 @@
 
 class AddToCartResponse {
   final String message;
-  final CartModel cart;
+  final String cartId;
   final String action; // 'created', 'added', 'updated'
+  final bool success;
 
   AddToCartResponse({
     required this.message,
-    required this.cart,
+    required this.cartId,
     required this.action,
+    required this.success,
   });
 
   factory AddToCartResponse.fromJson(Map<String, dynamic> json) {
     return AddToCartResponse(
       message: json['message'] ?? '',
-      cart: CartModel.fromJson(json['cart'] ?? {}),
+      cartId: json['cartId'] ?? '',
       action: json['action'] ?? '',
+      success: json['success'] ?? false,
     );
   }
 }

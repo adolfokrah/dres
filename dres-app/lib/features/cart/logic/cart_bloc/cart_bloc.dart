@@ -93,10 +93,19 @@ class CartBloc extends Bloc<CartEvent, CartState> {
 
       debugPrint('🛒 CartBloc: Item added to cart, action: ${response.action}');
 
-      emit(state.copyWith(
-        status: CartStatus.loaded,
-        cart: response.cart,
-      ));
+      // Fetch updated cart after successful add
+      if (response.success) {
+        final cartResponse = await _cartRepository.getMyCart();
+        emit(state.copyWith(
+          status: CartStatus.loaded,
+          cart: cartResponse.cart,
+        ));
+      } else {
+        emit(state.copyWith(
+          status: CartStatus.error,
+          errorMessage: response.message,
+        ));
+      }
     } catch (e) {
       debugPrint('🛒 CartBloc: Error adding to cart: $e');
       emit(state.copyWith(
