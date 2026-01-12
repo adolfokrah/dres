@@ -128,16 +128,16 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                 final pageSlug = department == 'women' ? 'home-women' : 'home';
                 final bloc = context.read<HomeBloc>();
                 bloc.add(RefreshHomePage(slug: pageSlug));
-                // Wait for bloc to finish - use take(1) with a timeout to avoid hangs
+                // Wait for bloc to complete loading
                 await bloc.stream
-                    .where((s) => s.status != HomeStatus.loading)
-                    .first
+                    .firstWhere((s) => s.status == HomeStatus.success || s.status == HomeStatus.failure)
                     .timeout(
                       const Duration(seconds: 30),
                       onTimeout: () => bloc.state,
                     );
               },
               child: SingleChildScrollView(
+                key: ValueKey(state.lastRefresh), // Force rebuild on refresh
                 controller: widget.scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(

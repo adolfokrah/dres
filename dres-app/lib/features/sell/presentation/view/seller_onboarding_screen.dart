@@ -127,9 +127,9 @@ class _SellerOnboardingScreenState extends State<SellerOnboardingScreen> {
           // CTA if all complete
           if (eligibility.canSell)
             AppButton(
-              text: 'Start Selling',
+              text: 'Done',
               onPressed: () {
-                context.push('/sell/create');
+                context.pop();
               },
               isFullWidth: true,
             ),
@@ -317,19 +317,23 @@ class _SellerOnboardingScreenState extends State<SellerOnboardingScreen> {
     }
   }
 
-  void _navigateToRequirement(String title) {
+  void _navigateToRequirement(String title) async {
     switch (title) {
       case 'Shop Name':
       case 'Phone Number':
       case 'Profile Photo':
-        context.push('/profile/edit');
+        await context.push('/profile/personal-info');
         break;
       case 'Withdrawal Account':
-        context.push('/profile/payment-settings');
+        await context.push('/profile/withdrawal-account');
         break;
       case 'Shipping Rates':
-        context.push('/profile/shipping-settings');
+        await context.push('/profile/shipping-rates');
         break;
+    }
+    // Refresh eligibility after returning from settings
+    if (mounted) {
+      _bloc.add(const SellerEligibilityRefreshRequested());
     }
   }
 }

@@ -7,6 +7,7 @@ import { getMyDraftStyles } from './endpoints/getMyDraftStyles'
 import { getMyProducts } from './endpoints/getMyProducts'
 import { getStyleDetails } from './endpoints/getStyleDetails'
 import { getStyleStats } from './endpoints/getStyleStats'
+import { notifyFollowersOnPublish } from './hooks/notifyFollowersOnPublish'
 import { updateVariationsOnTitleChange } from './hooks/updateVariationsOnTitleChange'
 import { validatePublish } from './hooks/validatePublish'
 import { validateSellerEligibility } from './hooks/validateSellerEligibility'
@@ -52,6 +53,8 @@ export const Styles: CollectionConfig = {
     afterChange: [
       // Update variation titles/slugs when style title changes
       updateVariationsOnTitleChange,
+      // Notify followers when a style is published
+      notifyFollowersOnPublish,
     ],
   },
   endpoints: [

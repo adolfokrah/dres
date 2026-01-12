@@ -1,6 +1,7 @@
 import type { PayloadHandler } from 'payload'
 import { seedAttributes } from './attributes'
 import { seedAttributeOptions } from './attributeOptions'
+import { seedBoostTiers } from './boostTiers'
 import { seedBrands } from './brands'
 import { seedCategories } from './categories'
 import { seedCollections } from './collections'
@@ -8,6 +9,7 @@ import { seedCountries } from './countries'
 import { seedCurrencies } from './currencies'
 import { seedDepartments } from './departments'
 import { seedRegionsAndCities } from './locations'
+import { seedMenHomePage } from './menHomePage'
 
 /**
  * Protected seed endpoint - requires admin authentication
@@ -28,8 +30,7 @@ export const seedEndpoint: PayloadHandler = async (req) => {
   }
 
   // Check if user has admin role
-  const userRoles = (user as any).roles || []
-  if (!userRoles.includes('admin')) {
+  if ((user as any).role !== 'admin') {
     return Response.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
   }
 
@@ -85,6 +86,12 @@ export const seedEndpoint: PayloadHandler = async (req) => {
       case 'attribute-options':
         await seedAttributes(payload)
         await seedAttributeOptions(payload)
+        break
+      case 'men-home':
+        await seedMenHomePage(payload)
+        break
+      case 'boost-tiers':
+        await seedBoostTiers(payload)
         break
       default:
         return Response.json(
