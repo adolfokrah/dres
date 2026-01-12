@@ -8,6 +8,7 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
 import 'package:dres/features/sell/logic/style_details_bloc/style_details_bloc.dart';
+import 'package:dres/features/sell/logic/seller_eligibility_bloc/seller_eligibility_bloc.dart';
 import 'package:dres/features/sell/presentation/widgets/draft_style_item.dart';
 
 class SellScreen extends StatefulWidget {
@@ -19,13 +20,18 @@ class SellScreen extends StatefulWidget {
 
 class _SellScreenState extends State<SellScreen> {
   late final StyleDetailsBloc _styleDetailsBloc;
+  late final SellerEligibilityBloc _eligibilityBloc;
+  bool _isCheckingEligibility = false;
 
   @override
   void initState() {
     super.initState();
     _styleDetailsBloc = getIt<StyleDetailsBloc>();
+    _eligibilityBloc = getIt<SellerEligibilityBloc>();
     // Fetch drafts when screen loads
     getIt<SellBloc>().add(const SellFetchDraftsRequested());
+    // Fetch eligibility status
+    _eligibilityBloc.add(const SellerEligibilityFetchRequested());
   }
 
   @override
@@ -228,9 +234,10 @@ class _SellScreenState extends State<SellScreen> {
               },
               builder: (context, state) {
                 final isCreating = state.status == StyleDetailsStatus.creating;
+                final isLoading = isCreating || _isCheckingEligibility;
 
                 return ElevatedButton(
-                  onPressed: isCreating
+                  onPressed: isLoading
                       ? null
                       : () => _onStartSellingPressed(context),
                   style: ElevatedButton.styleFrom(
@@ -241,7 +248,7 @@ class _SellScreenState extends State<SellScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: isCreating
+                  child: isLoading
                       ? const SizedBox(
                           width: 20,
                           height: 20,
@@ -272,8 +279,63 @@ class _SellScreenState extends State<SellScreen> {
     context.push('/sell/style/$draftId');
   }
 
-  void _onStartSellingPressed(BuildContext context) {
-    // Create a new empty style first
+  void _onStartSellingPressed(BuildContext context) async {
+    // Check eligibility before creating a new style
+    final eligibilityState = _eligibilityBloc.state;
+    
+    // If eligibility is not loaded yet, fetch it first
+    if (eligibilityState.status != SellerEligibilityStatus.loaded) {
+      setState(() => _isCheckingEligibility = true);
+      
+      try {
+        _eligibilityBloc.add(const SellerEligibilityFetchRequested());
+        
+        // Wait for the bloc to update
+        await _eligibilityBloc.stream.firstWhere(
+          (state) => state.status == SellerEligibilityStatus.loaded ||
+                     state.status == SellerEligibilityStatus.error,
+        ).timeout(const Duration(seconds: 5));
+        
+        final newState = _eligibilityBloc.state;
+        setState(() => _isCheckingEligibility = false);
+        
+        if (newState.status == SellerEligibilityStatus.error) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Failed to check seller eligibility. Please try again.'),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          }
+          return;
+        }
+        
+        if (!newState.canSell) {
+          if (mounted) {
+            context.push('/sell/onboarding');
+          }
+          return;
+        }
+      } catch (e) {
+        setState(() => _isCheckingEligibility = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to check seller eligibility. Please try again.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+        return;
+      }
+    } else if (!eligibilityState.canSell) {
+      // Eligibility is loaded but user can't sell
+      context.push('/sell/onboarding');
+      return;
+    }
+    
+    // User can sell - create a new style
     context.read<StyleDetailsBloc>().add(const StyleDetailsCreateRequested());
   }
 

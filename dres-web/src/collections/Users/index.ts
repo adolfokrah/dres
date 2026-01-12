@@ -10,6 +10,7 @@ import { addAddress, deleteAddress, setDefaultAddress, updateAddress } from './e
 import { getUserStats } from './endpoints/getUserStats'
 import { updateEmail, resendVerification } from './endpoints/updateEmail'
 import { getBanksEndpoint, resolveAccountEndpoint, saveWithdrawalAccountEndpoint } from './endpoints/resolveBankAccount'
+import { getSellerEligibility } from './endpoints/sellerEligibility'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -80,6 +81,11 @@ export const Users: CollectionConfig = {
       path: '/resend-verification',
       method: 'post',
       handler: resendVerification,
+    },
+    {
+      path: '/seller-eligibility',
+      method: 'get',
+      handler: getSellerEligibility,
     },
     getBanksEndpoint,
     resolveAccountEndpoint,

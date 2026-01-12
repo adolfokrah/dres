@@ -43,10 +43,12 @@ import 'package:dres/features/follows/logic/follows_bloc/follows_bloc.dart';
 import 'package:dres/features/sell/data/repositories/sell_repository.dart';
 import 'package:dres/features/sell/data/repositories/boost_tiers_repository.dart';
 import 'package:dres/features/sell/data/repositories/style_stats_repository.dart';
+import 'package:dres/features/sell/data/repositories/seller_eligibility_repository.dart';
 import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
 import 'package:dres/features/sell/logic/style_details_bloc/style_details_bloc.dart';
 import 'package:dres/features/sell/logic/variations_bloc/variations_bloc.dart';
 import 'package:dres/features/sell/logic/variation_detail_bloc/variation_detail_bloc.dart';
+import 'package:dres/features/sell/logic/seller_eligibility_bloc/seller_eligibility_bloc.dart';
 import 'package:dres/features/payment/data/repositories/payment_repository.dart';
 import 'package:dres/features/notifications/data/repositories/notifications_repository.dart';
 import 'package:dres/features/notifications/logic/notifications_bloc/notifications_bloc.dart';
@@ -273,6 +275,16 @@ Future<void> setupDependencies() async {
   // Style Stats Repository
   getIt.registerLazySingleton<StyleStatsRepository>(() => StyleStatsRepository(
     apiService: getIt<ApiService>(),
+  ));
+
+  // Seller Eligibility Repository
+  getIt.registerLazySingleton<SellerEligibilityRepository>(() => SellerEligibilityRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Seller Eligibility Bloc - Singleton to persist eligibility state
+  getIt.registerLazySingleton<SellerEligibilityBloc>(() => SellerEligibilityBloc(
+    repository: getIt<SellerEligibilityRepository>(),
   ));
 
   // Sell Bloc - Singleton so draft state persists

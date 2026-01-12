@@ -8,7 +8,6 @@ import { seedCountries } from './countries'
 import { seedCurrencies } from './currencies'
 import { seedDepartments } from './departments'
 import { seedRegionsAndCities } from './locations'
-import { seedUsers } from './users'
 
 /**
  * Protected seed endpoint - requires admin authentication
@@ -46,7 +45,6 @@ export const seedEndpoint: PayloadHandler = async (req) => {
         await seedCurrencies(payload)
         await seedCountries(payload)
         await seedRegionsAndCities(payload)
-        await seedUsers(payload)
         await seedDepartments(payload)
         await seedCollections(payload)
         await seedBrands(payload)
@@ -66,11 +64,6 @@ export const seedEndpoint: PayloadHandler = async (req) => {
         break
       case 'brands':
         await seedBrands(payload)
-        break
-      case 'users':
-        await seedCurrencies(payload)
-        await seedCountries(payload)
-        await seedUsers(payload)
         break
       case 'departments':
         await seedDepartments(payload)

@@ -10,7 +10,6 @@ import { seedCountries } from './countries'
 import { seedCurrencies } from './currencies'
 import { seedDepartments } from './departments'
 import { seedRegionsAndCities } from './locations'
-import { seedUsers } from './users'
 
 const runSeed = async () => {
   const payload = await getPayload({ config })
@@ -23,7 +22,6 @@ const runSeed = async () => {
     await seedCurrencies(payload) // Currencies first
     await seedCountries(payload) // Countries need currencies
     await seedRegionsAndCities(payload) // Regions and cities
-    await seedUsers(payload) // Users need countries
     await seedDepartments(payload)
     await seedCollections(payload)
     await seedBrands(payload)
@@ -39,10 +37,6 @@ const runSeed = async () => {
     await seedRegionsAndCities(payload)
   } else if (args.includes('brands')) {
     await seedBrands(payload)
-  } else if (args.includes('users')) {
-    await seedCurrencies(payload) // Ensure currencies exist
-    await seedCountries(payload) // Ensure countries exist
-    await seedUsers(payload)
   } else if (args.includes('departments')) {
     await seedDepartments(payload)
   } else if (args.includes('collections')) {

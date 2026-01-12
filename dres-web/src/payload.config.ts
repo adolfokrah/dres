@@ -235,7 +235,7 @@ export default buildConfig({
     tasks: [],
   },
   email: resendAdapter({
-    defaultFromAddress: 'onboarding@resend.dev', // Use Resend's test address until domain is verified
+    defaultFromAddress: 'onboarding@dres.app', // Use Resend's test address until domain is verified
     defaultFromName: 'Dres',
     apiKey: process.env.RESEND_API_KEY || '',
   })

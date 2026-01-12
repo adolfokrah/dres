@@ -9,6 +9,7 @@ import { getStyleDetails } from './endpoints/getStyleDetails'
 import { getStyleStats } from './endpoints/getStyleStats'
 import { updateVariationsOnTitleChange } from './hooks/updateVariationsOnTitleChange'
 import { validatePublish } from './hooks/validatePublish'
+import { validateSellerEligibility } from './hooks/validateSellerEligibility'
 
 export const Styles: CollectionConfig = {
   slug: 'styles',
@@ -36,6 +37,8 @@ export const Styles: CollectionConfig = {
   },
   hooks: {
     beforeChange: [
+      // Validate seller eligibility on create
+      validateSellerEligibility,
       // Auto-set seller to current user on create
       ({ req, operation, data }) => {
         if (operation === 'create' && req.user) {
