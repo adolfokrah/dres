@@ -289,6 +289,7 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
             slug: product.slug,
             isFavorited: false,
             isBoosted: product.isBoosted,
+            showWeLoveBadge: product.showWeLoveBadge,
             showLeftBorder: index % 2 == 0,
             showTopBorder: index < 2,
             sellerId: product.sellerId,

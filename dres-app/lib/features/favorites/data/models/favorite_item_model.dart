@@ -25,6 +25,7 @@ class FavoriteItemModel extends VariationModel {
     super.category,
     required super.slug,
     super.isBoosted = false,
+    super.showWeLoveBadge = false,
     super.sellerId,
   });
 
@@ -48,6 +49,7 @@ class FavoriteItemModel extends VariationModel {
       category: json['category'] as String?,
       slug: json['slug'] as String? ?? '',
       isBoosted: json['isBoosted'] as bool? ?? false,
+      showWeLoveBadge: json['showWeLoveBadge'] as bool? ?? false,
       sellerId: json['sellerId'] as String?,
     );
   }

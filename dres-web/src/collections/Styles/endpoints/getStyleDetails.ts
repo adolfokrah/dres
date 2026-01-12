@@ -45,6 +45,7 @@ export const getStyleDetails: PayloadHandler = async (req) => {
         name: activeBoost.docs[0].tier.name,
         duration: activeBoost.docs[0].tier.duration,
         hasAnalytics: activeBoost.docs[0].tier.hasAnalytics ?? false,
+        showWeLoveBadge: activeBoost.docs[0].tier.showWeLoveBadge ?? false,
       } : null,
     } : null
 

@@ -218,7 +218,7 @@ async function handleChargeSuccess(
 
   // Handle order payment (deposit)
   // Get the order from the transaction
-  const orderId = typeof transaction.order === 'object' ? transaction.order.id : transaction.order
+  const orderId = typeof transaction.order === 'object' && transaction.order ? transaction.order.id : transaction.order
 
   if (!orderId) {
     payload.logger.error(`🔔 handleChargeSuccess: No order linked to transaction ${reference}`)
@@ -291,22 +291,6 @@ async function handleBoostPaymentSuccess(
   })
 
   payload.logger.info(`🔔 handleBoostPaymentSuccess: StyleBoost created ${styleBoost.id} for style ${styleId}`)
-
-  // Optionally update the style to mark it as boosted
-  try {
-    await payload.update({
-      collection: 'styles',
-      id: styleId,
-      data: {
-        isBoosted: true,
-      },
-      overrideAccess: true,
-    })
-    payload.logger.info(`🔔 handleBoostPaymentSuccess: Style ${styleId} marked as boosted`)
-  } catch (e) {
-    // Style may not have isBoosted field, that's ok
-    payload.logger.info(`🔔 handleBoostPaymentSuccess: Could not update style isBoosted flag (may not exist)`)
-  }
 }
 
 /**
@@ -349,7 +333,7 @@ async function handleChargeFailed(
   payload.logger.info(`🔔 handleChargeFailed: Transaction ${reference} marked as cancelled`)
 
   // Get the order from the transaction
-  const orderId = typeof transaction.order === 'object' ? transaction.order.id : transaction.order
+  const orderId = typeof transaction.order === 'object' && transaction.order !== null ? transaction.order.id : transaction.order
 
   if (!orderId) {
     payload.logger.error(`🔔 handleChargeFailed: No order linked to transaction ${reference}`)

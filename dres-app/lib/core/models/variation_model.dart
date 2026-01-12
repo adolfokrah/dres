@@ -10,6 +10,7 @@ class VariationModel {
   final String? category;
   final String slug;
   final bool isBoosted;
+  final bool showWeLoveBadge;
   final String? sellerId;
   final int? totalStock;
 
@@ -25,6 +26,7 @@ class VariationModel {
     this.category,
     required this.slug,
     this.isBoosted = false,
+    this.showWeLoveBadge = false,
     this.sellerId,
     this.totalStock,
   });
@@ -42,6 +44,7 @@ class VariationModel {
       category: json['category'] as String?,
       slug: json['slug'] as String? ?? '',
       isBoosted: json['isBoosted'] as bool? ?? false,
+      showWeLoveBadge: json['showWeLoveBadge'] as bool? ?? false,
       sellerId: json['sellerId'] as String?,
       totalStock: json['totalStock'] as int?,
     );

@@ -149,9 +149,44 @@ export const recentlyViewedVariations: PayloadHandler = async (req: PayloadReque
             const styleResult = await payload.findByID({
               collection: 'styles',
               id: styleId,
-              depth: 3,
+              depth: 4, // Need depth 4 for: style -> boost (join) -> tier (relationship) -> tier fields
             })
             fullStyle = styleResult
+
+            // Ensure tier is fully populated for boost items
+            const boostData = (styleResult as any)?.boost
+            if (boostData?.docs && Array.isArray(boostData.docs)) {
+              // Populate tier for each boost if it's just an ID
+              const populatedBoosts = await Promise.all(
+                boostData.docs.map(async (boost: any) => {
+                  if (boost?.tier && typeof boost.tier === 'string') {
+                    // Tier is just an ID, need to fetch full tier
+                    const tierResult = await payload.findByID({
+                      collection: 'boost-tiers',
+                      id: boost.tier,
+                      depth: 0,
+                    })
+                    return { ...boost, tier: tierResult }
+                  }
+                  return boost
+                })
+              )
+              fullStyle = { ...fullStyle, boost: { docs: populatedBoosts } }
+            }
+
+            // Debug: Log boost data structure
+            payload.logger.info(`[RecentlyViewed] Style ${styleId} boost data: ${JSON.stringify({
+              hasBoost: !!fullStyle?.boost,
+              boostType: typeof fullStyle?.boost,
+              hasDocs: fullStyle?.boost?.docs !== undefined,
+              docsLength: fullStyle?.boost?.docs?.length,
+              firstBoost: fullStyle?.boost?.docs?.[0] ? {
+                id: fullStyle.boost.docs[0].id,
+                status: fullStyle.boost.docs[0].status,
+                tierType: typeof fullStyle.boost.docs[0].tier,
+                tierHasShowWeLoveBadge: fullStyle.boost.docs[0].tier?.showWeLoveBadge,
+              } : null
+            })}`)
           }
 
           // Fetch SKUs for this variation

@@ -27,6 +27,8 @@ class ProductCard extends StatefulWidget {
   final bool showLeftBorder;
   final bool showTopBorder;
   final bool isBoosted;
+  /// Whether to show the "We Love" badge (only for Standard/Premium tiers)
+  final bool showWeLoveBadge;
   /// Seller ID - if matches current user, hides favorite button
   final String? sellerId;
   /// Total stock quantity across all SKUs
@@ -50,6 +52,7 @@ class ProductCard extends StatefulWidget {
     this.showLeftBorder = true,
     this.showTopBorder = true,
     this.isBoosted = false,
+    this.showWeLoveBadge = false,
     this.sellerId,
     this.totalStock,
   });
@@ -137,15 +140,15 @@ class _ProductCardState extends State<ProductCard> {
                       // Low stock indicator
                   if (LowStockIndicator.isLowStock(widget.totalStock))
                     LowStockIndicator(stock: widget.totalStock!),
-                  // WE LOVE tag
-                  if (widget.isBoosted) 
+                  // WE LOVE tag - only shown for Standard/Premium tiers
+                  if (widget.showWeLoveBadge) 
                     BadgeWidget(
                       text: l10n.weLove,
                       backgroundColor: AppColors.primary,
                       borderColor: AppColors.primary,
                       textColor: AppColors.textOnPrimary,
                     ),
-                    if(!widget.isBoosted)
+                    if(!widget.showWeLoveBadge)
                     const SizedBox(height: 15),
 
                     const SizedBox(height: 4),

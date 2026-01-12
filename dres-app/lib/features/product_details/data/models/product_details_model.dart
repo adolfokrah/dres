@@ -42,6 +42,7 @@ class VariationDetailsModel {
   final String? currency;
   final String variants;
   final bool isBoosted;
+  final bool showWeLoveBadge;
   final String defaultSku;
   final List<ImageModel> images;
   final String? styleDescription;
@@ -63,6 +64,7 @@ class VariationDetailsModel {
     this.currency,
     required this.variants,
     required this.isBoosted,
+    this.showWeLoveBadge = false,
     required this.defaultSku,
     required this.images,
     this.styleDescription,
@@ -86,9 +88,10 @@ class VariationDetailsModel {
       brand: json['brand'] ?? '',
       price: (json['sellingPrice'] ?? json['price'] ?? 0).toDouble(),
       compareAtPrice: json['compareAtPrice']?.toDouble(),
-      currency: json['currency'],
+      currency: json['currency'] is Map ? json['currency']['symbol'] : json['currency'],
       variants: json['variants'] ?? '',
       isBoosted: json['isBoosted'] ?? false,
+      showWeLoveBadge: json['showWeLoveBadge'] ?? false,
       defaultSku: json['defaultSku'] ?? '',
       images: (json['images'] as List<dynamic>?)
               ?.map((i) => ImageModel.fromJson(i))
@@ -135,7 +138,7 @@ class SkuModel {
       price: (json['sellingPrice'] ?? json['price'] ?? 0).toDouble(),
       compareAtPrice: json['compareAtPrice']?.toDouble(),
       stock: json['stock'],
-      currency: json['currency'],
+      currency: json['currency'] is Map ? json['currency']['symbol'] : json['currency'],
     );
   }
 }
@@ -239,6 +242,7 @@ class RelatedVariationModel {
   final String? currency;
   final String variants;
   final bool isBoosted;
+  final bool showWeLoveBadge;
   final String defaultSku;
   final List<RelatedDetailModel> details;
 
@@ -255,6 +259,7 @@ class RelatedVariationModel {
     this.currency,
     required this.variants,
     required this.isBoosted,
+    this.showWeLoveBadge = false,
     required this.defaultSku,
     required this.details,
   });
@@ -271,11 +276,12 @@ class RelatedVariationModel {
           [],
       category: json['category'] ?? '',
       brand: json['brand'] ?? '',
-      price: (json['price'] ?? 0).toDouble(),
+      price: (json['sellingPrice'] ?? json['price'] ?? 0).toDouble(),
       compareAtPrice: json['compareAtPrice']?.toDouble(),
-      currency: json['currency'],
+      currency: json['currency'] is Map ? json['currency']['symbol'] : json['currency'],
       variants: json['variants'] ?? '',
       isBoosted: json['isBoosted'] ?? false,
+      showWeLoveBadge: json['showWeLoveBadge'] ?? false,
       defaultSku: json['defaultSku'] ?? '',
       details: (json['details'] as List<dynamic>?)
               ?.map((d) => RelatedDetailModel.fromJson(d))

@@ -1,13 +1,11 @@
 import type { PayloadHandler } from 'payload'
 import { ObjectId } from 'mongodb'
-import { transformVariation } from '../utils/transformVariation'
 import { getUserCountryInfo } from '../../../utilities/countryUtils'
 import { resolveDepartmentId } from '../../../utilities/departmentUtils'
 
 // Helper to safely convert a string to ObjectId
 const toObjectId = (id: string | undefined | null): ObjectId | null => {
   if (!id || typeof id !== 'string') return null
-  // ObjectId must be a 24 character hex string
   if (!/^[a-fA-F0-9]{24}$/.test(id)) return null
   try {
     return new ObjectId(id)
@@ -16,43 +14,150 @@ const toObjectId = (id: string | undefined | null): ObjectId | null => {
   }
 }
 
-export const filteredVariations: PayloadHandler = async (req) => {
-  const { payload } = req
-  const { query, department: departmentParam, category, collection, style, brand, filterType, sortBy, sortPrice, attributes, minPrice, maxPrice, limit = 20, page = 1 } = req.query
+// Helper to construct media URL from raw MongoDB data
+// NOTE: We construct URLs from filename because the stored url field can be stale
+// (e.g., when a file is re-uploaded, filename gets -1 suffix but url field may not update)
+function getMediaUrl(media: any, size?: 'thumbnail' | 'card' | 'tablet'): string | null {
+  if (!media) return null
 
-  // Resolve department slug to ID (e.g., "men" -> ObjectId)
-  const department = await resolveDepartmentId(payload, departmentParam as string | undefined)
-  
-  // Debug logging
-  payload.logger.info(`[filtered] departmentParam: ${departmentParam}, resolved department ID: ${department}`)
+  // If it's already a full URL string, return it
+  if (typeof media === 'string' && media.startsWith('/')) return media
+  if (typeof media === 'string' && media.startsWith('http')) return media
 
-  // Get user's country for filtering sellers
-  const userCountry = await getUserCountryInfo(req)
-  payload.logger.info(`Filtering variations for country: ${userCountry.countryCode} (${userCountry.countryId})`)
+  // Construct URL from filename (more reliable than stored url)
+  let filename = null
 
-  // Parse attribute filters from query params
-  // Format: attributes=attributeId:optionId1,optionId2|attributeId2:optionId3,optionId4
-  const attributeFilters: Record<string, string[]> = {}
-  
-  if (attributes && typeof attributes === 'string') {
-    const attributePairs = attributes.split('|')
-    attributePairs.forEach(pair => {
-      const [attributeId, optionIdsStr] = pair.split(':')
-      if (attributeId && optionIdsStr) {
-        attributeFilters[attributeId] = optionIdsStr.split(',')
-        payload.logger.info(`Parsed attribute filter: ${attributeId} = ${optionIdsStr}`)
-      }
-    })
+  if (size && media.sizes?.[size]?.filename && media.sizes[size].filename !== null) {
+    filename = media.sizes[size].filename
+  } else if (media.filename) {
+    filename = media.filename
+  } else if (typeof media === 'string') {
+    filename = media
   }
 
-  // Debug logging
-  payload.logger.info(`Attribute filters parsed: ${JSON.stringify(attributeFilters)}`)
+  if (!filename) return null
+
+  // Construct the Payload media URL
+  return `/api/media/file/${filename}`
+}
+
+// Transform aggregation result to API response format
+function transformAggregationResult(doc: any): any {
+  const style = doc.styleData
+  const skus = doc.skuData || []
+
+  // Get first image thumbnail from looked-up imageData
+  const firstImage = doc.imageData?.[0]
+  // Try thumbnail size first, then fall back to main image
+  const thumbnail = getMediaUrl(firstImage, 'thumbnail') || getMediaUrl(firstImage)
+
+  // Get category/brand names from lookup
+  const category = style?.categoryData?.[0]?.category || style?.categoryData?.[0]?.name || null
+  const brand = style?.brandData?.[0]?.name || null
+
+  // Build variants string
+  const variants = doc.variants
+    ?.map((v: any) => v.variantData?.[0]?.name)
+    .filter(Boolean)
+    .join(' - ') || ''
+
+  // Transform SKUs - use pre-computed values from aggregation
+  const transformedSkus = skus.map((sku: any) => ({
+    value: sku.sizeValue || sku.title?.split(' / ')[0] || 'Standard',
+    sellingPrice: sku.sellingPrice || 0,
+  }))
+
+  // Use pre-computed selected SKU from aggregation
+  const selectedSku = doc.selectedSku || skus[0]
+
+  return {
+    id: doc._id.toString(),
+    thumbnail,
+    title: doc.title || '',
+    slug: doc.slug || '',
+    skus: transformedSkus,
+    category,
+    brand,
+    sellingPrice: selectedSku?.sellingPrice || 0,
+    compareAtPrice: selectedSku?.compareAtPrice || undefined,
+    currency: selectedSku?.currencyData?.[0] ? {
+      code: selectedSku.currencyData[0].code || '',
+      symbol: selectedSku.currencyData[0].symbol || ''
+    } : null,
+    variants,
+    isBoosted: doc.isBoosted || false,
+    showWeLoveBadge: doc.showWeLoveBadge || false,
+    defaultSku: selectedSku?._id?.toString(),
+    styleId: style?._id?.toString() || null,
+    sellerId: style?.seller?.toString() || null,
+    totalStock: selectedSku?.stock || 0,
+  }
+}
+
+export const filteredVariations: PayloadHandler = async (req) => {
+  const { payload } = req
+  const {
+    query,
+    department: departmentParam,
+    category,
+    collection,
+    style,
+    brand,
+    filterType,
+    sortBy,
+    sortPrice,
+    attributes,
+    minPrice,
+    maxPrice,
+    limit = 20,
+    page = 1
+  } = req.query
+
+  // Run initial async operations in parallel
+  const [department, userCountry] = await Promise.all([
+    resolveDepartmentId(payload, departmentParam as string | undefined),
+    getUserCountryInfo(req)
+  ])
+
+  // Parse attribute filters upfront
+  const attributeFilters: Record<string, ObjectId[]> = {}
+  if (attributes && typeof attributes === 'string') {
+    for (const pair of attributes.split('|')) {
+      const [attributeId, optionIdsStr] = pair.split(':')
+      if (attributeId && optionIdsStr) {
+        const attrObjId = toObjectId(attributeId)
+        if (attrObjId) {
+          const validOptions = optionIdsStr.split(',')
+            .map(id => toObjectId(id))
+            .filter((id): id is ObjectId => id !== null)
+          if (validOptions.length > 0) {
+            attributeFilters[attributeId] = validOptions
+          }
+        }
+      }
+    }
+  }
 
   try {
-    // Build the aggregation pipeline
     const pipeline: any[] = []
+    const countryObjId = userCountry.countryId ? toObjectId(userCountry.countryId) : null
 
-    // Lookup style information with seller
+    // ============================================
+    // STAGE 1: Early filter on variations (BEFORE lookups)
+    // ============================================
+    const earlyMatch: any = { status: { $ne: 'archived' } }
+
+    // Filter by style if provided (avoids unnecessary lookups)
+    if (style) {
+      const styleId = toObjectId(style as string)
+      if (styleId) earlyMatch.style = styleId
+    }
+
+    pipeline.push({ $match: earlyMatch })
+
+    // ============================================
+    // STAGE 2: Lookup style with minimal nested data
+    // ============================================
     pipeline.push({
       $lookup: {
         from: 'styles',
@@ -60,158 +165,115 @@ export const filteredVariations: PayloadHandler = async (req) => {
         foreignField: '_id',
         as: 'styleData',
         pipeline: [
+          // Early filter on style status
+          { $match: { status: 'published' } },
+          // Only lookup boosts if needed for sorting/filtering
           {
             $lookup: {
               from: 'style-boosts',
-              localField: '_id',
-              foreignField: 'style',
-              as: 'boosts'
+              let: { styleId: '$_id' },
+              pipeline: [
+                { $match: { $expr: { $eq: ['$style', '$$styleId'] }, status: 'active' } },
+                { $limit: 1 }, // Only need first active boost
+                {
+                  $lookup: {
+                    from: 'boost-tiers',
+                    localField: 'tier',
+                    foreignField: '_id',
+                    as: 'tierData',
+                    pipeline: [{ $project: { showWeLoveBadge: 1 } }]
+                  }
+                },
+                { $unwind: { path: '$tierData', preserveNullAndEmptyArrays: true } }
+              ],
+              as: 'boostData'
             }
           },
+          // Lookup category - only name field
+          {
+            $lookup: {
+              from: 'categories',
+              localField: 'category',
+              foreignField: '_id',
+              as: 'categoryData',
+              pipeline: [{ $project: { category: 1, name: 1 } }]
+            }
+          },
+          // Lookup brand - only name field
+          {
+            $lookup: {
+              from: 'brands',
+              localField: 'brand',
+              foreignField: '_id',
+              as: 'brandData',
+              pipeline: [{ $project: { name: 1 } }]
+            }
+          },
+          // Lookup seller country for filtering
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'seller',
+              foreignField: '_id',
+              as: 'sellerData',
+              pipeline: [{ $project: { country: 1 } }]
+            }
+          },
+          // Compute boost status
           {
             $addFields: {
-              hasActiveBoost: {
-                $gt: [
-                  {
-                    $size: {
-                      $filter: {
-                        input: '$boosts',
-                        as: 'boost',
-                        cond: { $eq: ['$$boost.status', 'active'] }
-                      }
-                    }
-                  },
-                  0
-                ]
-              }
+              hasActiveBoost: { $gt: [{ $size: '$boostData' }, 0] },
+              activeBoost: { $arrayElemAt: ['$boostData', 0] }
             }
           }
         ]
       }
     })
 
+    // Unwind and filter empty results
     pipeline.push({
       $unwind: '$styleData'
     })
 
-    // Lookup seller information to filter by country
-    pipeline.push({
-      $lookup: {
-        from: 'users',
-        localField: 'styleData.seller',
-        foreignField: '_id',
-        as: 'sellerData'
-      }
-    })
+    // ============================================
+    // STAGE 3: Build main match conditions
+    // ============================================
+    const matchConditions: any = {}
 
-    pipeline.push({
-      $unwind: {
-        path: '$sellerData',
-        preserveNullAndEmptyArrays: false // Exclude variations without seller
-      }
-    })
-
-    // Filter by seller's country (must match user's country)
-    if (userCountry.countryId) {
-      const countryObjId = toObjectId(userCountry.countryId)
-      if (countryObjId) {
-        pipeline.push({
-          $match: {
-            'sellerData.country': countryObjId
-          }
-        })
-      }
-    }
-
-    // Lookup SKUs to check for on-sale items
-    pipeline.push({
-      $lookup: {
-        from: 'skus',
-        localField: '_id',
-        foreignField: 'variation',
-        as: 'skuData'
-      }
-    })
-
-    // Add computed field for on-sale check
-    pipeline.push({
-      $addFields: {
-        hasOnSaleSku: {
-          $gt: [
-            {
-              $size: {
-                $filter: {
-                  input: '$skuData',
-                  as: 'sku',
-                  cond: {
-                    $and: [
-                      { $gt: ['$$sku.compareAtPrice', 0] },
-                      { $ne: ['$$sku.compareAtPrice', null] }
-                    ]
-                  }
-                }
-              }
-            },
-            0
-          ]
-        },
-        // Add minPrice for sorting by price (default to 0 if no SKUs)
-        minPrice: {
-          $ifNull: [{ $min: '$skuData.sellingPrice' }, 0]
-        }
-      }
-    })
-
-    // Build match conditions
-    let matchConditions: any = {
-      // Only show published variations (not archived/draft)
-      'status': { $ne: 'archived' },
-      // Only show variations from published styles
-      'styleData.status': 'published'
-    }
-
-    // Filter by department (already resolved from slug if needed)
+    // Department filter
     if (department) {
       const deptId = toObjectId(department)
-      if (deptId) {
-        matchConditions['styleData.department'] = deptId
-        payload.logger.info(`[filtered] Filtering by department ID: ${deptId}`)
-      }
+      if (deptId) matchConditions['styleData.department'] = deptId
     }
 
-    // Filter by collection (convert string to ObjectId)
+    // Collection filter
     if (collection) {
       const collId = toObjectId(collection as string)
-      if (collId) {
-        matchConditions['styleData.collection'] = collId
-      }
+      if (collId) matchConditions['styleData.collection'] = collId
     }
 
-    // Filter by category (convert string to ObjectId)
+    // Category filter
     if (category) {
       const catId = toObjectId(category as string)
-      if (catId) {
-        matchConditions['styleData.category'] = catId
-      }
+      if (catId) matchConditions['styleData.category'] = catId
     }
 
-    // Filter by brand (convert string to ObjectId if valid, otherwise skip)
+    // Brand filter
     if (brand) {
       const brandId = toObjectId(brand as string)
-      if (brandId) {
-        matchConditions['styleData.brand'] = brandId
-      }
+      if (brandId) matchConditions['styleData.brand'] = brandId
     }
 
-    // Filter by style
-    if (style) {
-      const styleId = toObjectId(style as string)
-      if (styleId) {
-        matchConditions['style'] = styleId
-      }
+    // Country filter
+    if (countryObjId) {
+      matchConditions['$or'] = [
+        { 'styleData.sellerData.0.country': countryObjId },
+        { 'styleData.sellerData.0.country': { $exists: false } },
+        { 'styleData.sellerData': { $size: 0 } }
+      ]
     }
 
-    // Filter by search query (search in variation title and style title)
+    // Search query
     if (query && typeof query === 'string' && query.trim()) {
       const searchRegex = { $regex: query.trim(), $options: 'i' }
       matchConditions['$or'] = [
@@ -220,349 +282,329 @@ export const filteredVariations: PayloadHandler = async (req) => {
       ]
     }
 
-    // Apply filter type
-    if (filterType) {
-      switch (filterType) {
-        case 'on-sale':
-          // Variations with SKUs that have compareAtPrice
-          matchConditions['hasOnSaleSku'] = true
-          break
-        case 'we-love':
-        case 'featured':
-          // Variations with active style boost
-          matchConditions['styleData.hasActiveBoost'] = true
-          break
-        case 'new-arrivals':
-          // Will be handled by sort (createdAt descending)
-          break
-        case 'trending':
-          // Will be handled by special trending sort below
-          break
-      }
+    // Featured filter - any active boost (we-love filter is applied later after showWeLoveBadge is computed)
+    if (filterType === 'featured') {
+      matchConditions['styleData.hasActiveBoost'] = true
     }
 
-    // Apply attribute filters
-    // Filter by BOTH variation-level (variants) and SKU-level (skuOptions) attributes
-    if (Object.keys(attributeFilters).length > 0) {
-      const attributeConditions = Object.entries(attributeFilters)
-        .map(([attributeId, optionIds]) => {
-          payload.logger.info(`Creating condition for attribute ${attributeId} with options: ${optionIds.join(',')}`)
-          
-          // Validate attributeId
-          const attrObjId = toObjectId(attributeId)
-          if (!attrObjId) {
-            payload.logger.warn(`Invalid attribute ID: ${attributeId}`)
-            return null
+    // Apply main match if conditions exist
+    if (Object.keys(matchConditions).length > 0) {
+      pipeline.push({ $match: matchConditions })
+    }
+
+    // ============================================
+    // STAGE 4: Lookup images from media collection
+    // ============================================
+    // First, normalize image IDs (handle both ObjectId and object with _id)
+    pipeline.push({
+      $addFields: {
+        normalizedImageIds: {
+          $map: {
+            input: { $ifNull: ['$images', []] },
+            as: 'img',
+            in: {
+              $cond: {
+                if: { $eq: [{ $type: '$$img' }, 'objectId'] },
+                then: '$$img',
+                else: { $ifNull: ['$$img._id', '$$img'] }
+              }
+            }
           }
-          
-          // Validate and convert option IDs
-          const validOptionIds = optionIds
-            .map(id => toObjectId(id))
-            .filter((id): id is ObjectId => id !== null)
-          
-          if (validOptionIds.length === 0) {
-            payload.logger.warn(`No valid option IDs for attribute: ${attributeId}`)
-            return null
-          }
-          
-          // Check if variation has this attribute in variants OR any SKU has it in skuOptions
-          return {
-            $or: [
-              // Variation-level attribute (e.g., Color)
-              {
-                variants: {
-                  $elemMatch: {
-                    variant: attrObjId,
-                    value: { $in: validOptionIds }
-                  }
-                }
-              },
-              // SKU-level attribute (e.g., Size)
-              {
-                'skuData.skuOptions': {
-                  $elemMatch: {
-                    option: attrObjId,
-                    value: { $in: validOptionIds }
-                  }
+        }
+      }
+    })
+
+    pipeline.push({
+      $lookup: {
+        from: 'media',
+        let: { imageIds: '$normalizedImageIds' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $in: ['$_id', { $ifNull: ['$$imageIds', []] }]
+              }
+            }
+          },
+          { $project: { url: 1, sizes: 1, filename: 1 } }
+        ],
+        as: 'imageData'
+      }
+    })
+
+    // ============================================
+    // STAGE 5: Lookup SKUs (after filtering to reduce data)
+    // ============================================
+    pipeline.push({
+      $lookup: {
+        from: 'skus',
+        localField: '_id',
+        foreignField: 'variation',
+        as: 'skuData',
+        pipeline: [
+          {
+            $lookup: {
+              from: 'currencies',
+              localField: 'currency',
+              foreignField: '_id',
+              as: 'currencyData',
+              pipeline: [{ $project: { code: 1, symbol: 1 } }]
+            }
+          },
+          // Extract size value for display
+          {
+            $addFields: {
+              sizeValue: {
+                $let: {
+                  vars: {
+                    sizeOpt: {
+                      $first: {
+                        $filter: {
+                          input: { $ifNull: ['$skuOptions', []] },
+                          as: 'opt',
+                          cond: { $in: ['$$opt.optionName', ['Size', 'size', 'Waist Size']] }
+                        }
+                      }
+                    }
+                  },
+                  in: '$$sizeOpt.valueName'
                 }
               }
-            ]
-        }
-      })
-        .filter((condition): condition is NonNullable<typeof condition> => condition !== null)
-      
-      // Only apply attribute conditions if we have valid ones
-      if (attributeConditions.length > 0) {
-        // If we already have conditions in matchConditions, we need to combine them
-        const existingConditions = Object.entries(matchConditions).map(([key, value]) => ({ [key]: value }))
-        
-        // Create a new $and array with all conditions
-        if (existingConditions.length > 0) {
-          matchConditions = {
-            $and: [...existingConditions, ...attributeConditions]
+            }
           }
-        } else {
-          matchConditions = {
-            $and: attributeConditions
-          }
-        }
-        
-        payload.logger.info(`Final match with attributes: ${JSON.stringify(matchConditions, null, 2)}`)
+        ]
       }
+    })
+
+    // ============================================
+    // STAGE 5: Compute derived fields
+    // ============================================
+    pipeline.push({
+      $addFields: {
+        // Check for on-sale SKUs
+        hasOnSaleSku: {
+          $gt: [
+            { $size: { $filter: { input: '$skuData', as: 's', cond: { $and: [{ $gt: ['$$s.compareAtPrice', 0] }, { $ne: ['$$s.compareAtPrice', null] }] } } } },
+            0
+          ]
+        },
+        // Min price for sorting/filtering
+        minPriceValue: { $ifNull: [{ $min: '$skuData.sellingPrice' }, 0] },
+        // Select best SKU (prefer one with discount)
+        selectedSku: {
+          $ifNull: [
+            { $first: { $filter: { input: '$skuData', as: 's', cond: { $and: [{ $gt: ['$$s.compareAtPrice', 0] }, { $ne: ['$$s.compareAtPrice', null] }] } } } },
+            { $first: '$skuData' }
+          ]
+        },
+        // Boost info
+        isBoosted: '$styleData.hasActiveBoost',
+        showWeLoveBadge: { $ifNull: ['$styleData.activeBoost.tierData.showWeLoveBadge', false] }
+      }
+    })
+
+    // ============================================
+    // STAGE 6: Filter types that need computed fields
+    // ============================================
+    if (filterType === 'on-sale') {
+      pipeline.push({ $match: { hasOnSaleSku: true } })
     }
 
-    // Apply price range filter
+    // We-love filter - only show items with showWeLoveBadge enabled
+    if (filterType === 'we-love') {
+      pipeline.push({ $match: { showWeLoveBadge: true } })
+    }
+
+    // ============================================
+    // STAGE 7: Price range filter
+    // ============================================
     if (minPrice || maxPrice) {
-      const priceConditions: any = {}
-      
-      if (minPrice) {
-        priceConditions.minPrice = { $gte: parseFloat(minPrice as string) }
+      const priceMatch: any = {}
+      if (minPrice) priceMatch.$gte = parseFloat(minPrice as string)
+      if (maxPrice) priceMatch.$lte = parseFloat(maxPrice as string)
+      pipeline.push({ $match: { minPriceValue: priceMatch } })
+    }
+
+    // ============================================
+    // STAGE 8: Attribute filters (if any)
+    // ============================================
+    if (Object.keys(attributeFilters).length > 0) {
+      const attrConditions = Object.entries(attributeFilters).map(([attrId, optionIds]) => ({
+        $or: [
+          { variants: { $elemMatch: { variant: toObjectId(attrId), value: { $in: optionIds } } } },
+          { 'skuData.skuOptions': { $elemMatch: { option: toObjectId(attrId), value: { $in: optionIds } } } }
+        ]
+      }))
+      pipeline.push({ $match: { $and: attrConditions } })
+    }
+
+    // ============================================
+    // STAGE 9: Lookup variants data (only needed for display)
+    // ============================================
+    pipeline.push({
+      $lookup: {
+        from: 'attributes',
+        localField: 'variants.variant',
+        foreignField: '_id',
+        as: 'variantAttributeData',
+        pipeline: [{ $project: { name: 1 } }]
       }
-      
-      if (maxPrice) {
-        priceConditions.minPrice = { 
-          ...priceConditions.minPrice,
-          $lte: parseFloat(maxPrice as string)
-        }
-      }
-      
-      // Combine with existing conditions
-      if (Object.keys(matchConditions).length > 0) {
-        if (matchConditions.$and) {
-          matchConditions.$and.push(priceConditions)
-        } else {
-          const existingConditions = Object.entries(matchConditions).map(([key, value]) => ({ [key]: value }))
-          matchConditions = {
-            $and: [...existingConditions, priceConditions]
+    })
+
+    pipeline.push({
+      $addFields: {
+        variants: {
+          $map: {
+            input: { $ifNull: ['$variants', []] },
+            as: 'v',
+            in: {
+              variant: '$$v.variant',
+              value: '$$v.value',
+              variantData: { $filter: { input: '$variantAttributeData', as: 'a', cond: { $eq: ['$$a._id', '$$v.variant'] } } }
+            }
           }
         }
-      } else {
-        matchConditions = priceConditions
       }
-      
-      payload.logger.info(`Price range filter applied: ${minPrice} - ${maxPrice}`)
-    }
+    })
 
-    // Add match stage if we have conditions
-    if (Object.keys(matchConditions).length > 0) {
-      pipeline.push({
-        $match: matchConditions
-      })
-    }
-
-    // Determine sort order
-    let sortField = 'createdAt'
-    let sortOrder = -1 // descending by default
-    
-    // Handle sortPrice parameter (asc/desc) - takes priority
-    if (sortPrice) {
-      sortField = 'minPrice'
-      sortOrder = sortPrice === 'desc' ? -1 : 1
-    }
-    // Handle sortBy parameter (latest/oldest)
-    else if (sortBy === 'oldest') {
-      sortField = 'createdAt'
-      sortOrder = 1 // ascending for oldest
-    } else if (sortBy === 'latest') {
-      sortField = 'createdAt'
-      sortOrder = -1 // descending for latest
-    }
-    // Handle filterType sorting
-    else if (filterType === 'new-arrivals') {
-      sortField = 'createdAt'
-      sortOrder = -1 // newest first
-    } else if (filterType === 'on-sale') {
-      sortField = 'createdAt'
-      sortOrder = -1 // newest sales first
-    } else if (filterType === 'we-love' || filterType === 'featured') {
-      sortField = 'styleData.boost.startDate'
-      sortOrder = -1 // most recently boosted first
-    } else if (filterType === 'trending') {
-      sortField = 'viewCount'
-      sortOrder = -1 // most viewed first
-    }
-
-    // For trending, add view count lookup before sorting
+    // ============================================
+    // STAGE 10: Trending view count (conditional)
+    // ============================================
     if (filterType === 'trending') {
-      // Lookup variation views to count total views
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
       pipeline.push({
         $lookup: {
           from: 'variation-views',
           localField: '_id',
           foreignField: 'variation',
           as: 'viewsData',
-          pipeline: [
-            {
-              $match: {
-                // Only count views from the last 7 days
-                createdAt: {
-                  $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-                }
-              }
-            }
-          ]
+          pipeline: [{ $match: { createdAt: { $gte: sevenDaysAgo } } }]
         }
       })
-
-      // Calculate view count (sum of users array lengths)
       pipeline.push({
         $addFields: {
           viewCount: {
-            $sum: {
-              $map: {
-                input: '$viewsData',
-                as: 'view',
-                in: {
-                  $cond: {
-                    if: { $isArray: '$$view.users' },
-                    then: { $size: '$$view.users' },
-                    else: 1
-                  }
-                }
-              }
-            }
+            $sum: { $map: { input: '$viewsData', as: 'v', in: { $cond: [{ $isArray: '$$v.users' }, { $size: '$$v.users' }, 1] } } }
           }
         }
       })
     }
 
-    // Add sort stage
-    pipeline.push({
-      $sort: { [sortField]: sortOrder }
-    })
+    // ============================================
+    // STAGE 11: Sort
+    // ============================================
+    const sortSpec: any = { 'styleData.hasActiveBoost': -1 }
 
-    // Add pagination - facet for both data and count
+    if (sortPrice) {
+      sortSpec.minPriceValue = sortPrice === 'desc' ? -1 : 1
+    } else if (sortBy === 'oldest') {
+      sortSpec.createdAt = 1
+    } else if (filterType === 'trending') {
+      sortSpec.viewCount = -1
+    } else {
+      sortSpec.createdAt = -1
+    }
+
+    pipeline.push({ $sort: sortSpec })
+
+    // ============================================
+    // STAGE 12: Pagination with facet
+    // ============================================
+    const skip = (Number(page) - 1) * Number(limit)
+    const limitNum = Number(limit)
+
     pipeline.push({
       $facet: {
         metadata: [{ $count: 'total' }],
-        data: [
-          { $skip: (Number(page) - 1) * Number(limit) },
-          { $limit: Number(limit) }
-        ]
+        data: [{ $skip: skip }, { $limit: limitNum }]
       }
     })
 
     // Execute aggregation
-    const db = payload.db
-    const variationsCollection = db.collections['variations']
-    const result: any[] = await variationsCollection.aggregate(pipeline)
+    const variationsCollection = payload.db.collections['variations']
+    const [result] = await variationsCollection.aggregate(pipeline)
 
-    const totalDocs = result[0]?.metadata[0]?.total || 0
-    const variations = result[0]?.data || []
+    const totalDocs = result?.metadata[0]?.total || 0
+    const variations = result?.data || []
 
-    // Transform variations
-    const transformedVariations = await Promise.all(
-      variations.map(async (variation: any) => {
-        // Fetch full variation with depth for transformation
-        const fullVariation = await payload.findByID({
-          collection: 'variations',
-          id: variation._id,
-          depth: 5,
-        })
-        
-        // Fetch the full style with boost data separately (same as trending endpoint)
-        const styleId = typeof fullVariation.style === 'object' ? fullVariation.style.id : fullVariation.style
-        if (styleId) {
-          const fullStyle = await payload.findByID({
-            collection: 'styles',
-            id: styleId,
-            depth: 3, // Ensure boost is fully populated
-          })
-          fullVariation.style = fullStyle
-        }
-        
-        return transformVariation(fullVariation, false)
-      })
-    )
+    // Transform results
+    const transformedVariations = variations.map(transformAggregationResult)
 
-    const totalPages = Math.ceil(totalDocs / Number(limit))
+    const totalPages = Math.ceil(totalDocs / limitNum)
     const currentPage = Number(page)
 
-    // Fetch available attributes for filtering
-    // Get attributes based on category if provided, otherwise get all variation-level attributes
-    let availableAttributes: any[] = []
-    
+    // ============================================
+    // Fetch filters in parallel (optimized)
+    // ============================================
+    let filters: any[] = []
+
     if (category) {
-      // Fetch attributes associated with this category
+      // Fetch category with attributes, then options in parallel
       const categoryDoc = await payload.findByID({
         collection: 'categories',
         id: category as string,
-        depth: 2,
+        depth: 1,
       })
-      
-      if (categoryDoc && Array.isArray(categoryDoc.attributes)) {
-        availableAttributes = categoryDoc.attributes
+
+      if (categoryDoc?.attributes?.length) {
+        filters = await Promise.all(
+          categoryDoc.attributes.map(async (attr: any) => {
+            const attrId = typeof attr === 'object' ? attr.id : attr
+            const attrData = typeof attr === 'object' ? attr : null
+
+            const [attributeData, optionsResult] = await Promise.all([
+              attrData || payload.findByID({ collection: 'attributes', id: attrId }),
+              payload.find({
+                collection: 'attributeOptions',
+                where: {
+                  and: [
+                    { attribute: { equals: attrId } },
+                    { or: [{ categories: { contains: category } }, { categories: { exists: false } }] }
+                  ]
+                },
+                pagination: false,
+              })
+            ])
+
+            return {
+              id: attrId,
+              name: attributeData?.name,
+              options: optionsResult.docs.map((o: any) => ({ id: o.id, name: o.name, slug: o.slug }))
+            }
+          })
+        )
       }
     } else {
-      // Fetch all variation-level attributes
+      // Fetch variation-level attributes with options
       const attributesResult = await payload.find({
         collection: 'attributes',
-        where: {
-          level: { equals: 'variation' }
-        },
-        depth: 1,
+        where: { level: { equals: 'variation' } },
+        depth: 0,
         pagination: false,
       })
-      availableAttributes = attributesResult.docs
-    }
 
-    // For each attribute, fetch its options (filtered by category if available)
-    const filters = await Promise.all(
-      availableAttributes.map(async (attr: any) => {
-        const attributeId = typeof attr === 'object' ? attr.id : attr
-        const attributeData = typeof attr === 'object' ? attr : await payload.findByID({
-          collection: 'attributes',
-          id: attributeId,
-        })
-
-        // Build where clause for options
-        // If category is provided, include options that:
-        // 1. Have this category in their categories array, OR
-        // 2. Have no categories assigned (available to all)
-        let optionsWhere: any = {
-          attribute: { equals: attributeId }
-        }
-        
-        // Filter options by category if category is provided
-        if (category) {
-          optionsWhere = {
-            and: [
-              { attribute: { equals: attributeId } },
-              {
-                or: [
-                  { categories: { contains: category } },
-                  { categories: { exists: false } },
-                  { categories: { equals: null } },
-                ]
-              }
-            ]
+      filters = await Promise.all(
+        attributesResult.docs.map(async (attr: any) => {
+          const optionsResult = await payload.find({
+            collection: 'attributeOptions',
+            where: { attribute: { equals: attr.id } },
+            pagination: false,
+          })
+          return {
+            id: attr.id,
+            name: attr.name,
+            options: optionsResult.docs.map((o: any) => ({ id: o.id, name: o.name, slug: o.slug }))
           }
-        }
-
-        const optionsResult = await payload.find({
-          collection: 'attributeOptions',
-          where: optionsWhere,
-          pagination: false,
         })
-
-        return {
-          id: attributeId,
-          name: attributeData.name,
-          options: optionsResult.docs.map((opt: any) => ({
-            id: opt.id,
-            name: opt.name,
-            slug: opt.slug,
-          }))
-        }
-      })
-    )
+      )
+    }
 
     return Response.json({
       variations: transformedVariations,
       totalDocs,
       totalPages,
       page: currentPage,
-      limit: Number(limit),
+      limit: limitNum,
       hasNextPage: currentPage < totalPages,
       hasPrevPage: currentPage > 1,
       filters,
@@ -574,19 +616,8 @@ export const filteredVariations: PayloadHandler = async (req) => {
   } catch (error) {
     payload.logger.error(`Error fetching filtered variations: ${error}`)
     return Response.json(
-      {
-        error: 'Failed to fetch variations',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
+      { error: 'Failed to fetch variations', message: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 },
     )
   }
 }
-
-
-// export const filteredVariations=()=>{
-//   return Response.json({
-//     message: 'Filtered variations',
-//   })
-// }
-

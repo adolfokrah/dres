@@ -100,6 +100,7 @@ class _SimilarVariationsSectionState extends State<SimilarVariationsSection> {
                       showLeftBorder: index == 0, // Show left border only for first item
                       showTopBorder: true, // Show top border for all items
                       isBoosted: variation.isBoosted,
+                      showWeLoveBadge: variation.showWeLoveBadge,
                       sellerId: variation.sellerId,
                       totalStock: variation.totalStock,
                     ),

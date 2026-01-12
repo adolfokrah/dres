@@ -1,230 +1,443 @@
-import type { PayloadHandler, PayloadRequest, Where } from 'payload'
-import { transformVariations } from '../utils/transformVariation'
+import type { PayloadHandler, PayloadRequest } from 'payload'
+import { ObjectId } from 'mongodb'
 import { getUserCountryInfo } from '../../../utilities/countryUtils'
 import { resolveDepartmentId } from '../../../utilities/departmentUtils'
 
-type SupportedLocale = 'en' | 'fr' | 'de' | 'es' | 'it'
+// Helper to safely convert a string to ObjectId
+const toObjectId = (id: string | undefined | null): ObjectId | null => {
+  if (!id || typeof id !== 'string') return null
+  if (!/^[a-fA-F0-9]{24}$/.test(id)) return null
+  try {
+    return new ObjectId(id)
+  } catch {
+    return null
+  }
+}
+
+// Helper to construct media URL from raw MongoDB data
+// NOTE: We construct URLs from filename because the stored url field can be stale
+// (e.g., when a file is re-uploaded, filename gets -1 suffix but url field may not update)
+function getMediaUrl(media: any, size?: 'thumbnail' | 'card' | 'tablet'): string | null {
+  if (!media) return null
+
+  // If it's already a full URL string, return it
+  if (typeof media === 'string' && media.startsWith('/')) return media
+  if (typeof media === 'string' && media.startsWith('http')) return media
+
+  // Construct URL from filename (more reliable than stored url)
+  let filename = null
+
+  if (size && media.sizes?.[size]?.filename && media.sizes[size].filename !== null) {
+    filename = media.sizes[size].filename
+  } else if (media.filename) {
+    filename = media.filename
+  } else if (typeof media === 'string') {
+    filename = media
+  }
+
+  if (!filename) return null
+
+  // Construct the Payload media URL
+  return `/api/media/file/${filename}`
+}
+
+// Transform aggregation result to API response format
+function transformAggregationResult(doc: any): any {
+  const style = doc.styleData
+  const skus = doc.skuData || []
+
+  // Get first image thumbnail from looked-up imageData
+  const firstImage = doc.imageData?.[0]
+  // Try thumbnail size first, then fall back to main image
+  const thumbnail = getMediaUrl(firstImage, 'thumbnail') || getMediaUrl(firstImage)
+
+  // Get category/brand names
+  const categoryObj = style?.categoryData?.[0]
+  const category = categoryObj?.category || categoryObj?.title || categoryObj?.name || null
+  const brandObj = style?.brandData?.[0]
+  const brand = brandObj?.name || brandObj?.title || null
+
+  // Build variants string
+  let variants = ''
+  if (Array.isArray(doc.variants)) {
+    const variantNames = doc.variants
+      .map((v: any) => v.variantData?.[0]?.name || '')
+      .filter(Boolean)
+    variants = variantNames.join(' - ')
+  }
+
+  // Transform SKUs
+  const transformedSkus = skus.map((sku: any) => {
+    let value = ''
+    if (Array.isArray(sku.skuOptions)) {
+      const sizeOption = sku.skuOptions.find((opt: any) => {
+        const optName = opt.optionData?.[0]?.name?.toLowerCase()
+        return optName === 'size' || optName === 'waist size'
+      })
+      if (sizeOption?.valueData?.[0]) {
+        value = sizeOption.valueData[0].name || sizeOption.valueData[0].value || ''
+      }
+    }
+    if (!value && sku.title) {
+      value = sku.title.split(' / ')[0] || sku.title
+    }
+    return {
+      value: value || 'Standard',
+      sellingPrice: typeof sku.sellingPrice === 'number' ? sku.sellingPrice : 0,
+    }
+  })
+
+  // Get price - prioritize SKU with compareAtPrice
+  let selectedSku = skus[0]
+  const skuWithDiscount = skus.find((sku: any) =>
+    typeof sku.compareAtPrice === 'number' && sku.compareAtPrice > 0
+  )
+  if (skuWithDiscount) selectedSku = skuWithDiscount
+
+  const sellingPrice = selectedSku?.sellingPrice || 0
+  const compareAtPrice = selectedSku?.compareAtPrice || undefined
+  const totalStock = selectedSku?.stock || 0
+
+  // Get currency from SKU
+  const currencyData = selectedSku?.currencyData?.[0]
+  const currency = currencyData ? {
+    code: currencyData.code || '',
+    symbol: currencyData.symbol || ''
+  } : null
+
+  // Check boost status
+  const boostItems = style?.boostData || []
+  let isBoosted = false
+  let showWeLoveBadge = false
+  const now = new Date()
+
+  for (const boost of boostItems) {
+    if (boost.status !== 'active') continue
+    const startDate = boost.startDate ? new Date(boost.startDate) : null
+    const endDate = boost.endDate ? new Date(boost.endDate) : null
+    const isActive = (!startDate || now >= startDate) && (!endDate || now <= endDate)
+    if (isActive) {
+      isBoosted = true
+      // tierData is now unwound to an object, not an array
+      const tier = boost.tierData
+      showWeLoveBadge = tier?.showWeLoveBadge ?? false
+      break
+    }
+  }
+
+  return {
+    id: doc._id.toString(),
+    thumbnail,
+    title: doc.title || '',
+    slug: doc.slug || '',
+    skus: transformedSkus,
+    category,
+    brand,
+    sellingPrice,
+    compareAtPrice,
+    currency,
+    variants,
+    isBoosted,
+    showWeLoveBadge,
+    defaultSku: selectedSku?._id?.toString() || undefined,
+    styleId: style?._id?.toString() || null,
+    sellerId: style?.seller?.toString() || style?.sellerData?.[0]?._id?.toString() || null,
+    totalStock,
+  }
+}
 
 /**
  * GET /api/variations/trending
- * 
+ *
  * Fetches trending variations based on view counts within a time period.
- * Filters by seller's country matching the user's country (default: Ghana)
- * 
- * Query params:
- * - limit: number of variations to return (default: 10, max: 50)
- * - days: time period in days (default: 7)
- * - department: filter by department ID or slug (e.g., "men", "women")
- * - category: filter by category ID
- * - locale: language code (default: en)
+ * Optimized with single aggregation query - no N+1 queries.
  */
 export const trendingVariations: PayloadHandler = async (req: PayloadRequest) => {
+  const { payload } = req
   const searchParams = req.searchParams
 
   // Parse query params
   const limit = Math.min(parseInt(searchParams.get('limit') || '10'), 50)
   const departmentParam = searchParams.get('department')
   const category = searchParams.get('category')
-  const localeParam = searchParams.get('locale') || 'en'
-  const locale = (['en', 'fr', 'de', 'es', 'it'].includes(localeParam) ? localeParam : 'en') as SupportedLocale
 
   // Get user's country for filtering sellers
   const userCountry = await getUserCountryInfo(req)
 
   // Resolve department slug to ID
-  const department = await resolveDepartmentId(req.payload, departmentParam)
-  
-  // Debug logging
-  console.log(`[trending] departmentParam: ${departmentParam}, resolved department ID: ${department}`)
+  const department = await resolveDepartmentId(payload, departmentParam)
 
   try {
-    // Build where clause for filtering variations
-    const variationsWhere: Where = {
-      // Only show active variations (not archived)
-      status: {
-        not_equals: 'archived'
-      },
-      // Only show variations from published styles
-      'style.status': {
-        equals: 'published'
-      },
-      // Filter by time period - only variations updated within the days
-      updatedAt: {
-        greater_than: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-      }
-    }
+    const pipeline: any[] = []
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
 
-    // Filter by seller's country - show products from:
-    // 1. Sellers in the same country as the user
-    // 2. Sellers without a country set (default to showing)
-    if (userCountry.countryId) {
-      variationsWhere.or = [
-        { 'style.seller.country': { equals: userCountry.countryId } },
-        { 'style.seller.country': { exists: false } },
-      ]
-    }
-
-    // Add department filter if provided
-    if (department) {
-      variationsWhere['style.department'] = {
-        equals: department
-      }
-    }
-
-    // Add category filter if provided
-    if (category) {
-      variationsWhere['style.category'] = {
-        equals: category
-      }
-    }
-
-    // Step 1: Get all variation views within the time period
-    const allViews = await req.payload.find({
-      collection: 'variation-views',
-      limit: 1000, // Get a large number to aggregate
-      locale,
-      depth: 0, // We only need the variation IDs
-      where: {
-        createdAt: {
-          greater_than: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      },
-    })
-
-    // Step 2: Count views per variation (count unique users per variation)
-    const viewCounts = new Map<string, number>()
-    
-    allViews.docs.forEach((view: any) => {
-      const variationId = typeof view.variation === 'string' ? view.variation : view.variation?.id
-      if (variationId) {
-        // Count unique users (if users array exists, count its length, otherwise count as 1)
-        const userCount = Array.isArray(view.users) ? view.users.length : (view.users ? 1 : 1)
-        viewCounts.set(variationId, (viewCounts.get(variationId) || 0) + userCount)
-      }
-    })
-
-    // Step 3: Sort variations by view count and get top ones
-    const sortedVariationIds = Array.from(viewCounts.entries())
-      .sort((a, b) => b[1] - a[1]) // Sort by count descending
-      .slice(0, limit)
-      .map(([id]) => id)
-
-    if (sortedVariationIds.length === 0) {
-      return Response.json({
-        docs: [],
-        totalDocs: 0,
-        limit,
-        page: 1,
-        totalPages: 0,
-        hasNextPage: false,
-        hasPrevPage: false,
-      })
-    }
-
-    // Step 4: Fetch the actual variation data
-    const variationsResult = await req.payload.find({
-      collection: 'variations',
-      where: {
-        id: { in: sortedVariationIds },
-        ...variationsWhere
-      },
-      limit,
-      locale,
-      depth: 5,
-    })
-
-    // Sort the results to match the view count order
-    const sortedVariations = sortedVariationIds
-      .map(id => variationsResult.docs.find((v: any) => v.id === id))
-      .filter(Boolean)
-    
-    // Fetch SKUs for each variation separately since it's a join field
-    const variationsWithSKUs = await Promise.all(
-      sortedVariations.map(async (variation: any) => {
-        if (!variation?.id) return variation
-
-        try {
-          // Fetch the full style with boost data
-          const styleId = typeof variation.style === 'object' ? variation.style.id : variation.style
-          let fullStyle = variation.style
-          
-          if (styleId) {
-            // Always fetch the full style object with populated boost relationship
-            const styleResult = await req.payload.findByID({
-              collection: 'styles',
-              id: styleId,
-              depth: 3, // Increased depth to ensure boost is fully populated
-            })
-            fullStyle = styleResult
-          }
-
-          // Fetch SKUs for this variation with full details
-          const skusResult = await req.payload.find({
-            collection: 'skus',
-            where: {
-              variation: { equals: variation.id }
-            },
-            depth: 3, // Include variant details
-            limit: 100,
-          })
-
-          // Fetch related variations (same style, different variation)
-          let relatedVariations: any[] = []
-          
-          if (styleId) {
-            const relatedResult = await req.payload.find({
-              collection: 'variations',
-              where: {
-                style: { equals: styleId },
-                id: { not_equals: variation.id },
-                status: { equals: 'active' }
-              },
-              limit: 10,
-              depth: 2,
-            })
-
-            // Fetch SKUs for each related variation
-            relatedVariations = await Promise.all(
-              relatedResult.docs.map(async (relatedVar: any) => {
-                const relatedSKUs = await req.payload.find({
-                  collection: 'skus',
-                  where: {
-                    variation: { equals: relatedVar.id }
-                  },
-                  depth: 3,
-                  limit: 100,
-                })
-
-                return {
-                  ...relatedVar,
-                  skus: { docs: relatedSKUs.docs }
+    // Stage 1: Lookup style with all nested data
+    pipeline.push({
+      $lookup: {
+        from: 'styles',
+        localField: 'style',
+        foreignField: '_id',
+        as: 'styleData',
+        pipeline: [
+          // Lookup boosts
+          {
+            $lookup: {
+              from: 'style-boosts',
+              let: { styleId: '$_id' },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: { $eq: ['$style', '$$styleId'] },
+                    status: 'active'
+                  }
+                },
+                // Lookup tier data for each boost
+                {
+                  $lookup: {
+                    from: 'boost-tiers',
+                    let: { tierId: '$tier' },
+                    pipeline: [
+                      {
+                        $match: {
+                          $expr: { $eq: ['$_id', '$$tierId'] }
+                        }
+                      }
+                    ],
+                    as: 'tierData'
+                  }
+                },
+                // Unwind tier to make it easier to access
+                {
+                  $unwind: {
+                    path: '$tierData',
+                    preserveNullAndEmptyArrays: true
+                  }
                 }
-              })
-            )
+              ],
+              as: 'boostData'
+            }
+          },
+          // Lookup category
+          {
+            $lookup: {
+              from: 'categories',
+              localField: 'category',
+              foreignField: '_id',
+              as: 'categoryData'
+            }
+          },
+          // Lookup brand
+          {
+            $lookup: {
+              from: 'brands',
+              localField: 'brand',
+              foreignField: '_id',
+              as: 'brandData'
+            }
+          },
+          // Lookup seller
+          {
+            $lookup: {
+              from: 'users',
+              localField: 'seller',
+              foreignField: '_id',
+              as: 'sellerData'
+            }
+          },
+          // Add hasActiveBoost flag
+          {
+            $addFields: {
+              hasActiveBoost: { $gt: [{ $size: '$boostData' }, 0] }
+            }
           }
+        ]
+      }
+    })
 
-          return {
-            ...variation,
-            style: fullStyle, // Use the fully populated style
-            skus: { docs: skusResult.docs },
-            relatedVariations: { docs: relatedVariations }
+    pipeline.push({ $unwind: '$styleData' })
+
+    // Stage 2: Filter by seller's country
+    if (userCountry.countryId) {
+      const countryObjId = toObjectId(userCountry.countryId)
+      if (countryObjId) {
+        pipeline.push({
+          $match: {
+            $or: [
+              { 'styleData.sellerData.country': countryObjId },
+              { 'styleData.sellerData.country': { $exists: false } },
+              { 'styleData.sellerData': { $size: 0 } }
+            ]
           }
-        } catch (err) {
-          console.error(`Error fetching SKUs for variation ${variation.id}:`, err)
-          return {
-            ...variation,
-            skus: { docs: [] },
-            relatedVariations: { docs: [] }
+        })
+      }
+    }
+
+    // Stage 3: Lookup images from media collection
+    // First, normalize image IDs (handle both ObjectId and object with _id)
+    pipeline.push({
+      $addFields: {
+        normalizedImageIds: {
+          $map: {
+            input: { $ifNull: ['$images', []] },
+            as: 'img',
+            in: {
+              $cond: {
+                if: { $eq: [{ $type: '$$img' }, 'objectId'] },
+                then: '$$img',
+                else: { $ifNull: ['$$img._id', '$$img'] }
+              }
+            }
           }
         }
-      })
-    )
-    
-    const transformedDocs = transformVariations(variationsWithSKUs, false)
- 
+      }
+    })
+
+    pipeline.push({
+      $lookup: {
+        from: 'media',
+        let: { imageIds: '$normalizedImageIds' },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $in: ['$_id', { $ifNull: ['$$imageIds', []] }]
+              }
+            }
+          },
+          { $project: { url: 1, sizes: 1, filename: 1 } }
+        ],
+        as: 'imageData'
+      }
+    })
+
+    // Stage 4: Lookup SKUs with currency
+    pipeline.push({
+      $lookup: {
+        from: 'skus',
+        localField: '_id',
+        foreignField: 'variation',
+        as: 'skuData',
+        pipeline: [
+          {
+            $lookup: {
+              from: 'currencies',
+              localField: 'currency',
+              foreignField: '_id',
+              as: 'currencyData'
+            }
+          }
+        ]
+      }
+    })
+
+    // Stage 5: Lookup variant attribute data
+    pipeline.push({
+      $lookup: {
+        from: 'attributes',
+        localField: 'variants.variant',
+        foreignField: '_id',
+        as: 'variantAttributeData'
+      }
+    })
+
+    // Enrich variants
+    pipeline.push({
+      $addFields: {
+        variants: {
+          $map: {
+            input: { $ifNull: ['$variants', []] },
+            as: 'v',
+            in: {
+              variant: '$$v.variant',
+              value: '$$v.value',
+              variantData: {
+                $filter: {
+                  input: '$variantAttributeData',
+                  as: 'attr',
+                  cond: { $eq: ['$$attr._id', '$$v.variant'] }
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+
+    // Stage 5: Lookup view counts from last 7 days
+    pipeline.push({
+      $lookup: {
+        from: 'variation-views',
+        localField: '_id',
+        foreignField: 'variation',
+        as: 'viewsData',
+        pipeline: [
+          { $match: { createdAt: { $gte: sevenDaysAgo } } }
+        ]
+      }
+    })
+
+    // Stage 6: Calculate view count
+    pipeline.push({
+      $addFields: {
+        viewCount: {
+          $sum: {
+            $map: {
+              input: '$viewsData',
+              as: 'view',
+              in: {
+                $cond: {
+                  if: { $isArray: '$$view.users' },
+                  then: { $size: '$$view.users' },
+                  else: 1
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+
+    // Stage 7: Build match conditions
+    const matchConditions: any = {
+      status: { $ne: 'archived' },
+      'styleData.status': 'published',
+      viewCount: { $gt: 0 } // Only show variations with views
+    }
+
+    if (department) {
+      const deptId = toObjectId(department)
+      if (deptId) matchConditions['styleData.department'] = deptId
+    }
+
+    if (category) {
+      const catId = toObjectId(category)
+      if (catId) matchConditions['styleData.category'] = catId
+    }
+
+    pipeline.push({ $match: matchConditions })
+
+    // Stage 8: Sort - boosted first, then by view count
+    pipeline.push({
+      $sort: {
+        'styleData.hasActiveBoost': -1,
+        viewCount: -1
+      }
+    })
+
+    // Stage 9: Limit
+    pipeline.push({ $limit: limit })
+
+    // Execute aggregation
+    const db = payload.db
+    const variationsCollection = db.collections['variations']
+    const variations: any[] = await variationsCollection.aggregate(pipeline)
+
+    // Transform results directly - NO additional queries!
+    const transformedDocs = variations.map(transformAggregationResult)
+
     return Response.json({
       docs: transformedDocs,
-      totalDocs: sortedVariationIds.length,
+      totalDocs: transformedDocs.length,
       limit,
       page: 1,
       totalPages: 1,
@@ -238,7 +451,7 @@ export const trendingVariations: PayloadHandler = async (req: PayloadRequest) =>
   } catch (error) {
     console.error('Error fetching trending variations:', error)
     return Response.json(
-      { 
+      {
         error: 'Failed to fetch trending variations',
         details: error instanceof Error ? error.message : 'Unknown error'
       },

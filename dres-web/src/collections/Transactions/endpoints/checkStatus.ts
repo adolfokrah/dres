@@ -59,8 +59,8 @@ export const checkTransactionStatus: PayloadHandler = async (req) => {
     }
 
     // Get order info
-    const orderId = typeof transaction.order === 'object' ? transaction.order.id : transaction.order
-    const order = typeof transaction.order === 'object' ? transaction.order : null
+    const orderId = typeof transaction.order === 'object' && transaction.order ? transaction.order.id : transaction.order
+    const order = typeof transaction.order === 'object' && transaction.order ? transaction.order : null
 
     // Return the current status from our database
     return Response.json({

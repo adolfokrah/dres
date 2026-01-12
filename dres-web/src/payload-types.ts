@@ -1713,6 +1713,10 @@ export interface BoostTier {
    */
   hasAnalytics?: boolean | null;
   /**
+   * Display the "We Love" badge on boosted listings with this tier
+   */
+  showWeLoveBadge?: boolean | null;
+  /**
    * Lower numbers appear first
    */
   sortOrder?: number | null;
@@ -3717,6 +3721,7 @@ export interface BoostTiersSelect<T extends boolean = true> {
   isPopular?: T;
   isActive?: T;
   hasAnalytics?: T;
+  showWeLoveBadge?: T;
   sortOrder?: T;
   updatedAt?: T;
   createdAt?: T;

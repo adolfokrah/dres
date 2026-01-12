@@ -208,7 +208,6 @@ class _BoostStyleScreenState extends State<BoostStyleScreen> {
         icon: PhosphorIcons.chartBar(),
         title: 'Analytics & Insights',
         description: 'Track views, favorites, sales & conversion rates',
-        isPremium: true,
       ),
     ];
 
@@ -424,30 +423,6 @@ class _BoostStyleScreenState extends State<BoostStyleScreen> {
                       ],
                     ),
                   )),
-              // Show Analytics badge if tier includes it
-              if (tier.hasAnalytics)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    children: [
-                      PhosphorIcon(
-                        PhosphorIcons.chartBar(),
-                        color: AppColors.primary,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Includes detailed analytics & insights',
-                          style: AppTypography.bodyS.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
             ],
           ],
         ),

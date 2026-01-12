@@ -48,7 +48,7 @@ export const recordView: PayloadHandler = async (req: PayloadRequest) => {
       
       if (style && typeof style === 'object' && 'seller' in style) {
         const seller = (style as { seller?: string | { id: string } }).seller
-        sellerId = typeof seller === 'object' ? seller?.id : seller
+        sellerId = (typeof seller === 'object' ? seller?.id : seller) ?? null
       }
       
       if (sellerId && sellerId === user.id) {

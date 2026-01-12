@@ -1,18 +1,41 @@
 import type { PayloadHandler } from 'payload'
-import { transformVariation } from '../utils/transformVariation'
-import { getSellerData } from '../utils/getSellerData'
-import { getStyleReviews } from '../../../utilities/getStyleReviews'
+import { ObjectId } from 'mongodb'
 import { getUserCountryInfo } from '../../../utilities/countryUtils'
+import { formatCompactNumberWithPlus } from '../../../utilities/formatNumber'
+
+// Helper to safely convert a string to ObjectId
+const toObjectId = (id: string | undefined | null): ObjectId | null => {
+  if (!id || typeof id !== 'string') return null
+  if (!/^[a-fA-F0-9]{24}$/.test(id)) return null
+  try {
+    return new ObjectId(id)
+  } catch {
+    return null
+  }
+}
+
+// Helper to construct media URL from filename (more reliable than stored url field)
+const getMediaUrl = (media: any, size?: 'thumbnail' | 'card' | 'tablet'): string | null => {
+  if (!media) return null
+
+  let filename = null
+
+  if (size && media.sizes?.[size]?.filename) {
+    filename = media.sizes[size].filename
+  } else if (media.filename) {
+    filename = media.filename
+  }
+
+  if (!filename) return null
+  return `/api/media/file/${filename}`
+}
 
 export const getVariation: PayloadHandler = async (req) => {
   const { payload } = req
   const { id } = req.routeParams || {}
 
   if (!id) {
-    return Response.json(
-      { error: 'Variation ID or slug is required' },
-      { status: 400 }
-    )
+    return Response.json({ error: 'Variation ID or slug is required' }, { status: 400 })
   }
 
   try {
@@ -20,380 +43,563 @@ export const getVariation: PayloadHandler = async (req) => {
     const countryInfo = await getUserCountryInfo(req)
     const currency = countryInfo.currencySymbol
 
-    // Fetch the variation with full depth by id or slug
-    const variationResult = await payload.find({
-      collection: 'variations',
-      where: {
-        or: [
-          {
-            id: {
-              equals: id as string,
-            },
-          },
-          {
-            slug: {
-              equals: id as string,
-            },
-          },
-        ],
-      },
-      depth: 5,
-      limit: 1,
-    })
+    // Build match condition for ID or slug
+    const idMatch = toObjectId(id as string)
+    const matchCondition = idMatch
+      ? { $or: [{ _id: idMatch }, { slug: id }] }
+      : { slug: id }
 
-    const variation = variationResult.docs[0]
+    // Single aggregation pipeline to fetch variation with ALL related data
+    const pipeline: any[] = [
+      { $match: matchCondition },
+      { $limit: 1 },
+
+      // Lookup images
+      {
+        $lookup: {
+          from: 'media',
+          localField: 'images',
+          foreignField: '_id',
+          as: 'imageData',
+          pipeline: [{ $project: { url: 1, alt: 1, filename: 1, mimeType: 1, width: 1, height: 1, sizes: 1 } }]
+        }
+      },
+
+      // Lookup style with all nested data
+      {
+        $lookup: {
+          from: 'styles',
+          localField: 'style',
+          foreignField: '_id',
+          as: 'styleData',
+          pipeline: [
+            // Boost data
+            {
+              $lookup: {
+                from: 'style-boosts',
+                let: { styleId: '$_id' },
+                pipeline: [
+                  { $match: { $expr: { $eq: ['$style', '$$styleId'] }, status: 'active' } },
+                  { $limit: 1 },
+                  {
+                    $lookup: {
+                      from: 'boost-tiers',
+                      localField: 'tier',
+                      foreignField: '_id',
+                      as: 'tierData',
+                      pipeline: [{ $project: { showWeLoveBadge: 1 } }]
+                    }
+                  },
+                  { $unwind: { path: '$tierData', preserveNullAndEmptyArrays: true } }
+                ],
+                as: 'boostData'
+              }
+            },
+            // Department
+            {
+              $lookup: {
+                from: 'departments',
+                localField: 'department',
+                foreignField: '_id',
+                as: 'departmentData',
+                pipeline: [{ $project: { name: 1 } }]
+              }
+            },
+            // Collection
+            {
+              $lookup: {
+                from: 'collections',
+                localField: 'collection',
+                foreignField: '_id',
+                as: 'collectionData',
+                pipeline: [{ $project: { name: 1 } }]
+              }
+            },
+            // Category
+            {
+              $lookup: {
+                from: 'categories',
+                localField: 'category',
+                foreignField: '_id',
+                as: 'categoryData',
+                pipeline: [{ $project: { category: 1, name: 1 } }]
+              }
+            },
+            // Brand
+            {
+              $lookup: {
+                from: 'brands',
+                localField: 'brand',
+                foreignField: '_id',
+                as: 'brandData',
+                pipeline: [{ $project: { name: 1 } }]
+              }
+            },
+            // Seller
+            {
+              $lookup: {
+                from: 'users',
+                localField: 'seller',
+                foreignField: '_id',
+                as: 'sellerData',
+                pipeline: [
+                  {
+                    $lookup: {
+                      from: 'media',
+                      localField: 'photo',
+                      foreignField: '_id',
+                      as: 'photoData',
+                      pipeline: [{ $project: { url: 1 } }]
+                    }
+                  },
+                  { $project: { firstName: 1, lastName: 1, shopName: 1, username: 1, vacationMode: 1, createdAt: 1, photoData: 1 } }
+                ]
+              }
+            },
+            {
+              $addFields: {
+                hasActiveBoost: { $gt: [{ $size: '$boostData' }, 0] },
+                activeBoost: { $arrayElemAt: ['$boostData', 0] }
+              }
+            }
+          ]
+        }
+      },
+      { $unwind: { path: '$styleData', preserveNullAndEmptyArrays: true } },
+
+      // Lookup SKUs with currency and options data
+      {
+        $lookup: {
+          from: 'skus',
+          let: { variationId: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$variation', '$$variationId'] }, status: { $ne: 'archived' } } },
+            {
+              $lookup: {
+                from: 'currencies',
+                localField: 'currency',
+                foreignField: '_id',
+                as: 'currencyData',
+                pipeline: [{ $project: { code: 1, symbol: 1 } }]
+              }
+            },
+            // Lookup attribute names for skuOptions
+            {
+              $lookup: {
+                from: 'attributes',
+                localField: 'skuOptions.option',
+                foreignField: '_id',
+                as: 'optionAttributes'
+              }
+            },
+            // Lookup attribute option values
+            {
+              $lookup: {
+                from: 'attributeOptions',
+                localField: 'skuOptions.value',
+                foreignField: '_id',
+                as: 'optionValues'
+              }
+            }
+          ],
+          as: 'skuData'
+        }
+      },
+
+      // Lookup variant attribute names
+      {
+        $lookup: {
+          from: 'attributes',
+          localField: 'variants.variant',
+          foreignField: '_id',
+          as: 'variantAttributes'
+        }
+      },
+      {
+        $lookup: {
+          from: 'attributeOptions',
+          localField: 'variants.value',
+          foreignField: '_id',
+          as: 'variantValues'
+        }
+      },
+
+      // Lookup related variations (same style, different id)
+      {
+        $lookup: {
+          from: 'variations',
+          let: { styleId: '$style', currentId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$style', '$$styleId'] },
+                    { $ne: ['$_id', '$$currentId'] },
+                    { $ne: ['$status', 'archived'] }
+                  ]
+                }
+              }
+            },
+            { $limit: 10 },
+            // Images for related
+            {
+              $lookup: {
+                from: 'media',
+                localField: 'images',
+                foreignField: '_id',
+                as: 'imageData',
+                pipeline: [{ $project: { url: 1, sizes: 1 } }]
+              }
+            },
+            // SKUs for related
+            {
+              $lookup: {
+                from: 'skus',
+                let: { varId: '$_id' },
+                pipeline: [
+                  { $match: { $expr: { $eq: ['$variation', '$$varId'] }, status: { $ne: 'archived' } } },
+                  {
+                    $lookup: {
+                      from: 'attributes',
+                      localField: 'skuOptions.option',
+                      foreignField: '_id',
+                      as: 'optionAttributes'
+                    }
+                  },
+                  {
+                    $lookup: {
+                      from: 'attributeOptions',
+                      localField: 'skuOptions.value',
+                      foreignField: '_id',
+                      as: 'optionValues'
+                    }
+                  }
+                ],
+                as: 'skuData'
+              }
+            },
+            // Variant attributes for related
+            {
+              $lookup: {
+                from: 'attributes',
+                localField: 'variants.variant',
+                foreignField: '_id',
+                as: 'variantAttributes'
+              }
+            },
+            {
+              $lookup: {
+                from: 'attributeOptions',
+                localField: 'variants.value',
+                foreignField: '_id',
+                as: 'variantValues'
+              }
+            }
+          ],
+          as: 'relatedVariationsData'
+        }
+      }
+    ]
+
+    // Execute aggregation
+    const variationsCollection = payload.db.collections['variations']
+    const [variation] = await variationsCollection.aggregate(pipeline)
 
     if (!variation) {
-      return Response.json(
-        { error: 'Variation not found' },
-        { status: 404 }
-      )
+      return Response.json({ error: 'Variation not found' }, { status: 404 })
     }
 
-    // Check if variation is archived (draft status)
+    // Check status
     if (variation.status === 'archived') {
-      return Response.json(
-        { error: 'Variation not found' },
-        { status: 404 }
-      )
+      return Response.json({ error: 'Variation not found' }, { status: 404 })
     }
 
-    // Fetch the full style with boost data
-    const styleId = typeof variation.style === 'object' ? variation.style.id : variation.style
-    let fullStyle: any = null
-    
-    if (styleId) {
-      fullStyle = await payload.findByID({
-        collection: 'styles',
-        id: styleId,
-        depth: 5, // Increased depth to ensure category is populated
-      })
-      variation.style = fullStyle
-      
-      // Check if style is published
-      if (fullStyle.status !== 'published') {
-        return Response.json(
-          { error: 'Variation not found' },
-          { status: 404 }
-        )
-      }
+    const style = variation.styleData
+    if (!style || style.status !== 'published') {
+      return Response.json({ error: 'Variation not found' }, { status: 404 })
     }
 
-    // Transform the variation (without related variations from transformVariation)
-    const transformed = transformVariation(variation, false)
-
-    // Add images field (all images from the variation)
-    const images = Array.isArray(variation.images) 
-      ? variation.images.map((img: any) => {
-          const imageData = typeof img === 'object' ? img : null
-          return imageData ? {
-            id: imageData.id,
-            url: imageData.url,
-            alt: imageData.alt || variation.title,
-            filename: imageData.filename,
-            mimeType: imageData.mimeType,
-            width: imageData.width,
-            height: imageData.height,
-          } : null
-        }).filter(Boolean)
-      : []
-
-    // Get related variations from the same style (only for this endpoint)
-    const relatedVariations: any[] = []
-    
-    if (styleId) {
-      const relatedResult = await payload.find({
-        collection: 'variations',
-        where: {
-          and: [
-            { style: { equals: styleId } },
-            { id: { not_equals: variation.id } }, // Exclude current variation
-            { status: { not_equals: 'archived' } }, // Exclude archived variations
-          ]
-        },
-        limit: 10,
-        depth: 5,
-      })
-
-      // Transform related variations (without nesting relatedVariations)
-      for (const relatedVar of relatedResult.docs) {
-        // Fetch full style for each related variation
-        const relatedStyleId = typeof relatedVar.style === 'object' ? relatedVar.style.id : relatedVar.style
-        if (relatedStyleId) {
-          const fullRelatedStyle = await payload.findByID({
-            collection: 'styles',
-            id: relatedStyleId,
-            depth: 5, // Increased depth
-          })
-          relatedVar.style = fullRelatedStyle
-        }
-        
-        // Get SKUs for related variation with same structure as parent (exclude archived)
-        const relatedSkus = await payload.find({
-          collection: 'skus',
-          where: { 
-            variation: { equals: relatedVar.id },
-            status: { not_equals: 'archived' }, // Exclude archived SKUs
-          },
-          depth: 2,
-        })
-
-        const relatedSkusWithOptions = await Promise.all(
-          relatedSkus.docs.map(async (sku: any) => {
-            const options = Array.isArray(sku.skuOptions)
-              ? await Promise.all(
-                  sku.skuOptions.map(async (opt: any) => {
-                    const optionId = typeof opt.option === 'object' ? opt.option.id : opt.option
-                    const valueId = typeof opt.value === 'object' ? opt.value.id : opt.value
-
-                    const option = await payload.findByID({
-                      collection: 'attributes',
-                      id: optionId,
-                    })
-
-                    const value = await payload.findByID({
-                      collection: 'attributeOptions',
-                      id: valueId,
-                    })
-
-                    return {
-                      option: option.name,
-                      value: value.name,
-                    }
-                  })
-                )
-              : []
-
-            return {
-              id: sku.id,
-              options,
-              sellingPrice: sku.sellingPrice,
-              compareAtPrice: sku.compareAtPrice || null,
-              stock: sku.stock || 0,
-              currency,
-            }
-          })
-        )
-
-        // Get variation-level attributes (details) for related variation
-        const relatedDetails = Array.isArray(relatedVar.variants)
-          ? await Promise.all(
-              relatedVar.variants.map(async (variant: any) => {
-                const variantId = typeof variant.variant === 'object' ? variant.variant.id : variant.variant
-                const valueId = typeof variant.value === 'object' ? variant.value.id : variant.value
-
-                const attribute = await payload.findByID({
-                  collection: 'attributes',
-                  id: variantId,
-                })
-
-                const value = await payload.findByID({
-                  collection: 'attributeOptions',
-                  id: valueId,
-                })
-
-                return {
-                  attribute: attribute.name,
-                  value: value.name,
-                }
-              })
-            )
-          : []
-        
-        const transformedRelated = await transformVariation(relatedVar, false)
-        
-        if (transformedRelated) {
-          // Create extended variation with SKUs and details
-          const extendedRelated = {
-            ...transformedRelated,
-            skus: relatedSkusWithOptions,
-            details: relatedDetails
-          }
-          
-          relatedVariations.push(extendedRelated as any)
-        }
-      }
+    // Helper to compare ObjectIds (handles both ObjectId and string)
+    const idsMatch = (id1: any, id2: any): boolean => {
+      if (!id1 || !id2) return false
+      const str1 = typeof id1 === 'object' && id1._id ? id1._id.toString() : id1.toString()
+      const str2 = typeof id2 === 'object' && id2._id ? id2._id.toString() : id2.toString()
+      return str1 === str2
     }
 
-    // Extract variant details (variation-level attributes) and add metadata
-    const attributeDetails = Array.isArray(variation.variants)
-      ? await Promise.all(
-          variation.variants.map(async (variant: any) => {
-            const attributeId = typeof variant.variant === 'object' ? variant.variant.id : variant.variant
-            const valueId = typeof variant.value === 'object' ? variant.value.id : variant.value
+    // Helper to resolve SKU options from lookup data
+    const resolveSkuOptions = (sku: any) => {
+      if (!sku.skuOptions?.length) return []
+      return sku.skuOptions.map((opt: any) => {
+        const optAttr = sku.optionAttributes?.find((a: any) => idsMatch(a._id, opt.option))
+        const optVal = sku.optionValues?.find((v: any) => idsMatch(v._id, opt.value))
+        return { option: optAttr?.name || '', value: optVal?.name || '' }
+      }).filter((o: any) => o.option && o.value)
+    }
 
-            const attribute = await payload.findByID({
-              collection: 'attributes',
-              id: attributeId,
-            })
+    // Helper to resolve variant details from lookup data
+    const resolveVariantDetails = (doc: any) => {
+      if (!doc.variants?.length) return []
+      return doc.variants.map((v: any) => {
+        const attr = doc.variantAttributes?.find((a: any) => idsMatch(a._id, v.variant))
+        const val = doc.variantValues?.find((vl: any) => idsMatch(vl._id, v.value))
+        return { name: attr?.name || '', value: val?.name || '' }
+      }).filter((d: any) => d.name && d.value)
+    }
 
-            const value = await payload.findByID({
-              collection: 'attributeOptions',
-              id: valueId,
-            })
+    // Transform images - construct URLs from filename (more reliable than stored url)
+    const images = (variation.imageData || []).map((img: any) => ({
+      id: img._id.toString(),
+      url: getMediaUrl(img),
+      alt: img.alt || variation.title,
+      filename: img.filename,
+      mimeType: img.mimeType,
+      width: img.width,
+      height: img.height,
+    }))
 
-            return {
-              name: attribute.name,
-              value: value.name,
-            }
-          })
-        )
-      : []
+    // Get first image thumbnail
+    const firstImage = variation.imageData?.[0]
+    const thumbnail = getMediaUrl(firstImage, 'thumbnail') || getMediaUrl(firstImage)
 
-    // Add department, collection, category, and brand to details
+    // Transform SKUs
+    const skus = (variation.skuData || []).map((sku: any) => ({
+      id: sku._id.toString(),
+      options: resolveSkuOptions(sku),
+      sellingPrice: sku.sellingPrice || 0,
+      compareAtPrice: sku.compareAtPrice || null,
+      stock: sku.stock || 0,
+      currency,
+    }))
+
+    // Build details array
     const details: { name: string; value: string }[] = []
-
-    // Add department
-    if (fullStyle?.department) {
-      const department = typeof fullStyle.department === 'object' ? fullStyle.department : null
-      if (department?.name) {
-        details.push({
-          name: 'Department',
-          value: department.name,
-        })
-      }
+    if (style.departmentData?.[0]?.name) {
+      details.push({ name: 'Department', value: style.departmentData[0].name })
     }
-
-    // Add category
-    if (fullStyle?.category) {
-      const category = typeof fullStyle.category === 'object' ? fullStyle.category : null
-      const categoryName = category?.category || category?.name
-      if (categoryName) {
-        details.push({
-          name: 'Category',
-          value: categoryName,
-        })
-      }
+    if (style.categoryData?.[0]?.category || style.categoryData?.[0]?.name) {
+      details.push({ name: 'Category', value: style.categoryData[0].category || style.categoryData[0].name })
     }
-
-    // Add collection
-    if (fullStyle?.collection) {
-      const collection = typeof fullStyle.collection === 'object' ? fullStyle.collection : null
-      if (collection?.name) {
-        details.push({
-          name: 'Collection',
-          value: collection.name,
-        })
-      }
+    if (style.collectionData?.[0]?.name) {
+      details.push({ name: 'Collection', value: style.collectionData[0].name })
     }
-
-    // Add brand
-    if (fullStyle?.brand) {
-      const brand = typeof fullStyle.brand === 'object' ? fullStyle.brand : null
-      if (brand?.name) {
-        details.push({
-          name: 'Brand',
-          value: brand.name,
-        })
-      }
+    if (style.brandData?.[0]?.name) {
+      details.push({ name: 'Brand', value: style.brandData[0].name })
     }
 
     // Add attribute details
-    details.push(...attributeDetails)
+    const attributeDetails = resolveVariantDetails(variation)
+    details.push(...attributeDetails.map((d: any) => ({ name: d.name, value: d.value })))
 
-    // Create variationsTitle from first variation attribute (not metadata)
-    let variationsTitle: { attribute: string; values: string[] } | null = null
-    if (attributeDetails.length > 0) {
-      const firstAttribute = attributeDetails[0].name
-      const allValues = new Set<string>()
-      
-      // Add current variation's value
-      allValues.add(attributeDetails[0].value)
-      
-      // Add related variations' values for the same attribute (if there are related variations)
-      if (relatedVariations.length > 0) {
-        relatedVariations.forEach((related: any) => {
-          if (related.details && Array.isArray(related.details)) {
-            // Find the matching attribute in related variation
-            const relatedFirstDetail = related.details.find((d: any) => d.attribute === firstAttribute)
-            if (relatedFirstDetail?.value) {
-              allValues.add(relatedFirstDetail.value)
-            }
-          }
-        })
-      }
-      
-      variationsTitle = {
-        attribute: firstAttribute,
-        values: Array.from(allValues)
-      }
-    }
+    // Transform related variations
+    const relatedVariations = (variation.relatedVariationsData || []).map((rel: any) => {
+      const relFirstImage = rel.imageData?.[0]
+      const relThumbnail = getMediaUrl(relFirstImage, 'thumbnail') || getMediaUrl(relFirstImage)
+      const relDetails = resolveVariantDetails(rel).map((d: any) => ({
+        attribute: d.name,
+        value: d.value
+      }))
 
-    // Fetch SKUs with their options (exclude archived SKUs)
-    const skusResult = await payload.find({
-      collection: 'skus',
-      where: {
-        variation: { equals: variation.id },
-        status: { not_equals: 'archived' }, // Exclude archived SKUs
-      },
-      depth: 3,
+      const relSkus = (rel.skuData || []).map((sku: any) => ({
+        id: sku._id.toString(),
+        options: resolveSkuOptions(sku),
+        sellingPrice: sku.sellingPrice || 0,
+        compareAtPrice: sku.compareAtPrice || null,
+        stock: sku.stock || 0,
+        currency,
+      }))
+
+      // Get best SKU for price
+      const relBestSku = relSkus.find((s: any) => s.compareAtPrice > 0) || relSkus[0]
+
+      // Build variants string for related variation
+      const relVariantsString = relDetails.map((d: any) => d.attribute).join(' - ')
+
+      return {
+        id: rel._id.toString(),
+        thumbnail: relThumbnail,
+        title: rel.title || '',
+        slug: rel.slug || '',
+        skus: relSkus,
+        details: relDetails,
+        sellingPrice: relBestSku?.sellingPrice || 0,
+        compareAtPrice: relBestSku?.compareAtPrice || undefined,
+        category: style.categoryData?.[0]?.category || style.categoryData?.[0]?.name || null,
+        brand: style.brandData?.[0]?.name || null,
+        isBoosted: style.hasActiveBoost || false,
+        showWeLoveBadge: style.activeBoost?.tierData?.showWeLoveBadge || false,
+        variants: relVariantsString,
+        defaultSku: relBestSku?.id || undefined,
+        totalStock: relBestSku?.stock || 0,
+        currency: relBestSku ? { code: countryInfo.currencyCode, symbol: countryInfo.currencySymbol } : null,
+      }
     })
 
-    const skus = await Promise.all(
-      skusResult.docs.map(async (sku: any) => {
-        const options = Array.isArray(sku.skuOptions)
-          ? await Promise.all(
-              sku.skuOptions.map(async (skuOption: any) => {
-                const optionId = typeof skuOption.option === 'object' ? skuOption.option.id : skuOption.option
-                const valueId = typeof skuOption.value === 'object' ? skuOption.value.id : skuOption.value
+    // Build variationsTitle
+    let variationsTitle: { attribute: string; values: string[] } | null = null
+    if (attributeDetails.length > 0) {
+      const firstAttr = attributeDetails[0].name
+      const allValues = new Set<string>([attributeDetails[0].value])
+      relatedVariations.forEach((rel: any) => {
+        const match = rel.details?.find((d: any) => d.attribute === firstAttr)
+        if (match?.value) allValues.add(match.value)
+      })
+      variationsTitle = { attribute: firstAttr, values: Array.from(allValues) }
+    }
 
-                const option = await payload.findByID({
-                  collection: 'attributes',
-                  id: optionId,
-                })
+    // Get best SKU for main variation
+    const bestSku = skus.find((s: any) => s.compareAtPrice > 0) || skus[0]
 
-                const value = await payload.findByID({
-                  collection: 'attributeOptions',
-                  id: valueId,
-                })
+    // Parallelize remaining queries: seller orders + reviews
+    const sellerId = style.sellerData?.[0]?._id?.toString()
+    const styleId = style._id.toString()
 
-                return {
-                  option: option.name,
-                  value: value.name,
-                }
-              })
-            )
-          : []
+    const [ordersResult, reviewsResult, allReviewsResult] = await Promise.all([
+      // Seller orders for sales history
+      sellerId ? payload.find({
+        collection: 'orders',
+        where: { sellers: { contains: sellerId } },
+        limit: 1000,
+        depth: 0,
+      }) : Promise.resolve({ docs: [] }),
 
-        return {
-          id: sku.id,
-          options,
-          sellingPrice: sku.sellingPrice,
-          compareAtPrice: sku.compareAtPrice,
-          stock: sku.stock,
-          currency,
+      // Reviews (paginated)
+      payload.find({
+        collection: 'reviews',
+        where: { style: { equals: styleId } },
+        limit: 10,
+        page: 1,
+        sort: '-createdAt',
+        depth: 2,
+      }),
+
+      // All reviews for statistics
+      payload.find({
+        collection: 'reviews',
+        where: { style: { equals: styleId } },
+        pagination: false,
+        depth: 0,
+      })
+    ])
+
+    // Calculate seller stats
+    let itemsSold = 0, shipped = 0, cancelled = 0
+    ordersResult.docs.forEach((order: any) => {
+      order.items?.forEach((item: any) => {
+        const itemSellerId = typeof item.seller === 'object' ? item.seller?.id : item.seller
+        if (itemSellerId === sellerId) {
+          itemsSold += item.quantity || 1
+          if (item.shippingStatus === 'delivered' || item.shippingStatus === 'out_for_delivery') {
+            shipped += item.quantity || 1
+          } else if (item.shippingStatus === 'returned' || item.shippingStatus === 'not_available') {
+            cancelled += item.quantity || 1
+          }
         }
       })
-    )
+    })
 
-    // Get seller information
-    const sellerId = typeof fullStyle?.seller === 'object' ? fullStyle.seller.id : fullStyle?.seller
-    const sellerData = await getSellerData(payload, sellerId)
+    // Build seller data
+    const sellerDoc = style.sellerData?.[0]
+    const sellerData = sellerDoc ? {
+      id: sellerDoc._id.toString(),
+      name: sellerDoc.shopName || [sellerDoc.firstName, sellerDoc.lastName].filter(Boolean).join(' ') || 'User',
+      username: sellerDoc.username || null,
+      profileImage: sellerDoc.photoData?.[0]?.url || null,
+      verified: true,
+      vacationMode: sellerDoc.vacationMode || false,
+      usuallyShipsIn: '24 hours',
+      salesHistory: {
+        itemsSold: formatCompactNumberWithPlus(itemsSold),
+        shipped: formatCompactNumberWithPlus(shipped),
+        cancelled: formatCompactNumberWithPlus(cancelled),
+      },
+      memberSince: sellerDoc.createdAt,
+    } : null
 
-    // Get style reviews
-    const styleReviews = styleId ? await getStyleReviews(payload, styleId, 1, 10) : null
+    // Transform reviews
+    const reviews = reviewsResult.docs.map((review: any) => {
+      const reviewer = typeof review.user === 'object' ? review.user : null
+      return {
+        id: review.id,
+        rating: review.rating || 0,
+        review: review.review || '',
+        images: (review.images || []).map((img: any) => img?.url).filter(Boolean),
+        reviewer: {
+          id: reviewer?.id || '',
+          name: reviewer?.firstName || 'Anonymous',
+          profileImage: reviewer?.photo?.url || null,
+        },
+        createdAt: review.createdAt,
+        helpful: review.helpful || 0,
+        verified: review.verified || false,
+      }
+    })
+
+    // Calculate rating distribution
+    const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+    let totalRating = 0
+    allReviewsResult.docs.forEach((r: any) => {
+      const rating = r.rating || 0
+      totalRating += rating
+      if (rating >= 1 && rating <= 5) ratingDistribution[rating as 1|2|3|4|5]++
+    })
+    const totalReviews = allReviewsResult.docs.length
+    const averageRating = totalReviews > 0 ? Math.round((totalRating / totalReviews) * 10) / 10 : 0
+
+    // Build variants string (e.g., "Color - Size")
+    const variantsString = attributeDetails.map((d: any) => d.name).join(' - ')
+
+    // Build simplified SKU list for compatibility
+    const simplifiedSkus = skus.map((sku: any) => {
+      const sizeOpt = sku.options?.find((o: any) =>
+        o.option?.toLowerCase() === 'size' || o.option?.toLowerCase() === 'waist size'
+      )
+      return {
+        value: sizeOpt?.value || sku.options?.[0]?.value || 'Standard',
+        sellingPrice: sku.sellingPrice || 0,
+      }
+    })
 
     return Response.json({
       variation: {
-        ...transformed,
+        id: variation._id.toString(),
+        thumbnail,
+        title: variation.title || '',
+        slug: variation.slug || '',
         images,
-        styleDescription: fullStyle?.description || null,
+        styleDescription: style.description || null,
         details,
-        skus: skus as any, // Custom SKU structure with options
+        skus,
         variationsTitle,
-        sellerId: sellerId || null, // Add sellerId for ownership check
+        sellerId: sellerId || null,
+        sellingPrice: bestSku?.sellingPrice || 0,
+        compareAtPrice: bestSku?.compareAtPrice || undefined,
+        currency: { code: countryInfo.currencyCode, symbol: countryInfo.currencySymbol },
+        category: style.categoryData?.[0]?.category || style.categoryData?.[0]?.name || null,
+        brand: style.brandData?.[0]?.name || null,
+        isBoosted: style.hasActiveBoost || false,
+        showWeLoveBadge: style.activeBoost?.tierData?.showWeLoveBadge || false,
+        styleId,
+        // Additional fields for mobile app compatibility
+        variants: variantsString,
+        defaultSku: bestSku?.id || undefined,
+        totalStock: bestSku?.stock || 0,
       },
-      relatedVariations: relatedVariations as any, // Custom structure with details
+      relatedVariations,
       seller: sellerData,
-      styleReviews: styleReviews 
+      styleReviews: {
+        reviews,
+        totalReviews,
+        averageRating,
+        ratingDistribution,
+      }
     })
   } catch (error) {
+    console.error('Error fetching variation:', error)
     payload.logger.error(`Error fetching variation: ${error}`)
     return Response.json(
-      {
-        error: 'Failed to fetch variation',
-        message: error instanceof Error ? error.message : 'Unknown error',
-      },
+      { error: 'Failed to fetch variation', message: error instanceof Error ? error.message : 'Unknown error', stack: error instanceof Error ? error.stack : undefined },
       { status: 500 }
     )
   }

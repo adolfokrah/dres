@@ -11,7 +11,9 @@ class ProductDetailsRepository {
     try {
       final response = await _apiService.get('${api.variationBySlug}$variationSlug/details');
       return ProductDetailsModel.fromJson(response.data as Map<String, dynamic>);
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('❌ Failed to fetch/parse product details: $e');
+      print('Stack trace: $stackTrace');
       throw Exception('Failed to fetch product details: $e');
     }
   }

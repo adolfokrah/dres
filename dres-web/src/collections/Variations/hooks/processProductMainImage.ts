@@ -89,7 +89,7 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
       const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://dres.app'
       const imageUrl = mediaDoc.url?.startsWith('http') 
         ? mediaDoc.url 
-        : `${serverUrl}/api/media/file/${mediaDoc.filename}`
+        : `${serverUrl}/media/${mediaDoc.filename}`
       
       req.payload.logger.info(`Downloading image from: ${imageUrl}`)
       imageBuffer = await downloadImageFromUrl(imageUrl)

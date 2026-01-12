@@ -174,6 +174,7 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
                           onFavoriteToggle: widget.onFavoriteToggle,
                           showLeftBorder: index == 0,
                           isBoosted: product.isBoosted,
+                          showWeLoveBadge: product.showWeLoveBadge,
                           sellerId: product.sellerId,
                           totalStock: product.totalStock,
                         ),
@@ -252,6 +253,7 @@ class ProductCardData {
   final String currencySymbol;
   final String slug;
   final bool isBoosted;
+  final bool showWeLoveBadge;
   final String? sellerId;
   final int? totalStock;
 
@@ -267,6 +269,7 @@ class ProductCardData {
     required this.currencySymbol,
     required this.slug,
     this.isBoosted = false,
+    this.showWeLoveBadge = false,
     this.sellerId,
     this.totalStock,
   });
@@ -291,6 +294,7 @@ class ProductCardData {
       currencySymbol: currencySymbol,
       slug: json['slug'],
       isBoosted: json['isBoosted'] ?? false,
+      showWeLoveBadge: json['showWeLoveBadge'] ?? false,
       sellerId: json['sellerId'],
       totalStock: json['totalStock'] as int?,
     );

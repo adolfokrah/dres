@@ -67,6 +67,7 @@ export const getActiveBoostTiers: PayloadHandler = async (req) => {
         : [],
       isPopular: tier.isPopular || false,
       hasAnalytics: tier.hasAnalytics || false,
+      showWeLoveBadge: tier.showWeLoveBadge || false,
     }))
 
     return Response.json({

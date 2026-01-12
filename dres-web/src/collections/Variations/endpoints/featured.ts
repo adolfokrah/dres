@@ -34,11 +34,12 @@ export const featuredVariations: PayloadHandler = async (req: PayloadRequest) =>
   const department = await resolveDepartmentId(req.payload, departmentParam)
 
   try {
-    // Step 1: Get all active style boosts
+    // Step 1: Get all active style boosts that have showWeLoveBadge enabled
     const now = new Date()
     const activeBoosts = await req.payload.find({
       collection: 'style-boosts',
       limit: 1000,
+      depth: 2, // Need depth to get tier data
       where: {
         and: [
           {
@@ -57,7 +58,17 @@ export const featuredVariations: PayloadHandler = async (req: PayloadRequest) =>
       }
     })
 
-    if (activeBoosts.docs.length === 0) {
+    // Filter boosts to only those with showWeLoveBadge enabled on their tier
+    const weLoveBoosts = activeBoosts.docs.filter((boost: any) => {
+      const tier = boost.tier
+      // tier could be an object (populated) or a string (ID)
+      if (tier && typeof tier === 'object') {
+        return tier.showWeLoveBadge === true
+      }
+      return false
+    })
+
+    if (weLoveBoosts.length === 0) {
       return Response.json({
         docs: [],
         totalDocs: 0,
@@ -73,8 +84,8 @@ export const featuredVariations: PayloadHandler = async (req: PayloadRequest) =>
       })
     }
 
-    // Step 2: Get style IDs from active boosts
-    const boostedStyleIds = activeBoosts.docs
+    // Step 2: Get style IDs from "We Love" boosts only
+    const boostedStyleIds = weLoveBoosts
       .map((boost: any) => typeof boost.style === 'string' ? boost.style : boost.style?.id)
       .filter(Boolean)
 
@@ -159,6 +170,27 @@ export const featuredVariations: PayloadHandler = async (req: PayloadRequest) =>
               depth: 3,
             })
             fullStyle = styleResult
+
+            // Ensure tier is fully populated for boost items
+            const boostData = (styleResult as any)?.boost
+            if (boostData?.docs && Array.isArray(boostData.docs)) {
+              // Populate tier for each boost if it's just an ID
+              const populatedBoosts = await Promise.all(
+                boostData.docs.map(async (boost: any) => {
+                  if (boost?.tier && typeof boost.tier === 'string') {
+                    // Tier is just an ID, need to fetch full tier
+                    const tierResult = await req.payload.findByID({
+                      collection: 'boost-tiers',
+                      id: boost.tier,
+                      depth: 0,
+                    })
+                    return { ...boost, tier: tierResult }
+                  }
+                  return boost
+                })
+              )
+              fullStyle = { ...fullStyle, boost: { docs: populatedBoosts } }
+            }
           }
 
           // Fetch SKUs for this variation with full details

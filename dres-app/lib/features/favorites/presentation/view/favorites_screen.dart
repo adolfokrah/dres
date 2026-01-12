@@ -209,6 +209,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             showLeftBorder: isLeftColumn,
             showTopBorder: index < 2,
             isBoosted: item.isBoosted,
+            showWeLoveBadge: item.showWeLoveBadge,
             sellerId: item.sellerId,
             onFavoriteToggle: (id, isFavorited) {
               if (!isFavorited) {

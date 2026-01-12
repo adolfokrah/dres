@@ -121,6 +121,15 @@ export const BoostTiers: CollectionConfig = {
       },
     },
     {
+      name: 'showWeLoveBadge',
+      label: 'Show "We Love" Badge',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        description: 'Display the "We Love" badge on boosted listings with this tier',
+      },
+    },
+    {
       name: 'sortOrder',
       label: 'Sort Order',
       type: 'number',

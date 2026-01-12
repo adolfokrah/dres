@@ -137,8 +137,71 @@ export const getSimilarVariations: PayloadHandler = async (req) => {
       sort: '-createdAt', // Newest first
     })
 
+    // Fetch full style with boost data and SKUs for each variation
+    const variationsWithFullData = await Promise.all(
+      similarVariations.docs.map(async (variation: any) => {
+        if (!variation?.id) return variation
+
+        try {
+          // Fetch the full style with boost data
+          const styleId = typeof variation.style === 'object' ? variation.style.id : variation.style
+          let fullStyle = variation.style
+
+          if (styleId) {
+            fullStyle = await payload.findByID({
+              collection: 'styles',
+              id: styleId,
+              depth: 4, // Need depth 4 for: style -> boost (join) -> tier (relationship) -> tier fields
+            })
+          }
+
+          // Fetch SKUs for this variation
+          const skusResult = await payload.find({
+            collection: 'skus',
+            where: { variation: { equals: variation.id } },
+            depth: 2,
+            limit: 100,
+          })
+
+          return {
+            ...variation,
+            style: fullStyle,
+            skus: { docs: skusResult.docs },
+          }
+        } catch (err) {
+          return {
+            ...variation,
+            skus: { docs: [] },
+          }
+        }
+      })
+    )
+
+    // Sort to prioritize boosted items (check boost dates, not just status)
+    const now = new Date()
+    const sortedVariations = variationsWithFullData.sort((a: any, b: any) => {
+      const checkBoosted = (v: any) => {
+        const boosts = v?.style?.boost?.docs || []
+        return boosts.some((boost: any) => {
+          if (boost.status === 'cancelled') return false
+          const start = boost.startDate ? new Date(boost.startDate) : null
+          const end = boost.endDate ? new Date(boost.endDate) : null
+          return (!start || now >= start) && (!end || now <= end)
+        })
+      }
+
+      const aIsBoosted = checkBoosted(a)
+      const bIsBoosted = checkBoosted(b)
+
+      // Boosted items come first
+      if (aIsBoosted && !bIsBoosted) return -1
+      if (!aIsBoosted && bIsBoosted) return 1
+
+      return 0
+    })
+
     // Transform variations
-    const transformed = transformVariations(similarVariations.docs, false)
+    const transformed = transformVariations(sortedVariations, false)
 
     return Response.json({
       variations: transformed,

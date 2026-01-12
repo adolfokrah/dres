@@ -82,6 +82,7 @@ class BoostDetailsModel {
   final String? tierName;
   final int? tierDuration;
   final bool hasAnalytics;
+  final bool showWeLoveBadge;
 
   BoostDetailsModel({
     required this.id,
@@ -91,6 +92,7 @@ class BoostDetailsModel {
     this.tierName,
     this.tierDuration,
     this.hasAnalytics = false,
+    this.showWeLoveBadge = false,
   });
 
   factory BoostDetailsModel.fromJson(Map<String, dynamic> json) {
@@ -103,6 +105,7 @@ class BoostDetailsModel {
       tierName: tier?['name'],
       tierDuration: tier?['duration'],
       hasAnalytics: tier?['hasAnalytics'] ?? false,
+      showWeLoveBadge: tier?['showWeLoveBadge'] ?? false,
     );
   }
 
