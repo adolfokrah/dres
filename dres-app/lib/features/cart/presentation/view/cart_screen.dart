@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -30,6 +31,10 @@ class _CartScreenState extends State<CartScreen> {
   // Optimistic quantity updates - key: variationId_skuId, value: quantity
   final Map<String, int> _optimisticQuantities = {};
   bool _hasCalculatedShipping = false;
+  // Debounce timers for quantity updates - prevents rapid concurrent API calls
+  final Map<String, Timer> _debounceTimers = {};
+  // Track pending quantity updates
+  final Map<String, int> _pendingQuantities = {};
 
   @override
   void initState() {
@@ -38,6 +43,15 @@ class _CartScreenState extends State<CartScreen> {
     context.read<CartBloc>().add(const CartFetchRequested());
     // Calculate shipping based on default address
     _calculateShippingFromDefaultAddress();
+  }
+
+  @override
+  void dispose() {
+    // Cancel all pending timers
+    for (final timer in _debounceTimers.values) {
+      timer.cancel();
+    }
+    super.dispose();
   }
 
   /// Calculate shipping fees based on user's default address
@@ -78,7 +92,6 @@ class _CartScreenState extends State<CartScreen> {
     if (item.variationId == null || item.skuId == null) return;
 
     final itemKey = '${item.variationId}_${item.skuId}';
-    final previousQuantity = _getDisplayQuantity(item);
     
     // Optimistic update - update UI immediately
     setState(() {
@@ -90,54 +103,70 @@ class _CartScreenState extends State<CartScreen> {
       _loadingItems[itemKey] = true;
     });
 
-    try {
-      final cartRepository = getIt<CartRepository>();
+    // Store the pending quantity
+    _pendingQuantities[itemKey] = newQuantity;
 
-      if (newQuantity < 1) {
-        // Remove item
-        await cartRepository.removeCartItem(
-          variationId: item.variationId!,
-          skuId: item.skuId!,
-        );
-      } else {
-        // Update quantity
-        await cartRepository.updateCartItemQuantity(
-          variationId: item.variationId!,
-          skuId: item.skuId!,
-          quantity: newQuantity,
-        );
-      }
+    // Cancel any existing debounce timer for this item
+    _debounceTimers[itemKey]?.cancel();
 
-      if (mounted) {
-        // Fetch updated cart - will clear optimistic state on success
-        context.read<CartBloc>().add(const CartFetchRequested());
-        // Clear optimistic quantity after successful update
-        setState(() {
-          _optimisticQuantities.remove(itemKey);
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        // Revert optimistic update on error
-        setState(() {
-          if (previousQuantity > 0) {
-            _optimisticQuantities[itemKey] = previousQuantity;
-          } else {
+    // Create new debounce timer - wait 300ms before sending API request
+    // This prevents rapid consecutive requests when user taps +/- quickly
+    _debounceTimers[itemKey] = Timer(const Duration(milliseconds: 300), () async {
+      // Get the final quantity after debounce
+      final finalQuantity = _pendingQuantities[itemKey] ?? newQuantity;
+      final previousQuantity = item.quantity;
+      
+      try {
+        final cartRepository = getIt<CartRepository>();
+
+        if (finalQuantity < 1) {
+          // Remove item
+          await cartRepository.removeCartItem(
+            variationId: item.variationId!,
+            skuId: item.skuId!,
+          );
+        } else {
+          // Update quantity
+          await cartRepository.updateCartItemQuantity(
+            variationId: item.variationId!,
+            skuId: item.skuId!,
+            quantity: finalQuantity,
+          );
+        }
+
+        if (mounted) {
+          // Fetch updated cart - will clear optimistic state on success
+          context.read<CartBloc>().add(const CartFetchRequested());
+          // Clear optimistic quantity after successful update
+          setState(() {
             _optimisticQuantities.remove(itemKey);
-          }
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update cart: ${e.toString()}'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+            _loadingItems[itemKey] = false;
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          // Revert optimistic update on error
+          setState(() {
+            if (previousQuantity > 0) {
+              _optimisticQuantities[itemKey] = previousQuantity;
+            } else {
+              _optimisticQuantities.remove(itemKey);
+            }
+            _loadingItems[itemKey] = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to update cart: ${e.toString()}'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      } finally {
+        // Clean up pending quantity
+        _pendingQuantities.remove(itemKey);
+        _debounceTimers.remove(itemKey);
       }
-    } finally {
-      if (mounted) {
-        setState(() => _loadingItems.remove(itemKey));
-      }
-    }
+    });
   }
 
   Future<void> _removeItem(CartItemModel item) async {

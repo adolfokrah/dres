@@ -11,6 +11,10 @@ import {
   REST_PUT,
 } from '@payloadcms/next/routes'
 
+// Increase body size limit for file uploads (default is 1MB)
+export const runtime = 'nodejs'
+export const maxDuration = 60 // seconds
+
 export const GET = REST_GET(config)
 export const POST = REST_POST(config)
 export const DELETE = REST_DELETE(config)

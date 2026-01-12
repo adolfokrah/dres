@@ -73,7 +73,7 @@ class ImagePickerUtils {
 
   /// Pick a single image from gallery or camera
   /// Returns the selected File or null if cancelled
-  static Future<File?> pickSingleImage(BuildContext context) async {
+  static Future<File?> pickSingleImage(BuildContext context, {bool compress = true}) async {
     final List<AssetEntity>? result = await AssetPicker.pickAssets(
       context,
       pickerConfig: AssetPickerConfig(
@@ -120,7 +120,11 @@ class ImagePickerUtils {
     );
 
     if (result != null && result.isNotEmpty) {
-      return await result.first.file;
+      final file = await result.first.file;
+      if (file != null && compress) {
+        return await _compressImage(file);
+      }
+      return file;
     }
     return null;
   }

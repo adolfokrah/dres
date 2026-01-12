@@ -305,6 +305,8 @@ export const getCart: PayloadHandler = async (req) => {
           stock: sku.stock,
           isActive: sku.isActive,
           price,
+          sellingPrice: sku.sellingPrice || null,
+          compareAtPrice: sku.compareAtPrice || null,
           options: skuOptions,
           currency: currency ? { code: currency.code, symbol: currency.symbol } : null,
         } : null,

@@ -18,6 +18,8 @@ class ApiService {
         baseUrl: baseUrl,
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
+        followRedirects: true,
+        maxRedirects: 5,
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',

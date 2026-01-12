@@ -4,5 +4,10 @@
       "path": "/api/styles/remind-drafts",
       "schedule": "0 9 * * *"
     }
-  ]
+  ],
+  "functions": {
+    "src/app/(payload)/api/[...slug]/route.ts": {
+      "maxDuration": 60
+    }
+  }
 }
