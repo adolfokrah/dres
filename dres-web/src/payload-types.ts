@@ -634,6 +634,10 @@ export interface Media {
    * Whether background has been removed from this image
    */
   backgroundRemoved?: boolean | null;
+  /**
+   * Organize images: pages (web pages), products (product/variation images), others
+   */
+  mediaFolder?: ('pages' | 'products' | 'others') | null;
   _key?: string | null;
   folder?: (string | null) | FolderInterface;
   updatedAt: string;
@@ -3132,6 +3136,7 @@ export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
   backgroundRemoved?: T;
+  mediaFolder?: T;
   _key?: T;
   folder?: T;
   updatedAt?: T;

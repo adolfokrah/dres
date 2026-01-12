@@ -50,7 +50,7 @@ class FeaturedGrid extends StatelessWidget {
               final item = items[index];
               return _GridItem(
                 item: item,
-                imageUrl: MediaUtils.getSquareUrl(item.image),
+                imageUrl: MediaUtils.getMediumUrl(item.image),
                 width: 150,
                 aspectRatio: aspectRatio,
                 onTap: item.link != null && item.link!.isNotEmpty
@@ -91,29 +91,37 @@ class _GridItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Image - Portrait ratio (3:4, height is longer)
-            AspectRatio(
-              aspectRatio: 3 / 4,
-              child: Container(
+            // Image - fixed size, cover to fill uniformly
+            Container(
+              height: 200,
+              width: width,
+              clipBehavior: Clip.hardEdge,
+              decoration: BoxDecoration(
                 color: AppColors.secondary,
-                child: imageUrl != null
-                    ? Image.network(
-                        imageUrl!,
-                        fit: BoxFit.contain,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(color: AppColors.secondary);
-                        },
-                        errorBuilder: (_, __, ___) => Container(
-                          color: AppColors.secondary,
-                          child: PhosphorIcon(
-                            PhosphorIconsRegular.imageSquare,
-                            color: AppColors.textHint,
-                          ),
-                        ),
-                      )
-                    : null,
               ),
+              child: imageUrl != null
+                  ? Image.network(
+                      imageUrl!,
+                      height: 200,
+                      width: width,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const SizedBox.shrink();
+                      },
+                      errorBuilder: (_, __, ___) => Center(
+                        child: PhosphorIcon(
+                          PhosphorIconsRegular.imageSquare,
+                          color: AppColors.textHint,
+                        ),
+                      ),
+                    )
+                  : Center(
+                      child: PhosphorIcon(
+                        PhosphorIconsRegular.imageSquare,
+                        color: AppColors.textHint,
+                      ),
+                    ),
             ),
             const SizedBox(height: 8),
             // Label

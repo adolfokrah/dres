@@ -7,6 +7,7 @@ import { getMyDraftStyles } from './endpoints/getMyDraftStyles'
 import { getMyProducts } from './endpoints/getMyProducts'
 import { getStyleDetails } from './endpoints/getStyleDetails'
 import { getStyleStats } from './endpoints/getStyleStats'
+import { remindDraftSellers } from './endpoints/remindDraftSellers'
 import { notifyFollowersOnPublish } from './hooks/notifyFollowersOnPublish'
 import { updateVariationsOnTitleChange } from './hooks/updateVariationsOnTitleChange'
 import { validatePublish } from './hooks/validatePublish'
@@ -82,6 +83,11 @@ export const Styles: CollectionConfig = {
       path: '/:id/stats',
       method: 'get',
       handler: getStyleStats,
+    },
+    {
+      path: '/remind-drafts',
+      method: 'post',
+      handler: remindDraftSellers,
     },
   ],
   fields: [

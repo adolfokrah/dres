@@ -3,6 +3,7 @@ import { getPayload } from 'payload'
 import config from '../../payload.config'
 import { seedAttributes } from './attributes'
 import { seedAttributeOptions } from './attributeOptions'
+import { seedBoostTiers } from './boostTiers'
 import { seedBrands } from './brands'
 import { seedCategories } from './categories'
 import { seedCollections } from './collections'
@@ -10,6 +11,8 @@ import { seedCountries } from './countries'
 import { seedCurrencies } from './currencies'
 import { seedDepartments } from './departments'
 import { seedRegionsAndCities } from './locations'
+import { seedMenHomePage } from './menHomePage'
+import { seedWomenHomePage } from './womenHomePage'
 
 const runSeed = async () => {
   const payload = await getPayload({ config })
@@ -28,25 +31,48 @@ const runSeed = async () => {
     await seedAttributes(payload) // Attributes before categories and options
     await seedCategories(payload) // Categories need departments, collections, brands, and attributes
     await seedAttributeOptions(payload) // Attribute options need attributes AND categories
-  } else if (args.includes('currencies')) {
-    await seedCurrencies(payload)
-  } else if (args.includes('countries')) {
-    await seedCurrencies(payload) // Ensure currencies exist
-    await seedCountries(payload)
-  } else if (args.includes('locations')) {
-    await seedRegionsAndCities(payload)
-  } else if (args.includes('brands')) {
-    await seedBrands(payload)
-  } else if (args.includes('departments')) {
-    await seedDepartments(payload)
-  } else if (args.includes('collections')) {
-    await seedCollections(payload)
-  } else if (args.includes('categories')) {
-    await seedCategories(payload)
-  } else if (args.includes('attributes')) {
-    await seedAttributes(payload)
-  } else if (args.includes('attributeOptions')) {
-    await seedAttributeOptions(payload)
+    await seedBoostTiers(payload)
+    await seedMenHomePage(payload)
+    await seedWomenHomePage(payload)
+  } else {
+    // Run specific seeds based on arguments (supports multiple: pnpm seed men-home women-home)
+    if (args.includes('currencies')) {
+      await seedCurrencies(payload)
+    }
+    if (args.includes('countries')) {
+      await seedCurrencies(payload) // Ensure currencies exist
+      await seedCountries(payload)
+    }
+    if (args.includes('locations')) {
+      await seedRegionsAndCities(payload)
+    }
+    if (args.includes('brands')) {
+      await seedBrands(payload)
+    }
+    if (args.includes('departments')) {
+      await seedDepartments(payload)
+    }
+    if (args.includes('collections')) {
+      await seedCollections(payload)
+    }
+    if (args.includes('categories')) {
+      await seedCategories(payload)
+    }
+    if (args.includes('attributes')) {
+      await seedAttributes(payload)
+    }
+    if (args.includes('attributeOptions')) {
+      await seedAttributeOptions(payload)
+    }
+    if (args.includes('boost-tiers')) {
+      await seedBoostTiers(payload)
+    }
+    if (args.includes('men-home')) {
+      await seedMenHomePage(payload)
+    }
+    if (args.includes('women-home')) {
+      await seedWomenHomePage(payload)
+    }
   }
 
   console.log('✅ Seed complete!')

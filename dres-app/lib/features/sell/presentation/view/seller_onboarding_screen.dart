@@ -143,7 +143,6 @@ class _SellerOnboardingScreenState extends State<SellerOnboardingScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: eligibility.canSell ? AppColors.success.withOpacity(0.1) : AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: eligibility.canSell ? AppColors.success : AppColors.border,
         ),
@@ -194,7 +193,6 @@ class _SellerOnboardingScreenState extends State<SellerOnboardingScreen> {
           ),
           const SizedBox(height: 16),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: eligibility.progress / 100,
               backgroundColor: AppColors.border,
@@ -212,12 +210,10 @@ class _SellerOnboardingScreenState extends State<SellerOnboardingScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: requirement.complete ? null : () => _navigateToRequirement(title),
-        borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: requirement.complete ? AppColors.success : AppColors.border,
             ),

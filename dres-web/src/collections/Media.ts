@@ -49,6 +49,20 @@ export const Media: CollectionConfig = {
         description: 'Whether background has been removed from this image',
       },
     },
+    {
+      name: 'mediaFolder',
+      type: 'select',
+      options: [
+        { label: 'Pages', value: 'pages' },
+        { label: 'Products', value: 'products' },
+        { label: 'Others', value: 'others' },
+      ],
+      defaultValue: 'others',
+      admin: {
+        position: 'sidebar',
+        description: 'Organize images: pages (web pages), products (product/variation images), others',
+      },
+    },
   ],
   upload: {
     // Upload to the public/media directory in Next.js making them publicly accessible even outside of Payload

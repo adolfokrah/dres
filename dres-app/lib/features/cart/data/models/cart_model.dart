@@ -200,13 +200,17 @@ class CartVariationInfo {
   });
 
   factory CartVariationInfo.fromJson(Map<String, dynamic> json) {
-    // Get first image if available
-    String? image;
-    final images = json['images'] as List?;
-    if (images != null && images.isNotEmpty) {
-      final firstImage = images.first;
-      if (firstImage is Map) {
-        image = firstImage['image']?['url'] ?? firstImage['url'];
+    // Get image - prefer thumbnail, fallback to images array
+    String? image = json['thumbnail'] as String?;
+    
+    // Fallback to images array if thumbnail not present
+    if (image == null) {
+      final images = json['images'] as List?;
+      if (images != null && images.isNotEmpty) {
+        final firstImage = images.first;
+        if (firstImage is Map) {
+          image = firstImage['image']?['url'] ?? firstImage['url'];
+        }
       }
     }
 

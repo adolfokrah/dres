@@ -26,6 +26,7 @@ async function uploadImage(
     collection: 'media',
     data: {
       alt: altText,
+      mediaFolder: 'pages', // Web page images go to 'pages' folder
     },
     file: {
       data: fileBuffer,
@@ -112,7 +113,7 @@ export const seedMenHomePage = async (payload: Payload): Promise<void> => {
   // Upload top categories images
   const shirtsImageId = await uploadImage(payload, 'shop-by-category/shirts.png', 'Shirts')
   const tshirtsImageId = await uploadImage(payload, 'shop-by-category/t shirt.png', 'T-Shirts')
-  const jeansImageId = await uploadImage(payload, 'shop-by-category/sneakers.png', 'Jeans') // Using sneakers as placeholder
+  const jeansImageId = await uploadImage(payload, 'shop-by-category/jeans.png', 'Jeans')
   const sneakersImageId = await uploadImage(payload, 'shop-by-category/sneakers.png', 'Sneakers')
   const suitsImageId = await uploadImage(payload, 'shop-by-category/suits.png', 'Suits')
   const africanPrintShirtsImageId = await uploadImage(payload, 'shop-by-category/African Print Shirts.png', 'African Print Shirts')
@@ -158,7 +159,7 @@ export const seedMenHomePage = async (payload: Payload): Promise<void> => {
   const sunglassesCategoryId = await getCategoryId(payload, 'Sunglasses')
   const hatsCategoryId = await getCategoryId(payload, 'Hats')
   const tiesCategoryId = await getCategoryId(payload, 'Ties')
-  const africanBeadsCategoryId = await getCategoryId(payload, 'African Beads & Jewelry')
+  const africanBeadsCategoryId = await getCategoryId(payload, 'Headwraps & Gele')
 
   payload.logger.info('Creating Men Home Page...')
 
@@ -197,32 +198,32 @@ export const seedMenHomePage = async (payload: Payload): Promise<void> => {
             {
               image: clothingImageId,
               label: 'CLOTHING',
-              link: `/discover/products?department=men&collection=${clothingCollectionId}`,
+              link: `/discover/products?department=men&collection=${clothingCollectionId}&title=Clothing`,
             },
             {
               image: shoesImageId,
               label: 'SHOES',
-              link: `/discover/products?department=men&collection=${shoesCollectionId}`,
+              link: `/discover/products?department=men&collection=${shoesCollectionId}&title=Shoes`,
             },
             {
               image: bagsImageId,
               label: 'BAGS',
-              link: `/discover/products?department=men&collection=${bagsCollectionId}`,
+              link: `/discover/products?department=men&collection=${bagsCollectionId}&title=Bags`,
             },
             {
               image: accessoriesImageId,
               label: 'ACCESSORIES',
-              link: `/discover/products?department=men&collection=${accessoriesCollectionId}`,
+              link: `/discover/products?department=men&collection=${accessoriesCollectionId}&title=Accessories`,
             },
             {
               image: jewelryImageId,
               label: 'JEWELRY',
-              link: `/discover/products?department=men&collection=${jewelryCollectionId}`,
+              link: `/discover/products?department=men&collection=${jewelryCollectionId}&title=Jewelry`,
             },
             {
               image: watchesImageId,
               label: 'WATCHES',
-              link: `/discover/products?department=men&collection=${watchesCollectionId}`,
+              link: `/discover/products?department=men&collection=${watchesCollectionId}&title=Watches`,
             },
           ],
         },
@@ -259,47 +260,52 @@ export const seedMenHomePage = async (payload: Payload): Promise<void> => {
             {
               image: shirtsImageId,
               label: 'SHIRTS',
-              link: `/discover/products?department=men&category=${shirtsCategoryId}`,
+              link: `/discover/products?department=men&category=${shirtsCategoryId}&title=Shirts`,
             },
             {
               image: tshirtsImageId,
               label: 'T-SHIRTS',
-              link: `/discover/products?department=men&category=${tshirtsCategoryId}`,
+              link: `/discover/products?department=men&category=${tshirtsCategoryId}&title=T-Shirts`,
+            },
+            {
+              image: jeansImageId,
+              label: 'JEANS',
+              link: `/discover/products?department=men&category=${jeansCategoryId}&title=Jeans`,
             },
             {
               image: sneakersImageId,
               label: 'SNEAKERS',
-              link: `/discover/products?department=men&category=${sneakersCategoryId}`,
+              link: `/discover/products?department=men&category=${sneakersCategoryId}&title=Sneakers`,
             },
             {
               image: suitsImageId,
               label: 'SUITS',
-              link: `/discover/products?department=men&category=${suitsCategoryId}`,
+              link: `/discover/products?department=men&category=${suitsCategoryId}&title=Suits`,
             },
             {
               image: africanPrintShirtsImageId,
               label: 'AFRICAN PRINT SHIRTS',
-              link: `/discover/products?department=men&category=${africanPrintShirtsCategoryId}`,
+              link: `/discover/products?department=men&category=${africanPrintShirtsCategoryId}&title=African Print Shirts`,
             },
             {
               image: agbadaImageId,
               label: 'AGBADA',
-              link: `/discover/products?department=men&category=${agbadaCategoryId}`,
+              link: `/discover/products?department=men&category=${agbadaCategoryId}&title=Agbada`,
             },
             {
               image: dashikiImageId,
               label: 'DASHIKI',
-              link: `/discover/products?department=men&category=${dashikiCategoryId}`,
+              link: `/discover/products?department=men&category=${dashikiCategoryId}&title=Dashiki`,
             },
             {
               image: kenteImageId,
               label: 'KENTE',
-              link: `/discover/products?department=men&category=${kenteCategoryId}`,
+              link: `/discover/products?department=men&category=${kenteCategoryId}&title=Kente`,
             },
             {
               image: smockImageId,
               label: 'BATAKARI / SMOCK',
-              link: `/discover/products?department=men&category=${smockCategoryId}`,
+              link: `/discover/products?department=men&category=${smockCategoryId}&title=Batakari %2F Smock`,
             },
           ],
         },
@@ -325,27 +331,27 @@ export const seedMenHomePage = async (payload: Payload): Promise<void> => {
             {
               image: beltsImageId,
               label: 'BELTS',
-              link: `/discover/products?department=men&category=${beltsCategoryId}`,
+              link: `/discover/products?department=men&category=${beltsCategoryId}&title=Belts`,
             },
             {
               image: sunglassesImageId,
               label: 'SUNGLASSES',
-              link: `/discover/products?department=men&category=${sunglassesCategoryId}`,
+              link: `/discover/products?department=men&category=${sunglassesCategoryId}&title=Sunglasses`,
             },
             {
               image: hatsImageId,
               label: 'HATS',
-              link: `/discover/products?department=men&category=${hatsCategoryId}`,
+              link: `/discover/products?department=men&category=${hatsCategoryId}&title=Hats`,
             },
             {
               image: tiesImageId,
               label: 'TIES',
-              link: `/discover/products?department=men&category=${tiesCategoryId}`,
+              link: `/discover/products?department=men&category=${tiesCategoryId}&title=Ties`,
             },
             {
               image: headwrapImageId,
               label: 'AFRICAN BEADS & JEWELRY',
-              link: `/discover/products?department=men&category=${africanBeadsCategoryId}`,
+              link: `/discover/products?department=men&category=${africanBeadsCategoryId}&title=African Beads %26 Jewelry`,
             },
           ],
         },
