@@ -71,6 +71,28 @@ export const followUser: PayloadHandler = async (req) => {
       },
     })
 
+    // Create notification for the user being followed
+    try {
+      const followerName = user.firstName || user.shopName || 'Someone'
+      await payload.create({
+        collection: 'notifications',
+        data: {
+          user: userIdToFollow, // The user being followed gets the notification
+          type: 'new_follower',
+          message: `${followerName} started following you`,
+          path: `/users/${user.id}/profile`, // Link to the follower's profile
+          metadata: {
+            followerId: user.id,
+            followerName: followerName,
+            followId: follow.id,
+          },
+        },
+      })
+    } catch (notificationError) {
+      payload.logger.error(`Error creating follow notification: ${notificationError}`)
+      // Don't fail the follow operation if notification creation fails
+    }
+
     payload.logger.info(`User ${user.id} followed user ${userIdToFollow}`)
 
     return Response.json({

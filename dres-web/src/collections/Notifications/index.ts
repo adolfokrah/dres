@@ -102,6 +102,7 @@ export const Notifications: CollectionConfig = {
         { label: 'Back In Stock', value: 'back_in_stock' },
         { label: 'Order Update', value: 'order_update' },
         { label: 'Promotion', value: 'promotion' },
+        { label: 'New Follower', value: 'new_follower' },
         { label: 'System', value: 'system' },
       ],
       admin: {
