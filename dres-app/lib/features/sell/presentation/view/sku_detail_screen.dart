@@ -126,10 +126,35 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
     if (_populatedSkuId != sku.id) {
       _populatedSkuId = sku.id;
       setState(() {
-        // Get attribute and option from skuOptions
-        _selectedAttributeId = sku.attributeId ?? skuAttribute?.id;
-        _selectedOptionId = sku.attributeOptionId;
-        _selectedOptionName = sku.size; // size getter returns optionName
+        // For SKU editing, we should have exactly one SKU option
+        // If there are multiple, we need to pick the right one based on available attributes
+        SkuOptionModel? selectedOption;
+        
+        if (sku.skuOptions.isNotEmpty) {
+          final state = _variationDetailBloc.state;
+          if (state.skuAttributes.isNotEmpty) {
+            // Try to find a SKU option that matches one of the available attributes
+            selectedOption = sku.skuOptions.firstWhere(
+              (option) => state.skuAttributes.any((attr) => attr.id == option.attributeId),
+              orElse: () => sku.skuOptions.first,
+            );
+          } else {
+            selectedOption = sku.skuOptions.first;
+          }
+        }
+        
+        if (selectedOption != null) {
+          _selectedAttributeId = selectedOption.attributeId;
+          _selectedOptionId = selectedOption.optionId;
+          _selectedOptionName = selectedOption.optionName;
+          _selectedAttributeName = selectedOption.attributeName;
+        } else {
+          // Fallback if no options
+          _selectedAttributeId = skuAttribute?.id;
+          _selectedAttributeName = skuAttribute?.name;
+          _selectedOptionId = null;
+          _selectedOptionName = null;
+        }
 
         if (sku.price > 0) {
           _priceController.text = sku.price.toStringAsFixed(2);
@@ -355,9 +380,7 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
                                 SkuAttributeCard(
                                   availableAttributes: skuAttributes,
                                   selectedAttributeId: _selectedAttributeId,
-                                  selectedAttributeName:
-                                      skuAttribute?.name ??
-                                      _selectedAttributeName,
+                                  selectedAttributeName: _selectedAttributeName,
                                   selectedOptionId: _selectedOptionId,
                                   selectedOptionName: _selectedOptionName,
                                   onAttributeSelected: (id, name) {

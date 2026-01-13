@@ -47,11 +47,13 @@ class SkuSelector extends StatelessWidget {
     if (selectedSku == null) return '';
 
     try {
+      // Find the specific option that matches the optionName exactly
       final option = selectedSku.options.firstWhere(
-        (opt) => opt.option == optionName,
+        (opt) => opt.option.trim().toLowerCase() == optionName.trim().toLowerCase(),
       );
       return option.value;
     } catch (e) {
+      // If no exact match found, return empty string
       return '';
     }
   }
@@ -154,15 +156,15 @@ class SkuSelector extends StatelessWidget {
       bool hasConflictingOption = false;
 
       for (final option in sku.options) {
-        if (option.option == optionName) {
+        if (option.option.trim().toLowerCase() == optionName.trim().toLowerCase()) {
           hasMatchingOption = option.value == optionValue;
         } else {
           // Check if other options match current selection
-          final currentOption = currentSku.options.firstWhere(
-            (opt) => opt.option == option.option,
-            orElse: () => option,
-          );
-          if (option.value != currentOption.value) {
+          final currentOption = currentSku.options.where(
+            (opt) => opt.option.trim().toLowerCase() == option.option.trim().toLowerCase(),
+          ).firstOrNull;
+          
+          if (currentOption != null && option.value != currentOption.value) {
             hasConflictingOption = true;
           }
         }
@@ -177,7 +179,8 @@ class SkuSelector extends StatelessWidget {
     try {
       return skus.firstWhere((sku) =>
           sku.options.any((opt) =>
-              opt.option == optionName && opt.value == optionValue));
+              opt.option.trim().toLowerCase() == optionName.trim().toLowerCase() && 
+              opt.value == optionValue));
     } catch (e) {
       return null;
     }

@@ -80,7 +80,7 @@ export const followUser: PayloadHandler = async (req) => {
           user: userIdToFollow, // The user being followed gets the notification
           type: 'new_follower',
           message: `${followerName} started following you`,
-          path: `/users/${user.id}/profile`, // Link to the follower's profile
+          path: `/sellers/${user.id}`, // Link to the follower's seller profile
           metadata: {
             followerId: user.id,
             followerName: followerName,
