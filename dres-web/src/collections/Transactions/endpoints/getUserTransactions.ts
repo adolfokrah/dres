@@ -116,12 +116,13 @@ export const getUserTransactions: PayloadHandler = async (req) => {
       }
     })
 
-    // Calculate total earned (sum of all order_payment transactions linked to orders for this user)
+    // Calculate total earned (sum of all completed order_payment transactions linked to orders for this user)
     const orderPaymentTxns = await payload.find({
       collection: 'transactions',
       where: {
         user: { equals: user.id },
         type: { equals: 'order_payment' },
+        status: { equals: 'completed' }, // Only completed transactions
         order: { exists: true }, // Only transactions linked to an order
       },
       limit: 0, // Get all for aggregation
