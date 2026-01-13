@@ -26,10 +26,10 @@ export const remindDraftSellers: PayloadHandler = async (req) => {
     )
   }
 
-  // Parse options from query
-  const url = new URL(req.url || '', 'http://localhost')
-  const minDays = parseInt(url.searchParams.get('minDays') || '3', 10)
-  const reminderCooldownHours = parseInt(url.searchParams.get('reminderCooldown') || '48', 10)
+  // Parse options from request body
+  const body = req.json ? await req.json() : {}
+  const minDays = parseInt(body.minDays || '3', 10)
+  const reminderCooldownHours = parseInt(body.reminderCooldown || '48', 10)
 
   payload.logger.info(`📧 Starting draft reminder job (minDays: ${minDays}, cooldown: ${reminderCooldownHours}h)`)
 
