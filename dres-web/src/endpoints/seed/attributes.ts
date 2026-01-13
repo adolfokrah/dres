@@ -10,7 +10,7 @@ const attributesData = [
   { name: 'Fit', level: 'variation' as const },
   { name: 'Length', level: 'variation' as const },
   { name: 'Condition', level: 'variation' as const },
-  { name: 'Heel Height', level: 'sku' as const },
+  { name: 'Heel Height', level: 'variation' as const },
   // African Fashion Attributes
   { name: 'Print/Pattern', level: 'variation' as const },
   { name: 'Weave Type', level: 'variation' as const },

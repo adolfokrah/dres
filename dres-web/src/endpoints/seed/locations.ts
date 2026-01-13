@@ -4,7 +4,7 @@ import type { Payload } from 'payload'
 const ghanaRegionsAndCities = [
   {
     name: 'Greater Accra',
-    cities: ['Accra', 'Tema', 'Madina', 'Ashaiman', 'Teshie', 'Nungua', 'Dansoman', 'Achimota', 'Adenta', 'Lashibi', 'Spintex', 'East Legon', 'Airport Residential', 'Osu', 'Labadi', 'Cantonments', 'Dzorwulu', 'Labone', 'Kasoa'],
+    cities: ['Accra', 'Tema', 'Madina', 'Ashaiman', 'Teshie', 'Nungua', 'Dansoman', 'Achimota', 'Adenta', 'Lashibi', 'Spintex', 'East Legon', 'Airport Residential', 'Osu', 'Labadi', 'Cantonments', 'Dzorwulu', 'Labone'],
   },
   {
     name: 'Ashanti',
