@@ -114,7 +114,7 @@ export default buildConfig({
   editor: defaultLexical,
   db: mongooseAdapter({
     // Use internal URL at runtime (faster), fall back to public URL (for build time)
-    url: process.env.MONGO_URL || process.env.MONGO_PUBLIC_URL || '',
+    url:  process.env.MONGO_PUBLIC_URL || '',
   }),
   localization: {
     locales: [
