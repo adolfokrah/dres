@@ -56,6 +56,9 @@ import { StockNotifications } from './collections/StockNotifications'
 import { UserPoints } from './collections/UserPoints'
 import { Users } from './collections/Users'
 
+// Jobs
+import { checkSavedSearchAndNotifyTask } from './jobs/tasks/checkSavedSearchAndNotify'
+
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
 import { SiteSettings } from './globals/SiteSettings'
@@ -235,7 +238,9 @@ export default buildConfig({
         return authHeader === `Bearer ${process.env.CRON_SECRET}`
       },
     },
-    tasks: [],
+    tasks: [
+      checkSavedSearchAndNotifyTask,
+    ],
   },
   email: resendAdapter({
     defaultFromAddress: 'onboarding@dres.app', // Use Resend's test address until domain is verified

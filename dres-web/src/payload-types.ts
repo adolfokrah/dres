@@ -231,6 +231,7 @@ export interface Config {
   };
   jobs: {
     tasks: {
+      checkSavedSearchAndNotify: TaskCheckSavedSearchAndNotify;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
@@ -2528,10 +2529,6 @@ export interface SavedSearch {
    * Last time this search was checked for new matches
    */
   lastChecked?: string | null;
-  /**
-   * Last time a notification was sent for this search
-   */
-  lastNotificationSent?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2743,7 +2740,7 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'schedulePublish';
+        taskSlug: 'inline' | 'checkSavedSearchAndNotify' | 'schedulePublish';
         taskID: string;
         input?:
           | {
@@ -2776,7 +2773,7 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'schedulePublish') | null;
+  taskSlug?: ('inline' | 'checkSavedSearchAndNotify' | 'schedulePublish') | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
@@ -3867,7 +3864,6 @@ export interface SavedSearchesSelect<T extends boolean = true> {
   searchData?: T;
   isActive?: T;
   lastChecked?: T;
-  lastNotificationSent?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -4421,6 +4417,19 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskCheckSavedSearchAndNotify".
+ */
+export interface TaskCheckSavedSearchAndNotify {
+  input: {
+    savedSearchId: string;
+  };
+  output: {
+    newItemsCount?: number | null;
+    notificationSent?: boolean | null;
+  };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

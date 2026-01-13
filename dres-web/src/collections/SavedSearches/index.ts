@@ -4,6 +4,7 @@ import { authenticated } from '../../access/authenticated'
 import { getMySavedSearches } from './endpoints/getMySavedSearches'
 import { saveSearch } from './endpoints/saveSearch'
 import { deleteSavedSearch } from './endpoints/deleteSavedSearch'
+import { queueNotificationChecks } from './endpoints/queueNotificationChecks'
 
 export const SavedSearches: CollectionConfig = {
   slug: 'saved-searches',
@@ -27,6 +28,11 @@ export const SavedSearches: CollectionConfig = {
       path: '/:id/delete',
       method: 'delete',
       handler: deleteSavedSearch,
+    },
+    {
+      path: '/queue-notification-checks',
+      method: 'post',
+      handler: queueNotificationChecks,
     },
   ],
   access: {
@@ -97,13 +103,6 @@ export const SavedSearches: CollectionConfig = {
       type: 'date',
       admin: {
         description: 'Last time this search was checked for new matches',
-      },
-    },
-    {
-      name: 'lastNotificationSent',
-      type: 'date',
-      admin: {
-        description: 'Last time a notification was sent for this search',
       },
     },
   ],
