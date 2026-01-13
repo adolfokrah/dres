@@ -106,7 +106,7 @@ export const notifyFollowersOnPublish: CollectionAfterChangeHook = async ({
             user: followerId,
             type: 'system',
             message: `${sellerName} just added a new listing: ${doc.title}`,
-            path: `/profile/user?userId=${sellerId}`,
+            path: `/sellers/${sellerId}`,
             image: notificationImage,
             metadata: {
               styleId: doc.id,
