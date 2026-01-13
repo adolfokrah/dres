@@ -2433,7 +2433,7 @@ export interface Notification {
   /**
    * Type of notification
    */
-  type?: ('price_drop' | 'back_in_stock' | 'order_update' | 'promotion' | 'system') | null;
+  type?: ('price_drop' | 'back_in_stock' | 'order_update' | 'promotion' | 'new_follower' | 'system') | null;
   /**
    * Notification image (e.g., product/variation image)
    */
