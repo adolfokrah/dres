@@ -19,7 +19,16 @@ export interface CronJob {
  */
 export async function loadJobs(): Promise<CronJob[]> {
   const jobsDir = path.join(__dirname, '../jobs');
-  const jobFiles = fs.readdirSync(jobsDir).filter(file => file.endsWith('.js') || file.endsWith('.ts'));
+  
+  // In development: load .ts files, in production: load .js files (skip .d.ts)
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  const jobFiles = fs.readdirSync(jobsDir).filter(file => {
+    if (isDevelopment) {
+      return file.endsWith('.ts') && !file.endsWith('.d.ts');
+    } else {
+      return file.endsWith('.js');
+    }
+  });
   
   const jobs: CronJob[] = [];
   
