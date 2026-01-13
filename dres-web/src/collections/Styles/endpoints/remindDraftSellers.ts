@@ -14,6 +14,18 @@ import type { PayloadHandler } from 'payload'
 export const remindDraftSellers: PayloadHandler = async (req) => {
   const { payload } = req
 
+  // Verify cron secret for security
+  const authHeader = req.headers.get('authorization')
+  const cronSecret = process.env.CRON_SECRET
+  
+  // Allow if user is logged in OR has valid cron secret
+  if (!req.user && authHeader !== `Bearer ${cronSecret}`) {
+    return Response.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    )
+  }
+
   // Parse options from query
   const url = new URL(req.url || '', 'http://localhost')
   const minDays = parseInt(url.searchParams.get('minDays') || '3', 10)

@@ -1,0 +1,16 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3
+
+# Cron jobs - these hit your API endpoints on a schedule
+# Note: Railway crons automatically include Authorization header with CRON_SECRET
+[[crons]]
+name = "draft-reminders"
+schedule = "0 9 * * *"  # Daily at 9 AM UTC
+endpoint = "/api/styles/remind-drafts"
+timeout = 60
