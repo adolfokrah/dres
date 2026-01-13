@@ -99,6 +99,7 @@ export interface Config {
     follows: Follow;
     notifications: Notification;
     reviews: Review;
+    'saved-searches': SavedSearch;
     'stock-notifications': StockNotification;
     'style-boosts': StyleBoost;
     'user-points': UserPoint;
@@ -189,6 +190,7 @@ export interface Config {
     follows: FollowsSelect<false> | FollowsSelect<true>;
     notifications: NotificationsSelect<false> | NotificationsSelect<true>;
     reviews: ReviewsSelect<false> | ReviewsSelect<true>;
+    'saved-searches': SavedSearchesSelect<false> | SavedSearchesSelect<true>;
     'stock-notifications': StockNotificationsSelect<false> | StockNotificationsSelect<true>;
     'style-boosts': StyleBoostsSelect<false> | StyleBoostsSelect<true>;
     'user-points': UserPointsSelect<false> | UserPointsSelect<true>;
@@ -2491,6 +2493,49 @@ export interface Review {
   createdAt: string;
 }
 /**
+ * User saved product searches
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "saved-searches".
+ */
+export interface SavedSearch {
+  id: string;
+  /**
+   * The user who saved the search
+   */
+  user: string | User;
+  /**
+   * Optional name for the saved search
+   */
+  name?: string | null;
+  /**
+   * Complete search parameters (keywords, filters, categories, etc.)
+   */
+  searchData:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Whether this saved search is active and will send notifications for new matches
+   */
+  isActive?: boolean | null;
+  /**
+   * Last time this search was checked for new matches
+   */
+  lastChecked?: string | null;
+  /**
+   * Last time a notification was sent for this search
+   */
+  lastNotificationSent?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Users who want to be notified when a SKU is back in stock
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2872,6 +2917,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'reviews';
         value: string | Review;
+      } | null)
+    | ({
+        relationTo: 'saved-searches';
+        value: string | SavedSearch;
       } | null)
     | ({
         relationTo: 'stock-notifications';
@@ -3805,6 +3854,20 @@ export interface ReviewsSelect<T extends boolean = true> {
   rating?: T;
   review?: T;
   images?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "saved-searches_select".
+ */
+export interface SavedSearchesSelect<T extends boolean = true> {
+  user?: T;
+  name?: T;
+  searchData?: T;
+  isActive?: T;
+  lastChecked?: T;
+  lastNotificationSent?: T;
   updatedAt?: T;
   createdAt?: T;
 }

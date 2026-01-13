@@ -7,12 +7,14 @@ class ProductsHeader extends StatelessWidget {
   final String title;
   final int itemCount;
   final VoidCallback onSaveSearch;
+  final bool isSearchSaved;
 
   const ProductsHeader({
     super.key,
     required this.title,
     required this.itemCount,
     required this.onSaveSearch,
+    this.isSearchSaved = false,
   });
 
   @override
@@ -55,12 +57,14 @@ class ProductsHeader extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Save this search',
-                  style: AppTypography.bodyM,
+                  isSearchSaved ? 'Search saved' : 'Save this search',
+                  style: AppTypography.bodyM.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
                 ),
                 const SizedBox(width: 9),
                 Icon(
-                  PhosphorIcons.bookmarkSimple(),
+                  isSearchSaved ? PhosphorIcons.bookmarkSimple(PhosphorIconsStyle.fill) : PhosphorIcons.bookmarkSimple(),
                   size: 20,
                   color: AppColors.textPrimary,
                 ),

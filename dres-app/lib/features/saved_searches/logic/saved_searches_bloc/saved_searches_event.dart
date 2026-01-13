@@ -33,17 +33,17 @@ class SavedSearchDeleteRequested extends SavedSearchesEvent {
   List<Object?> get props => [searchId];
 }
 
-class SavedSearchNotificationsToggled extends SavedSearchesEvent {
+class SavedSearchActiveToggled extends SavedSearchesEvent {
   final String searchId;
-  final bool enabled;
+  final bool isActive;
 
-  const SavedSearchNotificationsToggled({
+  const SavedSearchActiveToggled({
     required this.searchId,
-    required this.enabled,
+    required this.isActive,
   });
 
   @override
-  List<Object?> get props => [searchId, enabled];
+  List<Object?> get props => [searchId, isActive];
 }
 
 class SavedSearchesRefreshRequested extends SavedSearchesEvent {

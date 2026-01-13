@@ -171,10 +171,16 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         // Products Header (Title and Save Search)
-                        ProductsHeader(
-                          title: widget.title,
-                          itemCount: state.totalDocs,
-                          onSaveSearch: () => _showSaveSearchDialog(state),
+                        BlocBuilder<SavedSearchesBloc, SavedSearchesState>(
+                          bloc: getIt<SavedSearchesBloc>(),
+                          builder: (context, savedSearchesState) {
+                            return ProductsHeader(
+                              title: widget.title,
+                              itemCount: state.totalDocs,
+                              isSearchSaved: _isCurrentSearchSaved(state, savedSearchesState),
+                              onSaveSearch: () => _showSaveSearchDialog(state),
+                            );
+                          },
                         ),
 
                         // Filter Bar
@@ -391,5 +397,46 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
     }
     
     return parts.join(' ');
+  }
+
+  bool _isCurrentSearchSaved(ProductsState state, SavedSearchesState savedSearchesState) {
+    final currentSearchData = {
+      if (widget.query != null) 'query': widget.query,
+      if (widget.departmentId != null) 'departmentId': widget.departmentId,
+      if (widget.categoryId != null) 'categoryId': widget.categoryId,
+      if (widget.collectionId != null) 'collectionId': widget.collectionId,
+      if (widget.brandId != null) 'brandId': widget.brandId,
+      if (widget.filterType != null) 'filterType': widget.filterType,
+      if (state.sortBy != null) 'sortBy': state.sortBy,
+      if (state.sortPrice != null) 'sortPrice': state.sortPrice,
+      if (state.minPrice != null) 'minPrice': state.minPrice,
+      if (state.maxPrice != null) 'maxPrice': state.maxPrice,
+      if (state.selectedAttributes.isNotEmpty) 'selectedAttributes': state.selectedAttributes,
+    };
+    
+    // Check if any saved search matches current criteria
+    return savedSearchesState.searches.any((savedSearch) {
+      return _searchDataMatches(savedSearch.searchData, currentSearchData);
+    });
+  }
+
+  bool _searchDataMatches(Map<String, dynamic> saved, Map<String, dynamic> current) {
+    // Compare key search parameters
+    final keysToCompare = [
+      'query', 'departmentId', 'categoryId', 'collectionId', 'brandId', 
+      'filterType', 'sortBy', 'sortPrice', 'minPrice', 'maxPrice'
+    ];
+    
+    for (final key in keysToCompare) {
+      if (saved[key] != current[key]) return false;
+    }
+    
+    // For attributes, do a deeper comparison if both exist
+    if (saved['selectedAttributes'] != null && current['selectedAttributes'] != null) {
+      // Simple string comparison for now - could be made more sophisticated
+      return saved['selectedAttributes'].toString() == current['selectedAttributes'].toString();
+    }
+    
+    return saved['selectedAttributes'] == current['selectedAttributes'];
   }
 }

@@ -3,7 +3,6 @@ class SavedSearchModel {
   final String? name;
   final Map<String, dynamic> searchData;
   final bool isActive;
-  final bool notificationsEnabled;
   final DateTime createdAt;
   final DateTime? lastChecked;
   final DateTime? lastNotificationSent;
@@ -13,7 +12,6 @@ class SavedSearchModel {
     this.name,
     required this.searchData,
     required this.isActive,
-    required this.notificationsEnabled,
     required this.createdAt,
     this.lastChecked,
     this.lastNotificationSent,
@@ -25,9 +23,8 @@ class SavedSearchModel {
       name: json['name'] as String?,
       searchData: json['searchData'] as Map<String, dynamic>,
       isActive: json['isActive'] as bool? ?? true,
-      notificationsEnabled: json['notificationsEnabled'] as bool? ?? true,
       createdAt: DateTime.parse(json['createdAt'] as String),
-      lastChecked: json['lastChecked'] != null 
+      lastChecked: json['lastChecked'] != null
           ? DateTime.parse(json['lastChecked'] as String)
           : null,
       lastNotificationSent: json['lastNotificationSent'] != null
@@ -42,7 +39,6 @@ class SavedSearchModel {
       'name': name,
       'searchData': searchData,
       'isActive': isActive,
-      'notificationsEnabled': notificationsEnabled,
       'createdAt': createdAt.toIso8601String(),
       'lastChecked': lastChecked?.toIso8601String(),
       'lastNotificationSent': lastNotificationSent?.toIso8601String(),
@@ -54,7 +50,6 @@ class SavedSearchModel {
     String? name,
     Map<String, dynamic>? searchData,
     bool? isActive,
-    bool? notificationsEnabled,
     DateTime? createdAt,
     DateTime? lastChecked,
     DateTime? lastNotificationSent,
@@ -64,7 +59,6 @@ class SavedSearchModel {
       name: name ?? this.name,
       searchData: searchData ?? this.searchData,
       isActive: isActive ?? this.isActive,
-      notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       createdAt: createdAt ?? this.createdAt,
       lastChecked: lastChecked ?? this.lastChecked,
       lastNotificationSent: lastNotificationSent ?? this.lastNotificationSent,

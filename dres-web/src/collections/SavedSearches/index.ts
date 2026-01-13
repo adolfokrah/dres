@@ -78,80 +78,33 @@ export const SavedSearches: CollectionConfig = {
     },
     {
       name: 'searchData',
-      type: 'group',
+      type: 'json',
+      required: true,
       admin: {
-        description: 'The search/filter parameters',
+        description: 'Complete search parameters (keywords, filters, categories, etc.)',
       },
-      fields: [
-        {
-          name: 'departmentId',
-          type: 'text',
-        },
-        {
-          name: 'departmentName',
-          type: 'text',
-        },
-        {
-          name: 'collectionId',
-          type: 'text',
-        },
-        {
-          name: 'collectionName',
-          type: 'text',
-        },
-        {
-          name: 'categoryId',
-          type: 'text',
-        },
-        {
-          name: 'categoryName',
-          type: 'text',
-        },
-        {
-          name: 'brandId',
-          type: 'text',
-        },
-        {
-          name: 'brandName',
-          type: 'text',
-        },
-        {
-          name: 'filterType',
-          type: 'text',
-          admin: {
-            description: 'e.g., new_in, best_sellers, sale',
-          },
-        },
-        {
-          name: 'sortBy',
-          type: 'text',
-          admin: {
-            description: 'e.g., newest, price_low, price_high',
-          },
-        },
-        {
-          name: 'sortPrice',
-          type: 'text',
-          admin: {
-            description: 'asc or desc',
-          },
-        },
-        {
-          name: 'minPrice',
-          type: 'number',
-        },
-        {
-          name: 'maxPrice',
-          type: 'number',
-        },
-        {
-          name: 'selectedAttributes',
-          type: 'json',
-          admin: {
-            description: 'Map of attributeId to array of optionIds',
-          },
-        },
-      ],
+    },
+    {
+      name: 'isActive',
+      type: 'checkbox',
+      defaultValue: true,
+      admin: {
+        description: 'Whether this saved search is active and will send notifications for new matches',
+      },
+    },
+    {
+      name: 'lastChecked',
+      type: 'date',
+      admin: {
+        description: 'Last time this search was checked for new matches',
+      },
+    },
+    {
+      name: 'lastNotificationSent',
+      type: 'date',
+      admin: {
+        description: 'Last time a notification was sent for this search',
+      },
     },
   ],
   timestamps: true,

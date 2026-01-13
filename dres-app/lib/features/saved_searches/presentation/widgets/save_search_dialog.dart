@@ -95,6 +95,7 @@ class _SaveSearchDialogState extends State<SaveSearchDialog> {
         const SizedBox(width: 12),
         BlocListener<SavedSearchesBloc, SavedSearchesState>(
           listener: (context, state) {
+            // Handle success
             if (state.status == SavedSearchesStatus.success && _isLoading) {
               setState(() => _isLoading = false);
               Navigator.of(context).pop();
@@ -104,7 +105,9 @@ class _SaveSearchDialogState extends State<SaveSearchDialog> {
                   backgroundColor: AppColors.success,
                 ),
               );
-            } else if (state.status == SavedSearchesStatus.failure && _isLoading) {
+            }
+            // Handle failure
+            else if (state.status == SavedSearchesStatus.failure) {
               setState(() => _isLoading = false);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

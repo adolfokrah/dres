@@ -11,7 +11,7 @@ class SavedSearchRepository {
   /// Save a search with filters
   Future<SaveSearchResponse> saveSearch(SaveSearchRequest request) async {
     final response = await _apiService.post(
-      '/api/saved-searches/save',
+      '/saved-searches/save',
       data: request.toJson(),
     );
     return SaveSearchResponse.fromJson(response.data);
@@ -19,21 +19,21 @@ class SavedSearchRepository {
 
   /// Get user's saved searches
   Future<GetSavedSearchesResponse> getMySavedSearches() async {
-    final response = await _apiService.get('/api/saved-searches/my-searches');
+    final response = await _apiService.get('/saved-searches/my-searches');
     return GetSavedSearchesResponse.fromJson(response.data);
   }
 
   /// Delete a saved search
   Future<Map<String, dynamic>> deleteSavedSearch(String searchId) async {
-    final response = await _apiService.delete('/api/saved-searches/$searchId/delete');
+    final response = await _apiService.delete('/saved-searches/$searchId/delete');
     return response.data;
   }
 
-  /// Toggle notifications for a saved search
-  Future<Map<String, dynamic>> toggleNotifications(String searchId, bool enabled) async {
+  /// Toggle active status for a saved search
+  Future<Map<String, dynamic>> toggleActive(String searchId, bool isActive) async {
     final response = await _apiService.patch(
       '/saved-searches/$searchId',
-      data: {'notificationsEnabled': enabled},
+      data: {'isActive': isActive},
     );
     return response.data;
   }

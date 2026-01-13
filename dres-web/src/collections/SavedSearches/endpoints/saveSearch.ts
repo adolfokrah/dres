@@ -32,32 +32,24 @@ export const saveSearch: PayloadHandler = async (req) => {
       data: {
         user: user.id,
         name: name || null,
-        searchData: {
-          departmentId: searchData.departmentId || null,
-          departmentName: searchData.departmentName || null,
-          collectionId: searchData.collectionId || null,
-          collectionName: searchData.collectionName || null,
-          categoryId: searchData.categoryId || null,
-          categoryName: searchData.categoryName || null,
-          brandId: searchData.brandId || null,
-          brandName: searchData.brandName || null,
-          filterType: searchData.filterType || null,
-          sortBy: searchData.sortBy || null,
-          sortPrice: searchData.sortPrice || null,
-          minPrice: searchData.minPrice ?? null,
-          maxPrice: searchData.maxPrice ?? null,
-          selectedAttributes: searchData.selectedAttributes || null,
-        },
+        searchData: searchData,
+        isActive: true,
       },
       overrideAccess: true,
     })
 
     return Response.json({
+      success: true,
       message: 'Search saved successfully',
-      id: savedSearch.id,
-      name: savedSearch.name,
-      searchData: savedSearch.searchData,
-      createdAt: savedSearch.createdAt,
+      doc: {
+        id: savedSearch.id,
+        name: savedSearch.name,
+        searchData: savedSearch.searchData,
+        isActive: savedSearch.isActive,
+        createdAt: savedSearch.createdAt,
+        lastChecked: savedSearch.lastChecked,
+        lastNotificationSent: savedSearch.lastNotificationSent,
+      },
     }, { status: 201 })
 
   } catch (error: any) {

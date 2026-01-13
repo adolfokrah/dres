@@ -10,7 +10,7 @@ class SavedSearchesBloc extends Bloc<SavedSearchesEvent, SavedSearchesState> {
     on<SavedSearchesFetchRequested>(_onSavedSearchesFetchRequested);
     on<SavedSearchSaveRequested>(_onSavedSearchSaveRequested);
     on<SavedSearchDeleteRequested>(_onSavedSearchDeleteRequested);
-    on<SavedSearchNotificationsToggled>(_onSavedSearchNotificationsToggled);
+    on<SavedSearchActiveToggled>(_onSavedSearchActiveToggled);
     on<SavedSearchesRefreshRequested>(_onSavedSearchesRefreshRequested);
   }
 
@@ -101,20 +101,20 @@ class SavedSearchesBloc extends Bloc<SavedSearchesEvent, SavedSearchesState> {
     }
   }
 
-  Future<void> _onSavedSearchNotificationsToggled(
-    SavedSearchNotificationsToggled event,
+  Future<void> _onSavedSearchActiveToggled(
+    SavedSearchActiveToggled event,
     Emitter<SavedSearchesState> emit,
   ) async {
     try {
-      await _savedSearchRepository.toggleNotifications(event.searchId, event.enabled);
-      
+      await _savedSearchRepository.toggleActive(event.searchId, event.isActive);
+
       final updatedSearches = state.searches.map((search) {
         if (search.id == event.searchId) {
-          return search.copyWith(notificationsEnabled: event.enabled);
+          return search.copyWith(isActive: event.isActive);
         }
         return search;
       }).toList();
-      
+
       emit(state.copyWith(
         searches: updatedSearches,
         status: SavedSearchesStatus.success,

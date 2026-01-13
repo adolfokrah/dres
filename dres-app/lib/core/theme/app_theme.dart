@@ -164,6 +164,26 @@ class AppTheme {
         ),
         clipBehavior: Clip.none,
       ),
+
+      // Switch theme - minimalist black/white
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return AppColors.surface;
+          }
+          return AppColors.surface;
+        }),
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return AppColors.primary;
+          }
+          return AppColors.border;
+        }),
+        trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+          return Colors.transparent;
+        }),
+        trackOutlineWidth: WidgetStateProperty.all(0),
+      ),
     );
   }
 }

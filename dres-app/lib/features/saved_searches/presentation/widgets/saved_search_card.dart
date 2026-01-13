@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:dres/core/theme/app_colors.dart';
+import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/features/saved_searches/data/models/saved_search_models.dart';
 
 class SavedSearchCard extends StatelessWidget {
@@ -6,23 +9,32 @@ class SavedSearchCard extends StatelessWidget {
     super.key,
     required this.savedSearch,
     required this.onDelete,
-    required this.onToggleNotifications,
+    required this.onToggleActive,
+    required this.onTap,
   });
 
   final SavedSearchModel savedSearch;
   final VoidCallback onDelete;
-  final ValueChanged<bool> onToggleNotifications;
+  final ValueChanged<bool> onToggleActive;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   child: Column(
@@ -30,21 +42,26 @@ class SavedSearchCard extends StatelessWidget {
                     children: [
                       Text(
                         savedSearch.name ?? 'Unnamed Search',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                        style: AppTypography.bodyL.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         _buildSearchDescription(),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[600],
+                        style: AppTypography.bodyS.copyWith(
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],
                   ),
                 ),
                 PopupMenuButton<String>(
+                  icon: Icon(
+                    PhosphorIcons.dotsThreeVertical(),
+                    color: AppColors.textSecondary,
+                  ),
                   onSelected: (value) {
                     switch (value) {
                       case 'delete':
@@ -53,13 +70,22 @@ class SavedSearchCard extends StatelessWidget {
                     }
                   },
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Delete'),
+                          Icon(
+                            PhosphorIcons.trash(),
+                            color: AppColors.error,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Delete',
+                            style: AppTypography.bodyM.copyWith(
+                              color: AppColors.error,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -67,58 +93,42 @@ class SavedSearchCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Icon(
-                  savedSearch.isActive ? Icons.bookmark : Icons.bookmark_border,
-                  size: 16,
-                  color: savedSearch.isActive ? Colors.blue : Colors.grey,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  savedSearch.isActive ? 'Active' : 'Inactive',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: savedSearch.isActive ? Colors.blue : Colors.grey,
-                  ),
-                ),
-                const Spacer(),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.notifications,
-                      size: 16,
-                      color: Colors.grey[600],
-                    ),
-                    const SizedBox(width: 4),
-                    Switch(
-                      value: savedSearch.notificationsEnabled,
-                      onChanged: onToggleNotifications,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(
-                  Icons.access_time,
+                  PhosphorIcons.clock(),
                   size: 14,
-                  color: Colors.grey[500],
+                  color: AppColors.textHint,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   'Created ${_formatDate(savedSearch.createdAt)}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.grey[500],
+                  style: AppTypography.bodyXS.copyWith(
+                    color: AppColors.textHint,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  'Active',
+                  style: AppTypography.bodyS.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                SizedBox(
+                  height: 24,
+                  child: Switch(
+                    value: savedSearch.isActive,
+                    onChanged: onToggleActive,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                 ),
               ],
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -143,11 +153,11 @@ class SavedSearchCard extends StatelessWidget {
       final min = searchData['minPrice'];
       final max = searchData['maxPrice'];
       if (min != null && max != null) {
-        filters.add('Price: \$${min} - \$${max}');
+        filters.add('Price: \$$min - \$$max');
       } else if (min != null) {
-        filters.add('Min Price: \$${min}');
+        filters.add('Min Price: \$$min');
       } else if (max != null) {
-        filters.add('Max Price: \$${max}');
+        filters.add('Max Price: \$$max');
       }
     }
 

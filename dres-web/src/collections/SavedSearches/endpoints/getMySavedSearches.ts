@@ -34,7 +34,10 @@ export const getMySavedSearches: PayloadHandler = async (req) => {
       id: doc.id,
       name: doc.name,
       searchData: doc.searchData,
+      isActive: doc.isActive ?? true,
       createdAt: doc.createdAt,
+      lastChecked: doc.lastChecked,
+      lastNotificationSent: doc.lastNotificationSent,
     }))
 
     return Response.json({
