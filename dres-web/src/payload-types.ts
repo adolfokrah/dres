@@ -2485,7 +2485,7 @@ export interface Review {
   /**
    * Review text
    */
-  review?: string | null;
+  review: string;
   /**
    * Review images
    */

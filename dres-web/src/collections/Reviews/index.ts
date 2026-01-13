@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { authenticated } from '../../access/authenticated'
 import { anyone } from '../../access/anyone'
 import { getSellerReviews } from './endpoints/getSellerReviews'
+import { createReview } from './endpoints/createReview'
 
 export const Reviews: CollectionConfig = {
   slug: 'reviews',
@@ -16,6 +17,11 @@ export const Reviews: CollectionConfig = {
       path: '/seller/:sellerId',
       method: 'get',
       handler: getSellerReviews,
+    },
+    {
+      path: '/create',
+      method: 'post',
+      handler: createReview,
     },
   ],
   access: {
@@ -66,6 +72,7 @@ export const Reviews: CollectionConfig = {
     {
       name: 'review',
       type: 'textarea',
+      required: true,
       admin: {
         description: 'Review text',
       },

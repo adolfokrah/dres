@@ -46,6 +46,7 @@ import 'package:dres/features/search/presentation/view/search_screen.dart';
 import 'package:dres/features/saved_searches/presentation/view/saved_searches_screen.dart';
 import 'package:dres/features/variations/presentation/view/photo_tips_screen.dart';
 import 'package:dres/features/sell/presentation/view/image_management_screen.dart';
+import 'package:dres/features/reviews/presentation/view/create_review_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
 import 'package:dres/core/models/menu_model.dart';
 
@@ -253,6 +254,23 @@ class AppRoutes {
         name: 'saved-searches',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SavedSearchesScreen(),
+      ),
+
+      // Create Review (outside shell, full screen)
+      GoRoute(
+        path: '/products/:id/review',
+        name: 'create-review',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final extra = state.extra as Map<String, dynamic>?;
+          return CreateReviewScreen(
+            styleId: id,
+            styleName: extra?['styleName'] as String?,
+            thumbnailUrl: extra?['thumbnailUrl'] as String?,
+            brandName: extra?['brandName'] as String?,
+          );
+        },
       ),
 
       // Checkout (outside shell, full screen)

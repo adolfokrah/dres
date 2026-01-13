@@ -69,6 +69,7 @@ import { getMenu } from './endpoints/menu'
 import { getSiteSettings } from './endpoints/siteSettings'
 import { search } from './endpoints/search'
 import { getTopSellers } from './endpoints/topSellers'
+import { getStyleInfo } from './endpoints/styleInfo'
 import { seedEndpoint } from './endpoints/seed/endpoint'
 
 const filename = fileURLToPath(import.meta.url)
@@ -211,6 +212,11 @@ export default buildConfig({
       path: '/top-sellers',
       method: 'get',
       handler: getTopSellers,
+    },
+    {
+      path: '/style-info/:styleId',
+      method: 'get',
+      handler: getStyleInfo,
     },
     {
       path: '/seed',
