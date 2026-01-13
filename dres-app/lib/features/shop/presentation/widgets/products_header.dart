@@ -6,14 +6,14 @@ import 'package:dres/core/theme/app_typography.dart';
 class ProductsHeader extends StatelessWidget {
   final String title;
   final int itemCount;
-  final VoidCallback onSaveSearch;
+  final VoidCallback? onSaveSearch;
   final bool isSearchSaved;
 
   const ProductsHeader({
     super.key,
     required this.title,
     required this.itemCount,
-    required this.onSaveSearch,
+    this.onSaveSearch,
     this.isSearchSaved = false,
   });
 

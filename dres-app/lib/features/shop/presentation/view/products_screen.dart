@@ -174,11 +174,14 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                         BlocBuilder<SavedSearchesBloc, SavedSearchesState>(
                           bloc: getIt<SavedSearchesBloc>(),
                           builder: (context, savedSearchesState) {
+                            final isSearchSaved = _isCurrentSearchSaved(state, savedSearchesState);
                             return ProductsHeader(
                               title: widget.title,
                               itemCount: state.totalDocs,
-                              isSearchSaved: _isCurrentSearchSaved(state, savedSearchesState),
-                              onSaveSearch: () => _showSaveSearchDialog(state),
+                              isSearchSaved: isSearchSaved,
+                              onSaveSearch: isSearchSaved 
+                                  ? null  // Disable tap when already saved
+                                  : () => _showSaveSearchDialog(state),
                             );
                           },
                         ),
