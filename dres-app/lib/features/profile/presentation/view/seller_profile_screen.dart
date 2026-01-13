@@ -18,10 +18,12 @@ import 'package:dres/features/follows/logic/follows_bloc/follows_bloc.dart';
 /// Public seller profile screen viewed by visitors
 class SellerProfileScreen extends StatefulWidget {
   final String sellerId;
+  final int initialTab;
 
   const SellerProfileScreen({
     super.key,
     required this.sellerId,
+    this.initialTab = 0,
   });
 
   @override
@@ -29,7 +31,7 @@ class SellerProfileScreen extends StatefulWidget {
 }
 
 class _SellerProfileScreenState extends State<SellerProfileScreen> {
-  int _selectedTabIndex = 0; // Default to Products tab
+  late int _selectedTabIndex;
   SellerModel? _seller;
   bool _isLoadingSeller = true;
   String? _error;
@@ -40,6 +42,8 @@ class _SellerProfileScreenState extends State<SellerProfileScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialize tab index from initialTab parameter
+    _selectedTabIndex = widget.initialTab;
     // Create a new BLoC instance for this screen
     _sellerReviewsBloc = getIt<SellerReviewsBloc>();
     

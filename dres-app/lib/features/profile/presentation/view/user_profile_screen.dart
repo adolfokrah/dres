@@ -23,10 +23,12 @@ import 'package:dres/features/profile/logic/seller_reviews_bloc/seller_reviews_b
 
 class UserProfileScreen extends StatefulWidget {
   final String? userId;
+  final int initialTab;
 
   const UserProfileScreen({
     super.key,
     this.userId,
+    this.initialTab = 2, // Default to Purchases tab
   });
 
   @override
@@ -34,7 +36,7 @@ class UserProfileScreen extends StatefulWidget {
 }
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
-  int _selectedTabIndex = 2; // Default to Purchases tab
+  late int _selectedTabIndex;
   SellerModel? _seller;
   bool _isLoadingSeller = false;
   String? _error;
@@ -47,6 +49,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialize tab index from initialTab parameter
+    _selectedTabIndex = widget.initialTab;
     // Create a new BLoC instance for this screen
     _sellerReviewsBloc = getIt<SellerReviewsBloc>();
   }

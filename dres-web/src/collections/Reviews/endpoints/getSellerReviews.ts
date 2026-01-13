@@ -57,11 +57,14 @@ export const getSellerReviews: PayloadHandler = async (req) => {
   }
 
   try {
-    // Fetch reviews for all seller's styles using nested relationship query
+    // Fetch only active reviews for all seller's styles
     const reviewsResult = await payload.find({
       collection: 'reviews',
       where: {
-        'style.seller': { equals: sellerId },
+        and: [
+          { 'style.seller': { equals: sellerId } },
+          { status: { equals: 'active' } },
+        ],
       },
       sort: '-createdAt',
       page,
@@ -118,11 +121,14 @@ export const getSellerReviews: PayloadHandler = async (req) => {
       }
     })
 
-    // Calculate average rating from all reviews (not just current page)
+    // Calculate average rating from all active reviews (not just current page)
     const allReviewsResult = await payload.find({
       collection: 'reviews',
       where: {
-        'style.seller': { equals: sellerId },
+        and: [
+          { 'style.seller': { equals: sellerId } },
+          { status: { equals: 'active' } },
+        ],
       },
       limit: 0, // Get all for aggregation
     })

@@ -2,13 +2,18 @@ import type { PayloadHandler } from 'payload'
 
 /**
  * POST /api/reviews/create
- * Create a new product review
+ * Create or update a product review
  *
  * Body:
  * - style: Style ID (required)
  * - rating: Number 1-5 (required)
- * - review: Review text (optional)
+ * - review: Review text (required)
  * - images: Array of media IDs (optional)
+ * 
+ * Workflow:
+ * 1. If user has a draft/pending review for this style, update it to active
+ * 2. If user already has an active review, return error
+ * 3. If no review exists, create a new active review
  */
 export const createReview: PayloadHandler = async (req) => {
   const { payload, user } = req
@@ -35,23 +40,58 @@ export const createReview: PayloadHandler = async (req) => {
       return Response.json({ error: 'Review text is required' }, { status: 400 })
     }
 
-    // Check if user already reviewed this style
+    // Check if user has an existing review for this style
     const existingReview = await payload.find({
       collection: 'reviews',
       where: {
-        and: [{ user: { equals: user.id } }, { style: { equals: style } }],
+        and: [
+          { user: { equals: user.id } }, 
+          { style: { equals: style } },
+        ],
       },
       limit: 1,
     })
 
     if (existingReview.docs.length > 0) {
+      const existingDoc = existingReview.docs[0]
+
+      // If already active, user can't submit another review
+      if (existingDoc.status === 'active') {
+        return Response.json(
+          { error: 'You have already reviewed this product' },
+          { status: 400 },
+        )
+      }
+
+      // Update the draft/pending review to active
+      const updatedReview = await payload.update({
+        collection: 'reviews',
+        id: existingDoc.id,
+        data: {
+          status: 'active',
+          rating: Math.round(rating),
+          review: review.trim(),
+          images: images || undefined,
+        },
+      })
+
       return Response.json(
-        { error: 'You have already reviewed this product' },
-        { status: 400 },
+        {
+          success: true,
+          message: 'Review submitted successfully',
+          review: {
+            id: updatedReview.id,
+            rating: updatedReview.rating,
+            review: updatedReview.review,
+            status: updatedReview.status,
+            createdAt: updatedReview.createdAt,
+          },
+        },
+        { status: 200 },
       )
     }
 
-    // Verify the style exists
+    // No existing review - verify the style exists
     try {
       await payload.findByID({
         collection: 'styles',
@@ -61,14 +101,15 @@ export const createReview: PayloadHandler = async (req) => {
       return Response.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    // Create the review
+    // Create a new active review
     const newReview = await payload.create({
       collection: 'reviews',
       data: {
         user: user.id,
         style,
+        status: 'active',
         rating: Math.round(rating),
-        review: review?.trim() || undefined,
+        review: review.trim(),
         images: images || undefined,
       },
     })
@@ -81,6 +122,7 @@ export const createReview: PayloadHandler = async (req) => {
           id: newReview.id,
           rating: newReview.rating,
           review: newReview.review,
+          status: newReview.status,
           createdAt: newReview.createdAt,
         },
       },

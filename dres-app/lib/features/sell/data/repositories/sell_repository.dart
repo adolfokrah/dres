@@ -246,19 +246,20 @@ class SellRepository {
     required String attributeId,
     required String attributeOptionId,
     required double price,
-    required int stock,
+    int? stock,
   }) async {
-    await _apiService.post(
-      '/skus',
-      data: {
-        'variation': variationId,
-        'skuOptions': [
-          {'option': attributeId, 'value': attributeOptionId},
-        ],
-        'price': price,
-        'stock': stock,
-      },
-    );
+    final data = <String, dynamic>{
+      'variation': variationId,
+      'skuOptions': [
+        {'option': attributeId, 'value': attributeOptionId},
+      ],
+      'price': price,
+    };
+    // Only include stock if it's provided (null = unlimited stock)
+    if (stock != null) {
+      data['stock'] = stock;
+    }
+    await _apiService.post('/skus', data: data);
   }
 
   /// Delete a SKU

@@ -2436,7 +2436,9 @@ export interface Notification {
   /**
    * Type of notification
    */
-  type?: ('price_drop' | 'back_in_stock' | 'order_update' | 'promotion' | 'new_follower' | 'system') | null;
+  type?:
+    | ('price_drop' | 'back_in_stock' | 'order_update' | 'review_request' | 'promotion' | 'new_follower' | 'system')
+    | null;
   /**
    * Notification image (e.g., product/variation image)
    */
@@ -2476,20 +2478,42 @@ export interface Notification {
  */
 export interface Review {
   id: string;
+  /**
+   * The buyer who will write/has written the review
+   */
   user: string | User;
+  /**
+   * The product style being reviewed
+   */
   style: string | Style;
   /**
-   * Rating from 1 to 5 stars
+   * The specific variation purchased (for context)
    */
-  rating: number;
+  variation?: (string | null) | Variation;
   /**
-   * Review text
+   * The order this review is associated with
    */
-  review: string;
+  order?: (string | null) | Order;
+  /**
+   * Review status: draft (awaiting notification), pending (notification sent), active (review submitted)
+   */
+  status: 'draft' | 'pending' | 'active';
+  /**
+   * Rating from 1 to 5 stars (required when active)
+   */
+  rating?: number | null;
+  /**
+   * Review text (required when active)
+   */
+  review?: string | null;
   /**
    * Review images
    */
   images?: (string | Media)[] | null;
+  /**
+   * When the review request notification was sent
+   */
+  notificationSentAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -3848,9 +3872,13 @@ export interface NotificationsSelect<T extends boolean = true> {
 export interface ReviewsSelect<T extends boolean = true> {
   user?: T;
   style?: T;
+  variation?: T;
+  order?: T;
+  status?: T;
   rating?: T;
   review?: T;
   images?: T;
+  notificationSentAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

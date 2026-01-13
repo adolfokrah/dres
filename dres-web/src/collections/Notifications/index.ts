@@ -7,6 +7,7 @@ import {
   markAsRead, 
   markAllAsRead 
 } from './endpoints/notificationEndpoints'
+import { sendReviewRequestsHandler } from './endpoints/sendReviewRequests'
 import { sendPushNotificationHook } from './hooks/sendPushNotificationHook'
 
 export const Notifications: CollectionConfig = {
@@ -82,6 +83,11 @@ export const Notifications: CollectionConfig = {
       method: 'post',
       handler: markAllAsRead,
     },
+    {
+      path: '/send-review-requests',
+      method: 'post',
+      handler: sendReviewRequestsHandler,
+    },
   ],
   fields: [
     {
@@ -101,6 +107,7 @@ export const Notifications: CollectionConfig = {
         { label: 'Price Drop', value: 'price_drop' },
         { label: 'Back In Stock', value: 'back_in_stock' },
         { label: 'Order Update', value: 'order_update' },
+        { label: 'Review Request', value: 'review_request' },
         { label: 'Promotion', value: 'promotion' },
         { label: 'New Follower', value: 'new_follower' },
         { label: 'System', value: 'system' },

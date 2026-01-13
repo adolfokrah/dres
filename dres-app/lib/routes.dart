@@ -310,7 +310,14 @@ class AppRoutes {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final id = state.pathParameters['id']!;
-          return SellerProfileScreen(sellerId: id);
+          final tabParam = state.uri.queryParameters['tab'];
+          int initialTab = 0;
+          if (tabParam == 'reviews') {
+            initialTab = 2; // Reviews is the 3rd tab (index 2)
+          } else if (tabParam == 'community') {
+            initialTab = 1;
+          }
+          return SellerProfileScreen(sellerId: id, initialTab: initialTab);
         },
       ),
 
@@ -322,6 +329,32 @@ class AppRoutes {
         builder: (context, state) {
           final id = state.pathParameters['id']!;
           return UserProfileScreen(userId: id);
+        },
+      ),
+
+      // User Profile Details (outside shell, for deep links with tab support)
+      GoRoute(
+        path: '/users/:id/details',
+        name: 'user-profile-details',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          final tabParam = state.uri.queryParameters['tab'];
+          int initialTab = 2; // Default to Purchases
+          if (tabParam == 'reviews') {
+            initialTab = 5; // Reviews tab
+          } else if (tabParam == 'products') {
+            initialTab = 0;
+          } else if (tabParam == 'incoming') {
+            initialTab = 1;
+          } else if (tabParam == 'purchases') {
+            initialTab = 2;
+          } else if (tabParam == 'transactions') {
+            initialTab = 3;
+          } else if (tabParam == 'community') {
+            initialTab = 4;
+          }
+          return UserProfileScreen(userId: id, initialTab: initialTab);
         },
       ),
 

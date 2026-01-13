@@ -34,13 +34,14 @@ export async function getStyleReviews(
   page: number = 1,
   limit: number = 10
 ): Promise<ReviewsResponse> {
-  // Fetch reviews for the style
+  // Fetch only active reviews for the style
   const reviewsResult = await payload.find({
     collection: 'reviews',
     where: {
-      style: {
-        equals: styleId,
-      },
+      and: [
+        { style: { equals: styleId } },
+        { status: { equals: 'active' } },
+      ],
     },
     limit,
     page,
@@ -89,13 +90,14 @@ export async function getStyleReviews(
     1: 0,
   }
 
-  // Fetch all reviews for statistics (not just current page)
+  // Fetch all active reviews for statistics (not just current page)
   const allReviews = await payload.find({
     collection: 'reviews',
     where: {
-      style: {
-        equals: styleId,
-      },
+      and: [
+        { style: { equals: styleId } },
+        { status: { equals: 'active' } },
+      ],
     },
     limit: 1000, // Get enough for accurate statistics
     pagination: false,

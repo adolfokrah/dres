@@ -60,14 +60,14 @@ class SkuCreateRequested extends VariationDetailEvent {
   final String attributeId;
   final String attributeOptionId;
   final double price;
-  final int stock;
+  final int? stock;
 
   const SkuCreateRequested({
     required this.variationId,
     required this.attributeId,
     required this.attributeOptionId,
     required this.price,
-    required this.stock,
+    this.stock,
   });
 
   @override
