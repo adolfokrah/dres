@@ -111,7 +111,7 @@ export default buildConfig({
   // This config helps us configure global or default features that the other editors can inherit
   editor: defaultLexical,
   db: mongooseAdapter({
-    url: process.env.MONGODB_URI || '',
+    url: process.env.MONGO_URL || '',
   }),
   localization: {
     locales: [
