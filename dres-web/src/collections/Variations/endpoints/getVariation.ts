@@ -363,15 +363,59 @@ export const getVariation: PayloadHandler = async (req) => {
     const firstImage = variation.imageData?.[0]
     const thumbnail = getMediaUrl(firstImage, 'thumbnail') || getMediaUrl(firstImage)
 
-    // Transform SKUs
-    const skus = (variation.skuData || []).map((sku: any) => ({
-      id: sku._id.toString(),
-      options: resolveSkuOptions(sku),
-      sellingPrice: sku.sellingPrice || 0,
-      compareAtPrice: sku.compareAtPrice || null,
-      stock: sku.stock || 0,
-      currency,
-    }))
+    // Transform SKUs - fetch with proper depth to get populated options
+    const skuIds = variation.skuData?.map((s: any) => s._id.toString()) || []
+    let skus: any[] = []
+    
+    if (skuIds.length > 0) {
+      // Fetch SKUs with proper depth to get populated skuOptions
+      const skuResponse = await payload.find({
+        collection: 'skus',
+        where: {
+          id: { in: skuIds },
+          isActive: { not_equals: false }
+        },
+        depth: 2,
+        limit: 100
+      })
+      
+      skus = skuResponse.docs.map((sku: any) => {
+        const resolvedOptions: Array<{option: string, value: string}> = []
+        
+        if (sku.skuOptions?.length) {
+          for (const opt of sku.skuOptions) {
+            const optionName = opt.option?.name || ''
+            const valueName = opt.value?.name || ''
+            
+            if (optionName && valueName) {
+              resolvedOptions.push({
+                option: optionName,
+                value: valueName
+              })
+            }
+          }
+        }
+        
+        return {
+          id: sku.id.toString(),
+          options: resolvedOptions,
+          sellingPrice: sku.sellingPrice || 0,
+          compareAtPrice: sku.compareAtPrice || null,
+          stock: sku.stock || 0,
+          currency,
+        }
+      })
+    } else {
+      // Fallback to aggregation data if no SKU IDs found
+      skus = (variation.skuData || []).map((sku: any) => ({
+        id: sku._id.toString(),
+        options: resolveSkuOptions(sku),
+        sellingPrice: sku.sellingPrice || 0,
+        compareAtPrice: sku.compareAtPrice || null,
+        stock: sku.stock || 0,
+        currency,
+      }))
+    }
 
     // Build details array
     const details: { name: string; value: string }[] = []

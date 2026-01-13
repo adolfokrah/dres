@@ -361,7 +361,7 @@ export interface Variation {
     hasNextPage?: boolean;
     totalDocs?: number;
   };
-  status?: ('active' | 'archived') | null;
+  status?: ('draft' | 'active' | 'archived') | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1265,7 +1265,7 @@ export interface Skus {
    */
   compareAtPrice?: number | null;
   /**
-   * Available quantity (0 = sold out)
+   * Available quantity (empty = unlimited, 0 = sold out)
    */
   stock?: number | null;
   /**

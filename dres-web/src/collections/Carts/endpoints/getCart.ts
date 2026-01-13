@@ -181,6 +181,50 @@ export const getCart: PayloadHandler = async (req) => {
       return Response.json({ cart: null, message: 'No active cart' })
     }
 
+    // Pre-fetch SKUs that need option resolution (where aggregation failed)
+    const skusNeedingResolution = (cartResult.items || [])
+      .map((item: any) => {
+        const sku = item.skuData?.[0]
+        const skuId = sku?._id || sku?.id
+        if (!skuId || !sku?.skuOptions?.length) return null
+        
+        // Check if aggregation resolved options properly
+        const resolvedFromAggregation = (sku.skuOptions || []).map((opt: any) => {
+          const optAttr = sku.optionAttributes?.find((a: any) => a._id?.toString() === opt.option?.toString())
+          const optVal = sku.optionValues?.find((v: any) => v._id?.toString() === opt.value?.toString())
+          return { option: optAttr?.name || '', value: optVal?.name || '' }
+        }).filter((o: any) => o.option && o.value)
+        
+        // If we have skuOptions but resolved 0 (aggregation lookup failed), we need to fetch
+        return (sku.skuOptions.length > 0 && resolvedFromAggregation.length === 0) ? skuId.toString() : null
+      })
+      .filter(Boolean)
+
+    // Fetch all SKUs that need resolution in one call
+    let resolvedSkus = new Map()
+    if (skusNeedingResolution.length > 0) {
+      try {
+        const skuResponse = await payload.find({
+          collection: 'skus',
+          where: {
+            id: { in: skusNeedingResolution }
+          },
+          depth: 2,
+          limit: 100
+        })
+        
+        skuResponse.docs.forEach((sku: any) => {
+          const options = (sku.skuOptions || []).map((opt: any) => ({
+            option: opt.option?.name || '',
+            value: opt.value?.name || '',
+          })).filter((o: any) => o.option && o.value)
+          resolvedSkus.set(sku.id.toString(), options)
+        })
+      } catch (error) {
+        console.error('Failed to fetch SKU options:', error)
+      }
+    }
+
     // Transform the aggregation result
     let subtotal = 0
     let itemCount = 0
@@ -271,12 +315,23 @@ export const getCart: PayloadHandler = async (req) => {
         isTrusted: seller.isTrusted || false,
       } : null
 
-      // Build SKU options
-      const skuOptions = (sku?.skuOptions || []).map((opt: any) => {
-        const optAttr = sku.optionAttributes?.find((a: any) => a._id?.toString() === opt.option?.toString())
-        const optVal = sku.optionValues?.find((v: any) => v._id?.toString() === opt.value?.toString())
-        return { option: optAttr?.name || '', value: optVal?.name || '' }
-      }).filter((o: any) => o.option && o.value)
+      // Build SKU options - use pre-fetched data if available
+      let skuOptions: Array<{ option: string; value: string }> = []
+      if (sku?.skuOptions?.length) {
+        // Try to resolve from aggregation first
+        const resolvedFromAggregation = (sku.skuOptions || []).map((opt: any) => {
+          const optAttr = sku.optionAttributes?.find((a: any) => a._id?.toString() === opt.option?.toString())
+          const optVal = sku.optionValues?.find((v: any) => v._id?.toString() === opt.value?.toString())
+          return { option: optAttr?.name || '', value: optVal?.name || '' }
+        }).filter((o: any) => o.option && o.value)
+
+        if (resolvedFromAggregation.length === 0 && (sku._id || sku.id)) {
+          // Use pre-fetched resolved data
+          skuOptions = resolvedSkus.get((sku._id || sku.id).toString()) || []
+        } else {
+          skuOptions = resolvedFromAggregation
+        }
+      }
 
       // Get currency
       const currency = sku?.currencyData?.[0]
