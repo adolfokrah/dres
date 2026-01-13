@@ -28,7 +28,7 @@ interface UserTransactionsResponse {
 
 /**
  * GET /api/transactions/user-transactions
- * Fetch user's transactions (excludes deposits)
+ * Fetch user's transactions that are linked to orders (excludes deposits and standalone transactions)
  * Amounts are stored in GHS (base currency) and converted to user's currency
  *
  * Query params:
@@ -69,10 +69,11 @@ export const getUserTransactions: PayloadHandler = async (req) => {
   }
 
   try {
-    // Build query - exclude deposits, filter by user
+    // Build query - only fetch transactions linked to an order, exclude deposits, filter by user
     const where: any = {
       user: { equals: user.id },
       type: { not_equals: 'deposit' }, // Exclude deposits
+      order: { exists: true }, // Only transactions linked to an order
     }
 
     // Apply type filter if provided
@@ -115,12 +116,13 @@ export const getUserTransactions: PayloadHandler = async (req) => {
       }
     })
 
-    // Calculate total earned (sum of all order_payment transactions for this user)
+    // Calculate total earned (sum of all order_payment transactions linked to orders for this user)
     const orderPaymentTxns = await payload.find({
       collection: 'transactions',
       where: {
         user: { equals: user.id },
         type: { equals: 'order_payment' },
+        order: { exists: true }, // Only transactions linked to an order
       },
       limit: 0, // Get all for aggregation
     })
@@ -129,13 +131,14 @@ export const getUserTransactions: PayloadHandler = async (req) => {
       return sum + (txn.amount || 0)
     }, 0)
 
-    // Calculate upcoming payments (sum of completed + pending transactions, excluding deposits)
+    // Calculate upcoming payments (sum of completed + pending transactions linked to orders, excluding deposits)
     const upcomingTxns = await payload.find({
       collection: 'transactions',
       where: {
         user: { equals: user.id },
         type: { not_equals: 'deposit' },
         status: { in: ['completed', 'pending'] },
+        order: { exists: true }, // Only transactions linked to an order
       },
       limit: 0, // Get all for aggregation
     })
