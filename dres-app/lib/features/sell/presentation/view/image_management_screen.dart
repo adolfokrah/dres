@@ -132,9 +132,23 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
       return;
     }
 
+    int skippedCount = 0;
     final files = await ImagePickerUtils.pickMultipleImages(
       context,
       maxAssets: remainingSlots,
+      onImageSkipped: (reason) {
+        skippedCount++;
+        // Show snackbar for each skipped image
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(reason),
+              backgroundColor: AppColors.error,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      },
     );
 
     if (files.isNotEmpty) {
@@ -151,6 +165,19 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
         }
         print('📋 Added ${files.length} new images. Total: ${_allImages.length}');
       });
+    }
+    
+    // Show summary if some images were skipped
+    if (skippedCount > 0 && files.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('All $skippedCount selected images were too small. Please select larger images (min 500x500 pixels).'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
     }
   }
 

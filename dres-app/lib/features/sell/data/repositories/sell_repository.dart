@@ -163,7 +163,18 @@ class SellRepository {
       
       final doc = response.data['doc'];
       final mediaId = doc['id'] as String; // ObjectId for server
-      final relativeUrl = doc['thumbnailURL'] as String; // URL for display
+      
+      // Get URL - try thumbnailURL first, fall back to constructing from filename
+      String? relativeUrl = doc['thumbnailURL'] as String?;
+      if (relativeUrl == null || relativeUrl.isEmpty) {
+        // Fall back to original file URL
+        final filename = doc['filename'] as String?;
+        if (filename != null) {
+          relativeUrl = '/api/media/file/$filename';
+        } else {
+          relativeUrl = '/api/media/${doc['id']}';
+        }
+      }
       
       print('📷 Media ObjectId: $mediaId');
       print('📷 Media URL: $relativeUrl');

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:wechat_assets_picker/wechat_assets_picker.dart';
@@ -10,6 +11,35 @@ import 'package:dres/core/theme/app_colors.dart';
 /// Utility class for picking images using wechat_assets_picker
 class ImagePickerUtils {
   ImagePickerUtils._();
+
+  /// Minimum image dimension required (width or height)
+  static const int minImageDimension = 500;
+
+  /// Validate image dimensions
+  /// Returns null if valid, or error message if invalid
+  static Future<String?> _validateImageDimensions(File file) async {
+    try {
+      final bytes = await file.readAsBytes();
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+      final image = frame.image;
+      
+      final width = image.width;
+      final height = image.height;
+      
+      print('📐 Image dimensions: ${width}x$height');
+      
+      // Require BOTH dimensions to be at least minImageDimension
+      if (width < minImageDimension || height < minImageDimension) {
+        return 'Image is too small (${width}x$height). Both dimensions must be at least ${minImageDimension} pixels.';
+      }
+      
+      return null; // Valid
+    } catch (e) {
+      print('❌ Failed to validate image dimensions: $e');
+      return null; // Allow if we can't validate
+    }
+  }
 
   /// Compress image to reduce file size
   static Future<File?> _compressImage(File file) async {
@@ -120,7 +150,8 @@ class ImagePickerUtils {
     );
 
     if (result != null && result.isNotEmpty) {
-      final file = await result.first.file;
+      // Use originFile to get the full-resolution original image
+      final file = await result.first.originFile;
       if (file != null && compress) {
         return await _compressImage(file);
       }
@@ -131,10 +162,12 @@ class ImagePickerUtils {
 
   /// Pick multiple images from gallery
   /// Returns list of selected Files
+  /// [onImageSkipped] - Optional callback when an image is skipped due to validation
   static Future<List<File>> pickMultipleImages(
     BuildContext context, {
     int maxAssets = 9,
     List<AssetEntity>? selectedAssets,
+    void Function(String reason)? onImageSkipped,
   }) async {
     final List<AssetEntity>? result = await AssetPicker.pickAssets(
       context,
@@ -184,10 +217,24 @@ class ImagePickerUtils {
 
     if (result != null && result.isNotEmpty) {
       final List<File> files = [];
+      
       for (final asset in result) {
-        final file = await asset.file;
+        // Use originFile to get the full-resolution original image
+        // instead of file which may return a cached/compressed version
+        final file = await asset.originFile;
         if (file != null) {
           print('📂 Picked file: ${path.basename(file.path)}');
+          
+          // Validate image dimensions
+          final validationError = await _validateImageDimensions(file);
+          if (validationError != null) {
+            print('⚠️ Image rejected: $validationError');
+            onImageSkipped?.call(validationError);
+            continue; // Skip this image
+          }
+          
+          final originalSize = await file.length();
+          print('📂 Original size before compression: ${(originalSize / 1024 / 1024).toStringAsFixed(2)} MB');
           // Compress the image before adding to list
           final compressedFile = await _compressImage(file);
           if (compressedFile != null) {

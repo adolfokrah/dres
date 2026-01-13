@@ -272,30 +272,17 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
             }
           }
 
-          // When SKU is created, navigate to detail page
+          // When SKU is created, just show success message - don't auto-navigate
+          // User can manually tap on the SKU to edit it
           if (state.status == VariationDetailStatus.skuCreateSuccess &&
               _waitingForSkuCreation) {
             _waitingForSkuCreation = false;
-            // Get the newly created SKU (last in list)
-            if (state.skus.isNotEmpty) {
-              final newSku = state.skus.last;
-              // Navigate inside shell
-              context.push(
-                '/sell/style/${widget.styleId}/variation/${widget.variationId}/sku/${newSku.id}',
-                extra: {
-                  'variationName': widget.variationName,
-                  'categoryId': widget.categoryId,
-                },
-              ).then((_) {
-                // Reload variation detail when returning from SKU screen
-                _variationDetailBloc.add(
-                  VariationDetailLoadRequested(
-                    variationId: widget.variationId,
-                    categoryId: widget.categoryId,
-                  ),
-                );
-              });
-            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Size added successfully'),
+                backgroundColor: AppColors.success,
+              ),
+            );
           }
 
           if (state.status == VariationDetailStatus.failure) {

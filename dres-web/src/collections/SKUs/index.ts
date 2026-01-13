@@ -6,6 +6,7 @@ import { generateSKUTitle } from './hooks/generateSKUTitle'
 import { notifyPriceDropHook } from './hooks/notifyPriceDropHook'
 import { notifyBackInStockHook } from './hooks/notifyBackInStockHook'
 import { notifySellerLowStockHook } from './hooks/notifySellerLowStockHook'
+import { checkVariationActivation } from './hooks/checkVariationActivation'
 
 interface SKUOptionItem {
   option?: string | { id: string }
@@ -60,6 +61,8 @@ export const SKUs: CollectionConfig = {
       notifyBackInStockHook,
       // Notify seller when stock is low or out of stock
       notifySellerLowStockHook,
+      // Check if parent variation should be auto-activated
+      checkVariationActivation,
     ],
   },
   fields: [
@@ -213,9 +216,8 @@ export const SKUs: CollectionConfig = {
           name: 'stock',
           type: 'number',
           min: 0,
-          defaultValue: 0,
           admin: {
-            description: 'Available quantity (0 = sold out)',
+            description: 'Available quantity (empty = unlimited, 0 = sold out)',
             width: '25%',
           },
         },

@@ -7,6 +7,7 @@ import { processProductMainImage } from './hooks/processProductMainImage'
 import { deleteRemovedImages } from './hooks/deleteRemovedImages'
 import { setProductImagesFolder } from './hooks/setProductImagesFolder'
 import { validateVariationActive } from './hooks/validateVariationActive'
+import { autoActivateVariation } from './hooks/autoActivateVariation'
 import { trendingVariations } from './endpoints/trending'
 import { newArrivals } from './endpoints/newArrivals'
 import { featuredVariations } from './endpoints/featured'
@@ -96,7 +97,7 @@ export const Variations: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [validateVariationActive, generateVariationSlug, deleteRemovedImages],
-    afterChange: [processProductMainImage, setProductImagesFolder],
+    afterChange: [processProductMainImage, setProductImagesFolder, autoActivateVariation],
   },
   fields: [
     {

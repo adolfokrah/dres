@@ -50,7 +50,9 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
   String? _selectedOptionName;
 
   double _sellingPrice = 0.0;
-  bool _dataPopulated = false;
+  // Track which SKU we populated data from to prevent re-population of same SKU
+  // but allow population when switching to different SKU
+  String? _populatedSkuId;
   bool _isUpdating = false;
   bool _isArchiving = false;
 
@@ -73,6 +75,37 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
   }
 
   @override
+  void didUpdateWidget(covariant SkuDetailScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reset state when skuId changes (navigating to a different SKU)
+    if (oldWidget.skuId != widget.skuId) {
+      _resetState();
+      _variationDetailBloc.add(
+        VariationDetailLoadRequested(
+          variationId: widget.variationId,
+          categoryId: widget.categoryId,
+        ),
+      );
+    }
+  }
+
+  void _resetState() {
+    setState(() {
+      _populatedSkuId = null;
+      _selectedAttributeId = null;
+      _selectedAttributeName = null;
+      _selectedOptionId = null;
+      _selectedOptionName = null;
+      _sellingPrice = 0.0;
+      _isUpdating = false;
+      _isArchiving = false;
+    });
+    _priceController.clear();
+    _comparePriceController.clear();
+    _stockController.clear();
+  }
+
+  @override
   void dispose() {
     _priceController.removeListener(_updateSellingPrice);
     _priceController.dispose();
@@ -89,8 +122,9 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
   }
 
   void _populateFromSku(SkuModel sku, AttributeModel? skuAttribute) {
-    if (!_dataPopulated) {
-      _dataPopulated = true;
+    // Only populate if this is the SKU we're editing and we haven't populated it yet
+    if (_populatedSkuId != sku.id) {
+      _populatedSkuId = sku.id;
       setState(() {
         // Get attribute and option from skuOptions
         _selectedAttributeId = sku.attributeId ?? skuAttribute?.id;
@@ -99,12 +133,18 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
 
         if (sku.price > 0) {
           _priceController.text = sku.price.toStringAsFixed(2);
+        } else {
+          _priceController.clear();
         }
-        if (sku.compareAtPrice != null) {
+        if (sku.compareAtPrice != null && sku.compareAtPrice! > 0) {
           _comparePriceController.text = sku.compareAtPrice!.toStringAsFixed(2);
+        } else {
+          _comparePriceController.clear();
         }
         if (sku.stock > 0) {
           _stockController.text = sku.stock.toString();
+        } else {
+          _stockController.clear();
         }
       });
       _updateSellingPrice();
