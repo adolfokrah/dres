@@ -70,8 +70,6 @@ import { seedEndpoint } from './endpoints/seed/endpoint'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-console.log(process.env.MONGO_URL, process.env.MONGO_PUBLIC_URL)
-
 export default buildConfig({
   admin: {
     components: {

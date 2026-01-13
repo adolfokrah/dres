@@ -250,6 +250,10 @@ export const Variations: CollectionConfig = {
       type: 'select',
       options: [
         {
+          label: 'Draft',
+          value: 'draft',
+        },
+        {
           label: 'Active',
           value: 'active',
         },
@@ -258,7 +262,7 @@ export const Variations: CollectionConfig = {
           value: 'archived',
         },
       ],
-      defaultValue: 'active',
+      defaultValue: 'draft',
     }
   ],
 }

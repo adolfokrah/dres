@@ -6,7 +6,7 @@ interface VariantItem {
 }
 
 interface VariationData {
-  status?: 'active' | 'archived'
+  status?: 'active' | 'draft' | 'archived'
   style?: string | { id: string }
   images?: (string | { id: string })[]
   variants?: VariantItem[]
@@ -18,6 +18,8 @@ interface VariationData {
  * - Must have a linked style
  * - Must have at least one variant attribute
  * - Must have at least one SKU with price and stock
+ * 
+ * Draft variations can be created/updated without these requirements.
  */
 export const validateVariationActive: CollectionBeforeChangeHook = async ({
   data,
@@ -27,13 +29,18 @@ export const validateVariationActive: CollectionBeforeChangeHook = async ({
 }) => {
   const variationData = data as VariationData
   
-  // Only validate when setting status to active
-  if (variationData.status !== 'active') {
+  // Only validate when explicitly setting status to 'active'
+  // Skip validation for draft/archived status or when status isn't being changed
+  const newStatus = variationData.status
+  const oldStatus = originalDoc?.status
+  
+  // If not setting to active, allow the operation
+  if (newStatus !== 'active') {
     return data
   }
   
-  // If already active and not changing status, skip validation
-  if (operation === 'update' && originalDoc?.status === 'active' && !('status' in data)) {
+  // If already active and not explicitly changing status, skip validation
+  if (operation === 'update' && oldStatus === 'active' && !('status' in data)) {
     return data
   }
   
@@ -101,8 +108,8 @@ export const validateVariationActive: CollectionBeforeChangeHook = async ({
       }
     }
   } else if (operation === 'create') {
-    // On create, SKUs don't exist yet - allow but warn
-    req.payload.logger.warn('Creating active variation without SKUs - SKUs should be added after creation')
+    // On create with active status, SKUs don't exist yet - this is an error
+    errors.push('Cannot create a variation as active - create as draft first, add SKUs, then activate')
   }
   
   // If there are errors, throw a validation error
