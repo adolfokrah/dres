@@ -7,10 +7,7 @@ source = "dres-web"
 
 [[services]]
 name = "cron-job"
-source = "dres-web"
-cron = "* * * * *"  # Every minute (for testing)
-build = "echo 'Cron job - no build needed'"
-start = "curl -X POST https://dres-production.up.railway.app/api/styles/remind-drafts -H 'Content-Type: application/json' -H 'Authorization: Bearer YOUR_CRON_SECRET_HERE' -d '{}'"
+source = "dres-cron-service"
 
 [deploy]
 restartPolicyType = "ON_FAILURE"
