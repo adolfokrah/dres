@@ -43,6 +43,7 @@ import 'package:dres/features/profile/presentation/view/shipping_rates_screen.da
 import 'package:dres/features/orders/presentation/view/incoming_order_details_screen.dart';
 import 'package:dres/features/notifications/presentation/view/notifications_screen.dart';
 import 'package:dres/features/search/presentation/view/search_screen.dart';
+import 'package:dres/features/saved_searches/presentation/view/saved_searches_screen.dart';
 import 'package:dres/features/variations/presentation/view/photo_tips_screen.dart';
 import 'package:dres/features/sell/presentation/view/image_management_screen.dart';
 import 'package:dres/core/widgets/main_shell.dart';
@@ -75,6 +76,7 @@ class AppRoutes {
   static const String sell = '/sell';
   static const String favourite = '/favourite';
   static const String profile = '/profile';
+  static const String savedSearches = '/saved-searches';
 
   // Store pending deep link to navigate after splash
   static String? pendingDeepLink;
@@ -243,6 +245,14 @@ class AppRoutes {
         name: 'search',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const SearchScreen(),
+      ),
+
+      // Saved Searches (outside shell, full screen)
+      GoRoute(
+        path: savedSearches,
+        name: 'saved-searches',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SavedSearchesScreen(),
       ),
 
       // Checkout (outside shell, full screen)

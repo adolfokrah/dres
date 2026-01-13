@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/unified_header.dart';
@@ -13,6 +14,8 @@ import 'package:dres/features/shop/logic/products_bloc/products_state.dart';
 import 'package:dres/features/shop/presentation/widgets/products_header.dart';
 import 'package:dres/features/shop/presentation/widgets/products_filter_bar.dart';
 import 'package:dres/features/shop/presentation/widgets/products_empty_state.dart';
+import 'package:dres/features/saved_searches/logic/saved_searches_bloc/saved_searches_bloc.dart';
+import 'package:dres/features/saved_searches/presentation/widgets/save_search_dialog.dart';
 import 'package:dres/l10n/app_localizations.dart';
 
 class ProductsScreen extends StatefulWidget {
@@ -63,14 +66,42 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return _ProductsScreenView(title: widget.title);
+    return BlocProvider.value(
+      value: getIt<SavedSearchesBloc>(),
+      child: _ProductsScreenView(
+        query: widget.query,
+        departmentId: widget.departmentId,
+        categoryId: widget.categoryId,
+        collectionId: widget.collectionId,
+        styleId: widget.styleId,
+        brandId: widget.brandId,
+        filterType: widget.filterType,
+        title: widget.title,
+      ),
+    );
   }
 }
 
 class _ProductsScreenView extends StatefulWidget {
+  final String? query;
+  final String? departmentId;
+  final String? categoryId;
+  final String? collectionId;
+  final String? styleId;
+  final String? brandId;
+  final String? filterType;
   final String title;
 
-  const _ProductsScreenView({required this.title});
+  const _ProductsScreenView({
+    required this.title,
+    this.query,
+    this.departmentId,
+    this.categoryId,
+    this.collectionId,
+    this.styleId,
+    this.brandId,
+    this.filterType,
+  });
 
   @override
   State<_ProductsScreenView> createState() => _ProductsScreenViewState();
@@ -143,9 +174,7 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                         ProductsHeader(
                           title: widget.title,
                           itemCount: state.totalDocs,
-                          onSaveSearch: () {
-                            // TODO: Save search functionality
-                          },
+                          onSaveSearch: () => _showSaveSearchDialog(state),
                         ),
 
                         // Filter Bar
@@ -301,5 +330,66 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
         },
       ),
     );
+  }
+
+  void _showSaveSearchDialog(ProductsState state) {
+    print('🔍 Save search tapped - building search data...');
+    
+    // Build search data from current filters and parameters
+    final searchData = <String, dynamic>{
+      // Basic search info
+      if (widget.query != null) 'query': widget.query,
+      if (widget.departmentId != null) 'departmentId': widget.departmentId,
+      if (widget.categoryId != null) 'categoryId': widget.categoryId,
+      if (widget.collectionId != null) 'collectionId': widget.collectionId,
+      if (widget.brandId != null) 'brandId': widget.brandId,
+      if (widget.filterType != null) 'filterType': widget.filterType,
+      
+      // Use the title as names for now (we can improve this later)
+      if (widget.departmentId != null) 'departmentName': widget.title,
+      if (widget.categoryId != null) 'categoryName': widget.title,
+      if (widget.collectionId != null) 'collectionName': widget.title,
+      if (widget.brandId != null) 'brandName': widget.title,
+      
+      // Current filters from state
+      if (state.sortBy != null) 'sortBy': state.sortBy,
+      if (state.sortPrice != null) 'sortPrice': state.sortPrice,
+      if (state.minPrice != null) 'minPrice': state.minPrice,
+      if (state.maxPrice != null) 'maxPrice': state.maxPrice,
+      if (state.selectedAttributes.isNotEmpty) 'selectedAttributes': state.selectedAttributes,
+    };
+
+    print('📋 Search data: $searchData');
+
+    // Generate a suggested name based on the search
+    String? suggestedName = _generateSearchName(state);
+    print('💡 Suggested name: $suggestedName');
+
+    showSaveSearchDialog(
+      context,
+      searchData: searchData,
+      suggestedName: suggestedName,
+    );
+  }
+
+  String? _generateSearchName(ProductsState state) {
+    final parts = <String>[];
+    
+    // Use widget title as a base
+    parts.add(widget.title);
+    
+    if (state.maxPrice != null) {
+      parts.add('Under \$${state.maxPrice!.toInt()}');
+    } else if (state.minPrice != null) {
+      parts.add('Over \$${state.minPrice!.toInt()}');
+    }
+    
+    if (widget.filterType == 'on-sale') {
+      parts.add('On Sale');
+    } else if (widget.filterType == 'new-arrivals') {
+      parts.add('New Arrivals');
+    }
+    
+    return parts.join(' ');
   }
 }

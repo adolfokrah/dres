@@ -28,6 +28,7 @@ import 'package:dres/features/favorites/logic/favorites_bloc/favorites_bloc.dart
 import 'package:dres/features/notifications/logic/notifications_bloc/notifications_bloc.dart';
 import 'package:dres/features/profile/logic/user_products_bloc/user_products_bloc.dart';
 import 'package:dres/features/follows/logic/follows_bloc/follows_bloc.dart';
+import 'package:dres/features/saved_searches/logic/saved_searches_bloc/saved_searches_bloc.dart';
 import 'package:dres/core/services/storage_service.dart';
 import 'package:dres/core/services/site_settings_service.dart';
 import 'package:dres/core/services/push_notification_service.dart';
@@ -217,6 +218,10 @@ class _MainAppState extends State<MainApp> {
         BlocProvider<FollowsBloc>(
           create: (_) => getIt<FollowsBloc>(),
         ),
+        // SavedSearchesBloc - for user's saved searches (singleton)
+        BlocProvider<SavedSearchesBloc>(
+          create: (_) => getIt<SavedSearchesBloc>(),
+        ),
         // Note: SellerProductsBloc, SellerReviewsBloc are now created
         // locally in their respective widgets as factory instances
       ],
@@ -238,6 +243,7 @@ class _MainAppState extends State<MainApp> {
               getIt<FavoritesBloc>().add(const FavoritesFetchRequested());
               getIt<CartBloc>().add(const CartFetchRequested());
               getIt<NotificationsBloc>().add(const NotificationsUnreadCountRequested());
+              getIt<SavedSearchesBloc>().add(const SavedSearchesFetchRequested());
               
               // Initialize FollowsBloc with user's follower/following counts
               if (state.user != null) {

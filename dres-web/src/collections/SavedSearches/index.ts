@@ -24,7 +24,7 @@ export const SavedSearches: CollectionConfig = {
       handler: saveSearch,
     },
     {
-      path: '/:id',
+      path: '/:id/delete',
       method: 'delete',
       handler: deleteSavedSearch,
     },

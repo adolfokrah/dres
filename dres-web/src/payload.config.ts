@@ -50,6 +50,7 @@ import { FCMTokens } from './collections/FCMTokens'
 import { Follows } from './collections/Follows'
 import { Notifications } from './collections/Notifications'
 import { Reviews } from './collections/Reviews'
+import { SavedSearches } from './collections/SavedSearches'
 import { StyleBoosts } from './collections/StyleBoosts'
 import { StockNotifications } from './collections/StockNotifications'
 import { UserPoints } from './collections/UserPoints'
@@ -180,6 +181,7 @@ export default buildConfig({
     Follows,
     Notifications,
     Reviews,
+    SavedSearches,
     StockNotifications,
     StyleBoosts,
     UserPoints,

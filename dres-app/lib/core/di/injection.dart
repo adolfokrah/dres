@@ -53,6 +53,8 @@ import 'package:dres/features/payment/data/repositories/payment_repository.dart'
 import 'package:dres/features/notifications/data/repositories/notifications_repository.dart';
 import 'package:dres/features/notifications/logic/notifications_bloc/notifications_bloc.dart';
 import 'package:dres/features/profile/data/repositories/user_products_repository.dart';
+import 'package:dres/features/saved_searches/data/repositories/saved_search_repository.dart';
+import 'package:dres/features/saved_searches/logic/saved_searches_bloc/saved_searches_bloc.dart';
 import 'package:dres/features/profile/logic/user_products_bloc/user_products_bloc.dart';
 import 'package:dres/features/profile/data/repositories/seller_products_repository.dart';
 import 'package:dres/features/profile/logic/seller_products_bloc/seller_products_bloc.dart';
@@ -147,6 +149,11 @@ Future<void> setupDependencies() async {
 
   // Payment Repository
   getIt.registerLazySingleton<PaymentRepository>(() => PaymentRepository(
+    apiService: getIt<ApiService>(),
+  ));
+
+  // Saved Search Repository
+  getIt.registerLazySingleton<SavedSearchRepository>(() => SavedSearchRepository(
     apiService: getIt<ApiService>(),
   ));
 
@@ -260,6 +267,11 @@ Future<void> setupDependencies() async {
   getIt.registerLazySingleton<FollowsBloc>(() => FollowsBloc(
     followsRepository: getIt<FollowsRepository>(),
     communityRepository: getIt<CommunityRepository>(),
+  ));
+
+  // Saved Searches Bloc - Singleton so saved searches state persists
+  getIt.registerLazySingleton<SavedSearchesBloc>(() => SavedSearchesBloc(
+    getIt<SavedSearchRepository>(),
   ));
 
   // Sell Repository

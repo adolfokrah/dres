@@ -104,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _buildMenuItem(
                           title: l10n.savedSearches,
                           onTap: () {
-                            // TODO: Navigate to saved searches
+                            context.push('/saved-searches');
                           },
                         ),
 
