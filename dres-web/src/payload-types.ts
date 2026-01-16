@@ -4255,7 +4255,7 @@ export interface Header {
          * Display this nav item in red (e.g., for Sale)
          */
         highlighted?: boolean | null;
-        link: {
+        link?: {
           type?: ('reference' | 'custom') | null;
           newTab?: boolean | null;
           reference?:
@@ -4268,7 +4268,6 @@ export interface Header {
                 value: string | Post;
               } | null);
           url?: string | null;
-          label: string;
         };
         /**
          * Add dropdown submenu items (supports unlimited nesting)
@@ -4279,7 +4278,7 @@ export interface Header {
                * The text displayed for this menu item
                */
               label: string;
-              link: {
+              link?: {
                 type?: ('reference' | 'custom') | null;
                 newTab?: boolean | null;
                 reference?:
@@ -4292,7 +4291,6 @@ export interface Header {
                       value: string | Post;
                     } | null);
                 url?: string | null;
-                label: string;
               };
               /**
                * Highlight this item (bold/prominent in dropdown)
@@ -4304,7 +4302,7 @@ export interface Header {
               subItems?:
                 | {
                     label: string;
-                    link: {
+                    link?: {
                       type?: ('reference' | 'custom') | null;
                       newTab?: boolean | null;
                       reference?:
@@ -4317,7 +4315,6 @@ export interface Header {
                             value: string | Post;
                           } | null);
                       url?: string | null;
-                      label: string;
                     };
                     /**
                      * Add even deeper nested items (Level 3)
@@ -4325,7 +4322,7 @@ export interface Header {
                     subItems?:
                       | {
                           label: string;
-                          link: {
+                          link?: {
                             type?: ('reference' | 'custom') | null;
                             newTab?: boolean | null;
                             reference?:
@@ -4338,7 +4335,6 @@ export interface Header {
                                   value: string | Post;
                                 } | null);
                             url?: string | null;
-                            label: string;
                           };
                           id?: string | null;
                         }[]
@@ -4460,7 +4456,6 @@ export interface HeaderSelect<T extends boolean = true> {
               newTab?: T;
               reference?: T;
               url?: T;
-              label?: T;
             };
         subItems?:
           | T
@@ -4473,7 +4468,6 @@ export interface HeaderSelect<T extends boolean = true> {
                     newTab?: T;
                     reference?: T;
                     url?: T;
-                    label?: T;
                   };
               featured?: T;
               subItems?:
@@ -4487,7 +4481,6 @@ export interface HeaderSelect<T extends boolean = true> {
                           newTab?: T;
                           reference?: T;
                           url?: T;
-                          label?: T;
                         };
                     subItems?:
                       | T
@@ -4500,7 +4493,6 @@ export interface HeaderSelect<T extends boolean = true> {
                                 newTab?: T;
                                 reference?: T;
                                 url?: T;
-                                label?: T;
                               };
                           id?: T;
                         };

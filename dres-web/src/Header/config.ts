@@ -40,6 +40,7 @@ export const Header: GlobalConfig = {
         },
         link({
           appearances: false,
+          disableLabel: true,
           overrides: {
             name: 'link',
           },
@@ -64,6 +65,7 @@ export const Header: GlobalConfig = {
             },
             link({
               appearances: false,
+              disableLabel: true,
               overrides: {
                 name: 'link',
               },
@@ -94,6 +96,7 @@ export const Header: GlobalConfig = {
                 },
                 link({
                   appearances: false,
+                  disableLabel: true,
                   overrides: {
                     name: 'link',
                   },
@@ -115,6 +118,7 @@ export const Header: GlobalConfig = {
                     },
                     link({
                       appearances: false,
+                      disableLabel: true,
                       overrides: {
                         name: 'link',
                       },

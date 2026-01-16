@@ -61,7 +61,15 @@ export function ProductArchiveBlock({
     checkScrollButtons()
     // Also check after a slight delay to ensure layout is complete
     const timer = setTimeout(checkScrollButtons, 100)
-    return () => clearTimeout(timer)
+    
+    // Add resize listener
+    const handleResize = () => checkScrollButtons()
+    window.addEventListener('resize', handleResize)
+    
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('resize', handleResize)
+    }
   }, [products])
 
   const scroll = (direction: 'left' | 'right') => {

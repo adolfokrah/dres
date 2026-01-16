@@ -14,8 +14,6 @@ type Props = FeaturedGridBlockType & {
 export const FeaturedGridBlock: React.FC<Props> = ({
   title,
   items,
-  columns = '5',
-  aspectRatio = 'square',
   className,
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -41,7 +39,15 @@ export const FeaturedGridBlock: React.FC<Props> = ({
   useEffect(() => {
     checkScrollButtons()
     const timer = setTimeout(checkScrollButtons, 100)
-    return () => clearTimeout(timer)
+    
+    // Add resize listener
+    const handleResize = () => checkScrollButtons()
+    window.addEventListener('resize', handleResize)
+    
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('resize', handleResize)
+    }
   }, [items])
 
   const scroll = (direction: 'left' | 'right') => {
@@ -106,7 +112,7 @@ export const FeaturedGridBlock: React.FC<Props> = ({
                 const imageUrl = media?.url
 
                 const content = (
-                  <div key={index} className="group cursor-pointer flex-shrink-0 w-[260px]">
+                  <div key={index} className="group cursor-pointer flex-shrink-0 w-[260px] h-[300px]">
                     {/* Image Container with secondary background */}
                     <div className="relative w-full overflow-hidden bg-secondary mb-4 aspect-square">
                       {imageUrl && (

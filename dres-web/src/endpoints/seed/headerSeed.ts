@@ -15,7 +15,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
             link: {
               type: 'custom',
               url: '/discover/products?sort=newest',
-              label: 'New In',
             },
             subItems: [],
           },
@@ -26,7 +25,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
             link: {
               type: 'custom',
               url: '/designers',
-              label: 'Designers',
             },
             subItems: [],
           },
@@ -37,7 +35,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
             link: {
               type: 'custom',
               url: '/women',
-              label: 'Women',
             },
             subItems: [
               {
@@ -45,7 +42,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/women/clothing',
-                  label: 'Clothing',
                 },
                 featured: true,
                 subItems: [
@@ -54,7 +50,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/discover/products?department=women&collection=clothing&category=coats',
-                      label: 'Coats',
                     },
                   },
                   {
@@ -62,7 +57,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/women/clothing/jackets',
-                      label: 'Jackets',
                     },
                   },
                   {
@@ -70,7 +64,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/women/clothing/dresses',
-                      label: 'Dresses',
                     },
                   },
                   {
@@ -78,7 +71,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/women/clothing/tops',
-                      label: 'Tops',
                     },
                   },
                   {
@@ -86,7 +78,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/women/clothing/trousers',
-                      label: 'Trousers',
                     },
                   },
                   {
@@ -94,7 +85,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/women/clothing/skirts',
-                      label: 'Skirts',
                     },
                   },
                 ],
@@ -104,7 +94,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/women/shoes',
-                  label: 'Shoes',
                 },
                 featured: false,
                 subItems: [
@@ -113,7 +102,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/women/shoes/trainers',
-                      label: 'Trainers',
                     },
                   },
                   {
@@ -121,7 +109,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/women/shoes/boots',
-                      label: 'Boots',
                     },
                   },
                   {
@@ -129,7 +116,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/women/shoes/sandals',
-                      label: 'Sandals',
                     },
                   },
                   {
@@ -137,7 +123,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/women/shoes/heels',
-                      label: 'Heels',
                     },
                   },
                 ],
@@ -147,7 +132,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/women/bags-accessories',
-                  label: 'Bags & Accessories',
                 },
                 featured: false,
                 subItems: [
@@ -156,7 +140,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/women/bags/handbags',
-                      label: 'Handbags',
                     },
                   },
                   {
@@ -164,7 +147,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/women/bags/shoulder-bags',
-                      label: 'Shoulder Bags',
                     },
                   },
                   {
@@ -172,7 +154,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/women/bags/clutches',
-                      label: 'Clutches',
                     },
                   },
                   {
@@ -180,7 +161,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/women/accessories/jewellery',
-                      label: 'Jewellery',
                     },
                   },
                   {
@@ -188,7 +168,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/women/accessories/sunglasses',
-                      label: 'Sunglasses',
                     },
                   },
                 ],
@@ -202,7 +181,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
             link: {
               type: 'custom',
               url: '/men',
-              label: 'Men',
             },
             subItems: [
               {
@@ -210,7 +188,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/men/clothing',
-                  label: 'Clothing',
                 },
                 featured: true,
                 subItems: [
@@ -219,7 +196,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/men/clothing/coats',
-                      label: 'Coats',
                     },
                   },
                   {
@@ -227,7 +203,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/men/clothing/jackets',
-                      label: 'Jackets',
                     },
                   },
                   {
@@ -235,7 +210,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/men/clothing/shirts',
-                      label: 'Shirts',
                     },
                   },
                   {
@@ -243,7 +217,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/men/clothing/tshirts',
-                      label: 'T-shirts',
                     },
                   },
                   {
@@ -251,7 +224,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/men/clothing/trousers',
-                      label: 'Trousers',
                     },
                   },
                   {
@@ -259,7 +231,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/men/clothing/jeans',
-                      label: 'Jeans',
                     },
                   },
                 ],
@@ -269,7 +240,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/men/shoes',
-                  label: 'Shoes',
                 },
                 featured: false,
                 subItems: [
@@ -278,7 +248,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/men/shoes/trainers',
-                      label: 'Trainers',
                     },
                   },
                   {
@@ -286,7 +255,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/men/shoes/boots',
-                      label: 'Boots',
                     },
                   },
                   {
@@ -294,7 +262,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/men/shoes/formal',
-                      label: 'Formal Shoes',
                     },
                   },
                 ],
@@ -304,7 +271,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/men/accessories',
-                  label: 'Accessories',
                 },
                 featured: false,
                 subItems: [
@@ -313,7 +279,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/men/accessories/bags',
-                      label: 'Bags',
                     },
                   },
                   {
@@ -321,7 +286,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/men/accessories/watches',
-                      label: 'Watches',
                     },
                   },
                   {
@@ -329,7 +293,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                     link: {
                       type: 'custom',
                       url: '/men/accessories/sunglasses',
-                      label: 'Sunglasses',
                     },
                   },
                 ],
@@ -343,7 +306,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
             link: {
               type: 'custom',
               url: '/discover/products?featured=true',
-              label: 'We Love',
             },
             subItems: [],
           },
@@ -354,7 +316,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
             link: {
               type: 'custom',
               url: '/discover/products?vintage=true',
-              label: 'Vintage',
             },
             subItems: [],
           },
@@ -365,7 +326,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
             link: {
               type: 'custom',
               url: '/discover/products?collection=bags',
-              label: 'Bags',
             },
             subItems: [
               {
@@ -373,7 +333,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/bags/handbags',
-                  label: 'Handbags',
                 },
                 featured: false,
               },
@@ -382,7 +341,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/bags/shoulder-bags',
-                  label: 'Shoulder Bags',
                 },
                 featured: false,
               },
@@ -391,7 +349,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/bags/crossbody',
-                  label: 'Crossbody Bags',
                 },
                 featured: false,
               },
@@ -400,7 +357,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/bags/tote',
-                  label: 'Tote Bags',
                 },
                 featured: false,
               },
@@ -409,7 +365,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/bags/backpacks',
-                  label: 'Backpacks',
                 },
                 featured: false,
               },
@@ -422,7 +377,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
             link: {
               type: 'custom',
               url: '/discover/products?collection=watches-jewellery',
-              label: 'Watches & Jewellery',
             },
             subItems: [
               {
@@ -430,7 +384,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/watches',
-                  label: 'Watches',
                 },
                 featured: true,
               },
@@ -439,7 +392,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/jewellery/necklaces',
-                  label: 'Necklaces',
                 },
                 featured: false,
               },
@@ -448,7 +400,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/jewellery/bracelets',
-                  label: 'Bracelets',
                 },
                 featured: false,
               },
@@ -457,7 +408,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/jewellery/rings',
-                  label: 'Rings',
                 },
                 featured: false,
               },
@@ -466,7 +416,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/jewellery/earrings',
-                  label: 'Earrings',
                 },
                 featured: false,
               },
@@ -479,7 +428,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
             link: {
               type: 'custom',
               url: '/kids',
-              label: 'Children',
             },
             subItems: [
               {
@@ -487,7 +435,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/kids/girls',
-                  label: 'Girls',
                 },
                 featured: false,
               },
@@ -496,7 +443,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/kids/boys',
-                  label: 'Boys',
                 },
                 featured: false,
               },
@@ -505,7 +451,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
                 link: {
                   type: 'custom',
                   url: '/kids/baby',
-                  label: 'Baby',
                 },
                 featured: false,
               },
@@ -518,7 +463,6 @@ export const seedHeader = async (payload: Payload): Promise<void> => {
             link: {
               type: 'custom',
               url: '/discover/products?sale=true',
-              label: 'Sale',
             },
             subItems: [],
           },
