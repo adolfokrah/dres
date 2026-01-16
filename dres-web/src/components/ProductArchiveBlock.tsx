@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import { useState, useRef, useEffect } from 'react'
+import { CaretLeft, CaretRight } from '@phosphor-icons/react'
 import { ProductCard } from './ProductCard'
 
 interface Product {
@@ -9,13 +11,14 @@ interface Product {
   brand: string | null
   category: string | null
   title: string
-  price: number
+  sellingPrice: number
   compareAtPrice?: number
   currency: {
     code: string
     symbol: string
   } | null
   slug: string
+  showWeLoveBadge?: boolean
 }
 
 interface ProductArchiveBlockProps {
@@ -39,37 +42,117 @@ export function ProductArchiveBlock({
   favoritedProducts = new Set(),
   className = '',
 }: ProductArchiveBlockProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  const checkScrollButtons = () => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    setCanScrollLeft(container.scrollLeft > 0)
+    setCanScrollRight(
+      container.scrollLeft < container.scrollWidth - container.clientWidth - 10
+    )
+  }
+
+  // Check scroll buttons on mount and when products change
+  useEffect(() => {
+    checkScrollButtons()
+    // Also check after a slight delay to ensure layout is complete
+    const timer = setTimeout(checkScrollButtons, 100)
+    return () => clearTimeout(timer)
+  }, [products])
+
+  const scroll = (direction: 'left' | 'right') => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const scrollAmount = 300
+    const targetScroll =
+      direction === 'left'
+        ? container.scrollLeft - scrollAmount
+        : container.scrollLeft + scrollAmount
+
+    container.scrollTo({
+      left: targetScroll,
+      behavior: 'smooth',
+    })
+
+    // Update button states after scroll
+    setTimeout(checkScrollButtons, 300)
+  }
+
   return (
-    <section className={`py-8 md:py-12 ${className}`}>
+    <section className={`py-8 ${className}`}>
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="mb-6 md:mb-8">
-          <div className="flex items-baseline justify-between mb-2">
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-serif">
-              {title}
-            </h2>
-            {seeAllLink && (
-              <Link
-                href={seeAllLink}
-                className="text-sm md:text-base border border-black px-6 py-2 hover:bg-black hover:text-white transition-colors duration-200"
-              >
-                {seeAllText}
-              </Link>
-            )}
-          </div>
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-2xl md:text-3xl lg:text-4xl font-normal font-serif">
+            {title}
+          </h2>
+          {seeAllLink && (
+            <Link
+              href={seeAllLink}
+              className="text-sm md:text-base border border-black px-6 py-2 hover:bg-black hover:text-white transition-colors duration-200 no-underline"
+            >
+              {seeAllText}
+            </Link>
+          )}
         </div>
 
-        {/* Products Grid */}
+        {/* Products Horizontal Scroll */}
         {products && products.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                {...product}
-                onFavoriteToggle={onFavoriteToggle}
-                isFavorited={favoritedProducts.has(product.id)}
-              />
-            ))}
+          <div className="relative">
+            {/* Scroll Buttons */}
+            {canScrollLeft && (
+              <button
+                onClick={() => scroll('left')}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 p-2 hover:bg-gray-50 transition-colors"
+                aria-label="Scroll left"
+              >
+                <CaretLeft size={24} weight="bold" />
+              </button>
+            )}
+
+            {canScrollRight && (
+              <button
+                onClick={() => scroll('right')}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 p-2 hover:bg-gray-50 transition-colors"
+                aria-label="Scroll right"
+              >
+                <CaretRight size={24} weight="bold" />
+              </button>
+            )}
+
+            {/* Scrollable Container */}
+            <div
+              ref={scrollContainerRef}
+              onScroll={checkScrollButtons}
+              className="overflow-x-auto scrollbar-hide -mx-4 px-4"
+            >
+              <div className="flex">
+                {products.map((product, index) => (
+                  <div key={product.id} className="flex-shrink-0 w-[280px]">
+                    <ProductCard
+                      id={product.id}
+                      thumbnail={product.thumbnail}
+                      brand={product.brand}
+                      category={product.category}
+                      title={product.title}
+                      price={product.sellingPrice}
+                      compareAtPrice={product.compareAtPrice}
+                      currency={product.currency}
+                      slug={product.slug}
+                      featured={product.showWeLoveBadge}
+                      onFavoriteToggle={onFavoriteToggle}
+                      isFavorited={favoritedProducts.has(product.id)}
+                      isFirst={index === 0}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           <div className="text-center py-12 text-gray-500">

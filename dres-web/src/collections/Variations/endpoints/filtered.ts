@@ -2,6 +2,11 @@ import type { PayloadHandler } from 'payload'
 import { ObjectId } from 'mongodb'
 import { getUserCountryInfo } from '../../../utilities/countryUtils'
 import { resolveDepartmentId } from '../../../utilities/departmentUtils'
+import { 
+  resolveCategoryId, 
+  resolveCollectionId, 
+  resolveBrandId 
+} from '../../../utilities/slugCache'
 
 // Helper to safely convert a string to ObjectId
 const toObjectId = (id: string | undefined | null): ObjectId | null => {
@@ -113,9 +118,12 @@ export const filteredVariations: PayloadHandler = async (req) => {
     page = 1
   } = req.query
 
-  // Run initial async operations in parallel
-  const [department, userCountry] = await Promise.all([
+  // Run initial async operations in parallel (resolve slugs to IDs)
+  const [department, categoryId, collectionId, brandId, userCountry] = await Promise.all([
     resolveDepartmentId(payload, departmentParam as string | undefined),
+    resolveCategoryId(payload, category as string | undefined),
+    resolveCollectionId(payload, collection as string | undefined),
+    resolveBrandId(payload, brand as string | undefined),
     getUserCountryInfo(req)
   ])
 
@@ -240,28 +248,28 @@ export const filteredVariations: PayloadHandler = async (req) => {
     // ============================================
     const matchConditions: any = {}
 
-    // Department filter
+    // Department filter (already resolved from slug/id)
     if (department) {
       const deptId = toObjectId(department)
       if (deptId) matchConditions['styleData.department'] = deptId
     }
 
-    // Collection filter
-    if (collection) {
-      const collId = toObjectId(collection as string)
+    // Collection filter (already resolved from slug/id)
+    if (collectionId) {
+      const collId = toObjectId(collectionId)
       if (collId) matchConditions['styleData.collection'] = collId
     }
 
-    // Category filter
-    if (category) {
-      const catId = toObjectId(category as string)
+    // Category filter (already resolved from slug/id)
+    if (categoryId) {
+      const catId = toObjectId(categoryId)
       if (catId) matchConditions['styleData.category'] = catId
     }
 
-    // Brand filter
-    if (brand) {
-      const brandId = toObjectId(brand as string)
-      if (brandId) matchConditions['styleData.brand'] = brandId
+    // Brand filter (already resolved from slug/id)
+    if (brandId) {
+      const brId = toObjectId(brandId)
+      if (brId) matchConditions['styleData.brand'] = brId
     }
 
     // Country filter

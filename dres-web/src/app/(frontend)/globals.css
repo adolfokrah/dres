@@ -153,18 +153,31 @@
   * {
     @apply border-border;
   }
-  
+
   html {
     font-family: 'HelveticaNow', 'Helvetica', 'Arial', sans-serif;
   }
-  
+
   body {
     @apply bg-background text-foreground min-h-[100vh] flex flex-col font-sans;
   }
-  
+
   /* Apply serif font to headings */
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Albra', 'Georgia', serif;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
   }
 }
 

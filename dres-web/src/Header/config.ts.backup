@@ -22,6 +22,18 @@ export const Header: GlobalConfig = {
       },
       fields: [
         {
+          name: 'type',
+          type: 'select',
+          required: true,
+          defaultValue: 'link',
+          options: [
+            { label: 'Simple Link', value: 'link' },
+            { label: 'Department Mega Menu', value: 'department' },
+            { label: 'Collection Mega Menu', value: 'collection' },
+            { label: 'Custom Mega Menu', value: 'custom' },
+          ],
+        },
+        {
           name: 'label',
           type: 'text',
           required: true,
@@ -38,54 +50,58 @@ export const Header: GlobalConfig = {
             description: 'Display this nav item in red (e.g., for Sale)',
           },
         },
+        // Simple Link Fields
         link({
           appearances: false,
           overrides: {
-            name: 'link',
+            admin: {
+              condition: (data, siblingData) => siblingData?.type === 'link',
+            },
           },
         }),
-        // Nested submenu items with unlimited depth
+        // Department Mega Menu Fields
         {
-          name: 'subItems',
-          type: 'array',
-          label: 'Sub Menu Items',
+          name: 'department',
+          type: 'relationship',
+          relationTo: 'departments',
           admin: {
-            description: 'Add dropdown submenu items (supports unlimited nesting)',
+            description: 'Select a department to show its categories and collections',
+            condition: (data, siblingData) => siblingData?.type === 'department',
+          },
+        },
+        // Collection Mega Menu Fields
+        {
+          name: 'collections',
+          type: 'relationship',
+          relationTo: 'collections',
+          hasMany: true,
+          admin: {
+            description: 'Select collections to display in the mega menu',
+            condition: (data, siblingData) => siblingData?.type === 'collection',
+          },
+        },
+        // Custom Mega Menu Fields
+        {
+          name: 'megaMenuSections',
+          type: 'array',
+          label: 'Mega Menu Sections',
+          admin: {
+            description: 'Create custom sections for the mega menu',
+            condition: (data, siblingData) => siblingData?.type === 'custom',
             initCollapsed: true,
           },
           fields: [
             {
-              name: 'label',
+              name: 'title',
               type: 'text',
               required: true,
               admin: {
-                description: 'The text displayed for this menu item',
+                description: 'Section heading (e.g., "CLOTHES", "SHOES")',
               },
             },
-            link({
-              appearances: false,
-              overrides: {
-                name: 'link',
-              },
-            }),
             {
-              name: 'featured',
-              type: 'checkbox',
-              label: 'Featured Item',
-              defaultValue: false,
-              admin: {
-                description: 'Highlight this item (bold/prominent in dropdown)',
-              },
-            },
-            // Level 2 nesting
-            {
-              name: 'subItems',
+              name: 'links',
               type: 'array',
-              label: 'Nested Sub Items',
-              admin: {
-                description: 'Add deeper nested items (Level 2)',
-                initCollapsed: true,
-              },
               fields: [
                 {
                   name: 'label',
@@ -95,32 +111,9 @@ export const Header: GlobalConfig = {
                 link({
                   appearances: false,
                   overrides: {
-                    name: 'link',
+                    name: 'linkDetails',
                   },
                 }),
-                // Level 3 nesting
-                {
-                  name: 'subItems',
-                  type: 'array',
-                  label: 'Deeply Nested Items',
-                  admin: {
-                    description: 'Add even deeper nested items (Level 3)',
-                    initCollapsed: true,
-                  },
-                  fields: [
-                    {
-                      name: 'label',
-                      type: 'text',
-                      required: true,
-                    },
-                    link({
-                      appearances: false,
-                      overrides: {
-                        name: 'link',
-                      },
-                    }),
-                  ],
-                },
               ],
             },
           ],

@@ -25,8 +25,6 @@ import { BlocksFeatureClient as BlocksFeatureClient_e70f5e05f09f93e00b997edb1ef0
 import { CartItemRowLabel as CartItemRowLabel_f37846a404dfa3b1fda913cfd9c158c7 } from '@/collections/Carts/CartItemRowLabel'
 import { OrderStatusCell as OrderStatusCell_3cf9bc711e5a4728b25e52d197ce9223 } from '@/collections/Orders/OrderStatusCell'
 import { default as default_9bda558c2d145faf35b6ca2059588b01 } from '@/collections/Orders/components/CommissionBreakdownTable'
-import { LinkToDoc as LinkToDoc_aead06e4cbf6b2620c5c51c9ab283634 } from '@payloadcms/plugin-search/client'
-import { ReindexButton as ReindexButton_aead06e4cbf6b2620c5c51c9ab283634 } from '@payloadcms/plugin-search/client'
 import { FolderTypeField as FolderTypeField_3817bf644402e67bfe6577f60ef982de } from '@payloadcms/ui'
 import { RowLabel as RowLabel_ec255a65fa6fa8d1faeb09cf35284224 } from '@/Header/RowLabel'
 import { RowLabel as RowLabel_1f6ff6ff633e3695d348f4f3c58f1466 } from '@/Footer/RowLabel'
@@ -62,8 +60,6 @@ export const importMap = {
   "@/collections/Carts/CartItemRowLabel#CartItemRowLabel": CartItemRowLabel_f37846a404dfa3b1fda913cfd9c158c7,
   "@/collections/Orders/OrderStatusCell#OrderStatusCell": OrderStatusCell_3cf9bc711e5a4728b25e52d197ce9223,
   "@/collections/Orders/components/CommissionBreakdownTable#default": default_9bda558c2d145faf35b6ca2059588b01,
-  "@payloadcms/plugin-search/client#LinkToDoc": LinkToDoc_aead06e4cbf6b2620c5c51c9ab283634,
-  "@payloadcms/plugin-search/client#ReindexButton": ReindexButton_aead06e4cbf6b2620c5c51c9ab283634,
   "@payloadcms/ui#FolderTypeField": FolderTypeField_3817bf644402e67bfe6577f60ef982de,
   "@/Header/RowLabel#RowLabel": RowLabel_ec255a65fa6fa8d1faeb09cf35284224,
   "@/Footer/RowLabel#RowLabel": RowLabel_1f6ff6ff633e3695d348f4f3c58f1466,

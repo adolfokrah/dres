@@ -12,10 +12,10 @@ export const CallToActionBlock: React.FC<CTABlockProps> = ({
 }) => {
   return (
     <div className="container my-16">
-      <div className="flex flex-col md:flex-row h-auto md:h-[172px] overflow-hidden">
+      <div className="flex flex-col md:flex-row h-auto overflow-hidden">
         {/* Left: Image */}
         {image && typeof image === 'object' && (
-          <div className="w-full md:w-[128px] h-[200px] md:h-full flex-shrink-0">
+          <div className="w-full md:w-[190px] md:h-full flex-shrink-0">
             <Media
               resource={image}
               className="object-cover w-full h-full"
@@ -25,9 +25,9 @@ export const CallToActionBlock: React.FC<CTABlockProps> = ({
         )}
         
         {/* Right: Content with Black Background */}
-        <div className="flex flex-col items-start justify-start gap-3.5 p-8 md:px-[18px] md:py-8 bg-black flex-1">
+        <div className="flex flex-col items-start justify-center gap-3 p-6 md:px-10 md:py-8 bg-black flex-1">
           {title && (
-            <h2 className="text-2xl md:text-[24px] leading-[33px] font-normal text-white w-full">
+            <h2 className="text-2xl md:text-4xl leading-tight font-normal font-serif text-white w-full">
               {title}
             </h2>
           )}
@@ -35,16 +35,16 @@ export const CallToActionBlock: React.FC<CTABlockProps> = ({
           {buttonText && buttonLink && (
             <a
               href={buttonLink}
-              className="inline-flex items-center gap-0 text-white text-base font-bold hover:gap-2 transition-all"
+              className="inline-flex items-center gap-1 text-white text-base font-normal underline underline-offset-4 hover:gap-2 transition-all"
             >
               {buttonText}
               <svg
-                width="23"
-                height="16"
+                width="20"
+                height="20"
                 viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                className="ml-2"
+                className="ml-1"
               >
                 <path
                   d="M5 12H19M19 12L12 5M19 12L12 19"

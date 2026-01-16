@@ -11,6 +11,7 @@ import { seedDepartments } from './departments'
 import { seedRegionsAndCities } from './locations'
 import { seedMenHomePage } from './menHomePage'
 import { seedWomenHomePage } from './womenHomePage'
+import { seedHeader } from './headerSeed'
 
 /**
  * Protected seed endpoint - requires admin authentication
@@ -56,6 +57,7 @@ export const seedEndpoint: PayloadHandler = async (req) => {
         await seedBoostTiers(payload)
         await seedMenHomePage(payload)
         await seedWomenHomePage(payload)
+        await seedHeader(payload)
         break
       case 'currencies':
         await seedCurrencies(payload)
@@ -99,6 +101,9 @@ export const seedEndpoint: PayloadHandler = async (req) => {
         break
       case 'boost-tiers':
         await seedBoostTiers(payload)
+        break
+      case 'header':
+        await seedHeader(payload)
         break
       default:
         return Response.json(

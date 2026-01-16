@@ -7,13 +7,14 @@ interface Product {
   brand: string | null
   category: string | null
   title: string
-  price: number
+  sellingPrice: number
   compareAtPrice?: number
   currency: {
     code: string
     symbol: string
   } | null
   slug: string
+  showWeLoveBadge?: boolean
 }
 
 export default async function ProductArchiveBlockComponent({ 

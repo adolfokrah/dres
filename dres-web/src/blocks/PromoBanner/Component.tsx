@@ -2,7 +2,7 @@ import React from 'react'
 import { cn } from '@/utilities/ui'
 import type { PromoBannerBlock as PromoBannerBlockType } from '@/payload-types'
 import { CMSLink } from '@/components/Link'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight } from '@phosphor-icons/react/dist/ssr'
 
 type Props = PromoBannerBlockType & {
   className?: string
@@ -16,7 +16,7 @@ export const PromoBannerBlock: React.FC<Props> = ({
   className,
 }) => {
   const bgColors: Record<string, string> = {
-    light: 'bg-gray-100',
+    light: 'bg-[#F7F7F7]',
     white: 'bg-white',
     info: 'bg-[#9DE5F4]',
     success: 'bg-[#ACF8BF]',
@@ -27,28 +27,31 @@ export const PromoBannerBlock: React.FC<Props> = ({
   const bgColor = backgroundColor ?? 'light'
 
   return (
-    <div className={cn('w-full py-6 px-6', bgColors[bgColor], className)}>
-      <div className="max-w-7xl mx-auto">
-        {/* Title */}
-        <h2 className="text-2xl md:text-3xl font-medium mb-2 text-black">
-          {title}
-        </h2>
+    <div className={cn('w-full py-6', className)}>
+      <div className="container mx-auto px-4">
+        <div className={cn('py-8 px-8', bgColors[bgColor])}>
+          {/* Title - Serif font */}
+          <h2 className="text-3xl md:text-4xl font-normal font-serif text-[#1A1A1A] mb-2">
+            {title}
+          </h2>
 
-        {/* Description */}
-        <p className="text-sm md:text-base mb-3 text-black opacity-90">
-          {description}
-        </p>
+          {/* Description */}
+          <p className="text-base md:text-lg text-[#1A1A1A] mb-4 font-sans">
+            {description}
+          </p>
 
-        {/* Action Link */}
-        {actionLink && (
-          <CMSLink
-            {...actionLink}
-            className="inline-flex items-center gap-2 font-bold text-sm md:text-base group text-black"
-          >
-            {actionLink.label}
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </CMSLink>
-        )}
+          {/* Action Link */}
+          {actionLink && (
+            <CMSLink
+              {...actionLink}
+              label={null}
+              className="inline-flex items-center gap-2 font-semibold text-base text-[#1A1A1A] group underline hover:underline"
+            >
+              {actionLink.label}
+              <ArrowRight size={20} weight="bold" className="transition-transform group-hover:translate-x-1" />
+            </CMSLink>
+          )}
+        </div>
       </div>
     </div>
   )

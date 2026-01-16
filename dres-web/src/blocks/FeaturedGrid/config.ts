@@ -52,11 +52,12 @@ export const FeaturedGrid: Block = {
     {
       name: 'columns',
       type: 'select',
-      defaultValue: '3',
+      defaultValue: '5',
       options: [
         { label: '2 Columns', value: '2' },
         { label: '3 Columns', value: '3' },
         { label: '4 Columns', value: '4' },
+        { label: '5 Columns', value: '5' },
       ],
       admin: {
         description: 'Number of columns on desktop',

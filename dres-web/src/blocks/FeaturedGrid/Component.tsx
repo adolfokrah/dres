@@ -1,8 +1,11 @@
-import React from 'react'
+'use client'
+
+import React, { useState, useRef, useEffect } from 'react'
 import { cn } from '@/utilities/ui'
 import type { FeaturedGridBlock as FeaturedGridBlockType, Media } from '@/payload-types'
 import Link from 'next/link'
 import Image from 'next/image'
+import { CaretLeft, CaretRight } from '@phosphor-icons/react'
 
 type Props = FeaturedGridBlockType & {
   className?: string
@@ -11,15 +14,13 @@ type Props = FeaturedGridBlockType & {
 export const FeaturedGridBlock: React.FC<Props> = ({
   title,
   items,
-  columns = '3',
+  columns = '5',
   aspectRatio = 'square',
   className,
 }) => {
-  const columnClasses: Record<string, string> = {
-    '2': 'grid-cols-2',
-    '3': 'grid-cols-2 md:grid-cols-3',
-    '4': 'grid-cols-2 md:grid-cols-4',
-  }
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
 
   const aspectClasses: Record<string, string> = {
     square: 'aspect-square',
@@ -27,56 +28,116 @@ export const FeaturedGridBlock: React.FC<Props> = ({
     landscape: 'aspect-[4/3]',
   }
 
+  const checkScrollButtons = () => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    setCanScrollLeft(container.scrollLeft > 0)
+    setCanScrollRight(
+      container.scrollLeft < container.scrollWidth - container.clientWidth - 10
+    )
+  }
+
+  useEffect(() => {
+    checkScrollButtons()
+    const timer = setTimeout(checkScrollButtons, 100)
+    return () => clearTimeout(timer)
+  }, [items])
+
+  const scroll = (direction: 'left' | 'right') => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const scrollAmount = 400
+    const targetScroll =
+      direction === 'left'
+        ? container.scrollLeft - scrollAmount
+        : container.scrollLeft + scrollAmount
+
+    container.scrollTo({
+      left: targetScroll,
+      behavior: 'smooth',
+    })
+
+    setTimeout(checkScrollButtons, 300)
+  }
+
   return (
-    <div className={cn('w-full py-8 px-4', className)}>
-      <div className="max-w-7xl mx-auto">
+    <div className={cn('w-full py-8', className)}>
+      <div className="container mx-auto px-4">
         {/* Title */}
         {title && (
-          <h2 className="text-2xl md:text-3xl font-medium mb-6">
+          <h2 className="text-3xl md:text-4xl font-normal mb-6 text-left">
             {title}
           </h2>
         )}
 
-        {/* Grid */}
-        <div className={cn('grid gap-4', columnClasses[columns ?? '3'])}>
-          {items?.map((item, index) => {
-            const media = item.image as Media
-            const imageUrl = media?.url
+        {/* Horizontal Scrollable Grid */}
+        <div className="relative -mx-4">
+          {/* Scroll Buttons */}
+          {canScrollLeft && (
+            <button
+              onClick={() => scroll('left')}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 p-2 hover:bg-gray-50 transition-colors shadow-sm"
+              aria-label="Scroll left"
+            >
+              <CaretLeft size={20} weight="bold" />
+            </button>
+          )}
 
-            const content = (
-              <div key={index} className="group cursor-pointer">
-                {/* Image Container */}
-                <div className={cn(
-                  'relative w-full overflow-hidden bg-gray-100',
-                  aspectClasses[aspectRatio ?? 'square']
-                )}>
-                  {imageUrl && (
-                    <Image
-                      src={imageUrl}
-                      alt={item.label || ''}
-                      fill
-                      className="object-cover object-center transition-transform duration-300 group-hover:scale-105"
-                    />
-                  )}
-                </div>
+          {canScrollRight && (
+            <button
+              onClick={() => scroll('right')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white border border-gray-200 p-2 hover:bg-gray-50 transition-colors shadow-sm"
+              aria-label="Scroll right"
+            >
+              <CaretRight size={20} weight="bold" />
+            </button>
+          )}
 
-                {/* Label */}
-                <p className="mt-3 text-center text-sm font-semibold uppercase tracking-wide">
-                  {item.label}
-                </p>
-              </div>
-            )
+          <div
+            ref={scrollContainerRef}
+            onScroll={checkScrollButtons}
+            className="overflow-x-auto scrollbar-hide px-4"
+          >
+            <div className="flex gap-4 pb-2">
+              {items?.map((item, index) => {
+                const media = item.image as Media
+                const imageUrl = media?.url
 
-            if (item.link) {
-              return (
-                <Link href={item.link} key={index}>
-                  {content}
-                </Link>
-              )
-            }
+                const content = (
+                  <div key={index} className="group cursor-pointer flex-shrink-0 w-[260px]">
+                    {/* Image Container with secondary background */}
+                    <div className="relative w-full overflow-hidden bg-secondary mb-4 aspect-square">
+                      {imageUrl && (
+                        <Image
+                          src={imageUrl}
+                          alt={item.label || ''}
+                          fill
+                          className="object-contain object-center transition-transform duration-300 group-hover:scale-105 p-4"
+                        />
+                      )}
+                    </div>
 
-            return content
-          })}
+                    {/* Label */}
+                    <p className="text-center text-xs font-normal uppercase tracking-wider text-gray-900">
+                      {item.label}
+                    </p>
+                  </div>
+                )
+
+                if (item.link) {
+                  return (
+                    <Link href={item.link} key={index} className="no-underline">
+                      {content}
+                    </Link>
+                  )
+                }
+
+                return content
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </div>

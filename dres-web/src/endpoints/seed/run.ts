@@ -13,6 +13,7 @@ import { seedDepartments } from './departments'
 import { seedRegionsAndCities } from './locations'
 import { seedMenHomePage } from './menHomePage'
 import { seedWomenHomePage } from './womenHomePage'
+import { seedHeader } from './headerSeed'
 
 const runSeed = async () => {
   const payload = await getPayload({ config })
@@ -34,6 +35,7 @@ const runSeed = async () => {
     await seedBoostTiers(payload)
     await seedMenHomePage(payload)
     await seedWomenHomePage(payload)
+    await seedHeader(payload)
   } else {
     // Run specific seeds based on arguments (supports multiple: pnpm seed men-home women-home)
     if (args.includes('currencies')) {
@@ -72,6 +74,9 @@ const runSeed = async () => {
     }
     if (args.includes('women-home')) {
       await seedWomenHomePage(payload)
+    }
+    if (args.includes('header')) {
+      await seedHeader(payload)
     }
   }
 
