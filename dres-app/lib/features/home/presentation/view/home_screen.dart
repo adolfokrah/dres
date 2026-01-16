@@ -144,7 +144,12 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                   children: [
                     // Render blocks from CMS with unique keys
                     ...page.layout.asMap().entries.map(
-                      (entry) => _buildBlock(context, entry.value, entry.key),
+                      (entry) => Padding(
+                        padding: EdgeInsets.only(
+                          bottom: entry.key < page.layout.length - 1 ? 16 : 0,
+                        ),
+                        child: _buildBlock(context, entry.value, entry.key),
+                      ),
                     ),
                   ],
                 ),

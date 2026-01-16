@@ -21,9 +21,9 @@ class AppColors {
   static const Color textHint = Color(0xFF999999);
   static const Color textOnPrimary = Color(0xFFFFFFFF);
 
-  // Status colors
-  static const Color success = Color(0xFF4CAF50);
-  static const Color error = Color(0xFFE53935);
+  // Status colors (matching web promo banner colors)
+  static const Color success = Color(0xFFACF8BF);
+  static const Color error = Color(0xFFF8ACAC);
   static const Color warning = Color(0xFFF4D39D);
   static const Color info = Color(0xFF9DE5F4);
 

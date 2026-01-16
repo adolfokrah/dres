@@ -42,10 +42,18 @@ class PromoBanner extends StatelessWidget {
     }
   }
 
+  Color _getTextColor() {
+    // All backgrounds are pastel/light so use dark text
+    return AppColors.textPrimary;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final textColor = _getTextColor();
+    
     return Container(
       width: double.infinity,
+      margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: _getBackgroundColor(),
@@ -58,7 +66,7 @@ class PromoBanner extends StatelessWidget {
           Text(
             title,
             style: AppTypography.titleXL.copyWith(
-              color: AppColors.textPrimary,
+              color: textColor,
               fontSize: 28,
               fontWeight: FontWeight.w500,
             ),
@@ -68,7 +76,7 @@ class PromoBanner extends StatelessWidget {
           Text(
             description,
             style: AppTypography.bodyL.copyWith(
-              color: AppColors.textPrimary,
+              color: textColor,
               fontSize: 17,
             ),
           ),
@@ -89,7 +97,7 @@ class PromoBanner extends StatelessWidget {
                   Text(
                     actionLabel!,
                     style: AppTypography.bodyL.copyWith(
-                      color: AppColors.textPrimary,
+                      color: textColor,
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                     ),
@@ -97,7 +105,7 @@ class PromoBanner extends StatelessWidget {
                   const SizedBox(width: 8),
                   PhosphorIcon(
                     PhosphorIcons.arrowRight(),
-                    color: AppColors.textPrimary,
+                    color: textColor,
                     size: 22,
                   ),
                 ],
