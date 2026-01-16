@@ -208,11 +208,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         // Convert backend paths to app paths
         final convertedPath = _convertPath(path);
         debugPrint('Converted path: $convertedPath');
-        context.push(convertedPath);
+        
+        // Use go for shell/tab routes, push for others
+        if (_isShellRoute(convertedPath)) {
+          context.go(convertedPath);
+        } else {
+          context.push(convertedPath);
+        }
       } catch (e) {
         debugPrint('Failed to navigate to path: $path, error: $e');
       }
     }
+  }
+
+  /// Check if path is a shell/tab route that requires go() instead of push()
+  bool _isShellRoute(String path) {
+    final shellRoutes = ['/home', '/discover', '/sell', '/favourite', '/profile'];
+    return shellRoutes.any((route) => path == route || path.startsWith('$route/'));
   }
 
   /// Convert backend paths to app paths

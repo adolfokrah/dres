@@ -344,13 +344,22 @@ class PushNotificationService {
       final skuId = skuMatch.group(3)!;
       final convertedPath = '/sku-detail/$styleId/$variationId/$skuId';
       debugPrint('🔔 Converted path: $convertedPath');
-      // Use go() to navigate to the outside-shell route
-      AppRoutes.router.go(convertedPath);
+      // Use push() to add to stack so user can go back
+      AppRoutes.router.push(convertedPath);
       return;
     }
 
-    // For other routes, use standard go()
-    AppRoutes.router.go(path);
+    // Shell/tab routes need go() to switch tabs properly
+    final shellRoutes = ['/home', '/discover', '/sell', '/favourite', '/profile'];
+    final isShellRoute = shellRoutes.any((route) => path == route);
+    
+    if (isShellRoute) {
+      // Use go() for shell routes to switch tabs
+      AppRoutes.router.go(path);
+    } else {
+      // Use push() for other routes so user can go back
+      AppRoutes.router.push(path);
+    }
   }
 
   /// Subscribe to a topic

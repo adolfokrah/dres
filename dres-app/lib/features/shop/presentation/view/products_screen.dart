@@ -145,7 +145,13 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
         child: SafeArea(
           child: UnifiedHeader.simple(
             title: '',
-            onBackTap: () => context.pop(),
+            onBackTap: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
           ),
         ),
       ),

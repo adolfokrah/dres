@@ -1,16 +1,31 @@
 import type { CollectionBeforeChangeHook } from 'payload'
 import { UTApi } from 'uploadthing/server'
+import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3'
 
-// Check if we're using UploadThing
-const isUsingUploadThing = () => {
-  if (process.env.FORCE_UPLOADTHING === 'true') return !!process.env.UPLOADTHING_TOKEN
-  return process.env.NODE_ENV === 'production' && !!process.env.UPLOADTHING_TOKEN
+// Check storage type
+const getStorageType = (): 'S3' | 'uploadthing' | 'local' => {
+  if (process.env.AWS_S3_BUCKET_NAME) return 'S3'
+  if (process.env.UPLOADTHING_TOKEN) return 'uploadthing'
+  return 'local'
 }
 
 // Initialize UploadThing API client
 const getUploadThingClient = () => {
   return new UTApi({
     token: process.env.UPLOADTHING_TOKEN,
+  })
+}
+
+// Initialize S3 client
+const getS3Client = () => {
+  return new S3Client({
+    region: process.env.AWS_DEFAULT_REGION || 'us-east-1',
+    endpoint: process.env.AWS_ENDPOINT_URL,
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+    },
+    forcePathStyle: true,
   })
 }
 
@@ -29,13 +44,33 @@ function extractUploadThingFileKey(url: string): string | null {
   }
 }
 
+/**
+ * Extract S3 key from URL
+ */
+function extractS3Key(url: string): string | null {
+  try {
+    // URL format: https://storage.railway.app/bucket-name/key
+    const bucketName = process.env.AWS_S3_BUCKET_NAME
+    if (!bucketName) return null
+    
+    const regex = new RegExp(`/${bucketName}/(.+)$`)
+    const match = url.match(regex)
+    if (match && match[1]) {
+      return match[1]
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
 interface ImageRelation {
   image?: string | { id: string; url?: string }
 }
 
 /**
- * Hook to delete images from UploadThing when removed from a variation
- * Compares previous images with new images and deletes any that were removed
+ * Hook to delete images from storage when removed from a variation
+ * Supports S3, UploadThing, and local storage
  */
 export const deleteRemovedImages: CollectionBeforeChangeHook = async ({
   data,
@@ -43,8 +78,10 @@ export const deleteRemovedImages: CollectionBeforeChangeHook = async ({
   req,
   operation,
 }) => {
-  // Only process on update when using UploadThing
-  if (operation !== 'update' || !isUsingUploadThing()) {
+  const storageType = getStorageType()
+  
+  // Only process on update when using cloud storage
+  if (operation !== 'update' || storageType === 'local') {
     return data
   }
 
@@ -82,9 +119,6 @@ export const deleteRemovedImages: CollectionBeforeChangeHook = async ({
 
   req.payload.logger.info(`Detected ${removedImageIds.length} removed image(s) from variation`)
 
-  // Fetch the media documents to get their URLs
-  const utapi = getUploadThingClient()
-  
   for (const imageId of removedImageIds) {
     try {
       const mediaDoc = await req.payload.findByID({
@@ -94,14 +128,33 @@ export const deleteRemovedImages: CollectionBeforeChangeHook = async ({
       })
 
       if (mediaDoc?.url) {
-        const fileKey = extractUploadThingFileKey(mediaDoc.url)
-        if (fileKey) {
-          req.payload.logger.info(`Deleting image from UploadThing: ${fileKey}`)
-          try {
-            await utapi.deleteFiles([fileKey])
-            req.payload.logger.info(`Deleted image from UploadThing: ${fileKey}`)
-          } catch (deleteError) {
-            req.payload.logger.warn(`Failed to delete image from UploadThing: ${fileKey} - ${deleteError}`)
+        // Delete from storage based on type
+        if (storageType === 'S3') {
+          const s3Key = extractS3Key(mediaDoc.url)
+          if (s3Key) {
+            req.payload.logger.info(`Deleting image from S3: ${s3Key}`)
+            try {
+              const s3Client = getS3Client()
+              await s3Client.send(new DeleteObjectCommand({
+                Bucket: process.env.AWS_S3_BUCKET_NAME,
+                Key: s3Key,
+              }))
+              req.payload.logger.info(`Deleted image from S3: ${s3Key}`)
+            } catch (deleteError) {
+              req.payload.logger.warn(`Failed to delete image from S3: ${s3Key} - ${deleteError}`)
+            }
+          }
+        } else if (storageType === 'uploadthing') {
+          const fileKey = extractUploadThingFileKey(mediaDoc.url)
+          if (fileKey) {
+            req.payload.logger.info(`Deleting image from UploadThing: ${fileKey}`)
+            try {
+              const utapi = getUploadThingClient()
+              await utapi.deleteFiles([fileKey])
+              req.payload.logger.info(`Deleted image from UploadThing: ${fileKey}`)
+            } catch (deleteError) {
+              req.payload.logger.warn(`Failed to delete image from UploadThing: ${fileKey} - ${deleteError}`)
+            }
           }
         }
       }
