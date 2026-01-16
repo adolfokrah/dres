@@ -141,7 +141,7 @@ export function ProductArchiveBlock({
             >
               <div className="flex">
                 {products.map((product, index) => (
-                  <div key={product.id} className="flex-shrink-0 w-[220px]">
+                  <div key={product.id} className="flex-shrink-0 w-[220p]  md:w-[280px]">
                     <ProductCard
                       id={product.id}
                       thumbnail={product.thumbnail}
