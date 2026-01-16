@@ -219,11 +219,13 @@ export interface Config {
     header: Header;
     footer: Footer;
     'site-settings': SiteSetting;
+    'payload-jobs-stats': PayloadJobsStat;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
+    'payload-jobs-stats': PayloadJobsStatsSelect<false> | PayloadJobsStatsSelect<true>;
   };
   locale: 'en' | 'fr' | 'de' | 'es' | 'it';
   user: User & {
@@ -231,7 +233,9 @@ export interface Config {
   };
   jobs: {
     tasks: {
-      checkSavedSearchAndNotify: TaskCheckSavedSearchAndNotify;
+      draftReminder: TaskDraftReminder;
+      reviewNotifications: TaskReviewNotifications;
+      savedSearchNotifications: TaskSavedSearchNotifications;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
@@ -2764,7 +2768,7 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'checkSavedSearchAndNotify' | 'schedulePublish';
+        taskSlug: 'inline' | 'draftReminder' | 'reviewNotifications' | 'savedSearchNotifications' | 'schedulePublish';
         taskID: string;
         input?:
           | {
@@ -2797,10 +2801,21 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'checkSavedSearchAndNotify' | 'schedulePublish') | null;
+  taskSlug?:
+    | ('inline' | 'draftReminder' | 'reviewNotifications' | 'savedSearchNotifications' | 'schedulePublish')
+    | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
+  meta?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -4237,6 +4252,7 @@ export interface PayloadJobsSelect<T extends boolean = true> {
   queue?: T;
   waitUntil?: T;
   processing?: T;
+  meta?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -4385,6 +4401,24 @@ export interface SiteSetting {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-jobs-stats".
+ */
+export interface PayloadJobsStat {
+  id: string;
+  stats?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "header_select".
  */
 export interface HeaderSelect<T extends boolean = true> {
@@ -4448,15 +4482,46 @@ export interface SiteSettingsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskCheckSavedSearchAndNotify".
+ * via the `definition` "payload-jobs-stats_select".
  */
-export interface TaskCheckSavedSearchAndNotify {
-  input: {
-    savedSearchId: string;
-  };
+export interface PayloadJobsStatsSelect<T extends boolean = true> {
+  stats?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskDraftReminder".
+ */
+export interface TaskDraftReminder {
+  input?: unknown;
   output: {
-    newItemsCount?: number | null;
-    notificationSent?: boolean | null;
+    sellersNotified?: number | null;
+    sellersSkipped?: number | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskReviewNotifications".
+ */
+export interface TaskReviewNotifications {
+  input?: unknown;
+  output: {
+    processedCount?: number | null;
+    notificationsSent?: number | null;
+    errors?: number | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSavedSearchNotifications".
+ */
+export interface TaskSavedSearchNotifications {
+  input?: unknown;
+  output: {
+    searchesChecked?: number | null;
+    notificationsSent?: number | null;
   };
 }
 /**

@@ -229,10 +229,20 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
   // Get style ID
   const styleId = typeof variation.style === 'object' ? variation.style.id : variation.style
 
-  // Get seller ID from style
-  const sellerId = style?.seller && typeof style.seller === 'object' 
-    ? style.seller.id 
-    : (typeof style?.seller === 'string' ? style.seller : null)
+  // Get seller ID from style - handle various formats
+  let sellerId: string | null = null
+  if (style?.seller) {
+    if (typeof style.seller === 'object' && style.seller !== null) {
+      // Populated seller object
+      sellerId = style.seller.id || style.seller._id?.toString() || null
+    } else if (typeof style.seller === 'string') {
+      // String ID
+      sellerId = style.seller
+    } else if (style.seller.toString) {
+      // ObjectId or similar
+      sellerId = style.seller.toString()
+    }
+  }
 
   return {
     id: variation.id,

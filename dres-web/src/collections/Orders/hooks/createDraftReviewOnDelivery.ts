@@ -2,13 +2,13 @@ import type { CollectionAfterChangeHook } from 'payload'
 import type { Order } from '../../../payload-types'
 
 /**
- * When an order item is marked as 'delivered', create a draft review
- * for the buyer to complete later.
+ * Manages draft reviews based on order item delivery/return status.
  * 
- * This hook:
- * 1. Detects items that just changed to 'delivered' status
- * 2. Creates a draft review for each delivered item (if one doesn't exist)
- * 3. The draft review will be picked up by the notification job later
+ * Logic:
+ * 1. When ANY item of a variation is delivered → Create ONE draft review per variation per order
+ * 2. When ALL items of a variation are returned → Delete the draft review
+ * 
+ * Reviews are per variation (not per SKU), per buyer, per order.
  */
 export const createDraftReviewOnDelivery: CollectionAfterChangeHook<Order> = async ({
   doc,
@@ -20,8 +20,8 @@ export const createDraftReviewOnDelivery: CollectionAfterChangeHook<Order> = asy
   if (operation !== 'update') return doc
 
   const { payload } = req
-  const items = doc.items || []
-  const previousItems = previousDoc?.items || []
+  const items = (doc.items || []) as any[]
+  const previousItems = (previousDoc?.items || []) as any[]
 
   // Get customer ID
   const customerId = typeof doc.customer === 'string' 
@@ -32,84 +32,166 @@ export const createDraftReviewOnDelivery: CollectionAfterChangeHook<Order> = asy
     return doc
   }
 
+  // Group items by variation ID to track status changes
+  const variationStatusMap = new Map<string, {
+    hasDelivered: boolean
+    allReturned: boolean
+    styleId: string | null
+    justDelivered: boolean
+    justAllReturned: boolean
+  }>()
+
+  // Build current state for each variation
   for (let i = 0; i < items.length; i++) {
-    const currentItem = items[i] as any
-    const previousItem = previousItems[i] as any
+    const currentItem = items[i]
+    const previousItem = previousItems[i]
 
-    // Check if this item just changed to 'delivered'
+    const variationId = typeof currentItem.variation === 'string'
+      ? currentItem.variation
+      : currentItem.variation?.id
+
+    if (!variationId) continue
+
+    if (!variationStatusMap.has(variationId)) {
+      variationStatusMap.set(variationId, {
+        hasDelivered: false,
+        allReturned: true,
+        styleId: null,
+        justDelivered: false,
+        justAllReturned: false,
+      })
+    }
+
+    const status = variationStatusMap.get(variationId)!
+
+    // Check if this item is delivered
+    if (currentItem.shippingStatus === 'delivered') {
+      status.hasDelivered = true
+      status.allReturned = false
+
+      // Check if this item just changed to delivered
+      if (previousItem?.shippingStatus !== 'delivered') {
+        status.justDelivered = true
+      }
+    }
+
+    // Check if this item is NOT returned (meaning not all are returned)
+    if (currentItem.shippingStatus !== 'returned' && currentItem.shippingStatus !== 'not_available') {
+      status.allReturned = false
+    }
+  }
+
+  // Check for variations where all items just became returned
+  for (let i = 0; i < items.length; i++) {
+    const currentItem = items[i]
+    const previousItem = previousItems[i]
+
+    const variationId = typeof currentItem.variation === 'string'
+      ? currentItem.variation
+      : currentItem.variation?.id
+
+    if (!variationId) continue
+
+    const status = variationStatusMap.get(variationId)!
+
+    // If current item just changed to returned/not_available
     if (
-      currentItem.shippingStatus === 'delivered' &&
-      previousItem?.shippingStatus !== 'delivered'
+      (currentItem.shippingStatus === 'returned' || currentItem.shippingStatus === 'not_available') &&
+      previousItem?.shippingStatus !== 'returned' &&
+      previousItem?.shippingStatus !== 'not_available'
     ) {
-      try {
-        // Get variation and style IDs
-        const variationId = typeof currentItem.variation === 'string'
-          ? currentItem.variation
-          : currentItem.variation?.id
+      // Check if ALL items of this variation are now returned
+      if (status.allReturned) {
+        status.justAllReturned = true
+      }
+    }
+  }
 
-        if (!variationId) {
-          payload.logger.warn(`No variation ID for delivered item in order ${doc.id}`)
-          continue
-        }
+  // Process each variation
+  for (const [variationId, status] of variationStatusMap) {
+    try {
+      // Fetch variation to get style ID
+      const variation = await payload.findByID({
+        collection: 'variations',
+        id: variationId,
+        depth: 0,
+      })
 
-        // Fetch variation to get style ID
-        const variation = await payload.findByID({
-          collection: 'variations',
-          id: variationId,
-          depth: 0,
-        })
+      const styleId = typeof variation.style === 'string'
+        ? variation.style
+        : (variation.style as any)?.id
 
-        const styleId = typeof variation.style === 'string'
-          ? variation.style
-          : (variation.style as any)?.id
+      if (!styleId) {
+        payload.logger.warn(`No style ID for variation ${variationId}`)
+        continue
+      }
 
-        if (!styleId) {
-          payload.logger.warn(`No style ID for variation ${variationId}`)
-          continue
-        }
-
-        // Check if a review already exists for this user + style + order
+      // Case 1: Item just delivered - create draft review if doesn't exist
+      if (status.justDelivered) {
+        // Check if a review already exists for this user + variation + order
         const existingReview = await payload.find({
           collection: 'reviews',
           where: {
             and: [
               { user: { equals: customerId } },
-              { style: { equals: styleId } },
+              { variation: { equals: variationId } },
               { order: { equals: doc.id } },
             ],
           },
           limit: 1,
         })
 
-        if (existingReview.docs.length > 0) {
-          payload.logger.info(
-            `Review already exists for user ${customerId}, style ${styleId}, order ${doc.id}`
-          )
-          continue
-        }
+        if (existingReview.docs.length === 0) {
+          // Create draft review
+          await payload.create({
+            collection: 'reviews',
+            data: {
+              user: customerId,
+              style: styleId,
+              variation: variationId,
+              order: doc.id,
+              status: 'draft',
+            },
+          })
 
-        // Create draft review
-        await payload.create({
+          payload.logger.info(
+            `Created draft review for user ${customerId}, variation ${variationId}, order ${doc.id}`
+          )
+        }
+      }
+
+      // Case 2: All items of this variation just returned - delete draft review
+      if (status.justAllReturned) {
+        // Find and delete draft/pending reviews (not active ones - user already submitted)
+        const reviewToDelete = await payload.find({
           collection: 'reviews',
-          data: {
-            user: customerId,
-            style: styleId,
-            variation: variationId,
-            order: doc.id,
-            status: 'draft',
-            // rating and review will be filled by user later
+          where: {
+            and: [
+              { user: { equals: customerId } },
+              { variation: { equals: variationId } },
+              { order: { equals: doc.id } },
+              { status: { in: ['draft', 'pending'] } },
+            ],
           },
+          limit: 1,
         })
 
-        payload.logger.info(
-          `Created draft review for user ${customerId}, style ${styleId}, variation ${variationId}`
-        )
+        if (reviewToDelete.docs.length > 0) {
+          await payload.delete({
+            collection: 'reviews',
+            id: reviewToDelete.docs[0].id,
+          })
 
-      } catch (error) {
-        payload.logger.error(
-          `Error creating draft review for order ${doc.id}: ${error}`
-        )
+          payload.logger.info(
+            `Deleted draft review for user ${customerId}, variation ${variationId}, order ${doc.id} (all items returned)`
+          )
+        }
       }
+
+    } catch (error) {
+      payload.logger.error(
+        `Error processing review for variation ${variationId} in order ${doc.id}: ${error}`
+      )
     }
   }
 

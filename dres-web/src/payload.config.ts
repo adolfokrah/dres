@@ -56,8 +56,10 @@ import { StockNotifications } from './collections/StockNotifications'
 import { UserPoints } from './collections/UserPoints'
 import { Users } from './collections/Users'
 
-// Jobs
-import { checkSavedSearchAndNotifyTask } from './jobs/tasks/checkSavedSearchAndNotify'
+// Scheduled Tasks
+import { draftReminderTask } from './jobs/tasks/draftReminder'
+import { reviewNotificationsTask } from './jobs/tasks/reviewNotifications'
+import { savedSearchNotificationsTask } from './jobs/tasks/savedSearchNotifications'
 
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
@@ -244,8 +246,26 @@ export default buildConfig({
         return authHeader === `Bearer ${process.env.CRON_SECRET}`
       },
     },
+    // Make jobs collection visible in admin for debugging
+    jobsCollectionOverrides: ({ defaultJobsCollection }) => {
+      if (!defaultJobsCollection.admin) {
+        defaultJobsCollection.admin = {}
+      }
+      defaultJobsCollection.admin.hidden = false
+      return defaultJobsCollection
+    },
     tasks: [
-      checkSavedSearchAndNotifyTask,
+      draftReminderTask,
+      reviewNotificationsTask,
+      savedSearchNotificationsTask,
+    ],
+    // Auto-run scheduled jobs - process all queues every minute
+    autoRun: [
+      {
+        cron: '* * * * *',
+        queue: 'default',
+        limit: 50,
+      },
     ],
   },
   email: resendAdapter({
