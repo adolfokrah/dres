@@ -179,6 +179,12 @@
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
   }
+
+  /* Ensure rich text content uses primary text color (black) */
+  .payload-richtext.prose :where(p, li, h1, h2, h3, h4, h5, h6,
+    strong, em, a, blockquote) {
+    color: hsl(var(--text-primary));
+  }
 }
 
 html {
