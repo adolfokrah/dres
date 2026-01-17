@@ -29,13 +29,13 @@ class PromoBanner extends StatelessWidget {
       case 'white':
         return AppColors.background;
       case 'info':
-        return AppColors.info;
+        return AppColors.promoInfo;
       case 'success':
-        return AppColors.success;
+        return AppColors.promoSuccess;
       case 'warning':
-        return AppColors.warning;
+        return AppColors.promoWarning;
       case 'error':
-        return AppColors.error;
+        return AppColors.promoError;
       case 'light':
       default:
         return AppColors.secondary;
@@ -43,7 +43,7 @@ class PromoBanner extends StatelessWidget {
   }
 
   Color _getTextColor() {
-    // All backgrounds are pastel/light so use dark text
+    // All promo backgrounds are pastel/light so use dark text
     return AppColors.textPrimary;
   }
 

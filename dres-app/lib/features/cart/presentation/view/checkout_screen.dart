@@ -453,6 +453,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               // Use validation from backend
               final hasValidItems = cartState.isValid;
               final validationReason = cartState.validationReason;
+              // Check if validation error is shipping-related (shown at seller level, not here)
+              final hasShippingError = cartState.hasShippingError;
+              // Only show top-level warning for item errors (not shipping errors)
+              final hasItemErrors = !hasValidItems && !hasShippingError;
 
               // Calculate totals from actual cart data
               final itemsTotal = sellerGroups.fold(
@@ -488,8 +492,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         child: SingleChildScrollView(
                           child: Column(
                             children: [
-                              // Warning banner if items have issues
-                              if (!hasValidItems)
+                              // Warning banner if items have issues (not shipping errors - those show at seller level)
+                              if (hasItemErrors)
                                 Container(
                                   width: double.infinity,
                                   padding: const EdgeInsets.all(16),
@@ -545,6 +549,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     shippingFee: group.totalShipping,
                                     buyerProtectionFee: group.totalBuyerProtection,
                                     hasBuyerProtection: group.hasBuyerProtection,
+                                    hasShippingUnavailable: group.hasShippingUnavailable,
                                     onLearnMoreTap: () {
                                       context.push('/direct-shipping-info');
                                     },

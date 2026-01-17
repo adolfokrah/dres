@@ -82,6 +82,15 @@ class CartState extends Equatable {
   /// Get validation reason (first one)
   String? get validationReason => validation.firstReason;
 
+  /// Check if validation error is shipping-related (user can fix by changing address)
+  bool get hasShippingError => validation.reasons.any(
+    (reason) => reason.toLowerCase().contains('shipping not available') || 
+                reason.toLowerCase().contains("doesn't deliver"),
+  );
+
+  /// Check if cart has item-level issues (out of stock, archived, etc.)
+  bool get hasItemErrors => !validation.valid && !hasShippingError;
+
   /// Check if cart has unavailable items (legacy - kept for backward compat)
   bool get hasUnavailableItems => !validation.valid;
 

@@ -4,6 +4,7 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
 import 'package:dres/core/widgets/profile_avatar.dart';
+import 'package:dres/core/widgets/app_info_banner.dart';
 import 'package:dres/features/cart/data/repositories/cart_repository.dart';
 import 'package:dres/features/cart/presentation/widgets/checkout_item_tile.dart';
 
@@ -16,6 +17,7 @@ class SellerCheckoutCard extends StatelessWidget {
   final double shippingFee;
   final double buyerProtectionFee;
   final bool hasBuyerProtection;
+  final bool hasShippingUnavailable;
   final VoidCallback? onLearnMoreTap;
 
   const SellerCheckoutCard({
@@ -27,6 +29,7 @@ class SellerCheckoutCard extends StatelessWidget {
     required this.shippingFee,
     required this.buyerProtectionFee,
     this.hasBuyerProtection = false,
+    this.hasShippingUnavailable = false,
     this.onLearnMoreTap,
   });
 
@@ -156,6 +159,14 @@ class SellerCheckoutCard extends StatelessWidget {
               ),
             ],
           ),
+
+          // Shipping unavailable warning
+          if (hasShippingUnavailable) ...[
+            const SizedBox(height: 16),
+            const AppInfoBanner.warning(
+              text: "This seller doesn't deliver to your selected address. Please select a different address.",
+            ),
+          ],
         ],
       ),
     );

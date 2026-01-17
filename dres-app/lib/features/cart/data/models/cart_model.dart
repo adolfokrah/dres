@@ -106,6 +106,7 @@ class CartItemModel {
   final bool isSellerOnVacation;
   final bool isOutOfStock;
   final bool isNotInYourCountry;
+  final bool isShippingUnavailable;
   final int? stockQuantity;
   final int? availableStock;
   // Per-item validation from backend
@@ -126,6 +127,7 @@ class CartItemModel {
     this.isSellerOnVacation = false,
     this.isOutOfStock = false,
     this.isNotInYourCountry = false,
+    this.isShippingUnavailable = false,
     this.stockQuantity,
     this.availableStock,
     this.valid = true,
@@ -175,6 +177,7 @@ class CartItemModel {
       isSellerOnVacation: json['isSellerOnVacation'] ?? false,
       isOutOfStock: json['isOutOfStock'] ?? false,
       isNotInYourCountry: json['isNotInYourCountry'] ?? false,
+      isShippingUnavailable: json['isShippingUnavailable'] ?? false,
       stockQuantity: json['stockQuantity'],
       availableStock: json['availableStock'],
       // Per-item validation

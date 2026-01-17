@@ -26,6 +26,10 @@ class SellerGroup {
   bool get hasExceedsStock =>
       items.any((item) => item.exceedsAvailableStock);
 
+  /// Check if seller doesn't ship to selected location
+  bool get hasShippingUnavailable =>
+      items.any((item) => item.isShippingUnavailable);
+
   /// Total price for this seller's items
   double get totalPrice {
     return items.fold(0.0, (sum, item) {

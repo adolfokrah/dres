@@ -232,8 +232,10 @@ class _CartScreenState extends State<CartScreen> {
               (sum, group) => sum + group.totalPrice,
             );
             
-            // Use validation from backend
-            final canProceedToCheckout = state.isValid;
+            // Allow proceeding to checkout if:
+            // - Cart is fully valid, OR
+            // - The only error is shipping-related (user can fix it in checkout by changing address)
+            final canProceedToCheckout = state.isValid || state.hasShippingError;
             
             // Check if any items are currently loading (deleting/updating)
             final hasLoadingItems = _loadingItems.values.any((v) => v);
@@ -407,6 +409,15 @@ class _SellerSection extends StatelessWidget {
               message: group.isSellerOnVacation
                   ? "The seller can't ship these items at this time."
                   : "Some items are out of stock.",
+            ),
+          ],
+
+          // Shipping unavailable message
+          if (group.hasShippingUnavailable && !group.hasUnavailableItems) ...[
+            const SizedBox(height: 19),
+            SellerUnavailableMessage(
+              message: "This seller doesn't deliver to your selected address. Try a different address at checkout.",
+              isWarning: true,
             ),
           ],
         ],

@@ -1,9 +1,6 @@
 import { PayloadHandler } from 'payload'
 import { enrichCartItems } from './enrichCartItems'
 
-// Default shipping rate in GHS (fallback if not set in site settings)
-const DEFAULT_SHIPPING_RATE_GHS = 30
-
 // Helper function to retry operations on write conflict
 async function withRetry<T>(
   operation: () => Promise<T>,
@@ -134,25 +131,18 @@ export const updateShipping: PayloadHandler = async (req) => {
       }
     }
     
-    // Fetch site settings for default shipping rate and buyer protection fee rate
-    let defaultShippingRateGHS = DEFAULT_SHIPPING_RATE_GHS
+    // Fetch site settings for buyer protection fee rate
     let buyerProtectionFeeRate = 0.10 // Default 10%
     try {
       const siteSettings = await payload.findGlobal({
         slug: 'site-settings',
       })
-      if (siteSettings?.defaultShippingRate) {
-        defaultShippingRateGHS = siteSettings.defaultShippingRate as number
-      }
       if (siteSettings?.buyerProtectionFeeRate) {
         buyerProtectionFeeRate = (siteSettings.buyerProtectionFeeRate as number) / 100
       }
     } catch (_error) {
       payload.logger.warn('Could not fetch site settings, using fallbacks')
     }
-    
-    // Convert default shipping rate from GHS to user's currency
-    const defaultShippingFee = defaultShippingRateGHS / exchangeRateToGHS
 
     // Get unique seller IDs from cart items
     const sellerIds = new Set<string>()
@@ -211,7 +201,8 @@ export const updateShipping: PayloadHandler = async (req) => {
     // Calculate shipping fee per seller (not per item)
     // Shipping is charged once per seller, applied to the first item of each seller
     const sellerShippingFees = new Map<string, number>()
-    const sellersUsingDefaultRate = new Set<string>()
+    const sellersWithoutRates: string[] = []
+    const sellerNamesWithoutRates: string[] = []
     
     for (const sellerId of sellerIds) {
       const rate = sellerShippingRates.get(sellerId)
@@ -229,9 +220,25 @@ export const updateShipping: PayloadHandler = async (req) => {
           sellerShippingFees.set(sellerId, rate.deliveryCost || 0)
         }
       } else {
-        // No rate found - use default shipping rate from site settings
-        sellerShippingFees.set(sellerId, defaultShippingFee)
-        sellersUsingDefaultRate.add(sellerId)
+        // No rate found for this seller - set shipping to 0 and track them
+        sellerShippingFees.set(sellerId, 0)
+        sellersWithoutRates.push(sellerId)
+      }
+    }
+
+    // Get seller names for validation message if any are missing rates
+    if (sellersWithoutRates.length > 0) {
+      for (const sellerId of sellersWithoutRates) {
+        try {
+          const seller = await payload.findByID({
+            collection: 'users',
+            id: sellerId,
+            depth: 0,
+          })
+          sellerNamesWithoutRates.push(seller?.shopName || seller?.firstName || 'A seller')
+        } catch {
+          sellerNamesWithoutRates.push('A seller')
+        }
       }
     }
 
@@ -296,7 +303,6 @@ export const updateShipping: PayloadHandler = async (req) => {
     const totalShipping = updatedItems.reduce((sum, item) => sum + item.shippingFee, 0)
     const totalBuyerProtection = updatedItems.reduce((sum, item) => sum + item.buyerProtectionFee, 0)
     const sellersWithRates = sellerShippingRates.size
-    const sellersWithoutRates = sellerIds.size - sellersWithRates
 
     // Get user's country ID for validation (reuse userCountry from earlier)
     const userCountryId = typeof userCountry === 'object' && userCountry !== null 
@@ -309,7 +315,16 @@ export const updateShipping: PayloadHandler = async (req) => {
       payload,
       items: updatedCartItems as Parameters<typeof enrichCartItems>[0]['items'],
       userCountryId: userCountryId || null,
+      sellersWithoutShipping: sellersWithoutRates,
     })
+
+    // Add shipping validation - if any sellers don't deliver to this location
+    if (sellersWithoutRates.length > 0) {
+      validation.valid = false
+      validation.reasons.push(
+        `Shipping not available: ${sellerNamesWithoutRates.join(', ')} doesn't deliver to your selected location`
+      )
+    }
 
     // Return cart with enriched items
     const enrichedCart = {
@@ -326,9 +341,8 @@ export const updateShipping: PayloadHandler = async (req) => {
         totalShipping,
         totalBuyerProtection,
         sellersWithRates,
-        sellersWithoutRates,
-        sellersUsingDefaultRate: sellersUsingDefaultRate.size,
-        defaultShippingFee: sellersUsingDefaultRate.size > 0 ? defaultShippingFee : null,
+        sellersWithoutRates: sellersWithoutRates.length,
+        sellerNamesWithoutRates: sellerNamesWithoutRates.length > 0 ? sellerNamesWithoutRates : null,
         // Include estimated delivery info from first rate (could improve this)
         estimatedDays: shippingRatesResult.docs[0]?.estimatedDays || null,
       },

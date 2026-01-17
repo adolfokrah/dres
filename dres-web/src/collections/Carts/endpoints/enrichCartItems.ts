@@ -42,6 +42,7 @@ interface EnrichedCartItem extends Record<string, unknown> {
   isOutOfStock: boolean
   isNotInYourCountry: boolean
   isArchived: boolean
+  isShippingUnavailable: boolean
   stockQuantity: number | null
   availableStock: number | null
   // Per-item validation
@@ -53,6 +54,7 @@ interface EnrichCartItemsParams {
   payload: Payload
   items: CartItem[]
   userCountryId?: string | null
+  sellersWithoutShipping?: string[]
 }
 
 interface EnrichCartItemsResult {
@@ -71,6 +73,7 @@ export async function enrichCartItems({
   payload,
   items,
   userCountryId,
+  sellersWithoutShipping = [],
 }: EnrichCartItemsParams): Promise<EnrichCartItemsResult> {
   const enrichedItems: EnrichedCartItem[] = []
   const sellerCache: Map<string, SellerInfo> = new Map()
@@ -83,6 +86,7 @@ export async function enrichCartItems({
         isOutOfStock: false,
         isNotInYourCountry: false,
         isArchived: false,
+        isShippingUnavailable: false,
         stockQuantity: null,
         availableStock: null,
         valid: true,
@@ -221,6 +225,13 @@ export async function enrichCartItems({
             if (enrichedVariation && enrichedVariation.style && typeof enrichedVariation.style === 'object') {
               ;(enrichedVariation.style as Record<string, unknown>).seller = sellerInfo
             }
+          }
+
+          // Check if seller has shipping for selected location
+          if (sellerId && sellersWithoutShipping.includes(sellerId)) {
+            enrichedItem.isShippingUnavailable = true
+            // Don't set valid=false here - shipping errors shouldn't block checkout navigation
+            // The overall validation will handle this at the cart level
           }
         }
       }
