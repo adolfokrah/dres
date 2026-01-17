@@ -80,6 +80,7 @@ export const validateVariationActive: CollectionBeforeChangeHook = async ({
       collection: 'skus',
       where: {
         variation: { equals: variationId },
+        status: { not_equals: 'archived' }, // Only consider non-archived SKUs
       },
       limit: 100,
       depth: 0,
@@ -88,19 +89,21 @@ export const validateVariationActive: CollectionBeforeChangeHook = async ({
     if (skus.docs.length === 0) {
       errors.push('At least one SKU with pricing is required to activate a variation')
     } else {
-      // Check if at least one SKU has valid price
+      // Check if at least one SKU has valid price and is active
       const validSkus = skus.docs.filter((sku) => {
         const hasPrice = (sku.price && sku.price > 0) || (sku.sellingPrice && sku.sellingPrice > 0)
-        return hasPrice
+        const isActive = sku.isActive !== false && sku.status !== 'archived'
+        return hasPrice && isActive
       })
       
       if (validSkus.length === 0) {
-        errors.push('At least one SKU must have a valid price set')
+        errors.push('At least one SKU must have a valid price and be active')
       }
       
       // Check if any active SKU has stock info
       const activeSkusWithStock = skus.docs.filter((sku) => {
-        return sku.isActive !== false && (sku.stock === null || sku.stock === undefined || sku.stock > 0)
+        const isActive = sku.isActive !== false && sku.status !== 'archived'
+        return isActive && (sku.stock === null || sku.stock === undefined || sku.stock > 0)
       })
       
       if (activeSkusWithStock.length === 0) {

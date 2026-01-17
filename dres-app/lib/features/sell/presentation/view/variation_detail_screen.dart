@@ -10,6 +10,7 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_snackbar.dart';
+import 'package:dres/core/widgets/app_info_banner.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
 import 'package:dres/features/sell/logic/variation_detail_bloc/variation_detail_bloc.dart';
 import 'package:dres/features/sell/logic/variations_bloc/variations_bloc.dart';
@@ -412,6 +413,15 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // Draft status info banner
+                                if (variation?.isDraft == true)
+                                  const Padding(
+                                    padding: EdgeInsets.all(20),
+                                    child: AppInfoBanner.info(
+                                      text: 'This variation is in draft status. It won\'t be visible to buyers until it has at least 3 photos, attributes, and one active SKU with pricing.',
+                                    ),
+                                  ),
+
                                 // Photos section
                                 _buildPhotosSection(variation),
 

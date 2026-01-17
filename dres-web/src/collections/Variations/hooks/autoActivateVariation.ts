@@ -46,12 +46,13 @@ export const autoActivateVariation: CollectionAfterChangeHook = async ({
     return doc
   }
   
-  // Check SKUs (need at least 1 with valid price)
+  // Check SKUs (need at least 1 active with valid price)
   const skus = await req.payload.find({
     collection: 'skus',
     where: {
       variation: { equals: variation.id },
       isActive: { not_equals: false },
+      status: { not_equals: 'archived' }, // Only consider non-archived SKUs
     },
     limit: 10,
     depth: 0,
@@ -60,7 +61,8 @@ export const autoActivateVariation: CollectionAfterChangeHook = async ({
   const validSkus = skus.docs.filter((sku) => {
     const hasPrice = (sku.price && sku.price > 0) || (sku.sellingPrice && sku.sellingPrice > 0)
     const hasStock = sku.stock === null || sku.stock === undefined || sku.stock > 0
-    return hasPrice && hasStock
+    const isActive = sku.status !== 'archived'
+    return hasPrice && hasStock && isActive
   })
   
   if (validSkus.length < 1) {

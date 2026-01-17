@@ -140,6 +140,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                   // Low stock indicator
                               Builder(
                                 builder: (context) {
+                                  // Guard: Return empty if no SKUs available
+                                  if (variation.skus.isEmpty) {
+                                    return const SizedBox.shrink();
+                                  }
                                   final selectedSkuId =
                                       state.selectedSkuId ?? variation.defaultSku;
                                   final selectedSku = variation.skus.firstWhere(
@@ -302,6 +306,11 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                                   // Hide add to bag for own items
                                   if (isOwnItem) {
+                                    return const SizedBox.shrink();
+                                  }
+
+                                  // Guard: Return empty if no SKUs available
+                                  if (variation.skus.isEmpty) {
                                     return const SizedBox.shrink();
                                   }
 

@@ -72,9 +72,13 @@ export const updateSalesStats: CollectionAfterChangeHook = async ({
 
     // Check if this item just changed to 'delivered'
     const justDelivered = currentItem.shippingStatus === 'delivered' && previousItem?.shippingStatus !== 'delivered'
-    payload.logger.info(`Item ${i}: justDelivered=${justDelivered}`)
+    
+    // Check if this item just changed to 'returned' (was delivered before, now returned - need to subtract from stats)
+    const justReturned = currentItem.shippingStatus === 'returned' && previousItem?.shippingStatus === 'delivered'
+    
+    payload.logger.info(`Item ${i}: justDelivered=${justDelivered}, justReturned=${justReturned}`)
 
-    if (!justDelivered) {
+    if (!justDelivered && !justReturned) {
       continue
     }
 
@@ -203,19 +207,37 @@ export const updateSalesStats: CollectionAfterChangeHook = async ({
       if (existingStats.docs.length > 0) {
         // Update existing stats
         const stats = existingStats.docs[0]
-        await payload.update({
-          collection: 'variation-stats',
-          id: stats.id,
-          data: {
-            totalSales: (stats.totalSales || 0) + saleAmountInGHS,
-            totalOrders: (stats.totalOrders || 0) + 1,
-            totalItemsSold: (stats.totalItemsSold || 0) + itemsSold,
-            lastSaleAt: now,
-          },
-        })
-        payload.logger.info(`Updated existing stats for SKU: ${skuId}`)
-      } else {
-        // Create new stats record for this SKU
+        
+        if (justReturned) {
+          // Subtract from stats when item is returned (refunded)
+          await payload.update({
+            collection: 'variation-stats',
+            id: stats.id,
+            data: {
+              totalSales: Math.max(0, (stats.totalSales || 0) - saleAmountInGHS),
+              totalOrders: Math.max(0, (stats.totalOrders || 0) - 1),
+              totalItemsSold: Math.max(0, (stats.totalItemsSold || 0) - itemsSold),
+              // Don't update lastSaleAt on returns
+            },
+          })
+          payload.logger.info(`Subtracted stats for returned item - SKU: ${skuId}, Sales (GHS): -${saleAmountInGHS}, Items: -${itemsSold}`)
+        } else {
+          // Add to stats when item is delivered
+          await payload.update({
+            collection: 'variation-stats',
+            id: stats.id,
+            data: {
+              totalSales: (stats.totalSales || 0) + saleAmountInGHS,
+              totalOrders: (stats.totalOrders || 0) + 1,
+              totalItemsSold: (stats.totalItemsSold || 0) + itemsSold,
+              lastSaleAt: now,
+            },
+          })
+          payload.logger.info(`Updated existing stats for SKU: ${skuId}`)
+        }
+      } else if (!justReturned) {
+        // Only create new stats record for deliveries, not returns
+        // (shouldn't happen - can't return something that was never delivered/tracked)
         await payload.create({
           collection: 'variation-stats',
           data: {
@@ -235,7 +257,7 @@ export const updateSalesStats: CollectionAfterChangeHook = async ({
         payload.logger.info(`Created NEW stats record for SKU: ${skuId}`)
       }
 
-      payload.logger.info(`Stats updated - SKU: ${skuId}, Sales (GHS): ${saleAmountInGHS}, Items: ${itemsSold}`)
+      payload.logger.info(`Stats updated - SKU: ${skuId}, Sales (GHS): ${justReturned ? '-' : '+'}${saleAmountInGHS}, Items: ${justReturned ? '-' : '+'}${itemsSold}`)
     } catch (error) {
       payload.logger.error(`Error updating stats for item ${i} (SKU: ${skuId}): ${error}`)
       // Continue to next item

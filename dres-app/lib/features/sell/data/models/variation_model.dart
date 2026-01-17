@@ -15,6 +15,7 @@ class VariationModel {
   final String title; // Auto-generated title from backend
   final String? colorName;
   final String? materialName;
+  final String status; // 'draft', 'active', 'archived'
   final List<VariationImage> imageObjects; // Store both ID and URL
   final List<SkuModel> skus;
   final List<VariantAttribute>
@@ -29,6 +30,7 @@ class VariationModel {
     required this.title,
     this.colorName,
     this.materialName,
+    this.status = 'draft',
     this.imageObjects = const [],
     this.skus = const [],
     this.variants = const [],
@@ -36,6 +38,12 @@ class VariationModel {
     this.createdAt,
     this.updatedAt,
   });
+
+  /// Check if variation is a draft
+  bool get isDraft => status == 'draft';
+
+  /// Check if variation is active
+  bool get isActive => status == 'active';
 
   /// Get image URLs (for backwards compatibility) - only returns images with valid URLs
   List<String> get images => imageObjects
@@ -118,6 +126,7 @@ class VariationModel {
       title: json['title'] ?? 'Untitled Variation',
       colorName: json['colorName'],
       materialName: json['materialName'],
+      status: json['status'] ?? 'draft',
       imageObjects: imageObjects,
       skus: skus,
       variants: variants,
@@ -255,6 +264,8 @@ class SkuModel {
   final double? compareAtPrice;
   final int stock;
   final String? sku;
+  final String status; // 'active' or 'archived'
+  final bool isActive;
 
   SkuModel({
     required this.id,
@@ -264,7 +275,12 @@ class SkuModel {
     this.compareAtPrice,
     required this.stock,
     this.sku,
+    this.status = 'active',
+    this.isActive = true,
   });
+
+  /// Check if SKU is active (not archived and isActive is true)
+  bool get isAvailable => status != 'archived' && isActive;
 
   /// Get size from the first SKU option (legacy helper)
   String? get size {
@@ -327,6 +343,8 @@ class SkuModel {
           : null,
       stock: json['stock'] ?? 0,
       sku: json['sku'],
+      status: json['status'] ?? 'active',
+      isActive: json['isActive'] ?? true,
     );
   }
 }

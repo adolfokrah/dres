@@ -16,4 +16,7 @@ class StorageKeys {
   static const String selectedLanguage = 'selected_language';
   static const String selectedCurrency = 'selected_currency';
   static const String themeMode = 'theme_mode';
+
+  // Hints and tips (don't show again)
+  static const String hidePublishInfoTip = 'hide_publish_info_tip';
 }

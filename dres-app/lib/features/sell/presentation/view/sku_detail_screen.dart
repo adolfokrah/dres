@@ -7,6 +7,7 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_text_field.dart';
+import 'package:dres/core/widgets/app_info_banner.dart';
 import 'package:dres/core/services/site_settings_service.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
 import 'package:dres/features/sell/logic/variation_detail_bloc/variation_detail_bloc.dart';
@@ -376,6 +377,26 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                // Info banner for incomplete SKU
+                                Builder(
+                                  builder: (context) {
+                                    final sku = state.skus.where((s) => s.id == widget.skuId).firstOrNull;
+                                    final hasPrice = sku != null && sku.price > 0;
+                                    final hasAttribute = _selectedAttributeId != null && _selectedOptionId != null;
+                                    final isIncomplete = !hasPrice || !hasAttribute;
+                                    
+                                    if (isIncomplete) {
+                                      return const Padding(
+                                        padding: EdgeInsets.all(20),
+                                        child: AppInfoBanner.info(
+                                          text: 'This SKU needs a size/attribute and price to be active. Incomplete SKUs won\'t be visible to buyers even when the product is published.',
+                                        ),
+                                      );
+                                    }
+                                    return const SizedBox.shrink();
+                                  },
+                                ),
+
                                 // SKU Attribute Card
                                 SkuAttributeCard(
                                   availableAttributes: skuAttributes,

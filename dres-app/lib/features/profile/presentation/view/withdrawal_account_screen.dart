@@ -9,6 +9,7 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_dropdown.dart';
 import 'package:dres/core/widgets/app_text_field.dart';
+import 'package:dres/core/widgets/app_info_banner.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/auth/data/models/auth_models.dart';
 import 'package:dres/features/profile/data/models/bank_model.dart';
@@ -172,6 +173,15 @@ class _WithdrawalAccountScreenState extends State<WithdrawalAccountScreen> {
                           padding: const EdgeInsets.symmetric(vertical: 18),
                           child: Column(
                             children: [
+                              // Payment info banner
+                              const Padding(
+                                padding: EdgeInsets.only(left: 20, right: 20, bottom: 18),
+                                child: AppInfoBanner.info(
+                                  title: 'When will I get paid?',
+                                  text: 'Payments are automatically transferred to your account within 24 hours after the buyer confirms delivery.',
+                                ),
+                              ),
+
                               // Bank dropdown
                               Padding(
                                 padding:

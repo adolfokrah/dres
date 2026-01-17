@@ -6,6 +6,8 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
+import 'package:dres/core/constants/storage_keys.dart';
+import 'package:dres/core/services/storage_service.dart';
 import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_text_field.dart';
@@ -274,6 +276,8 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
             getIt<SellBloc>().add(const SellRefreshRequested());
             getIt<UserProductsBloc>().add(const UserProductsRefreshRequested());
             AppSnackbar.success(context, 'Product published successfully');
+            // Show info tip about where to find the product
+            _showPublishInfoTip();
           }
 
           // Handle unpublish success
@@ -546,11 +550,31 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
   }
 
   Widget _buildInfoBanner() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: AppInfoBanner(
-        title: 'Fill in your product details to create your listing.',
-        text: 'Add a clear title, a good description, and select the correct category and brand before continuing.',
+    final styleDetails = _styleDetailsBloc.state.styleDetails;
+    
+    // Don't show banner if product is published
+    if (styleDetails?.isPublished == true) {
+      return const SizedBox.shrink();
+    }
+    
+    // Check if all required fields are filled
+    final hasTitle = _titleController.text.trim().isNotEmpty;
+    final hasDescription = _descriptionController.text.trim().isNotEmpty;
+    final hasCategory = _selectedCategoryId != null && _selectedCategoryId!.isNotEmpty;
+    final hasBrand = _selectedBrandId != null && _selectedBrandId!.isNotEmpty;
+    final hasVariations = _variations.isNotEmpty;
+    
+    // If all required data is filled, don't show the banner
+    if (hasTitle && hasDescription && hasCategory && hasBrand && hasVariations) {
+      return const SizedBox.shrink();
+    }
+    
+    // Show info banner for draft products with incomplete data
+    return const Padding(
+      padding: EdgeInsets.all(20),
+      child: AppInfoBanner.info(
+        title: 'Complete your listing',
+        text: 'Fill in your product details, add variations with at least 3 photos each, and set up SKUs with pricing. Incomplete variations and SKUs won\'t be visible to buyers even after publishing.',
       ),
     );
   }
@@ -868,6 +892,91 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
                 'Unpublish',
                 style: AppTypography.bodyM.copyWith(
                   color: AppColors.error,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showPublishInfoTip() {
+    final storageService = getIt<StorageService>();
+    final hideInfoTip = storageService.getBool(StorageKeys.hidePublishInfoTip) ?? false;
+    
+    if (hideInfoTip) return;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          backgroundColor: AppColors.surface,
+          title: Row(
+            children: [
+              Icon(
+                PhosphorIconsFill.confetti,
+                color: AppColors.success,
+                size: 24,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Product is Live!',
+                  style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Your product is now visible to buyers on the marketplace.',
+                style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    PhosphorIconsFill.lightbulb,
+                    color: AppColors.warning,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'You can find all your published products in the "Products" tab on your profile.',
+                      style: AppTypography.bodyS.copyWith(color: AppColors.textSecondary),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                storageService.setBool(StorageKeys.hidePublishInfoTip, true);
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text(
+                "Don't show again",
+                style: AppTypography.bodyS.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                'Got it!',
+                style: AppTypography.bodyM.copyWith(
+                  color: AppColors.primary,
                   fontWeight: FontWeight.w700,
                 ),
               ),
