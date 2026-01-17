@@ -21,11 +21,11 @@ class AppColors {
   static const Color textHint = Color(0xFF999999);
   static const Color textOnPrimary = Color(0xFFFFFFFF);
 
-  // App status colors (deeper/darker for UI feedback)
-  static const Color success = Color(0xFF2E7D32);  // Deep green
-  static const Color error = Color(0xFFD32F2F);    // Deep red
-  static const Color warning = Color(0xFFED6C02);  // Deep orange
-  static const Color info = Color(0xFF0288D1);     // Deep blue
+  // App status colors (lighter tones for UI feedback)
+  static const Color success = Color(0xFF66BB6A);  // Light green
+  static const Color error = Color(0xFFEF5350);    // Light red
+  static const Color warning = Color(0xFFFFA726);  // Light orange
+  static const Color info = Color(0xFF29B6F6);     // Light blue
 
   // Promo banner colors (light/pastel - matching web)
   static const Color promoSuccess = Color(0xFFACF8BF);  // Light mint green

@@ -966,7 +966,7 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
               },
               child: Text(
                 "Don't show again",
-                style: AppTypography.bodyS.copyWith(
+                style: AppTypography.bodyM.copyWith(
                   color: AppColors.textSecondary,
                 ),
               ),

@@ -74,6 +74,13 @@ export const followUser: PayloadHandler = async (req) => {
     // Create notification for the user being followed
     try {
       const followerName = user.firstName || user.shopName || 'Someone'
+      
+      // Get the follower's photo ID if they have one
+      let followerPhotoId: string | null = null
+      if (user.photo) {
+        followerPhotoId = typeof user.photo === 'object' ? user.photo.id : user.photo
+      }
+      
       await payload.create({
         collection: 'notifications',
         data: {
@@ -81,6 +88,7 @@ export const followUser: PayloadHandler = async (req) => {
           type: 'new_follower',
           message: `${followerName} started following you`,
           path: `/sellers/${user.id}`, // Link to the follower's seller profile
+          ...(followerPhotoId && { image: followerPhotoId }), // Only set image if follower has a photo
           metadata: {
             followerId: user.id,
             followerName: followerName,
