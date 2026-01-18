@@ -18,6 +18,7 @@ class PurchasesBloc extends Bloc<PurchasesEvent, PurchasesState> {
     on<PurchasesFetchRequested>(_onFetchRequested);
     on<PurchasesLoadMoreRequested>(_onLoadMoreRequested);
     on<PurchasesFilterChanged>(_onFilterChanged);
+    on<PurchasesClearRequested>(_onClearRequested);
   }
 
   Future<void> _onFetchRequested(
@@ -87,5 +88,12 @@ class PurchasesBloc extends Bloc<PurchasesEvent, PurchasesState> {
     Emitter<PurchasesState> emit,
   ) async {
     add(PurchasesFetchRequested(statusFilter: event.statusFilter));
+  }
+
+  void _onClearRequested(
+    PurchasesClearRequested event,
+    Emitter<PurchasesState> emit,
+  ) {
+    emit(const PurchasesState());
   }
 }

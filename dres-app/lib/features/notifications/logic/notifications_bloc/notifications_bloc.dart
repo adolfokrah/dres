@@ -19,6 +19,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     on<NotificationsUnreadCountRequested>(_onUnreadCountRequested);
     on<NotificationMarkAsReadRequested>(_onMarkAsReadRequested);
     on<NotificationsMarkAllAsReadRequested>(_onMarkAllAsReadRequested);
+    on<NotificationsClearRequested>(_onClearRequested);
   }
 
   Future<void> _onFetchRequested(
@@ -152,5 +153,12 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     } catch (_) {
       // Silently fail - not critical
     }
+  }
+
+  void _onClearRequested(
+    NotificationsClearRequested event,
+    Emitter<NotificationsState> emit,
+  ) {
+    emit(const NotificationsState());
   }
 }

@@ -19,6 +19,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     on<TransactionsLoadMoreRequested>(_onLoadMoreRequested);
     on<TransactionsRefreshRequested>(_onRefreshRequested);
     on<TransactionsFilterChanged>(_onFilterChanged);
+    on<TransactionsClearRequested>(_onClearRequested);
   }
 
   Future<void> _onFetchRequested(
@@ -106,5 +107,12 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
       typeFilter: state.typeFilter,
       statusFilter: state.statusFilter,
     ));
+  }
+
+  void _onClearRequested(
+    TransactionsClearRequested event,
+    Emitter<TransactionsState> emit,
+  ) {
+    emit(const TransactionsState());
   }
 }

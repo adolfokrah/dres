@@ -22,6 +22,7 @@ class AddressBloc extends Bloc<AddressEvent, AddressState> {
     on<AddressUpdateRequested>(_onUpdateRequested);
     on<AddressSetDefaultRequested>(_onSetDefaultRequested);
     on<AddressSelected>(_onAddressSelected);
+    on<AddressClearRequested>(_onClearRequested);
   }
 
   Future<void> _onFetchRequested(
@@ -129,5 +130,12 @@ class AddressBloc extends Bloc<AddressEvent, AddressState> {
     Emitter<AddressState> emit,
   ) {
     emit(state.copyWith(selectedAddressId: event.addressId));
+  }
+
+  void _onClearRequested(
+    AddressClearRequested event,
+    Emitter<AddressState> emit,
+  ) {
+    emit(const AddressState());
   }
 }

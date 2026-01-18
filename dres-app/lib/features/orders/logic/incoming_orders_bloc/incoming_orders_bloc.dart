@@ -19,6 +19,7 @@ class IncomingOrdersBloc extends Bloc<IncomingOrdersEvent, IncomingOrdersState> 
     on<IncomingOrdersLoadMoreRequested>(_onLoadMoreRequested);
     on<IncomingOrdersRefreshRequested>(_onRefreshRequested);
     on<IncomingOrdersFilterChanged>(_onFilterChanged);
+    on<IncomingOrdersClearRequested>(_onClearRequested);
   }
 
   Future<void> _onFetchRequested(
@@ -96,5 +97,12 @@ class IncomingOrdersBloc extends Bloc<IncomingOrdersEvent, IncomingOrdersState> 
   ) async {
     // Refresh with current filter
     add(IncomingOrdersFetchRequested(statusFilter: state.statusFilter));
+  }
+
+  void _onClearRequested(
+    IncomingOrdersClearRequested event,
+    Emitter<IncomingOrdersState> emit,
+  ) {
+    emit(const IncomingOrdersState());
   }
 }

@@ -49,3 +49,8 @@ class FavoritesToggleRequested extends FavoritesEvent {
   @override
   List<Object?> get props => [variationId, isFavorited];
 }
+
+/// Clear favorites state (e.g., on logout)
+class FavoritesClearRequested extends FavoritesEvent {
+  const FavoritesClearRequested();
+}

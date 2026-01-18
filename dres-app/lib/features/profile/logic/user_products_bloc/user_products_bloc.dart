@@ -17,6 +17,7 @@ class UserProductsBloc extends Bloc<UserProductsEvent, UserProductsState> {
     on<UserProductsRefreshRequested>(_onRefreshRequested);
     on<UserProductsLoadMoreRequested>(_onLoadMoreRequested);
     on<UserProductsArchiveRequested>(_onArchiveRequested);
+    on<UserProductsClearRequested>(_onClearRequested);
   }
 
   Future<void> _onFetchRequested(
@@ -112,5 +113,12 @@ class UserProductsBloc extends Bloc<UserProductsEvent, UserProductsState> {
         errorMessage: getErrorMessage(e),
       ));
     }
+  }
+
+  void _onClearRequested(
+    UserProductsClearRequested event,
+    Emitter<UserProductsState> emit,
+  ) {
+    emit(const UserProductsState());
   }
 }

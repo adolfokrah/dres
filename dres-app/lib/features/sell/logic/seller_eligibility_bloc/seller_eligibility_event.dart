@@ -16,3 +16,8 @@ class SellerEligibilityFetchRequested extends SellerEligibilityEvent {
 class SellerEligibilityRefreshRequested extends SellerEligibilityEvent {
   const SellerEligibilityRefreshRequested();
 }
+
+/// Clear eligibility state (e.g., on logout)
+class SellerEligibilityClearRequested extends SellerEligibilityEvent {
+  const SellerEligibilityClearRequested();
+}

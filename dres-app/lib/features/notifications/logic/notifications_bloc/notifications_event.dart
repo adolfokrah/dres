@@ -41,3 +41,8 @@ class NotificationMarkAsReadRequested extends NotificationsEvent {
 class NotificationsMarkAllAsReadRequested extends NotificationsEvent {
   const NotificationsMarkAllAsReadRequested();
 }
+
+/// Clear notifications state (e.g., on logout)
+class NotificationsClearRequested extends NotificationsEvent {
+  const NotificationsClearRequested();
+}

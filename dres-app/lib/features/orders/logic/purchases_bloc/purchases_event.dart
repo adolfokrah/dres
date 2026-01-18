@@ -35,3 +35,8 @@ class PurchasesFilterChanged extends PurchasesEvent {
   @override
   List<Object?> get props => [statusFilter];
 }
+
+/// Clear purchases state (e.g., on logout)
+class PurchasesClearRequested extends PurchasesEvent {
+  const PurchasesClearRequested();
+}

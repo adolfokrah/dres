@@ -20,6 +20,7 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
     on<FavoritesRefreshRequested>(_onRefreshRequested);
     on<FavoritesItemRemoved>(_onItemRemoved);
     on<FavoritesToggleRequested>(_onToggleRequested);
+    on<FavoritesClearRequested>(_onClearRequested);
   }
 
   Future<void> _onFetchRequested(
@@ -171,5 +172,12 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
         ));
       }
     }
+  }
+
+  void _onClearRequested(
+    FavoritesClearRequested event,
+    Emitter<FavoritesState> emit,
+  ) {
+    emit(const FavoritesState());
   }
 }

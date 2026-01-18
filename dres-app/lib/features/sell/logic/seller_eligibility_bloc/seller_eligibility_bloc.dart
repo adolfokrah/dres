@@ -16,6 +16,7 @@ class SellerEligibilityBloc
         super(const SellerEligibilityState()) {
     on<SellerEligibilityFetchRequested>(_onFetchRequested);
     on<SellerEligibilityRefreshRequested>(_onRefreshRequested);
+    on<SellerEligibilityClearRequested>(_onClearRequested);
   }
 
   Future<void> _onFetchRequested(
@@ -53,5 +54,12 @@ class SellerEligibilityBloc
       // Keep existing data on refresh error
       emit(state.copyWith(error: e.toString()));
     }
+  }
+
+  void _onClearRequested(
+    SellerEligibilityClearRequested event,
+    Emitter<SellerEligibilityState> emit,
+  ) {
+    emit(const SellerEligibilityState());
   }
 }

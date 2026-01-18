@@ -137,11 +137,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       await _authRepository.socialSignOut();
       // Logout from backend
       await _authRepository.logout();
+      // Reset all singleton BLoCs to clear user-specific state
+      await resetBlocsOnLogout();
       emit(state.copyWith(
         status: AuthStatus.unauthenticated,
         user: null,
       ));
     } catch (e) {
+      // Still reset BLoCs even if logout fails
+      await resetBlocsOnLogout();
       emit(state.copyWith(
         status: AuthStatus.unauthenticated,
         user: null,

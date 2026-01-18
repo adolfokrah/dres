@@ -36,3 +36,8 @@ class IncomingOrdersFilterChanged extends IncomingOrdersEvent {
   @override
   List<Object?> get props => [statusFilter];
 }
+
+/// Clear incoming orders state (e.g., on logout)
+class IncomingOrdersClearRequested extends IncomingOrdersEvent {
+  const IncomingOrdersClearRequested();
+}

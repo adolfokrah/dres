@@ -375,6 +375,65 @@ Future<void> setupDependencies() async {
   ));
 }
 
+/// Reset all singleton BLoCs on logout
+/// This clears user-specific state from all persistent BLoCs
+Future<void> resetBlocsOnLogout() async {
+  // Reset Cart Bloc
+  if (getIt.isRegistered<CartBloc>()) {
+    getIt<CartBloc>().add(const CartCleared());
+  }
+
+  // Reset Address Bloc  
+  if (getIt.isRegistered<AddressBloc>()) {
+    getIt<AddressBloc>().add(const AddressClearRequested());
+  }
+
+  // Reset Favorites Bloc
+  if (getIt.isRegistered<FavoritesBloc>()) {
+    getIt<FavoritesBloc>().add(const FavoritesClearRequested());
+  }
+
+  // Reset Follows Bloc
+  if (getIt.isRegistered<FollowsBloc>()) {
+    getIt<FollowsBloc>().add(const FollowsClearRequested());
+  }
+
+  // Reset Notifications Bloc
+  if (getIt.isRegistered<NotificationsBloc>()) {
+    getIt<NotificationsBloc>().add(const NotificationsClearRequested());
+  }
+
+  // Reset Purchases Bloc
+  if (getIt.isRegistered<PurchasesBloc>()) {
+    getIt<PurchasesBloc>().add(const PurchasesClearRequested());
+  }
+
+  // Reset Incoming Orders Bloc
+  if (getIt.isRegistered<IncomingOrdersBloc>()) {
+    getIt<IncomingOrdersBloc>().add(const IncomingOrdersClearRequested());
+  }
+
+  // Reset Transactions Bloc
+  if (getIt.isRegistered<TransactionsBloc>()) {
+    getIt<TransactionsBloc>().add(const TransactionsClearRequested());
+  }
+
+  // Reset User Products Bloc
+  if (getIt.isRegistered<UserProductsBloc>()) {
+    getIt<UserProductsBloc>().add(const UserProductsClearRequested());
+  }
+
+  // Reset Saved Searches Bloc
+  if (getIt.isRegistered<SavedSearchesBloc>()) {
+    getIt<SavedSearchesBloc>().add(const SavedSearchesClearRequested());
+  }
+
+  // Reset Seller Eligibility Bloc
+  if (getIt.isRegistered<SellerEligibilityBloc>()) {
+    getIt<SellerEligibilityBloc>().add(const SellerEligibilityClearRequested());
+  }
+}
+
 /// Reset all dependencies except StorageService (to preserve auth token)
 /// Call this when country changes to refresh all data
 Future<void> resetDependencies() async {

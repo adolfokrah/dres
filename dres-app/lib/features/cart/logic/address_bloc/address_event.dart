@@ -52,3 +52,8 @@ class AddressSelected extends AddressEvent {
   @override
   List<Object?> get props => [addressId];
 }
+
+/// Clear address state (e.g., on logout)
+class AddressClearRequested extends AddressEvent {
+  const AddressClearRequested();
+}

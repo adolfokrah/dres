@@ -12,6 +12,7 @@ class SavedSearchesBloc extends Bloc<SavedSearchesEvent, SavedSearchesState> {
     on<SavedSearchDeleteRequested>(_onSavedSearchDeleteRequested);
     on<SavedSearchActiveToggled>(_onSavedSearchActiveToggled);
     on<SavedSearchesRefreshRequested>(_onSavedSearchesRefreshRequested);
+    on<SavedSearchesClearRequested>(_onSavedSearchesClearRequested);
   }
 
   final SavedSearchRepository _savedSearchRepository;
@@ -156,5 +157,12 @@ class SavedSearchesBloc extends Bloc<SavedSearchesEvent, SavedSearchesState> {
         isRefreshing: false,
       ));
     }
+  }
+
+  void _onSavedSearchesClearRequested(
+    SavedSearchesClearRequested event,
+    Emitter<SavedSearchesState> emit,
+  ) {
+    emit(const SavedSearchesState());
   }
 }

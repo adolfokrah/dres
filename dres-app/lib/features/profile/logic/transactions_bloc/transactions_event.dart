@@ -44,3 +44,8 @@ class TransactionsFilterChanged extends TransactionsEvent {
   @override
   List<Object?> get props => [typeFilter, statusFilter];
 }
+
+/// Clear transactions state (e.g., on logout)
+class TransactionsClearRequested extends TransactionsEvent {
+  const TransactionsClearRequested();
+}

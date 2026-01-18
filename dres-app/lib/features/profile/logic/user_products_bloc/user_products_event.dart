@@ -31,3 +31,8 @@ class UserProductsArchiveRequested extends UserProductsEvent {
   @override
   List<Object?> get props => [styleId];
 }
+
+/// Clear user products state (e.g., on logout)
+class UserProductsClearRequested extends UserProductsEvent {
+  const UserProductsClearRequested();
+}

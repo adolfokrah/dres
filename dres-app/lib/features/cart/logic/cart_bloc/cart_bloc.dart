@@ -6,6 +6,9 @@ import 'package:dres/features/cart/data/repositories/promo_repository.dart';
 import 'cart_event.dart';
 import 'cart_state.dart';
 
+export 'cart_event.dart';
+export 'cart_state.dart';
+
 class CartBloc extends Bloc<CartEvent, CartState> {
   final CartRepository _cartRepository;
   final PromoRepository _promoRepository;

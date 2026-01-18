@@ -49,3 +49,8 @@ class SavedSearchActiveToggled extends SavedSearchesEvent {
 class SavedSearchesRefreshRequested extends SavedSearchesEvent {
   const SavedSearchesRefreshRequested();
 }
+
+/// Clear saved searches state (e.g., on logout)
+class SavedSearchesClearRequested extends SavedSearchesEvent {
+  const SavedSearchesClearRequested();
+}
