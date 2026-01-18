@@ -1,5 +1,5 @@
 import type { CollectionAfterChangeHook } from 'payload'
-import type { Notification } from '../../../payload-types'
+import type { Notification, Media } from '../../../payload-types'
 import { sendPushNotification, getNotificationTitle } from '../../../utilities/sendPushNotification'
 
 /**
@@ -25,11 +25,29 @@ export const sendPushNotificationHook: CollectionAfterChangeHook<Notification> =
   // Get notification image URL if available
   let imageUrl: string | undefined
   if (doc.image) {
-    const image = typeof doc.image === 'string' ? null : doc.image
-    if (image?.url) {
-      imageUrl = image.url.startsWith('http')
-        ? image.url
-        : `${process.env.NEXT_PUBLIC_SERVER_URL}${image.url}`
+    let mediaDoc: Media | null = null
+    
+    // If image is just an ID string, fetch the media document
+    if (typeof doc.image === 'string') {
+      try {
+        mediaDoc = await req.payload.findByID({
+          collection: 'media',
+          id: doc.image,
+        })
+      } catch (error) {
+        console.error('Failed to fetch media for notification:', error)
+      }
+    } else {
+      // Image is already populated as an object
+      mediaDoc = doc.image as Media
+    }
+    
+    // Get URL from media document - prefer thumbnail for faster loading
+    const mediaUrl = mediaDoc?.thumbnailURL || mediaDoc?.url
+    if (mediaUrl) {
+      imageUrl = mediaUrl.startsWith('http')
+        ? mediaUrl
+        : `${process.env.NEXT_PUBLIC_SERVER_URL}${mediaUrl}`
     }
   }
 
