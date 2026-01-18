@@ -1,0 +1,12 @@
+# Use corepack for pnpm instead of mise (avoids GitHub download timeout)
+[phases.setup]
+cmds = ["corepack enable", "corepack prepare pnpm@latest --activate"]
+
+[phases.install]
+cmds = ["pnpm install --frozen-lockfile"]
+
+[phases.build]
+cmds = ["pnpm run build"]
+
+[start]
+cmd = "pnpm start"
