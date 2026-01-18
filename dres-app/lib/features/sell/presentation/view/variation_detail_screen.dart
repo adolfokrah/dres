@@ -127,8 +127,24 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
       return;
     }
 
-    // Use first option as default (e.g., first size option)
-    final firstOption = skuAttribute.options.first;
+    // Get existing SKU option IDs to find an available option
+    final existingSkus = _variationDetailBloc.state.skus;
+    final usedOptionIds = existingSkus
+        .map((sku) => sku.attributeOptionId)
+        .whereType<String>()
+        .toSet();
+
+    // Find first available (unused) option
+    final availableOption = skuAttribute.options.firstWhere(
+      (option) => !usedOptionIds.contains(option.id),
+      orElse: () => skuAttribute.options.first, // Fallback to first if all used
+    );
+
+    // Check if all options are used
+    if (usedOptionIds.contains(availableOption.id)) {
+      AppSnackbar.error(context, 'All ${skuAttribute.name} options have been added');
+      return;
+    }
 
     // Create an empty SKU and navigate to detail page
     _waitingForSkuCreation = true;
@@ -136,7 +152,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
       SkuCreateRequested(
         variationId: widget.variationId,
         attributeId: skuAttribute.id,
-        attributeOptionId: firstOption.id,
+        attributeOptionId: availableOption.id,
         price: 0, // Will be set in detail page
         // stock is null by default (unlimited), will be set in detail page if needed
       ),

@@ -7,6 +7,7 @@ import { notifyPriceDropHook } from './hooks/notifyPriceDropHook'
 import { notifyBackInStockHook } from './hooks/notifyBackInStockHook'
 import { notifySellerLowStockHook } from './hooks/notifySellerLowStockHook'
 import { checkVariationActivation } from './hooks/checkVariationActivation'
+import { validateUniqueSKUOptions } from './hooks/validateUniqueSKUOptions'
 
 interface SKUOptionItem {
   option?: string | { id: string }
@@ -37,6 +38,8 @@ export const SKUs: CollectionConfig = {
   },
   hooks: {
     beforeChange: [
+      // Validate no duplicate SKU with same attributes exists for this variation
+      validateUniqueSKUOptions,
       // Calculate selling price (price + 10% platform fee)
       async ({ data }) => {
         if (data?.price !== undefined) {
