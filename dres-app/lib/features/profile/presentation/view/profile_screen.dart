@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/services/storage_service.dart';
@@ -127,15 +128,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                         _buildMenuItem(
                           title: l10n.privacyPolicy,
-                          onTap: () {
-                            // TODO: Navigate to privacy policy
+                          onTap: () async {
+                            final uri = Uri.parse('https://www.dres.app/privacy-policy');
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            }
                           },
                         ),
 
                         _buildMenuItem(
                           title: l10n.termsOfService,
-                          onTap: () {
-                            // TODO: Navigate to terms of service
+                          onTap: () async {
+                            final uri = Uri.parse('https://www.dres.app/terms-of-service');
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            }
                           },
                         ),
 

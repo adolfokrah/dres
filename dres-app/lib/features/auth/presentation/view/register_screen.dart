@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_button.dart';
@@ -403,8 +404,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     decoration: TextDecoration.underline,
                   ),
                   recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      // TODO: Navigate to terms
+                    ..onTap = () async {
+                      final uri = Uri.parse('https://www.dres.app/terms-of-service');
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      }
                     },
                 ),
                 TextSpan(text: l10n.andIHaveReadThe),
@@ -414,8 +418,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     decoration: TextDecoration.underline,
                   ),
                   recognizer: TapGestureRecognizer()
-                    ..onTap = () {
-                      // TODO: Navigate to privacy policy
+                    ..onTap = () async {
+                      final uri = Uri.parse('https://www.dres.app/privacy-policy');
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
+                      }
                     },
                 ),
               ],

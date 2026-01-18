@@ -25,6 +25,7 @@ async function downloadImageFromUrl(url: string): Promise<Buffer> {
 /**
  * Hook to process the first product image and remove its background
  * Uses Payload's local API to update the media document with the processed image
+ * Runs asynchronously in the background to avoid blocking the request
  */
 export const processProductMainImage: CollectionAfterChangeHook = async ({
   doc,
@@ -57,30 +58,42 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
     }
   }
 
+  // Run background removal asynchronously to avoid blocking the request
+  processBackgroundRemoval(req.payload, firstImageId).catch((error) => {
+    req.payload.logger.error(`Background removal failed: ${error}`)
+  })
+
+  return doc
+}
+
+/**
+ * Process background removal asynchronously
+ */
+async function processBackgroundRemoval(payload: any, firstImageId: string) {
   try {
     // 1. Fetch the first image media document to get its ID and details
-    const mediaDoc = await req.payload.findByID({
+    const mediaDoc = await payload.findByID({
       collection: 'media',
       id: firstImageId,
       depth: 0,
     }) as MediaDoc
 
     if (!mediaDoc || !mediaDoc.filename) {
-      return doc
+      return
     }
 
     // Skip if already processed
     if (mediaDoc.backgroundRemoved) {
-      req.payload.logger.info(`Image ${mediaDoc.id} already has background removed - skipping`)
-      return doc
+      payload.logger.info(`Image ${mediaDoc.id} already has background removed - skipping`)
+      return
     }
 
     // Only process images
     if (!mediaDoc.mimeType?.startsWith('image/')) {
-      return doc
+      return
     }
 
-    req.payload.logger.info(`Processing background removal for media ${mediaDoc.id}: ${mediaDoc.filename}`)
+    payload.logger.info(`Processing background removal for media ${mediaDoc.id}: ${mediaDoc.filename}`)
 
     // Download the image from server
     let imageBuffer: Buffer
@@ -91,11 +104,11 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
         ? mediaDoc.url 
         : `${serverUrl}/api/media/file/${mediaDoc.filename}`
       
-      req.payload.logger.info(`Downloading image from: ${imageUrl}`)
+      payload.logger.info(`Downloading image from: ${imageUrl}`)
       imageBuffer = await downloadImageFromUrl(imageUrl)
     } catch (error) {
-      req.payload.logger.error(`Failed to download image: ${error}`)
-      return doc
+      payload.logger.error(`Failed to download image: ${error}`)
+      return
     }
 
     // 2. Remove background
@@ -104,8 +117,8 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
     })
 
     if (!result.success || !result.buffer) {
-      req.payload.logger.error(`Failed to remove background: ${result.error}`)
-      return doc
+      payload.logger.error(`Failed to remove background: ${result.error}`)
+      return
     }
 
     // Get original file extension and determine format
@@ -126,9 +139,9 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
     }
 
     // 3. Use Payload local API to update the media document with the processed image
-    req.payload.logger.info(`Updating media ${mediaDoc.id} with processed image...`)
+    payload.logger.info(`Updating media ${mediaDoc.id} with processed image...`)
 
-    await req.payload.update({
+    await payload.update({
       collection: 'media',
       id: mediaDoc.id,
       data: {
@@ -142,10 +155,8 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
       },
     })
 
-    req.payload.logger.info(`Background removed for media ${mediaDoc.id}`)
+    payload.logger.info(`Background removed for media ${mediaDoc.id}`)
   } catch (error) {
-    req.payload.logger.error(`Error processing product main image: ${error}`)
+    payload.logger.error(`Error processing product main image: ${error}`)
   }
-
-  return doc
 }
