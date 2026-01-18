@@ -7,7 +7,6 @@ import { revalidateRedirects } from '@/hooks/revalidateRedirects'
 import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
 import { FixedToolbarFeature, HeadingFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
 import { s3Storage } from '@payloadcms/storage-s3'
-import { uploadthingStorage } from '@payloadcms/storage-uploadthing'
 
 import { Page, Post } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
@@ -80,50 +79,19 @@ export const plugins: Plugin[] = [
     },
   }),
 
-  // s3Storage({
-  //   collections: { media: true },
-  //   bucket: process.env.AWS_S3_BUCKET_NAME || 'bucket',
-  //   config: {
-  //     credentials: {
-  //       accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-  //       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-  //     },
-  //     region: process.env.AWS_DEFAULT_REGION || 'us-east-1',
-  //     endpoint: process.env.AWS_ENDPOINT_URL,
-  //     forcePathStyle: true, // Required for Railway/MinIO
-  //   },
-  // }),
-  uploadthingStorage({
-            collections: { media: true },
-            options: {
-              token: process.env.UPLOADTHING_TOKEN,
-            },
+  // S3 Storage for media files
+  s3Storage({
+    collections: { media: true },
+    bucket: process.env.AWS_S3_BUCKET_NAME || 'bucket',
+    acl: 'public-read',
+    config: {
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+      },
+      region: process.env.AWS_DEFAULT_REGION || 'us-east-1',
+      endpoint: process.env.AWS_ENDPOINT_URL,
+      forcePathStyle: true, // Required for Railway/MinIO
+    },
   }),
-  // Storage: Use S3 in production, UploadThing as fallback, local for dev
-  // ...(process.env.AWS_S3_BUCKET_NAME
-  //   ? [
-  //       s3Storage({
-  //         collections: { media: true },
-  //         bucket: process.env.AWS_S3_BUCKET_NAME,
-  //         config: {
-  //           credentials: {
-  //             accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-  //             secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-  //           },
-  //           region: process.env.AWS_DEFAULT_REGION || 'us-east-1',
-  //           endpoint: process.env.AWS_ENDPOINT_URL,
-  //           forcePathStyle: true, // Required for Railway/MinIO
-  //         },
-  //       }),
-  //     ]
-  //   : process.env.UPLOADTHING_TOKEN
-  //     ? [
-  //         uploadthingStorage({
-  //           collections: { media: true },
-  //           options: {
-  //             token: process.env.UPLOADTHING_TOKEN,
-  //           },
-  //         }),
-  //       ]
-  //     : []),
 ]
