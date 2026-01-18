@@ -246,6 +246,7 @@ class SellRepository {
     required String attributeId,
     required String attributeOptionId,
     required double price,
+    double? compareAtPrice,
     int? stock,
   }) async {
     final data = <String, dynamic>{
@@ -258,6 +259,9 @@ class SellRepository {
     // Only include stock if it's provided (null = unlimited stock)
     if (stock != null) {
       data['stock'] = stock;
+    }
+    if (compareAtPrice != null) {
+      data['compareAtPrice'] = compareAtPrice;
     }
     await _apiService.post('/skus', data: data);
   }

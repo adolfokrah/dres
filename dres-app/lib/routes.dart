@@ -231,12 +231,18 @@ class AppRoutes {
           final extra = state.extra as Map<String, dynamic>?;
           final variationName = extra?['variationName'] as String?;
           final categoryId = extra?['categoryId'] as String?;
+          final isNewSku = extra?['isNewSku'] as bool? ?? false;
+          final usedOptionIds = (extra?['usedOptionIds'] as List?)?.cast<String>() ?? [];
+          final editingLocalSku = extra?['editingLocalSku'] as Map<String, dynamic>?;
           return SkuDetailScreen(
             styleId: styleId,
             variationId: variationId,
             skuId: skuId,
             variationName: variationName,
             categoryId: categoryId,
+            isNewSku: isNewSku,
+            usedOptionIds: usedOptionIds,
+            editingLocalSku: editingLocalSku,
           );
         },
       ),

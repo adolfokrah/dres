@@ -22,6 +22,9 @@ class SkuDetailScreen extends StatefulWidget {
   final String skuId;
   final String? variationName;
   final String? categoryId;
+  final bool isNewSku; // True when adding new SKU locally
+  final List<String> usedOptionIds; // Options already used by other SKUs
+  final Map<String, dynamic>? editingLocalSku; // Data when editing existing local SKU
 
   const SkuDetailScreen({
     super.key,
@@ -30,6 +33,9 @@ class SkuDetailScreen extends StatefulWidget {
     required this.skuId,
     this.variationName,
     this.categoryId,
+    this.isNewSku = false,
+    this.usedOptionIds = const [],
+    this.editingLocalSku,
   });
 
   @override
@@ -56,6 +62,7 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
   String? _populatedSkuId;
   bool _isUpdating = false;
   bool _isArchiving = false;
+  bool _localSkuPopulated = false;
 
   double get _commissionRate => _siteSettingsService.commissionRate;
   double get _commissionDecimal => _siteSettingsService.commissionDecimal;
@@ -65,6 +72,8 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
     super.initState();
     _variationDetailBloc = getIt<VariationDetailBloc>();
     _siteSettingsService = getIt<SiteSettingsService>();
+    
+    // Load variation attributes for SKU options
     _variationDetailBloc.add(
       VariationDetailLoadRequested(
         variationId: widget.variationId,
@@ -73,6 +82,29 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
     );
 
     _priceController.addListener(_updateSellingPrice);
+    
+    // If editing a local SKU, populate the data
+    if (widget.isNewSku && widget.editingLocalSku != null) {
+      _populateFromLocalSku(widget.editingLocalSku!);
+    }
+  }
+
+  void _populateFromLocalSku(Map<String, dynamic> localSku) {
+    setState(() {
+      _selectedAttributeId = localSku['attributeId'] as String?;
+      _selectedOptionId = localSku['attributeOptionId'] as String?;
+      _selectedOptionName = localSku['optionName'] as String?;
+      final price = localSku['price'] as double?;
+      if (price != null && price > 0) {
+        _priceController.text = price.toStringAsFixed(2);
+      }
+      final stock = localSku['stock'] as int?;
+      if (stock != null && stock > 0) {
+        _stockController.text = stock.toString();
+      }
+      _localSkuPopulated = true;
+    });
+    _updateSellingPrice();
   }
 
   @override
@@ -212,17 +244,17 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
 
     final stock = int.tryParse(_stockController.text);
 
-    _isUpdating = true;
-    _variationDetailBloc.add(
-      SkuUpdateRequested(
-        skuId: widget.skuId,
-        attributeId: _selectedAttributeId!,
-        attributeOptionId: _selectedOptionId!,
-        price: price,
-        compareAtPrice: comparePrice,
-        stock: stock,
-      ),
-    );
+    // Always return data to parent screen (no API call)
+    // Backend will handle upsert (update if exists, create if not) when user taps "Save & Continue"
+    context.pop({
+      'skuId': widget.isNewSku ? null : widget.skuId, // Include ID if editing existing SKU
+      'attributeId': _selectedAttributeId!,
+      'attributeOptionId': _selectedOptionId!,
+      'optionName': _selectedOptionName!,
+      'price': price,
+      'compareAtPrice': comparePrice,
+      'stock': stock,
+    });
   }
 
   void _onRemove() {

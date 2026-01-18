@@ -114,6 +114,31 @@ class VariationDetailBloc
         imageIds: allImageIds,
       );
 
+      // Upsert SKUs (update if skuId exists, create if null)
+      for (final localSku in event.localSkus) {
+        if (localSku.skuId != null) {
+          // Update existing SKU
+          await _sellRepository.updateSku(
+            skuId: localSku.skuId!,
+            attributeId: localSku.attributeId,
+            attributeOptionId: localSku.attributeOptionId,
+            price: localSku.price,
+            compareAtPrice: localSku.compareAtPrice,
+            stock: localSku.stock,
+          );
+        } else {
+          // Create new SKU
+          await _sellRepository.createSku(
+            variationId: event.variationId,
+            attributeId: localSku.attributeId,
+            attributeOptionId: localSku.attributeOptionId,
+            price: localSku.price,
+            compareAtPrice: localSku.compareAtPrice,
+            stock: localSku.stock,
+          );
+        }
+      }
+
       // Refetch variation details after update
       final variation = await _sellRepository.getVariationDetails(
         event.variationId,

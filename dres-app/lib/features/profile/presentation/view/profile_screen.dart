@@ -129,7 +129,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _buildMenuItem(
                           title: l10n.privacyPolicy,
                           onTap: () async {
-                            final uri = Uri.parse('https://www.dres.app/privacy-policy');
+                            final uri = Uri.parse('https://dres.app/privacy-policy');
                             if (await canLaunchUrl(uri)) {
                               await launchUrl(uri, mode: LaunchMode.externalApplication);
                             }
@@ -139,7 +139,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _buildMenuItem(
                           title: l10n.termsOfService,
                           onTap: () async {
-                            final uri = Uri.parse('https://www.dres.app/terms-of-service');
+                            final uri = Uri.parse('https://dres.app/terms-of-service');
                             if (await canLaunchUrl(uri)) {
                               await launchUrl(uri, mode: LaunchMode.externalApplication);
                             }

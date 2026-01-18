@@ -19,6 +19,49 @@ import 'package:dres/features/sell/presentation/widgets/item_photos_section.dart
 import 'package:dres/features/sell/presentation/widgets/attributes_section.dart';
 import 'package:dres/features/profile/logic/user_products_bloc/user_products_bloc.dart';
 
+/// Local SKU model for storing unsaved/edited SKUs
+class LocalSku {
+  final String localId; // Temporary ID for local tracking
+  final String? skuId; // Existing SKU ID if editing, null if new
+  final String attributeId;
+  final String attributeOptionId;
+  final String optionName; // Display name (e.g., "S", "M", "L")
+  final double price;
+  final double? compareAtPrice;
+  final int? stock; // null = unlimited
+
+  LocalSku({
+    required this.localId,
+    this.skuId,
+    required this.attributeId,
+    required this.attributeOptionId,
+    required this.optionName,
+    this.price = 0,
+    this.compareAtPrice,
+    this.stock,
+  });
+
+  LocalSku copyWith({
+    double? price,
+    double? compareAtPrice,
+    int? stock,
+  }) {
+    return LocalSku(
+      localId: localId,
+      skuId: skuId,
+      attributeId: attributeId,
+      attributeOptionId: attributeOptionId,
+      optionName: optionName,
+      price: price ?? this.price,
+      compareAtPrice: compareAtPrice ?? this.compareAtPrice,
+      stock: stock ?? this.stock,
+    );
+  }
+
+  /// Check if this is an existing SKU being edited
+  bool get isExisting => skuId != null;
+}
+
 class VariationDetailScreen extends StatefulWidget {
   final String styleId;
   final String variationId;
@@ -46,11 +89,14 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
   // Selected attributes
   List<SelectedAttribute> _selectedAttributes = [];
 
-  // Track if we're waiting to navigate after SKU creation
-  bool _waitingForSkuCreation = false;
+  // Local SKUs (not yet saved to backend)
+  List<LocalSku> _localSkus = [];
 
-  // Track if we're waiting for variation update to complete
+  // Track if we're waiting for variation update to complete (full save with navigation)
   bool _waitingForUpdate = false;
+
+  // Track if we're just saving images in background (no navigation)
+  bool _savingImagesOnly = false;
 
   // Track if attributes have been populated from loaded data
   bool _attributesPopulated = false;
@@ -65,20 +111,18 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
   List<String>? _reorderedImageIds;
 
   /// Check if the variation form is valid (can be saved)
-  /// Requires: 3+ images, 1+ attribute selected
-  /// SKUs are added after variation is saved with attributes
+  /// Requires: 3+ images, 1+ attribute selected, at least 1 SKU with price
   bool _isFormValid(List<String> existingImages) {
     final totalImages = existingImages.length + _selectedImages.length;
     final hasEnoughImages = totalImages >= 3;
     final hasAttribute = _selectedAttributes.any((a) => a.isComplete);
+    
+    // Check if we have at least one SKU (local or saved) with price > 0
+    final savedSkus = _variationDetailBloc.state.skus;
+    final hasSkuWithPrice = _localSkus.any((s) => s.price > 0) || 
+                           savedSkus.any((s) => s.price > 0);
 
-    return hasEnoughImages && hasAttribute;
-  }
-
-  /// Check if variation has saved attributes (variants) - required before adding SKUs
-  bool _hasVariationAttributes() {
-    final variation = _variationDetailBloc.state.variation;
-    return variation != null && variation.variants.isNotEmpty;
+    return hasEnoughImages && hasAttribute && hasSkuWithPrice;
   }
 
   @override
@@ -107,13 +151,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
     });
   }
 
-  void _onAddSku() {
-    // Check if variation has saved attributes first
-    if (!_hasVariationAttributes()) {
-      AppSnackbar.error(context, 'Please save variation with attributes first before adding SKUs');
-      return;
-    }
-
+  void _onAddSku() async {
     // Get SKU attribute from state (e.g., Size)
     final skuAttributes = _variationDetailBloc.state.skuAttributes;
     if (skuAttributes.isEmpty) {
@@ -127,54 +165,124 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
       return;
     }
 
-    // Get existing SKU option IDs to find an available option
-    final existingSkus = _variationDetailBloc.state.skus;
-    final usedOptionIds = existingSkus
-        .map((sku) => sku.attributeOptionId)
-        .whereType<String>()
-        .toSet();
+    // Get existing SKU option IDs (both saved and local)
+    final savedSkus = _variationDetailBloc.state.skus;
+    final usedOptionIds = <String>{
+      ...savedSkus.map((sku) => sku.attributeOptionId).whereType<String>(),
+      ..._localSkus.map((sku) => sku.attributeOptionId),
+    };
 
-    // Find first available (unused) option
-    final availableOption = skuAttribute.options.firstWhere(
-      (option) => !usedOptionIds.contains(option.id),
-      orElse: () => skuAttribute.options.first, // Fallback to first if all used
-    );
-
-    // Check if all options are used
-    if (usedOptionIds.contains(availableOption.id)) {
-      AppSnackbar.error(context, 'All ${skuAttribute.name} options have been added');
-      return;
-    }
-
-    // Create an empty SKU and navigate to detail page
-    _waitingForSkuCreation = true;
-    _variationDetailBloc.add(
-      SkuCreateRequested(
-        variationId: widget.variationId,
-        attributeId: skuAttribute.id,
-        attributeOptionId: availableOption.id,
-        price: 0, // Will be set in detail page
-        // stock is null by default (unlimited), will be set in detail page if needed
-      ),
-    );
-  }
-
-  void _onSkuTap(dynamic sku) async {
-    // Navigate to SKU detail page (inside shell) and wait for result
-    await context.push(
-      '/sell/style/${widget.styleId}/variation/${widget.variationId}/sku/${sku.id}',
+    // Navigate to SKU detail screen in "new" mode
+    final result = await context.push<Map<String, dynamic>>(
+      '/sku-detail/${widget.styleId}/${widget.variationId}/new',
       extra: {
         'variationName': widget.variationName,
         'categoryId': widget.categoryId,
+        'isNewSku': true,
+        'usedOptionIds': usedOptionIds.toList(),
       },
     );
-    // Reload variation detail when returning from SKU screen
-    _variationDetailBloc.add(
-      VariationDetailLoadRequested(
-        variationId: widget.variationId,
-        categoryId: widget.categoryId,
-      ),
+
+    // Handle result from SKU detail screen
+    if (result != null) {
+      final localSku = LocalSku(
+        localId: 'local_${DateTime.now().millisecondsSinceEpoch}',
+        attributeId: result['attributeId'] as String,
+        attributeOptionId: result['attributeOptionId'] as String,
+        optionName: result['optionName'] as String,
+        price: result['price'] as double,
+        stock: result['stock'] as int?,
+      );
+
+      setState(() {
+        _localSkus.add(localSku);
+      });
+    }
+  }
+
+  void _onLocalSkuTap(LocalSku sku) async {
+    // Navigate to SKU detail screen to edit local SKU
+    final result = await context.push<Map<String, dynamic>>(
+      '/sku-detail/${widget.styleId}/${widget.variationId}/local_${sku.localId}',
+      extra: {
+        'variationName': widget.variationName,
+        'categoryId': widget.categoryId,
+        'isNewSku': true,
+        'editingLocalSku': {
+          'attributeId': sku.attributeId,
+          'attributeOptionId': sku.attributeOptionId,
+          'optionName': sku.optionName,
+          'price': sku.price,
+          'stock': sku.stock,
+        },
+        'usedOptionIds': _localSkus
+            .where((s) => s.localId != sku.localId)
+            .map((s) => s.attributeOptionId)
+            .toList(),
+      },
     );
+
+    // Handle result - update or delete
+    if (result != null) {
+      if (result['deleted'] == true) {
+        setState(() {
+          _localSkus.removeWhere((s) => s.localId == sku.localId);
+        });
+      } else {
+        setState(() {
+          final index = _localSkus.indexWhere((s) => s.localId == sku.localId);
+          if (index != -1) {
+            _localSkus[index] = LocalSku(
+              localId: sku.localId,
+              attributeId: result['attributeId'] as String,
+              attributeOptionId: result['attributeOptionId'] as String,
+              optionName: result['optionName'] as String,
+              price: result['price'] as double,
+              stock: result['stock'] as int?,
+            );
+          }
+        });
+      }
+    }
+  }
+
+  void _onRemoveLocalSku(LocalSku sku) {
+    setState(() {
+      _localSkus.removeWhere((s) => s.localId == sku.localId);
+    });
+  }
+
+  void _onSkuTap(dynamic sku) async {
+    // Navigate to SKU detail page to edit existing SKU
+    final result = await context.push<Map<String, dynamic>>(
+      '/sku-detail/${widget.styleId}/${widget.variationId}/${sku.id}',
+      extra: {
+        'variationName': widget.variationName,
+        'categoryId': widget.categoryId,
+        'isNewSku': false, // This is an existing SKU
+      },
+    );
+
+    // Handle result - add edited SKU to local state
+    if (result != null) {
+      final editedSku = LocalSku(
+        localId: 'edited_${sku.id}_${DateTime.now().millisecondsSinceEpoch}',
+        skuId: result['skuId'] as String?, // Include the existing SKU ID
+        attributeId: result['attributeId'] as String,
+        attributeOptionId: result['attributeOptionId'] as String,
+        optionName: result['optionName'] as String,
+        price: result['price'] as double,
+        compareAtPrice: result['compareAtPrice'] as double?,
+        stock: result['stock'] as int?,
+      );
+
+      setState(() {
+        // Remove any existing local edits for this SKU
+        _localSkus.removeWhere((s) => s.skuId == sku.id);
+        // Add the edited SKU to local state
+        _localSkus.add(editedSku);
+      });
+    }
   }
 
   void _onDone() {
@@ -188,22 +296,56 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
 
     // Use the ObjectIds we stored from image management screen
     final finalImageIds = _reorderedImageIds ?? _variationDetailBloc.state.variation?.imageIds ?? [];
-    
-    print('🔍 DEBUG: Using stored ObjectIds for server:');
-    for (int i = 0; i < finalImageIds.length; i++) {
-      print('  [$i]: "${finalImageIds[i]}"');
-    }
-    
-    print('📷 Final ObjectIds for update: ${finalImageIds.length}');
 
-    // Always update - even if no attributes, we need to save images
+    // Build local SKUs data for the request (includes both new and edited SKUs)
+    final localSkusData = _localSkus
+        .where((sku) => sku.price > 0)
+        .map((sku) => LocalSkuData(
+              skuId: sku.skuId, // Will be null for new SKUs, populated for edited ones
+              attributeId: sku.attributeId,
+              attributeOptionId: sku.attributeOptionId,
+              price: sku.price,
+              compareAtPrice: sku.compareAtPrice,
+              stock: sku.stock,
+            ))
+        .toList();
+
+    // Always update - save variation with attributes, images, and new SKUs
     _waitingForUpdate = true;
     _variationDetailBloc.add(
       VariationUpdateRequested(
         variationId: widget.variationId,
         variants: variants,
-        existingImageIds: finalImageIds, // Use final ordered image IDs
-        newImages: [], // No new images since they were already uploaded in image management
+        existingImageIds: finalImageIds,
+        newImages: [],
+        localSkus: localSkusData,
+      ),
+    );
+  }
+
+  /// Save images immediately after upload to prevent data loss
+  void _saveImagesImmediately(List<String> imageIds) {
+    print('💾 Saving images immediately to variation');
+    
+    // Get current variants (if any) to preserve them
+    final currentVariants = _selectedAttributes
+        .where((a) => a.isComplete)
+        .map(
+          (a) => VariantOption(attributeId: a.attributeId, valueId: a.valueId!),
+        )
+        .toList();
+
+    // Mark this as a background image save (no navigation)
+    _savingImagesOnly = true;
+
+    // Update variation with new images only (no SKUs, just images)
+    _variationDetailBloc.add(
+      VariationUpdateRequested(
+        variationId: widget.variationId,
+        variants: currentVariants,
+        existingImageIds: imageIds,
+        newImages: [],
+        localSkus: [], // Don't create SKUs during image save
       ),
     );
   }
@@ -289,21 +431,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
             }
           }
 
-          // When SKU is created, just show success message - don't auto-navigate
-          // User can manually tap on the SKU to edit it
-          if (state.status == VariationDetailStatus.skuCreateSuccess &&
-              _waitingForSkuCreation) {
-            _waitingForSkuCreation = false;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Size added successfully'),
-                backgroundColor: AppColors.success,
-              ),
-            );
-          }
-
           if (state.status == VariationDetailStatus.failure) {
-            _waitingForSkuCreation = false;
             _waitingForUpdate = false;
             Loader.hide();
             AppSnackbar.error(context, state.errorMessage ?? 'An error occurred');
@@ -347,13 +475,33 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
             setState(() {});
           }
 
-          // When variation update succeeds, navigate back if has SKUs, otherwise stay
+          // When variation update succeeds (image-only save - no navigation)
+          if (state.status == VariationDetailStatus.updateSuccess &&
+              _savingImagesOnly) {
+            _savingImagesOnly = false;
+            print('✅ Images saved successfully to variation');
+            // Clear local image state since they're now saved
+            setState(() {
+              _reorderedImages = null;
+              _reorderedImageIds = null;
+            });
+            // Refresh variation to show saved images
+            _variationDetailBloc.add(
+              VariationDetailLoadRequested(
+                variationId: widget.variationId,
+                categoryId: widget.categoryId,
+              ),
+            );
+          }
+
+          // When variation update succeeds (full save - may navigate)
           if (state.status == VariationDetailStatus.updateSuccess &&
               _waitingForUpdate) {
             _waitingForUpdate = false;
-            // Clear selected images since they've been uploaded
+            // Clear selected images and local SKUs since they've been saved
             setState(() {
               _selectedImages = [];
+              _localSkus = [];
             });
             getIt<VariationsBloc>().add(const VariationsRefreshRequested());
             getIt<SellBloc>().add(const SellRefreshRequested());
@@ -487,7 +635,8 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
   }
 
   Widget _buildSkusSection(List<dynamic> skus, bool isCreating) {
-    final hasAttributes = _hasVariationAttributes();
+    final totalSkus = skus.length + _localSkus.length;
+    final hasAnySkus = totalSkus > 0;
 
     return Column(
       children: [
@@ -524,9 +673,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
                         'ADD',
                         style: AppTypography.bodyM.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: hasAttributes
-                              ? AppColors.textPrimary
-                              : AppColors.textHint,
+                          color: AppColors.textPrimary,
                         ),
                       ),
               ),
@@ -535,7 +682,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
         ),
 
         // SKUs list
-        if (skus.isEmpty)
+        if (!hasAnySkus)
           Padding(
             padding: const EdgeInsets.all(40),
             child: Center(
@@ -555,9 +702,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    hasAttributes
-                        ? 'Tap ADD to add size and price'
-                        : 'Save variation with attributes first',
+                    'Tap ADD to add size and price',
                     style: AppTypography.bodyS.copyWith(
                       color: AppColors.textHint,
                     ),
@@ -566,8 +711,14 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
               ),
             ),
           )
-        else
-          ...skus.map((sku) => _buildSkuItem(sku)),
+        else ...[
+          // Saved SKUs (filter out ones that have been edited locally)
+          ...skus
+              .where((sku) => !_localSkus.any((local) => local.skuId == sku.id))
+              .map((sku) => _buildSkuItem(sku)),
+          // Local SKUs (both new and edited)
+          ..._localSkus.map((sku) => _buildLocalSkuItem(sku)),
+        ],
       ],
     );
   }
@@ -614,13 +765,72 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
     );
   }
 
+  Widget _buildLocalSkuItem(LocalSku sku) {
+    final isEdited = sku.isExisting; // Has skuId = editing existing SKU
+
+    return GestureDetector(
+      onTap: () => _onLocalSkuTap(sku),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.05),
+          border: const Border(
+            bottom: BorderSide(color: AppColors.secondary, width: 1),
+          ),
+        ),
+        child: Row(
+          children: [
+            // Unsaved/Edited indicator
+            Container(
+              width: 8,
+              height: 8,
+              margin: const EdgeInsets.only(right: 12),
+              decoration: BoxDecoration(
+                color: isEdited ? AppColors.primary : AppColors.warning,
+                shape: BoxShape.circle,
+              ),
+            ),
+            Expanded(
+              child: Text(
+                sku.optionName,
+                style: AppTypography.bodyM.copyWith(
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            Text(
+              sku.price > 0
+                  ? '${CurrencyUtils.currentSymbol} ${sku.price.toStringAsFixed(0)}'
+                  : 'Set price',
+              style: AppTypography.bodyM.copyWith(
+                fontWeight: FontWeight.w700,
+                color: sku.price > 0 ? AppColors.textPrimary : AppColors.warning,
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Delete button
+            GestureDetector(
+              onTap: () => _onRemoveLocalSku(sku),
+              child: PhosphorIcon(
+                PhosphorIcons.x(),
+                color: AppColors.textSecondary,
+                size: 18,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildBottomSection({
     required List<String> existingImages,
     required bool isUpdating,
     required List<dynamic> skus,
   }) {
     final isValid = _isFormValid(existingImages);
-    final hasSkus = skus.isNotEmpty;
+    final totalSkus = skus.length + _localSkus.where((s) => s.price > 0).length;
+    final hasSkus = totalSkus > 0;
 
     return Container(
       color: AppColors.background,
@@ -692,6 +902,9 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
             print('✅ Received from image management:');
             print('📷 URLs: ${imageUrls.length}');
             print('📷 ObjectIds: ${imageIds.length}');
+            
+            // Immediately save the variation with updated images to prevent data loss
+            _saveImagesImmediately(imageIds);
           }
         }
       },

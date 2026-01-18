@@ -109,16 +109,21 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
         BlocProvider.value(value: _variationsBloc),
       ],
       child: BlocListener<StyleDetailsBloc, StyleDetailsState>(
+        listenWhen: (previous, current) => previous.status != current.status,
         listener: (context, state) {
           if (state.status == StyleDetailsStatus.publishSuccess) {
             AppSnackbar.success(context, 'Listing published successfully');
             getIt<SellBloc>().add(const SellRefreshRequested());
             getIt<UserProductsBloc>().add(const UserProductsRefreshRequested());
+            // Reload to show updated status
+            _loadData();
           }
           if (state.status == StyleDetailsStatus.unpublishSuccess) {
             AppSnackbar.success(context, 'Listing unpublished');
             getIt<SellBloc>().add(const SellRefreshRequested());
             getIt<UserProductsBloc>().add(const UserProductsRefreshRequested());
+            // Reload to show updated status
+            _loadData();
           }
           if (state.status == StyleDetailsStatus.failure) {
             AppSnackbar.error(context, state.errorMessage ?? 'An error occurred');

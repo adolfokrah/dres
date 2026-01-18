@@ -405,7 +405,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   recognizer: TapGestureRecognizer()
                     ..onTap = () async {
-                      final uri = Uri.parse('https://www.dres.app/terms-of-service');
+                      final uri = Uri.parse('https://dres.app/terms-of-service');
                       if (await canLaunchUrl(uri)) {
                         await launchUrl(uri, mode: LaunchMode.externalApplication);
                       }
@@ -419,7 +419,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   recognizer: TapGestureRecognizer()
                     ..onTap = () async {
-                      final uri = Uri.parse('https://www.dres.app/privacy-policy');
+                      final uri = Uri.parse('https://dres.app/privacy-policy');
                       if (await canLaunchUrl(uri)) {
                         await launchUrl(uri, mode: LaunchMode.externalApplication);
                       }

@@ -31,18 +31,39 @@ class VariantOption {
   const VariantOption({required this.attributeId, required this.valueId});
 }
 
+/// Local SKU data for creating/updating SKUs alongside variation update
+class LocalSkuData {
+  final String? skuId; // If provided, update existing SKU; if null, create new
+  final String attributeId;
+  final String attributeOptionId;
+  final double price;
+  final double? compareAtPrice;
+  final int? stock;
+
+  const LocalSkuData({
+    this.skuId,
+    required this.attributeId,
+    required this.attributeOptionId,
+    required this.price,
+    this.compareAtPrice,
+    this.stock,
+  });
+}
+
 /// Update variation with variants and images
 class VariationUpdateRequested extends VariationDetailEvent {
   final String variationId;
   final List<VariantOption> variants;
   final List<String> existingImageIds;
   final List<File> newImages;
+  final List<LocalSkuData> localSkus; // New SKUs to create
 
   const VariationUpdateRequested({
     required this.variationId,
     required this.variants,
     this.existingImageIds = const [],
     this.newImages = const [],
+    this.localSkus = const [],
   });
 
   @override
@@ -51,6 +72,7 @@ class VariationUpdateRequested extends VariationDetailEvent {
     variants,
     existingImageIds,
     newImages,
+    localSkus,
   ];
 }
 
