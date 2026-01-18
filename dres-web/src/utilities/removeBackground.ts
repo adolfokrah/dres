@@ -1,3 +1,5 @@
+import FormDataNode from 'form-data'
+
 interface RemoveBgResult {
   success: boolean
   buffer?: Buffer
@@ -32,18 +34,21 @@ export async function removeBackgroundFromBuffer(
   if (wavespeedKey) {
     try {
       // WaveSpeed requires uploading to their media endpoint first
-      // Endpoint: POST https://api.wavespeed.ai/api/v3/media/upload/binary
-      const uploadForm = new FormData()
-      const blob = new Blob([imageBuffer], { type: mimeType })
-      uploadForm.append('file', blob, fileName)
+      // Use form-data package for reliable Node.js file uploads
+      const uploadForm = new FormDataNode()
+      uploadForm.append('file', imageBuffer, {
+        filename: fileName,
+        contentType: mimeType,
+      })
 
       // First, upload the image to get a URL
       const uploadResponse = await fetch('https://api.wavespeed.ai/api/v3/media/upload/binary', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${wavespeedKey}`,
+          ...uploadForm.getHeaders(),
         },
-        body: uploadForm,
+        body: uploadForm.getBuffer(),
       })
 
       if (!uploadResponse.ok) {
@@ -128,11 +133,11 @@ export async function removeBackgroundFromBuffer(
   const pixelcutKey = process.env.PIXELCUT_API_KEY
   if (pixelcutKey) {
     try {
-      const form = new FormData()
-      // Many providers expect 'image' or 'image_file'; Pixelcut accepts multipart per docs
-      const blob = new Blob([imageBuffer], { type: mimeType })
-      form.append('image', blob, fileName)
-      // Explicit format: Pixelcut currently supports png output
+      const form = new FormDataNode()
+      form.append('image', imageBuffer, {
+        filename: fileName,
+        contentType: mimeType,
+      })
       form.append('format', 'png')
 
       const response = await fetch('https://api.developer.pixelcut.ai/v1/remove-background', {
@@ -140,9 +145,9 @@ export async function removeBackgroundFromBuffer(
         headers: {
           'X-API-KEY': pixelcutKey,
           'Accept': 'image/*',
-          // Do NOT set Content-Type manually; fetch will add the boundary
+          ...form.getHeaders(),
         },
-        body: form,
+        body: form.getBuffer(),
       })
 
       if (!response.ok) {
