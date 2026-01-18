@@ -347,7 +347,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
             setState(() {});
           }
 
-          // When variation update succeeds, stay on screen and show success
+          // When variation update succeeds, navigate back if has SKUs, otherwise stay
           if (state.status == VariationDetailStatus.updateSuccess &&
               _waitingForUpdate) {
             _waitingForUpdate = false;
@@ -358,14 +358,21 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
             getIt<VariationsBloc>().add(const VariationsRefreshRequested());
             getIt<SellBloc>().add(const SellRefreshRequested());
             getIt<UserProductsBloc>().add(const UserProductsRefreshRequested());
-            AppSnackbar.success(context, 'Variation saved');
-            // Reload to get fresh data with saved attributes
-            _variationDetailBloc.add(
-              VariationDetailLoadRequested(
-                variationId: widget.variationId,
-                categoryId: widget.categoryId,
-              ),
-            );
+            
+            // If variation has SKUs, navigate back to style overview
+            if (state.skus.isNotEmpty) {
+              AppSnackbar.success(context, 'Variation saved');
+              _navigateBack();
+            } else {
+              AppSnackbar.success(context, 'Variation saved');
+              // Reload to get fresh data with saved attributes
+              _variationDetailBloc.add(
+                VariationDetailLoadRequested(
+                  variationId: widget.variationId,
+                  categoryId: widget.categoryId,
+                ),
+              );
+            }
           }
 
           // When variation archive succeeds, navigate back
@@ -468,6 +475,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
                   _buildBottomSection(
                     existingImages: _reorderedImages ?? variation?.images ?? [],
                     isUpdating: isUpdating,
+                    skus: state.skus,
                   ),
                 ],
               ),
@@ -495,7 +503,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'SKUs',
+                'SKUs & Pricing',
                 style: AppTypography.bodyL.copyWith(
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
@@ -609,8 +617,10 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
   Widget _buildBottomSection({
     required List<String> existingImages,
     required bool isUpdating,
+    required List<dynamic> skus,
   }) {
     final isValid = _isFormValid(existingImages);
+    final hasSkus = skus.isNotEmpty;
 
     return Container(
       color: AppColors.background,
@@ -621,7 +631,7 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
           child: SizedBox(
             width: double.infinity,
             child: AppButton(
-              text: 'Done',
+              text: hasSkus ? 'Save & Continue' : 'Save',
               isLoading: isUpdating,
               onPressed: isValid && !isUpdating ? _onDone : null,
             ),

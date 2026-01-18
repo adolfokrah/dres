@@ -153,7 +153,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
     // ============================================
     // STAGE 1: Early filter on variations (BEFORE lookups)
     // ============================================
-    const earlyMatch: any = { status: { $ne: 'archived' } }
+    const earlyMatch: any = { status: 'active' } // Only show active variations (not draft or archived)
 
     // Filter by style if provided (avoids unnecessary lookups)
     if (style) {

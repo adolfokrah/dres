@@ -23,7 +23,6 @@ class UserProductsList extends StatefulWidget {
 
 class _UserProductsListState extends State<UserProductsList> {
   late final UserProductsBloc _userProductsBloc;
-  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -34,27 +33,20 @@ class _UserProductsListState extends State<UserProductsList> {
     if (_userProductsBloc.state.status == UserProductsStatus.initial) {
       _userProductsBloc.add(const UserProductsFetchRequested());
     }
-
-    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
     super.dispose();
   }
 
-  void _onScroll() {
-    if (_isBottom) {
-      _userProductsBloc.add(const UserProductsLoadMoreRequested());
+  void _onScroll(ScrollNotification notification) {
+    if (notification is ScrollEndNotification) {
+      final metrics = notification.metrics;
+      if (metrics.pixels >= metrics.maxScrollExtent - 200) {
+        _userProductsBloc.add(const UserProductsLoadMoreRequested());
+      }
     }
-  }
-
-  bool get _isBottom {
-    if (!_scrollController.hasClients) return false;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final currentScroll = _scrollController.offset;
-    return currentScroll >= (maxScroll * 0.9);
   }
 
   @override
@@ -62,15 +54,19 @@ class _UserProductsListState extends State<UserProductsList> {
     return BlocBuilder<UserProductsBloc, UserProductsState>(
       bloc: _userProductsBloc,
       builder: (context, state) {
-        return CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            // Overlap injector for nested scroll view
-            SliverOverlapInjector(
-              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                widget.parentContext,
+        return NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            _onScroll(notification);
+            return false; // Allow notification to bubble up to NestedScrollView
+          },
+          child: CustomScrollView(
+            slivers: [
+              // Overlap injector for nested scroll view
+              SliverOverlapInjector(
+                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                  widget.parentContext,
+                ),
               ),
-            ),
 
             // Loading state
             if (state.status == UserProductsStatus.loading)
@@ -208,7 +204,8 @@ class _UserProductsListState extends State<UserProductsList> {
                       state.products.length + (state.hasMore ? 1 : 0),
                 ),
               ),
-          ],
+            ],
+          ),
         );
       },
     );

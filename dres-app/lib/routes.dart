@@ -5,6 +5,7 @@ import 'package:dres/features/splash/splash.dart';
 import 'package:dres/features/home/home.dart';
 import 'package:dres/features/sell/sell.dart';
 import 'package:dres/features/sell/presentation/view/style_details_screen.dart';
+import 'package:dres/features/sell/presentation/view/style_overview_screen.dart';
 import 'package:dres/features/sell/presentation/view/variation_detail_screen.dart';
 import 'package:dres/features/sell/presentation/view/sku_detail_screen.dart';
 import 'package:dres/features/sell/presentation/view/select_department_screen.dart';
@@ -584,15 +585,24 @@ class AppRoutes {
                     name: 'seller-onboarding',
                     builder: (context, state) => const SellerOnboardingScreen(),
                   ),
-                  // Style Details (creating/editing a listing)
+                  // Style Overview (hub for managing a listing)
                   GoRoute(
                     path: 'style/:styleId',
-                    name: 'style-details',
+                    name: 'style-overview',
                     builder: (context, state) {
                       final styleId = state.pathParameters['styleId']!;
-                      return StyleDetailsScreen(styleId: styleId);
+                      return StyleOverviewScreen(styleId: styleId);
                     },
                     routes: [
+                      // Edit Product Details
+                      GoRoute(
+                        path: 'edit',
+                        name: 'style-details',
+                        builder: (context, state) {
+                          final styleId = state.pathParameters['styleId']!;
+                          return StyleDetailsScreen(styleId: styleId);
+                        },
+                      ),
                       // Boost Style
                       GoRoute(
                         path: 'boost',

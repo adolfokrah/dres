@@ -373,7 +373,7 @@ export const newArrivals: PayloadHandler = async (req: PayloadRequest) => {
 
     // Stage 5: Build match conditions
     const matchConditions: any = {
-      status: { $ne: 'archived' },
+      status: 'active', // Only show active variations (not draft or archived)
       'styleData.status': 'published'
     }
 

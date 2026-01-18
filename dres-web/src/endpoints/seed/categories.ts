@@ -87,18 +87,18 @@ const categoriesData = [
   { title: 'Ties', collections: ['Accessories'], departments: ['Men'], brands: ['Hermès', 'Gucci', 'Dior', 'Tom Ford', 'Brioni', 'Salvatore Ferragamo'], attributes: ['Size', 'Color', 'Material'], variantAttributes: ['Size', 'Color'] },
   { title: 'Pocket Squares', collections: ['Accessories'], departments: ['Men'], brands: ['Hermès', "Drake's", 'Tom Ford', 'Turnbull & Asser', 'Charvet'], attributes: ['Size', 'Color', 'Material'], variantAttributes: ['Size', 'Color'] },
 
-  // Jewelry Categories
-  { title: 'Necklaces', collections: ['Jewelry'], departments: ['Women', 'Men'], brands: ['Cartier', 'Tiffany & Co.', 'Van Cleef & Arpels', 'Bulgari', 'Chanel', 'Dior'], attributes: ['Length', 'Material', 'Condition'], variantAttributes: ['Length'] },
-  { title: 'Bracelets', collections: ['Jewelry'], departments: ['Women', 'Men'], brands: ['Cartier', 'Tiffany & Co.', 'Van Cleef & Arpels', 'Hermès', 'Bulgari', 'David Yurman'], attributes: ['Size', 'Material', 'Condition'], variantAttributes: ['Size'] },
-  { title: 'Earrings', collections: ['Jewelry'], departments: ['Women'], brands: ['Cartier', 'Tiffany & Co.', 'Van Cleef & Arpels', 'Chanel', 'Dior', 'Celine'], attributes: ['Size', 'Material', 'Condition'], variantAttributes: ['Size'] },
-  { title: 'Rings', collections: ['Jewelry'], departments: ['Women', 'Men'], brands: ['Cartier', 'Tiffany & Co.', 'Van Cleef & Arpels', 'Bulgari', 'Harry Winston', 'Pomellato'], attributes: ['Size', 'Material', 'Condition'], variantAttributes: ['Size'] },
-  { title: 'Brooches', collections: ['Jewelry'], departments: ['Women', 'Men'], brands: ['Chanel', 'Van Cleef & Arpels', 'Cartier', 'Dior', 'Gucci'], attributes: ['Size', 'Material', 'Condition'], variantAttributes: ['Size'] },
-  { title: 'Cufflinks', collections: ['Jewelry', 'Accessories'], departments: ['Men'], brands: ['Cartier', 'Montblanc', 'Tom Ford', 'Tiffany & Co.', 'Dunhill'], attributes: ['Size', 'Material', 'Condition'], variantAttributes: ['Size'] },
+  // Jewelry Categories - Color represents metal color (Gold, Silver, Rose Gold, etc.)
+  { title: 'Necklaces', collections: ['Jewelry'], departments: ['Women', 'Men'], brands: ['Cartier', 'Tiffany & Co.', 'Van Cleef & Arpels', 'Bulgari', 'Chanel', 'Dior'], attributes: ['Size', 'Length', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Bracelets', collections: ['Jewelry'], departments: ['Women', 'Men'], brands: ['Cartier', 'Tiffany & Co.', 'Van Cleef & Arpels', 'Hermès', 'Bulgari', 'David Yurman'], attributes: ['Size', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Earrings', collections: ['Jewelry'], departments: ['Women'], brands: ['Cartier', 'Tiffany & Co.', 'Van Cleef & Arpels', 'Chanel', 'Dior', 'Celine'], attributes: ['Size', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Rings', collections: ['Jewelry'], departments: ['Women', 'Men'], brands: ['Cartier', 'Tiffany & Co.', 'Van Cleef & Arpels', 'Bulgari', 'Harry Winston', 'Pomellato'], attributes: ['Size', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Brooches', collections: ['Jewelry'], departments: ['Women', 'Men'], brands: ['Chanel', 'Van Cleef & Arpels', 'Cartier', 'Dior', 'Gucci'], attributes: ['Size', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Cufflinks', collections: ['Jewelry', 'Accessories'], departments: ['Men'], brands: ['Cartier', 'Montblanc', 'Tom Ford', 'Tiffany & Co.', 'Dunhill'], attributes: ['Size', 'Color', 'Material', 'Condition'], variantAttributes: ['Size', 'Color'] },
 
-  // Watch Categories
-  { title: 'Luxury Watches', collections: ['Watches'], departments: ['Women', 'Men'], brands: ['Rolex', 'Patek Philippe', 'Audemars Piguet', 'Omega', 'Cartier', 'IWC'], attributes: ['Size', 'Condition', 'Material'], variantAttributes: ['Size'] },
-  { title: 'Sport Watches', collections: ['Watches'], departments: ['Women', 'Men'], brands: ['Rolex', 'Omega', 'TAG Heuer', 'Breitling', 'Tudor', 'Longines'], attributes: ['Size', 'Condition', 'Material'], variantAttributes: ['Size'] },
-  { title: 'Fashion Watches', collections: ['Watches'], departments: ['Women', 'Men'], brands: ['Gucci', 'Chanel', 'Dior', 'Hermès', 'Bulgari', 'Cartier'], attributes: ['Size', 'Condition', 'Material'], variantAttributes: ['Size'] },
+  // Watch Categories - Color represents dial/strap color
+  { title: 'Luxury Watches', collections: ['Watches'], departments: ['Women', 'Men'], brands: ['Rolex', 'Patek Philippe', 'Audemars Piguet', 'Omega', 'Cartier', 'IWC'], attributes: ['Size', 'Color', 'Condition', 'Material'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Sport Watches', collections: ['Watches'], departments: ['Women', 'Men'], brands: ['Rolex', 'Omega', 'TAG Heuer', 'Breitling', 'Tudor', 'Longines'], attributes: ['Size', 'Color', 'Condition', 'Material'], variantAttributes: ['Size', 'Color'] },
+  { title: 'Fashion Watches', collections: ['Watches'], departments: ['Women', 'Men'], brands: ['Gucci', 'Chanel', 'Dior', 'Hermès', 'Bulgari', 'Cartier'], attributes: ['Size', 'Color', 'Condition', 'Material'], variantAttributes: ['Size', 'Color'] },
 ]
 
 export const seedCategories = async (payload: Payload): Promise<void> => {

@@ -233,13 +233,13 @@ const attributeOptionsData: Record<string, AttributeOptionData[]> = {
     { name: 'Large', slug: 'bag-large', categories: ['Handbags', 'Shoulder Bags', 'Crossbody Bags', 'Tote Bags', 'Backpacks', 'Travel Bags', 'Belt Bags', 'Raffia Bags'] },
     { name: 'Oversized', slug: 'bag-oversized', categories: ['Handbags', 'Tote Bags', 'Backpacks', 'Travel Bags'] },
 
-    // Jewelry sizes (for African Beads & Jewelry, Brooches, Cufflinks, Earrings)
-    { name: 'Petite', slug: 'jewelry-petite', categories: ['African Beads & Jewelry', 'Brooches', 'Cufflinks', 'Earrings'] },
-    { name: 'Standard', slug: 'jewelry-standard', categories: ['African Beads & Jewelry', 'Brooches', 'Cufflinks', 'Earrings'] },
-    { name: 'Statement', slug: 'jewelry-statement', categories: ['African Beads & Jewelry', 'Brooches', 'Earrings'] },
+    // Jewelry sizes (for Necklaces, Bracelets, African Beads & Jewelry, Brooches, Cufflinks, Earrings, Rings)
+    { name: 'Petite', slug: 'jewelry-petite', categories: ['Necklaces', 'Bracelets', 'African Beads & Jewelry', 'Brooches', 'Cufflinks', 'Earrings', 'Rings'] },
+    { name: 'Standard', slug: 'jewelry-standard', categories: ['Necklaces', 'Bracelets', 'African Beads & Jewelry', 'Brooches', 'Cufflinks', 'Earrings', 'Rings'] },
+    { name: 'Statement', slug: 'jewelry-statement', categories: ['Necklaces', 'Bracelets', 'African Beads & Jewelry', 'Brooches', 'Earrings', 'Rings'] },
 
     // One size (accessories)
-    { name: 'One Size', slug: 'one-size', categories: ['Scarves', 'Sunglasses', 'Hair Accessories', 'Ties', 'Pocket Squares', 'Handbags', 'Shoulder Bags', 'Crossbody Bags', 'Tote Bags', 'Clutches', 'Backpacks', 'Travel Bags', 'Wallets', 'Belt Bags', 'Headwraps & Gele', 'African Print Accessories', 'Raffia Bags', 'Luxury Watches', 'Sport Watches', 'Fashion Watches', 'African Beads & Jewelry', 'Brooches', 'Cufflinks', 'Earrings'] },
+    { name: 'One Size', slug: 'one-size', categories: ['Scarves', 'Sunglasses', 'Hair Accessories', 'Ties', 'Pocket Squares', 'Handbags', 'Shoulder Bags', 'Crossbody Bags', 'Tote Bags', 'Clutches', 'Backpacks', 'Travel Bags', 'Wallets', 'Belt Bags', 'Headwraps & Gele', 'African Print Accessories', 'Raffia Bags', 'Luxury Watches', 'Sport Watches', 'Fashion Watches', 'Necklaces', 'Bracelets', 'African Beads & Jewelry', 'Brooches', 'Cufflinks', 'Earrings', 'Rings', 'Lingerie'] },
   ],
   Color: [
     // Colors available for all clothing and accessories (including African fashion, Wigs, and Raffia Bags)

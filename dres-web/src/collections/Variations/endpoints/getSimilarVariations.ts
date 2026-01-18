@@ -114,9 +114,9 @@ export const getSimilarVariations: PayloadHandler = async (req) => {
       where: {
         and: [
           {
-            // Only show active variations (not archived)
+            // Only show active variations (not draft or archived)
             status: {
-              not_equals: 'archived',
+              equals: 'active',
             },
           },
           {
