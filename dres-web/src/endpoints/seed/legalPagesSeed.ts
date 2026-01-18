@@ -1,47 +1,49 @@
 import type { Payload } from 'payload'
 
 // Helper to create proper Lexical paragraph node
-const createParagraph = (text: string) => ({
-  type: 'paragraph',
-  children: [
-    {
-      type: 'text',
-      text,
-      format: 0,
-      detail: 0,
-      mode: 'normal',
-      style: '',
-      version: 1,
-    },
-  ],
-  direction: 'ltr',
-  format: '',
-  indent: 0,
-  version: 1,
-  textFormat: 0,
-  textStyle: '',
-})
+const createParagraph = (text: string) =>
+  ({
+    type: 'paragraph',
+    children: [
+      {
+        type: 'text',
+        text,
+        format: 0,
+        detail: 0,
+        mode: 'normal',
+        style: '',
+        version: 1,
+      },
+    ],
+    direction: 'ltr',
+    format: '',
+    indent: 0,
+    version: 1,
+    textFormat: 0,
+    textStyle: '',
+  }) as const
 
 // Helper to create Lexical heading node
-const createHeading = (text: string, tag: 'h1' | 'h2' | 'h3' = 'h2') => ({
-  type: 'heading',
-  tag,
-  children: [
-    {
-      type: 'text',
-      text,
-      format: 0,
-      detail: 0,
-      mode: 'normal',
-      style: '',
-      version: 1,
-    },
-  ],
-  direction: 'ltr',
-  format: '',
-  indent: 0,
-  version: 1,
-})
+const createHeading = (text: string, tag: 'h1' | 'h2' | 'h3' = 'h2') =>
+  ({
+    type: 'heading',
+    tag,
+    children: [
+      {
+        type: 'text',
+        text,
+        format: 0,
+        detail: 0,
+        mode: 'normal',
+        style: '',
+        version: 1,
+      },
+    ],
+    direction: 'ltr',
+    format: '',
+    indent: 0,
+    version: 1,
+  }) as const
 
 // Privacy Policy content as Lexical nodes
 const privacyPolicyContent = {
@@ -65,8 +67,8 @@ const privacyPolicyContent = {
       createHeading('7. Contact Us'),
       createParagraph('If you have any questions about this Privacy Policy, please contact us at privacy@dres.app'),
     ],
-    direction: 'ltr',
-    format: '',
+    direction: 'ltr' as const,
+    format: '' as const,
     indent: 0,
     version: 1,
   },
@@ -104,8 +106,8 @@ const termsOfServiceContent = {
       createHeading('12. Contact Us'),
       createParagraph('For questions about these Terms of Service, please contact us at legal@dres.app'),
     ],
-    direction: 'ltr',
-    format: '',
+    direction: 'ltr' as const,
+    format: '' as const,
     indent: 0,
     version: 1,
   },
