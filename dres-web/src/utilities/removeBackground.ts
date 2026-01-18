@@ -48,7 +48,7 @@ export async function removeBackgroundFromBuffer(
           'Authorization': `Bearer ${wavespeedKey}`,
           ...uploadForm.getHeaders(),
         },
-        body: uploadForm.getBuffer(),
+        body: uploadForm.getBuffer() as unknown as BodyInit,
       })
 
       if (!uploadResponse.ok) {
@@ -147,7 +147,7 @@ export async function removeBackgroundFromBuffer(
           'Accept': 'image/*',
           ...form.getHeaders(),
         },
-        body: form.getBuffer(),
+        body: form.getBuffer() as unknown as BodyInit,
       })
 
       if (!response.ok) {
