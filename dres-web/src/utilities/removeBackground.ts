@@ -31,19 +31,19 @@ export async function removeBackgroundFromBuffer(
   const wavespeedKey = process.env.WAVESPEED_API_KEY
   if (wavespeedKey) {
     try {
-      // WaveSpeed requires uploading to their media endpoint first or using a public URL
-      // We'll use sync mode to get result directly
-      const form = new FormData()
+      // WaveSpeed requires uploading to their media endpoint first
+      // Endpoint: POST https://api.wavespeed.ai/api/v3/media/upload/binary
+      const uploadForm = new FormData()
       const blob = new Blob([imageBuffer], { type: mimeType })
-      form.append('image', blob, fileName)
+      uploadForm.append('file', blob, fileName)
 
       // First, upload the image to get a URL
-      const uploadResponse = await fetch('https://api.wavespeed.ai/api/v2/media', {
+      const uploadResponse = await fetch('https://api.wavespeed.ai/api/v3/media/upload/binary', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${wavespeedKey}`,
         },
-        body: form,
+        body: uploadForm,
       })
 
       if (!uploadResponse.ok) {
@@ -55,12 +55,13 @@ export async function removeBackgroundFromBuffer(
       }
 
       const uploadResult = await uploadResponse.json()
-      const imageUrl = uploadResult.data?.url || uploadResult.url
+      // Response: { code: 200, data: { download_url: "...", type: "image", filename: "...", size: ... } }
+      const imageUrl = uploadResult.data?.download_url || uploadResult.download_url
 
       if (!imageUrl) {
         return {
           success: false,
-          error: 'WaveSpeed upload failed: No URL returned',
+          error: `WaveSpeed upload failed: No URL returned. Response: ${JSON.stringify(uploadResult)}`,
         }
       }
 
