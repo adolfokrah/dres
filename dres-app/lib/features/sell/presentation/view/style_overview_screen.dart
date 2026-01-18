@@ -701,7 +701,7 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
                       ),
                     ),
                   AppButton.filled(
-                    text: isPublished ? 'Unpublish Listing' : 'Review & Publish',
+                    text: isPublished ? 'Unpublish Listing' : 'Publish',
                     onPressed: isLoading
                         ? null
                         : (isPublished ? _onUnpublish : (canPublish ? _onPublish : null)),
