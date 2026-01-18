@@ -121,12 +121,58 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
         _selectedBrandId != null;
   }
 
+  /// Check if category is actually changing (different from current)
+  bool _isCategoryChanging(String? newCategoryId) {
+    final currentCategoryId = _styleDetailsBloc.state.styleDetails?.categoryId;
+    return currentCategoryId != null && 
+           newCategoryId != null && 
+           currentCategoryId != newCategoryId;
+  }
+
+  /// Show warning dialog when changing category with existing variations
+  Future<bool> _showCategoryChangeWarning() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Change Category?'),
+        content: const Text(
+          'Changing the category will reset all variations and SKUs to draft status. '
+          'Their attribute values will be cleared and you\'ll need to set them up again.\n\n'
+          'Do you want to continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Change Category'),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
+
   Future<void> _onCategoryTap() async {
     final result = await context.push<SelectedCategoryData>(
       '/sell/select-department',
     );
 
     if (result != null) {
+      // Check if category is changing and there are existing variations
+      final hasVariations = _variations.isNotEmpty;
+      final isChanging = _isCategoryChanging(result.categoryId);
+      
+      if (hasVariations && isChanging) {
+        // Show warning dialog
+        final confirmed = await _showCategoryChangeWarning();
+        if (!confirmed) return;
+      }
+
       setState(() {
         _selectedDepartmentId = result.departmentId;
         _selectedDepartmentName = result.departmentName;

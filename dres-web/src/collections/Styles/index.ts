@@ -9,6 +9,7 @@ import { getStyleDetails } from './endpoints/getStyleDetails'
 import { getStyleStats } from './endpoints/getStyleStats'
 import { remindDraftSellers } from './endpoints/remindDraftSellers'
 import { notifyFollowersOnPublish } from './hooks/notifyFollowersOnPublish'
+import { resetVariationsOnCategoryChange } from './hooks/resetVariationsOnCategoryChange'
 import { updateVariationsOnTitleChange } from './hooks/updateVariationsOnTitleChange'
 import { validatePublish } from './hooks/validatePublish'
 import { validateSellerEligibility } from './hooks/validateSellerEligibility'
@@ -56,6 +57,8 @@ export const Styles: CollectionConfig = {
       updateVariationsOnTitleChange,
       // Notify followers when a style is published
       notifyFollowersOnPublish,
+      // Reset variations and SKUs to draft when category changes
+      resetVariationsOnCategoryChange,
     ],
   },
   endpoints: [
