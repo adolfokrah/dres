@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
@@ -92,6 +93,55 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
     _styleDetailsBloc.add(StyleDetailsUnpublishRequested(styleId: widget.styleId));
   }
 
+  static const String _firstPublishKey = 'has_shown_first_publish_dialog';
+
+  Future<void> _showFirstPublishDialogIfNeeded() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasShown = prefs.getBool(_firstPublishKey) ?? false;
+
+    if (!hasShown && mounted) {
+      await prefs.setBool(_firstPublishKey, true);
+      if (!mounted) return;
+
+      showDialog(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          backgroundColor: AppColors.surface,
+          title: Row(
+            children: [
+              PhosphorIcon(
+                PhosphorIcons.confetti(PhosphorIconsStyle.fill),
+                color: AppColors.success,
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Listing Published!',
+                  style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
+                ),
+              ),
+            ],
+          ),
+          content: Text(
+            'Your product is now live and visible to buyers. You can find all your published products in the Products tab under your profile.',
+            style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                'Got it',
+                style: AppTypography.bodyM.copyWith(color: AppColors.primary),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   bool _canPublish() {
     final variations = _variationsBloc.state.variations;
     return variations.any((v) => 
@@ -115,6 +165,8 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
             AppSnackbar.success(context, 'Listing published successfully');
             getIt<SellBloc>().add(const SellRefreshRequested());
             getIt<UserProductsBloc>().add(const UserProductsRefreshRequested());
+            // Show first publish dialog if this is user's first time
+            _showFirstPublishDialogIfNeeded();
             // Reload to show updated status
             _loadData();
           }

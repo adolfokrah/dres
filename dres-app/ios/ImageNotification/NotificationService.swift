@@ -1,3 +1,10 @@
+//
+//  NotificationService.swift
+//  ImageNotification
+//
+//  Created by Adolphus Okrah on 19.01.26.
+//
+
 import UserNotifications
 
 class NotificationService: UNNotificationServiceExtension {
@@ -14,7 +21,7 @@ class NotificationService: UNNotificationServiceExtension {
             return
         }
 
-        // Check for image URL in fcm_options or data
+        // Check for image URL in various locations
         var imageUrlString: String?
 
         // FCM sends image URL in fcm_options
@@ -23,16 +30,15 @@ class NotificationService: UNNotificationServiceExtension {
             imageUrlString = image
         }
 
-        // Also check data payload for backward compatibility
+        // Check top-level imageUrl (FCM flattens data payload to top level)
         if imageUrlString == nil,
-           let data = request.content.userInfo["data"] as? [String: Any],
-           let image = data["imageUrl"] as? String {
+           let image = request.content.userInfo["imageUrl"] as? String {
             imageUrlString = image
         }
 
-        // Also check top-level userInfo
+        // Check gcm.notification.image (legacy format)
         if imageUrlString == nil,
-           let image = request.content.userInfo["imageUrl"] as? String {
+           let image = request.content.userInfo["gcm.notification.image"] as? String {
             imageUrlString = image
         }
 
@@ -52,8 +58,6 @@ class NotificationService: UNNotificationServiceExtension {
     }
 
     override func serviceExtensionTimeWillExpire() {
-        // Called just before the extension will be terminated by the system.
-        // Use this as an opportunity to deliver your "best attempt" at modified content.
         if let contentHandler = contentHandler, let bestAttemptContent = bestAttemptContent {
             contentHandler(bestAttemptContent)
         }
@@ -90,14 +94,10 @@ class NotificationService: UNNotificationServiceExtension {
             let tempUrl = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(fileName)
 
             do {
-                // Move file to temp directory with proper extension
                 try FileManager.default.moveItem(at: downloadedUrl, to: tempUrl)
-
-                // Create attachment
                 let attachment = try UNNotificationAttachment(identifier: "image", url: tempUrl, options: nil)
                 completion(attachment)
             } catch {
-                print("Error creating notification attachment: \(error)")
                 completion(nil)
             }
         }

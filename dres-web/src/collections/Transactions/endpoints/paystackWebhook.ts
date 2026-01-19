@@ -225,6 +225,18 @@ async function handleChargeSuccess(
     return
   }
 
+  // Check if order is already placed (idempotency check to prevent duplicate notifications)
+  const order = await payload.findByID({
+    collection: 'orders',
+    id: orderId,
+    depth: 0,
+  })
+
+  if (order && order.status !== 'new') {
+    payload.logger.info(`🔔 handleChargeSuccess: Order ${orderId} already has status '${order.status}', skipping update`)
+    return
+  }
+
   // Update order status to 'placed'
   await payload.update({
     collection: 'orders',

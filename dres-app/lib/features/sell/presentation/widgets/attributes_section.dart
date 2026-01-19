@@ -335,7 +335,7 @@ class _AttributeCard extends StatelessWidget {
       context: context,
       backgroundColor: AppColors.background,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.zero,
       ),
       builder: (context) => _AttributePickerSheet(
         title: 'Select Attribute',
@@ -355,7 +355,7 @@ class _AttributeCard extends StatelessWidget {
       context: context,
       backgroundColor: AppColors.background,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.zero,
       ),
       builder: (context) => _AttributePickerSheet(
         title: 'Select Value',

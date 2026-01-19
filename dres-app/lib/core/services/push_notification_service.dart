@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -19,49 +20,61 @@ class PushNotificationService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   final ApiService _apiService;
-  
+
   String? _fcmToken;
   bool _isTokenRegistered = false;
-  
+  bool _isInitialized = false;
+
+  // Track recently shown notification IDs to prevent duplicates
+  final Set<String> _recentlyShownNotifications = {};
+  static const int _maxRecentNotifications = 50;
+
   /// Get the current FCM token
   String? get fcmToken => _fcmToken;
-  
+
   /// Check if token is registered with server
   bool get isTokenRegistered => _isTokenRegistered;
 
   PushNotificationService({required ApiService apiService}) : _apiService = apiService;
 
   /// Initialize push notification service
-  /// Note: This only sets up FCM and gets the token. 
+  /// Note: This only sets up FCM and gets the token.
   /// Call registerToken() after user logs in to send token to server.
   Future<void> initialize() async {
+    // Prevent multiple initializations (e.g., from hot reload)
+    if (_isInitialized) {
+      debugPrint('🔔 Push notification service already initialized, skipping');
+      return;
+    }
+    _isInitialized = true;
+
     // Set up background message handler
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-    
+
     // Request permission
     await _requestPermission();
-    
+
     // Initialize local notifications for foreground
     await _initializeLocalNotifications();
-    
+
     // Try to get FCM token (non-blocking - will retry later if needed)
     _getToken();
-    
+
     // Listen for token refresh (this will fire when APNS token becomes available on iOS)
     _messaging.onTokenRefresh.listen(_onTokenRefresh);
-    
+
     // Handle foreground messages
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-    
+
     // Handle notification tap when app is in background/terminated
     FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
-    
+
     // Check if app was opened from a notification
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
       _handleNotificationTap(initialMessage);
     }
-    
+
     debugPrint('🔔 Push notification service initialized');
   }
 
@@ -78,13 +91,24 @@ class PushNotificationService {
     );
 
     debugPrint('🔔 Permission status: ${settings.authorizationStatus}');
-    
+
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       debugPrint('🔔 User granted permission');
     } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
       debugPrint('🔔 User granted provisional permission');
     } else {
       debugPrint('🔔 User declined or has not accepted permission');
+    }
+
+    // On iOS, disable FCM's foreground notification presentation
+    // We'll show local notifications instead so we can include images
+    if (Platform.isIOS) {
+      await _messaging.setForegroundNotificationPresentationOptions(
+        alert: false,
+        badge: true,
+        sound: false,
+      );
+      debugPrint('🔔 iOS foreground notification presentation disabled (using local notifications)');
     }
   }
 
@@ -222,6 +246,8 @@ class PushNotificationService {
   /// Handle foreground message
   void _handleForegroundMessage(RemoteMessage message) {
     debugPrint('🔔 Foreground message: ${message.notification?.title}');
+    debugPrint('🔔 Message data keys: ${message.data.keys.toList()}');
+    debugPrint('🔔 Message data: ${message.data}');
 
     final notification = message.notification;
     final android = message.notification?.android;
@@ -236,33 +262,114 @@ class PushNotificationService {
       payload = path;
     }
 
+    // Check for duplicate notification (prevent showing twice)
+    final messageId = message.messageId ?? notificationId ?? message.hashCode.toString();
+    if (_recentlyShownNotifications.contains(messageId)) {
+      debugPrint('🔔 Duplicate notification detected, skipping: $messageId');
+      return;
+    }
+
+    // Track this notification
+    _recentlyShownNotifications.add(messageId);
+    // Keep the set from growing too large
+    if (_recentlyShownNotifications.length > _maxRecentNotifications) {
+      _recentlyShownNotifications.remove(_recentlyShownNotifications.first);
+    }
+
     // Refresh notifications list if user is authenticated
     _refreshNotifications();
 
     // Show local notification when app is in foreground
+    // Both Android and iOS use local notifications to support images
     if (notification != null) {
-      _localNotifications.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            'dres_notifications',
-            'DRES Notifications',
-            channelDescription: 'Notifications from DRES app',
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: android?.smallIcon ?? '@mipmap/ic_launcher',
-          ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
-        ),
+      // Get image URL from data payload
+      final imageUrl = message.data['imageUrl'] as String?;
+      debugPrint('🔔 Foreground notification imageUrl: $imageUrl');
+
+      _showLocalNotificationWithImage(
+        id: notification.hashCode,
+        title: notification.title,
+        body: notification.body,
+        imageUrl: imageUrl,
+        smallIcon: android?.smallIcon ?? '@mipmap/ic_launcher',
         payload: payload,
       );
     }
+  }
+
+  /// Show local notification with optional image (works on both Android and iOS)
+  Future<void> _showLocalNotificationWithImage({
+    required int id,
+    String? title,
+    String? body,
+    String? imageUrl,
+    required String smallIcon,
+    String? payload,
+  }) async {
+    StyleInformation? androidStyleInformation;
+    String? iosAttachmentPath;
+
+    // Try to download and attach image if URL is provided
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      try {
+        debugPrint('🔔 Downloading notification image: $imageUrl');
+        final dio = Dio();
+        final response = await dio.get<List<int>>(
+          imageUrl,
+          options: Options(responseType: ResponseType.bytes),
+        );
+
+        if (response.data != null) {
+          final imageBytes = Uint8List.fromList(response.data!);
+          debugPrint('🔔 Downloaded image: ${imageBytes.length} bytes');
+
+          if (Platform.isAndroid) {
+            androidStyleInformation = BigPictureStyleInformation(
+              ByteArrayAndroidBitmap(imageBytes),
+              hideExpandedLargeIcon: true,
+              contentTitle: title,
+              summaryText: body,
+            );
+          } else if (Platform.isIOS) {
+            // For iOS, save image to temp file and use as attachment
+            final tempDir = Directory.systemTemp;
+            final tempFile = File('${tempDir.path}/notification_image_$id.jpg');
+            await tempFile.writeAsBytes(imageBytes);
+            iosAttachmentPath = tempFile.path;
+            debugPrint('🔔 Saved iOS notification image to: $iosAttachmentPath');
+          }
+        }
+      } catch (e) {
+        debugPrint('🔔 Failed to download notification image: $e');
+        // Fall back to default style
+      }
+    }
+
+    await _localNotifications.show(
+      id,
+      title,
+      body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'dres_notifications',
+          'DRES Notifications',
+          channelDescription: 'Notifications from DRES app',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: smallIcon,
+          styleInformation: androidStyleInformation,
+        ),
+        iOS: DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          attachments: iosAttachmentPath != null
+              ? [DarwinNotificationAttachment(iosAttachmentPath)]
+              : null,
+        ),
+      ),
+      payload: payload,
+    );
   }
 
   /// Refresh notifications list when a push is received

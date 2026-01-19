@@ -57,6 +57,7 @@ export async function sendPushNotification({
     })
 
     if (fcmTokensResult.docs.length === 0) {
+      console.log(`[Push] No active FCM tokens for user ${userId}`)
       return {
         success: true,
         successCount: 0,
@@ -65,9 +66,12 @@ export async function sendPushNotification({
       }
     }
 
-    const tokens = fcmTokensResult.docs.map((fcmDoc) => fcmDoc.token)
+    // Deduplicate tokens (in case same token is registered multiple times)
+    const uniqueTokens = [...new Set(fcmTokensResult.docs.map((fcmDoc) => fcmDoc.token))]
 
-    return sendToTokens({ tokens, title, body, imageUrl, data, payload })
+    console.log(`[Push] Sending to ${uniqueTokens.length} unique tokens for user ${userId} (found ${fcmTokensResult.docs.length} total)`)
+
+    return sendToTokens({ tokens: uniqueTokens, title, body, imageUrl, data, payload })
   } catch (error) {
     console.error('Error sending push notification:', error)
     return {
@@ -314,6 +318,9 @@ async function sendToTokens({
 
   // Add image for both Android and iOS
   if (imageUrl) {
+    console.log(`[Push] Adding image to notification: ${imageUrl}`)
+    // Also add to data payload for iOS Notification Service Extension fallback
+    message.data = { ...message.data, imageUrl }
     // Android uses notification.imageUrl
     message.android = {
       notification: {
@@ -332,6 +339,8 @@ async function sendToTokens({
         image: imageUrl,
       },
     }
+  } else {
+    console.log(`[Push] No image URL provided for notification`)
   }
 
   const messagingInstance = getMessaging()
