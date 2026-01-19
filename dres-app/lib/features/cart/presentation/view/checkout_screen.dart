@@ -484,9 +484,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 builder: (context, addressState) {
                   final selectedAddress = addressState.selectedAddress;
                   final isLoadingAddress = addressState.status == AddressStatus.loading;
-                  
+
+                  // Show loading bar when cart is loading/updating or placing order
+                  final isLoading = cartState.status == CartStatus.loading ||
+                      cartState.placeOrderStatus == PlaceOrderStatus.loading ||
+                      isLoadingAddress;
+
                   return Column(
                     children: [
+                      // Loading bar at top when processing
+                      if (isLoading)
+                        const LinearProgressIndicator(
+                          backgroundColor: AppColors.secondary,
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                        ),
+
                       // Scrollable content
                       Expanded(
                         child: SingleChildScrollView(
