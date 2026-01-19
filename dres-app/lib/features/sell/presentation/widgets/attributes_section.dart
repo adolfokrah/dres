@@ -36,6 +36,9 @@ class SelectedAttribute {
 
   /// Display string for the attribute (e.g., "Color: Black")
   String get displayString {
+    if (attributeName.isEmpty) {
+      return 'Tap to select attribute';
+    }
     if (valueName != null && valueName!.isNotEmpty) {
       return '$attributeName: $valueName';
     }
@@ -74,6 +77,13 @@ class _AttributesSectionState extends State<AttributesSection> {
     if (widget.selectedAttributes.length > oldWidget.selectedAttributes.length) {
       final newIndex = widget.selectedAttributes.length - 1;
       _expandedCards[newIndex] = true;
+      // Auto-open the attribute type picker for new empty attributes
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final newAttr = widget.selectedAttributes[newIndex];
+        if (newAttr.attributeId.isEmpty && mounted) {
+          // Attribute is new and empty - picker will open when user sees the expanded card
+        }
+      });
     }
   }
 
@@ -172,6 +182,7 @@ class _AttributesSectionState extends State<AttributesSection> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: widget.onAddAttribute,
                 child: Row(
                   children: [
@@ -255,7 +266,12 @@ class _AttributeCard extends StatelessWidget {
                     child: Text(
                       attribute.displayString,
                       style: AppTypography.bodyL.copyWith(
-                        color: AppColors.textPrimary,
+                        color: attribute.attributeName.isEmpty 
+                            ? AppColors.textHint 
+                            : AppColors.textPrimary,
+                        fontStyle: attribute.attributeName.isEmpty 
+                            ? FontStyle.italic 
+                            : FontStyle.normal,
                       ),
                     ),
                   ),

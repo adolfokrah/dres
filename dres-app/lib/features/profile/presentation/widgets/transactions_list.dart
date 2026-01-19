@@ -49,6 +49,14 @@ class _TransactionsListState extends State<TransactionsList> {
     }
   }
 
+  Future<void> _onRefresh() async {
+    _transactionsBloc.add(const TransactionsRefreshRequested());
+    // Wait for the state to change from loading
+    await _transactionsBloc.stream.firstWhere(
+      (state) => state.status != TransactionsStatus.loading,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TransactionsBloc, TransactionsState>(
@@ -59,22 +67,26 @@ class _TransactionsListState extends State<TransactionsList> {
             _onScroll(notification);
             return false; // Allow notification to bubble up to NestedScrollView
           },
-          child: CustomScrollView(
-            slivers: [
-              // Inject overlap from NestedScrollView header
-              SliverOverlapInjector(
-                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                    widget.parentContext),
-              ),
+          child: RefreshIndicator(
+            onRefresh: _onRefresh,
+            edgeOffset: 100, // Account for NestedScrollView header
+            child: CustomScrollView(
+              slivers: [
+                // Inject overlap from NestedScrollView header
+                SliverOverlapInjector(
+                  handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                      widget.parentContext),
+                ),
 
-              // Summary header
-              SliverToBoxAdapter(
-                child: _buildSummaryHeader(state),
-              ),
+                // Summary header
+                SliverToBoxAdapter(
+                  child: _buildSummaryHeader(state),
+                ),
 
-              // Transactions content
-              _buildSliverContent(state),
-            ],
+                // Transactions content
+                _buildSliverContent(state),
+              ],
+            ),
           ),
         );
       },
@@ -282,13 +294,13 @@ class _TransactionCard extends StatelessWidget {
           ),
           const SizedBox(width: 15),
 
-          // Order info
+          // Transaction info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Order #${transaction.orderDisplayId}',
+                  _getTransactionTitle(),
                   style: AppTypography.bodyM.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
@@ -330,7 +342,21 @@ class _TransactionCard extends StatelessWidget {
     );
   }
 
+  String _getTransactionTitle() {
+    if (transaction.type == TransactionType.transfer) {
+      return 'Transfer to account';
+    }
+    if (transaction.orderDisplayId.isNotEmpty) {
+      return 'Order #${transaction.orderDisplayId}';
+    }
+    return transaction.type.displayName;
+  }
+
   IconData _getStatusIcon() {
+    // For transfers, show arrow up (money going out)
+    if (transaction.type == TransactionType.transfer) {
+      return PhosphorIcons.arrowUp();
+    }
     switch (transaction.status) {
       case TransactionStatus.cancelled:
         return PhosphorIcons.x();

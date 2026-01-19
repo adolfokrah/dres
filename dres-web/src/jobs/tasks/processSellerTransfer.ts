@@ -1,9 +1,6 @@
 import type { TaskConfig } from 'payload'
 import { ObjectId } from 'mongodb'
 
-// Helper to wait for a specified time
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
 /**
  * Process Single Seller Transfer Task
  *
@@ -31,9 +28,9 @@ export const processSellerTransferTask: TaskConfig = {
    
 
     try {
-      // Calculate cutoff time (5 minutes ago for testing)
+      // Calculate cutoff time (7 hours ago)
       const cutoffTime = new Date()
-      cutoffTime.setMinutes(cutoffTime.getMinutes() - 5)
+      cutoffTime.setHours(cutoffTime.getHours() - 7)
 
       // Use MongoDB aggregation to calculate this seller's balance
       const db = payload.db
@@ -42,16 +39,17 @@ export const processSellerTransferTask: TaskConfig = {
       // Convert sellerId to ObjectId for MongoDB query
       const sellerObjectId = new ObjectId(sellerId)
 
-      // Calculate balance: order_payments (older than cutoff) + transfers (negative)
+      // Calculate balance: order_payments (older than cutoff) + transfers (completed or pending)
       // Only return if balance > 0 (filter in aggregation for atomicity)
       const pipeline = [
         {
           $match: {
             user: sellerObjectId,
-            status: 'completed',
             $or: [
-              { type: 'order_payment', createdAt: { $lt: cutoffTime } },
-              { type: 'transfer' },
+              // Completed order_payments older than cutoff
+              { type: 'order_payment', status: 'completed', createdAt: { $lt: cutoffTime } },
+              // Transfers (completed or pending) - include pending to avoid duplicate transfers
+              { type: 'transfer', status: { $in: ['completed', 'pending'] } },
             ],
           },
         },
@@ -135,10 +133,6 @@ export const processSellerTransferTask: TaskConfig = {
       payload.logger.info(
         `[ProcessSellerTransfer] Created transfer of ${currencySymbol}${balance.toFixed(2)} for seller ${sellerId}`,
       )
-
-
-    // Wait 5 seconds before processing (for testing - ensures sequential processing)
-    await wait(5000)      
 
       return {
         output: {

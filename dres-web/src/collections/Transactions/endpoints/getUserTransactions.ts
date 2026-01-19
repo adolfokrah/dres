@@ -7,8 +7,8 @@ interface TransactionItem {
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled'
   amount: number
   fees: number
-  orderId: string
-  orderDisplayId: string
+  orderId: string | null
+  orderDisplayId: string | null
   currencySymbol: string
   createdAt: string
 }
@@ -69,11 +69,14 @@ export const getUserTransactions: PayloadHandler = async (req) => {
   }
 
   try {
-    // Build query - only fetch transactions linked to an order, exclude deposits, filter by user
+    // Build query - fetch transactions linked to orders OR transfer transactions, exclude deposits
     const where: any = {
       user: { equals: user.id },
       type: { not_equals: 'deposit' }, // Exclude deposits
-      order: { exists: true }, // Only transactions linked to an order
+      or: [
+        { order: { exists: true } }, // Transactions linked to an order
+        { type: { equals: 'transfer' } }, // Include transfer transactions (no order linked)
+      ],
     }
 
     // Apply type filter if provided
@@ -109,8 +112,8 @@ export const getUserTransactions: PayloadHandler = async (req) => {
         status: txn.status,
         amount: Math.round(convertToUserCurrency(amountInGHS) * 100) / 100,
         fees: Math.round(convertToUserCurrency(feesInGHS) * 100) / 100,
-        orderId: typeof order === 'object' ? order.id : order,
-        orderDisplayId: typeof order === 'object' ? order.orderId : '',
+        orderId: order ? (typeof order === 'object' ? order.id : order) : null,
+        orderDisplayId: order ? (typeof order === 'object' ? order.orderId : '') : null,
         currencySymbol: userCurrencySymbol,
         createdAt: txn.createdAt,
       }
@@ -132,18 +135,22 @@ export const getUserTransactions: PayloadHandler = async (req) => {
       return sum + (txn.amount || 0)
     }, 0)
 
-    // Calculate upcoming payments (sum of completed + pending transactions linked to orders, excluding deposits)
+    // Calculate upcoming payments: order_payments (completed + pending) minus completed transfers
+    // This represents what the seller is owed but hasn't been transferred yet
     const upcomingTxns = await payload.find({
       collection: 'transactions',
       where: {
         user: { equals: user.id },
-        type: { not_equals: 'deposit' },
         status: { in: ['completed', 'pending'] },
-        order: { exists: true }, // Only transactions linked to an order
+        or: [
+          { type: { equals: 'order_payment' }, order: { exists: true } }, // Order payments
+          { type: { equals: 'transfer' } }, // Transfers (negative amounts)
+        ],
       },
       limit: 0, // Get all for aggregation
     })
 
+    // Sum all amounts - order_payments are positive, transfers are negative
     const upcomingPaymentsInGHS = upcomingTxns.docs.reduce((sum: number, txn: any) => {
       return sum + (txn.amount || 0)
     }, 0)

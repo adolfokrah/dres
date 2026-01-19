@@ -10,7 +10,7 @@ import type { TaskConfig } from 'payload'
  * The balance calculation includes all existing transfers, so sellers who
  * already received transfers will have balance = 0 and won't be queued again.
  *
- * Schedule: Every 5 minutes (for testing)
+ * Schedule: Every 6 hours
  */
 
 // In-memory lock to prevent duplicate runs within the same minute
@@ -19,11 +19,11 @@ let lastRunTimestamp: number = 0
 export const autoTransferToSellersTask: TaskConfig = {
   slug: 'autoTransferToSellers' as any,
   outputSchema: [{ name: 'sellersQueued', type: 'number' }],
-  // Schedule: Every 5 minutes (FOR TESTING ONLY)
+  // Schedule: Every 6 hours (0:00, 6:00, 12:00, 18:00)
   // Using 'scheduled' queue to separate from regular job processing
   schedule: [
     {
-      cron: '*/5 * * * *',
+      cron: '0 */6 * * *',
       queue: 'scheduled',
     },
   ],
@@ -38,11 +38,11 @@ export const autoTransferToSellersTask: TaskConfig = {
     }
     lastRunTimestamp = now
 
-    payload.logger.info('[AutoTransfer] Starting scheduler task (TESTING ONLY)')
+    payload.logger.info('[AutoTransfer] Starting scheduler task')
 
-    // Calculate cutoff time (5 minutes ago for testing)
+    // Calculate cutoff time (7 hours ago)
     const cutoffTime = new Date()
-    cutoffTime.setMinutes(cutoffTime.getMinutes() - 5)
+    cutoffTime.setHours(cutoffTime.getHours() - 7)
 
 
     // return {
@@ -55,16 +55,17 @@ export const autoTransferToSellersTask: TaskConfig = {
       const db = payload.db
       const transactionsCollection = db.collections['transactions']
 
-      // Calculate balance for each seller: order_payments (older than cutoff) + transfers
+      // Calculate balance for each seller: order_payments (older than cutoff) + transfers (completed or pending)
       // Only return sellers with positive balance (haven't been fully transferred yet)
       const sellersWithPositiveBalance: Array<{ _id: any; balance: number }> =
         await transactionsCollection.aggregate([
           {
             $match: {
-              status: 'completed',
               $or: [
-                { type: 'order_payment', createdAt: { $lt: cutoffTime } },
-                { type: 'transfer' },
+                // Completed order_payments older than cutoff
+                { type: 'order_payment', status: 'completed', createdAt: { $lt: cutoffTime } },
+                // Transfers (completed or pending) - include pending to avoid duplicate transfers
+                { type: 'transfer', status: { $in: ['completed', 'pending'] } },
               ],
             },
           },
