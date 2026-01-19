@@ -61,6 +61,8 @@ import { draftReminderTask } from './jobs/tasks/draftReminder'
 import { reviewNotificationsTask } from './jobs/tasks/reviewNotifications'
 import { savedSearchNotificationsTask } from './jobs/tasks/savedSearchNotifications'
 import { autoDeliverItemsTask } from './jobs/tasks/autoDeliverItems'
+import { autoTransferToSellersTask } from './jobs/tasks/autoTransferToSellers'
+import { processSellerTransferTask } from './jobs/tasks/processSellerTransfer'
 
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
@@ -260,6 +262,8 @@ export default buildConfig({
       reviewNotificationsTask,
       savedSearchNotificationsTask,
       autoDeliverItemsTask,
+      autoTransferToSellersTask,
+      processSellerTransferTask,
     ],
     // Auto-run scheduled jobs - process all queues every minute
     autoRun: [
@@ -267,6 +271,11 @@ export default buildConfig({
         cron: '* * * * *',
         queue: 'default',
         limit: 50,
+      },
+      {
+        cron: '* * * * *',
+        queue: 'scheduled',
+        limit: 10,
       },
     ],
   },

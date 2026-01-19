@@ -234,6 +234,9 @@ export interface Config {
       draftReminder: TaskDraftReminder;
       reviewNotifications: TaskReviewNotifications;
       savedSearchNotifications: TaskSavedSearchNotifications;
+      autoDeliverItems: TaskAutoDeliverItems;
+      autoTransferToSellers: TaskAutoTransferToSellers;
+      processSellerTransfer: TaskProcessSellerTransfer;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
@@ -2727,7 +2730,15 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'draftReminder' | 'reviewNotifications' | 'savedSearchNotifications' | 'schedulePublish';
+        taskSlug:
+          | 'inline'
+          | 'draftReminder'
+          | 'reviewNotifications'
+          | 'savedSearchNotifications'
+          | 'autoDeliverItems'
+          | 'autoTransferToSellers'
+          | 'processSellerTransfer'
+          | 'schedulePublish';
         taskID: string;
         input?:
           | {
@@ -2761,7 +2772,16 @@ export interface PayloadJob {
       }[]
     | null;
   taskSlug?:
-    | ('inline' | 'draftReminder' | 'reviewNotifications' | 'savedSearchNotifications' | 'schedulePublish')
+    | (
+        | 'inline'
+        | 'draftReminder'
+        | 'reviewNotifications'
+        | 'savedSearchNotifications'
+        | 'autoDeliverItems'
+        | 'autoTransferToSellers'
+        | 'processSellerTransfer'
+        | 'schedulePublish'
+      )
     | null;
   queue?: string | null;
   waitUntil?: string | null;
@@ -4572,6 +4592,40 @@ export interface TaskSavedSearchNotifications {
   output: {
     searchesChecked?: number | null;
     notificationsSent?: number | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskAutoDeliverItems".
+ */
+export interface TaskAutoDeliverItems {
+  input?: unknown;
+  output: {
+    ordersUpdated?: number | null;
+    itemsDelivered?: number | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskAutoTransferToSellers".
+ */
+export interface TaskAutoTransferToSellers {
+  input?: unknown;
+  output: {
+    sellersQueued?: number | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskProcessSellerTransfer".
+ */
+export interface TaskProcessSellerTransfer {
+  input: {
+    sellerId: string;
+  };
+  output: {
+    transferred?: number | null;
+    success?: boolean | null;
   };
 }
 /**
