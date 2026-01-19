@@ -12,7 +12,20 @@
           "package_name": "com.example.dres"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "322305519128-oo83jap37diequ963hnnc44703uvsc93.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.dres",
+            "certificate_hash": "67d9c0b1d54b2947c7200bdc009513cf3f3a7440"
+          }
+        },
+        {
+          "client_id": "322305519128-4mbtgoh36e5vdnd9pf53q52e7b94fvkk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDsUKMI5sAkvVNhyvzSx36raHI23dmTcOk"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "322305519128-4mbtgoh36e5vdnd9pf53q52e7b94fvkk.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "322305519128-nsekk3asllqutp7e4bk2pitec833un54.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.hoganam.dres"
+              }
+            }
+          ]
         }
       }
     }

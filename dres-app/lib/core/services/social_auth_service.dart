@@ -1,6 +1,11 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
+/// Web client ID for Google Sign-In (required for Android)
+const String _googleServerClientId =
+    '322305519128-4mbtgoh36e5vdnd9pf53q52e7b94fvkk.apps.googleusercontent.com';
 
 /// Service for handling social authentication via Firebase
 class SocialAuthService {
@@ -59,8 +64,10 @@ class SocialAuthService {
       // This shows the native account picker with accounts on the device
       final googleSignIn = GoogleSignIn.instance;
 
-      // Initialize Google Sign-In
-      await googleSignIn.initialize();
+      // Initialize Google Sign-In with serverClientId (required for Android)
+      await googleSignIn.initialize(
+        serverClientId: !kIsWeb && Platform.isAndroid ? _googleServerClientId : null,
+      );
 
       // Trigger the authentication flow - shows native account picker
       final googleUser = await googleSignIn.authenticate();
