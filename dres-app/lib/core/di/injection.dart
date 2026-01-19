@@ -161,11 +161,11 @@ Future<void> setupDependencies() async {
   // BLoCs (Factory - new instance each time)
   // ========================
   
-  // Home Bloc
-  getIt.registerFactory<HomeBloc>(() => HomeBloc(getIt<HomeRepository>()));
+  // Home Bloc - Singleton so home page state persists
+  getIt.registerLazySingleton<HomeBloc>(() => HomeBloc(getIt<HomeRepository>()));
 
-  // Menu Bloc
-  getIt.registerFactory<MenuBloc>(() => MenuBloc(getIt<MenuRepository>()));
+  // Menu Bloc - Singleton so menu state persists
+  getIt.registerLazySingleton<MenuBloc>(() => MenuBloc(getIt<MenuRepository>()));
 
   // Products Bloc
   getIt.registerFactory<ProductsBloc>(() => ProductsBloc(getIt<ProductsRepository>()));

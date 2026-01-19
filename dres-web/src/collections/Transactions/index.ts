@@ -4,6 +4,7 @@ import { authenticated } from '../../access/authenticated'
 import { paystackWebhook } from './endpoints/paystackWebhook'
 import { checkTransactionStatus } from './endpoints/checkStatus'
 import { getUserTransactions } from './endpoints/getUserTransactions'
+import { cancelTransaction } from './endpoints/cancelTransaction'
 
 import { setTransactionIdAndCurrency } from './hooks/setTransactionCurrency'
 import { updateOrderCommissionOnComplete } from './hooks/updateOrderCommissionOnComplete'
@@ -31,6 +32,11 @@ export const Transactions: CollectionConfig = {
       path: '/user-transactions',
       method: 'get',
       handler: getUserTransactions,
+    },
+    {
+      path: '/cancel',
+      method: 'post',
+      handler: cancelTransaction,
     },
   ],
   access: {

@@ -161,7 +161,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         backgroundColor: Colors.white,
         title: const Text(
-          'Close Payment?',
+          'Cancel Payment?',
           style: TextStyle(
             fontFamily: 'HelveticaNowText',
             fontSize: 18,
@@ -169,7 +169,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
         ),
         content: const Text(
-          'Are you sure you want to close? We\'ll check your payment status.',
+          'Are you sure you want to cancel? Your order will be cancelled.',
           style: TextStyle(
             fontFamily: 'HelveticaNowText',
             fontSize: 16,
@@ -188,15 +188,28 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(dialogContext).pop(); // Close dialog
+
+              // Cancel the transaction and order on the backend
+              try {
+                await _paymentRepository.cancelTransaction(
+                  reference: widget.transactionId,
+                );
+                debugPrint('🌐 Transaction cancelled successfully');
+              } catch (e) {
+                debugPrint('🌐 Failed to cancel transaction: $e');
+                // Continue closing even if cancel fails
+              }
+
               _closeWithResult(PaymentResult.closed);
             },
             child: const Text(
-              'Close',
+              'Cancel Order',
               style: TextStyle(
                 fontFamily: 'HelveticaNowText',
                 fontSize: 16,
+                color: Colors.red,
               ),
             ),
           ),

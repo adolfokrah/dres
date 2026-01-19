@@ -18,6 +18,7 @@ import 'package:dres/features/splash/logic/menu_bloc/menu_bloc.dart';
 import 'package:dres/features/splash/logic/menu_bloc/menu_event.dart';
 import 'package:dres/features/home/logic/bloc/home_bloc.dart';
 import 'package:dres/features/home/logic/bloc/home_event.dart';
+import 'package:dres/features/home/logic/bloc/home_state.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_bloc.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_bloc.dart';
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_bloc.dart';
@@ -133,10 +134,13 @@ class _MainAppState extends State<MainApp> {
         // Global HomeBloc - fetch home page based on user department
         BlocProvider<HomeBloc>(
           create: (_) {
+            final bloc = getIt<HomeBloc>();
             final storageService = getIt<StorageService>();
             final department = storageService.getUserDepartment() ?? 'men';
             final pageSlug = department == 'women' ? 'home-women' : 'home';
-            return getIt<HomeBloc>()..add(FetchHomePage(slug: pageSlug));
+            // Always fetch on app start - use RefreshHomePage to force reload
+            bloc.add(RefreshHomePage(slug: pageSlug));
+            return bloc;
           },
           lazy: false, // Load immediately
         ),

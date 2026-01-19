@@ -54,9 +54,12 @@
 			<array>
 				<string>app-1-322305519128-ios-0a179c57c325cef28b1d6d</string>
 				<string>dres</string>
+				<string>com.googleusercontent.apps.322305519128-nsekk3asllqutp7e4bk2pitec833un54</string>
 			</array>
 		</dict>
 	</array>
+	<key>GIDClientID</key>
+	<string>322305519128-nsekk3asllqutp7e4bk2pitec833un54.apps.googleusercontent.com</string>
 	<key>FlutterDeepLinkingEnabled</key>
 	<false/>
 	<key>UIBackgroundModes</key>

@@ -19,10 +19,10 @@ let lastRunTimestamp: number = 0
 export const autoTransferToSellersTask: TaskConfig = {
   slug: 'autoTransferToSellers' as any,
   outputSchema: [{ name: 'sellersQueued', type: 'number' }],
-  // Schedule: Every 5 minutes for testing (change to '0 */6 * * *' for production)
+  // Schedule: Every 6 minutes for testing (change to '0 */6 * * *' for production)
   schedule: [
     {
-      cron: '*/5 * * * *',
+      cron: '*/6 * * * *',
       queue: 'default', // Use default queue like autoDeliverItems
     },
   ],

@@ -37,9 +37,16 @@ target 'Runner' do
 end
 
 # Notification Service Extension for rich push notifications (images)
-target 'ImageNotification' do
-  use_frameworks!
-end
+# NOTE: To enable image notifications on iOS:
+# 1. Open ios/Runner.xcworkspace in Xcode
+# 2. File > New > Target > Notification Service Extension
+# 3. Name it "ImageNotification"
+# 4. Copy the NotificationService.swift code from ImageNotification folder
+# 5. Uncomment the target below and run `pod install`
+#
+# target 'ImageNotification' do
+#   use_frameworks!
+# end
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|

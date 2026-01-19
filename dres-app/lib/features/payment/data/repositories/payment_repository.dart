@@ -19,4 +19,15 @@ class PaymentRepository {
     );
     return TransactionStatusResponse.fromJson(response.data);
   }
+
+  /// Cancel a pending transaction and its linked order
+  /// Called when user closes the payment screen without completing
+  Future<void> cancelTransaction({
+    required String reference,
+  }) async {
+    await _apiService.post(
+      '/transactions/cancel',
+      data: {'reference': reference},
+    );
+  }
 }
