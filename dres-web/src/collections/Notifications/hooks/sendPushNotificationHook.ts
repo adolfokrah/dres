@@ -33,6 +33,24 @@ export const sendPushNotificationHook: CollectionAfterChangeHook<Notification> =
 
   console.log(`[PushHook] Sending push for notification ${doc.id} to user ${userId}, image: ${doc.image}`)
 
+  // Helper to construct media URL from filename (consistent with other endpoints)
+  const getMediaUrl = (media: Media | null, size?: 'thumbnail' | 'small'): string | null => {
+    if (!media) return null
+
+    let filename = null
+
+    // Try to get sized image first (smaller = faster load for notifications)
+    if (size && media.sizes?.[size]?.filename) {
+      filename = media.sizes[size].filename
+    } else if (media.filename) {
+      filename = media.filename
+    }
+
+    if (!filename) return null
+    // Encode filename to handle spaces and special characters
+    return `/api/media/file/${encodeURIComponent(filename)}`
+  }
+
   // Get notification image URL if available
   let imageUrl: string | undefined
   if (doc.image) {
@@ -45,25 +63,23 @@ export const sendPushNotificationHook: CollectionAfterChangeHook<Notification> =
           collection: 'media',
           id: doc.image,
         })
-        console.log(`[PushHook] Fetched media doc: ${mediaDoc?.id}, url: ${mediaDoc?.url}`)
+        console.log(`[PushHook] Fetched media doc: ${mediaDoc?.id}, filename: ${mediaDoc?.filename}`)
       } catch (error) {
         console.error('Failed to fetch media for notification:', error)
       }
     } else {
       // Image is already populated as an object
       mediaDoc = doc.image as Media
-      console.log(`[PushHook] Image already populated: ${mediaDoc?.id}, url: ${mediaDoc?.url}`)
+      console.log(`[PushHook] Image already populated: ${mediaDoc?.id}, filename: ${mediaDoc?.filename}`)
     }
 
     // Get URL from media document - prefer thumbnail for faster loading
-    const mediaUrl = mediaDoc?.thumbnailURL || mediaDoc?.url
-    if (mediaUrl) {
+    const mediaPath = getMediaUrl(mediaDoc, 'thumbnail') || getMediaUrl(mediaDoc)
+    if (mediaPath) {
       // Use PUBLIC_SERVER_URL for push notifications (must be publicly accessible)
       // Falls back to NEXT_PUBLIC_SERVER_URL if not set
       const serverUrl = process.env.PUBLIC_SERVER_URL || process.env.NEXT_PUBLIC_SERVER_URL
-      imageUrl = mediaUrl.startsWith('http')
-        ? mediaUrl
-        : `${serverUrl}${mediaUrl}`
+      imageUrl = `${serverUrl}${mediaPath}`
 
       // Skip image if it's localhost (not accessible from devices)
       if (imageUrl.includes('localhost') || imageUrl.includes('127.0.0.1')) {

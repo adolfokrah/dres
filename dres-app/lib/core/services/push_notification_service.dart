@@ -100,15 +100,15 @@ class PushNotificationService {
       debugPrint('🔔 User declined or has not accepted permission');
     }
 
-    // On iOS, disable FCM's foreground notification presentation
-    // We'll show local notifications instead so we can include images
+    // On iOS, enable FCM's foreground notification presentation
+    // This ensures notifications show even when app is in foreground
     if (Platform.isIOS) {
       await _messaging.setForegroundNotificationPresentationOptions(
-        alert: false,
+        alert: true,
         badge: true,
-        sound: false,
+        sound: true,
       );
-      debugPrint('🔔 iOS foreground notification presentation disabled (using local notifications)');
+      debugPrint('🔔 iOS foreground notification presentation enabled');
     }
   }
 
@@ -279,9 +279,9 @@ class PushNotificationService {
     // Refresh notifications list if user is authenticated
     _refreshNotifications();
 
-    // Show local notification when app is in foreground
-    // Both Android and iOS use local notifications to support images
-    if (notification != null) {
+    // On iOS, FCM handles foreground presentation natively (we enabled alert: true)
+    // Only show local notification on Android for image support
+    if (Platform.isAndroid && notification != null) {
       // Get image URL from data payload
       final imageUrl = message.data['imageUrl'] as String?;
       debugPrint('🔔 Foreground notification imageUrl: $imageUrl');
