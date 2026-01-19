@@ -60,6 +60,7 @@ import { Users } from './collections/Users'
 import { draftReminderTask } from './jobs/tasks/draftReminder'
 import { reviewNotificationsTask } from './jobs/tasks/reviewNotifications'
 import { savedSearchNotificationsTask } from './jobs/tasks/savedSearchNotifications'
+import { autoDeliverItemsTask } from './jobs/tasks/autoDeliverItems'
 
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
@@ -258,6 +259,7 @@ export default buildConfig({
       draftReminderTask,
       reviewNotificationsTask,
       savedSearchNotificationsTask,
+      autoDeliverItemsTask,
     ],
     // Auto-run scheduled jobs - process all queues every minute
     autoRun: [

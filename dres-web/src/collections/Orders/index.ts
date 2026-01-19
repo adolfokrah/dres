@@ -11,6 +11,7 @@ import { restoreStockOnCancel } from './hooks/restoreStockOnCancel'
 import { awardPointsOnDelivery } from './hooks/awardPointsOnDelivery'
 import { notifySellersOnOrderPlaced } from './hooks/notifySellersOnOrderPlaced'
 import { notifyCustomerOnStatusChange } from './hooks/notifyCustomerOnStatusChange'
+import { notifySellerOnDelivery } from './hooks/notifySellerOnDelivery'
 import { createDeliveryCodeOnOutForDelivery } from './hooks/createDeliveryCodeOnOutForDelivery'
 import { calculateCommissionOnOrderChange } from './hooks/calculateCommissionOnOrderChange'
 import { createDraftReviewOnDelivery } from './hooks/createDraftReviewOnDelivery'
@@ -113,7 +114,7 @@ export const Orders: CollectionConfig = {
     // create seller transaction when item is delivered, create refund when item is returned or not available, 
     // update sales stats, award points, notify customer
     // NOTE: calculateCommissionOnOrderChange runs LAST to ensure all transactions are created first
-    afterChange: [reduceStockOnOrder, restoreStockOnReturn, restoreStockOnCancel, notifySellersOnOrderPlaced, createDeliveryCodeOnOutForDelivery, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats, awardPointsOnDelivery, notifyCustomerOnStatusChange, calculateCommissionOnOrderChange, createDraftReviewOnDelivery],
+    afterChange: [reduceStockOnOrder, restoreStockOnReturn, restoreStockOnCancel, notifySellersOnOrderPlaced, createDeliveryCodeOnOutForDelivery, createSellerTransactionOnDelivery, createRefundTransaction, updateSalesStats, awardPointsOnDelivery, notifyCustomerOnStatusChange, notifySellerOnDelivery, calculateCommissionOnOrderChange, createDraftReviewOnDelivery],
   },
   fields: [
     {
