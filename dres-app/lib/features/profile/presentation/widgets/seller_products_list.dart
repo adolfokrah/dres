@@ -44,6 +44,14 @@ class _SellerProductsListState extends State<SellerProductsList> {
     super.dispose();
   }
 
+  Future<void> _onRefresh() async {
+    _sellerProductsBloc.add(SellerProductsFetchRequested(sellerId: widget.sellerId));
+    // Wait for the state to change from loading
+    await _sellerProductsBloc.stream.firstWhere(
+      (state) => state.status != SellerProductsStatus.loading,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SellerProductsBloc, SellerProductsState>(
@@ -59,14 +67,17 @@ class _SellerProductsListState extends State<SellerProductsList> {
             }
             return false;
           },
-          child: CustomScrollView(
-            slivers: [
-              // Overlap injector for nested scroll view
-              SliverOverlapInjector(
-              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                widget.parentContext,
+          child: RefreshIndicator(
+            onRefresh: _onRefresh,
+            edgeOffset: 100, // Account for NestedScrollView header
+            child: CustomScrollView(
+              slivers: [
+                // Overlap injector for nested scroll view
+                SliverOverlapInjector(
+                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                  widget.parentContext,
+                ),
               ),
-            ),
 
             // Loading state
             if (state.status == SellerProductsStatus.loading)
@@ -181,7 +192,8 @@ class _SellerProductsListState extends State<SellerProductsList> {
                   ),
                 ),
               ),
-            ],
+              ],
+            ),
           ),
         );
       },

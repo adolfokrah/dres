@@ -48,6 +48,16 @@ class _PurchasesListState extends State<PurchasesList> {
     }
   }
 
+  Future<void> _onRefresh() async {
+    _purchasesBloc.add(PurchasesFetchRequested(
+      statusFilter: _purchasesBloc.state.statusFilter,
+    ));
+    // Wait for the state to change from loading
+    await _purchasesBloc.stream.firstWhere(
+      (state) => state.status != PurchasesStatus.loading,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PurchasesBloc, PurchasesState>(
@@ -58,26 +68,30 @@ class _PurchasesListState extends State<PurchasesList> {
             _onScroll(notification);
             return false; // Allow notification to bubble up to NestedScrollView
           },
-          child: CustomScrollView(
-            slivers: [
-              // Inject overlap from NestedScrollView header
-              SliverOverlapInjector(
-                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(widget.parentContext),
-              ),
-
-              // Filter chips - fixed at top of tab content
-              SliverToBoxAdapter(
-                child: StatusFilterChips(
-                  selectedFilter: state.statusFilter,
-                  onFilterChanged: (filter) {
-                    _purchasesBloc.add(PurchasesFilterChanged(statusFilter: filter));
-                  },
+          child: RefreshIndicator(
+            onRefresh: _onRefresh,
+            edgeOffset: 100, // Account for NestedScrollView header
+            child: CustomScrollView(
+              slivers: [
+                // Inject overlap from NestedScrollView header
+                SliverOverlapInjector(
+                  handle: NestedScrollView.sliverOverlapAbsorberHandleFor(widget.parentContext),
                 ),
-              ),
 
-              // Purchases content
-              _buildSliverContent(state),
-            ],
+                // Filter chips - fixed at top of tab content
+                SliverToBoxAdapter(
+                  child: StatusFilterChips(
+                    selectedFilter: state.statusFilter,
+                    onFilterChanged: (filter) {
+                      _purchasesBloc.add(PurchasesFilterChanged(statusFilter: filter));
+                    },
+                  ),
+                ),
+
+                // Purchases content
+                _buildSliverContent(state),
+              ],
+            ),
           ),
         );
       },

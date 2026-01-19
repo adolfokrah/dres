@@ -40,6 +40,14 @@ class _CommunityListState extends State<CommunityList> {
     }
   }
 
+  Future<void> _onRefresh() async {
+    getIt<FollowsBloc>().add(const CommunityRefreshRequested());
+    // Wait for the state to change from loading
+    await getIt<FollowsBloc>().stream.firstWhere(
+      (state) => state.communityStatus != CommunityStatus.loading,
+    );
+  }
+
   void _showFilterMenu() {
     final currentFilter = getIt<FollowsBloc>().state.communityFilter;
     showModalBottomSheet(
@@ -75,22 +83,26 @@ class _CommunityListState extends State<CommunityList> {
             _onScroll(notification);
             return false; // Allow notification to bubble up to NestedScrollView
           },
-          child: CustomScrollView(
-            slivers: [
-              // Inject overlap from NestedScrollView header
-              SliverOverlapInjector(
-                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                    widget.parentContext),
-              ),
+          child: RefreshIndicator(
+            onRefresh: _onRefresh,
+            edgeOffset: 100, // Account for NestedScrollView header
+            child: CustomScrollView(
+              slivers: [
+                // Inject overlap from NestedScrollView header
+                SliverOverlapInjector(
+                  handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                      widget.parentContext),
+                ),
 
-              // Filter header
-              SliverToBoxAdapter(
-                child: _buildFilterHeader(state),
-              ),
+                // Filter header
+                SliverToBoxAdapter(
+                  child: _buildFilterHeader(state),
+                ),
 
-              // Community content
-              _buildSliverContent(state),
-            ],
+                // Community content
+                _buildSliverContent(state),
+              ],
+            ),
           ),
         );
       },

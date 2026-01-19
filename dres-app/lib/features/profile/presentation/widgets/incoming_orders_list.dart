@@ -48,6 +48,16 @@ class _IncomingOrdersListState extends State<IncomingOrdersList> {
     }
   }
 
+  Future<void> _onRefresh() async {
+    _incomingOrdersBloc.add(IncomingOrdersFetchRequested(
+      statusFilter: _incomingOrdersBloc.state.statusFilter,
+    ));
+    // Wait for the state to change from loading
+    await _incomingOrdersBloc.stream.firstWhere(
+      (state) => state.status != IncomingOrdersStatus.loading,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<IncomingOrdersBloc, IncomingOrdersState>(
@@ -58,26 +68,30 @@ class _IncomingOrdersListState extends State<IncomingOrdersList> {
             _onScroll(notification);
             return false; // Allow notification to bubble up to NestedScrollView
           },
-          child: CustomScrollView(
-            slivers: [
-              // Inject overlap from NestedScrollView header
-              SliverOverlapInjector(
-                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(widget.parentContext),
-              ),
-
-              // Filter chips - fixed at top of tab content
-              SliverToBoxAdapter(
-                child: IncomingOrdersFilterChips(
-                  selectedFilter: state.statusFilter,
-                  onFilterChanged: (filter) {
-                    _incomingOrdersBloc.add(IncomingOrdersFilterChanged(statusFilter: filter));
-                  },
+          child: RefreshIndicator(
+            onRefresh: _onRefresh,
+            edgeOffset: 100, // Account for NestedScrollView header
+            child: CustomScrollView(
+              slivers: [
+                // Inject overlap from NestedScrollView header
+                SliverOverlapInjector(
+                  handle: NestedScrollView.sliverOverlapAbsorberHandleFor(widget.parentContext),
                 ),
-              ),
 
-              // Incoming orders content
-              _buildSliverContent(state),
-            ],
+                // Filter chips - fixed at top of tab content
+                SliverToBoxAdapter(
+                  child: IncomingOrdersFilterChips(
+                    selectedFilter: state.statusFilter,
+                    onFilterChanged: (filter) {
+                      _incomingOrdersBloc.add(IncomingOrdersFilterChanged(statusFilter: filter));
+                    },
+                  ),
+                ),
+
+                // Incoming orders content
+                _buildSliverContent(state),
+              ],
+            ),
           ),
         );
       },

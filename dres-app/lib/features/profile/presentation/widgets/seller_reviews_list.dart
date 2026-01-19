@@ -60,6 +60,14 @@ class _SellerReviewsListState extends State<SellerReviewsList> {
     }
   }
 
+  Future<void> _onRefresh() async {
+    _sellerReviewsBloc.add(const SellerReviewsRefreshRequested());
+    // Wait for the state to change from loading
+    await _sellerReviewsBloc.stream.firstWhere(
+      (state) => state.status != SellerReviewsStatus.loading,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SellerReviewsBloc, SellerReviewsState>(
@@ -70,17 +78,21 @@ class _SellerReviewsListState extends State<SellerReviewsList> {
             _onScroll(notification);
             return false;
           },
-          child: CustomScrollView(
-            slivers: [
-              // Inject overlap from NestedScrollView header
-              SliverOverlapInjector(
-                handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                    widget.parentContext),
-              ),
+          child: RefreshIndicator(
+            onRefresh: _onRefresh,
+            edgeOffset: 100, // Account for NestedScrollView header
+            child: CustomScrollView(
+              slivers: [
+                // Inject overlap from NestedScrollView header
+                SliverOverlapInjector(
+                  handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                      widget.parentContext),
+                ),
 
-              // Reviews content
-              _buildSliverContent(state),
-            ],
+                // Reviews content
+                _buildSliverContent(state),
+              ],
+            ),
           ),
         );
       },

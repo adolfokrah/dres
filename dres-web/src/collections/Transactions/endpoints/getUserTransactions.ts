@@ -69,19 +69,28 @@ export const getUserTransactions: PayloadHandler = async (req) => {
   }
 
   try {
-    // Build query - fetch transactions linked to orders OR transfer transactions, exclude deposits
+    // Build query - fetch only order_payment and transfer transactions
     const where: any = {
       user: { equals: user.id },
-      type: { not_equals: 'deposit' }, // Exclude deposits
       or: [
-        { order: { exists: true } }, // Transactions linked to an order
-        { type: { equals: 'transfer' } }, // Include transfer transactions (no order linked)
+        { type: { equals: 'order_payment' }, order: { exists: true } }, // Order payments linked to an order
+        { type: { equals: 'transfer' } }, // Transfer transactions (no order linked)
       ],
     }
 
-    // Apply type filter if provided
+    // Apply type filter if provided (only allow order_payment or transfer)
     if (typeFilter && typeFilter !== 'all') {
-      where.type = { equals: typeFilter }
+      if (typeFilter === 'order_payment') {
+        // Override the or clause with specific order_payment filter
+        delete where.or
+        where.type = { equals: 'order_payment' }
+        where.order = { exists: true }
+      } else if (typeFilter === 'transfer') {
+        // Override the or clause with specific transfer filter
+        delete where.or
+        where.type = { equals: 'transfer' }
+      }
+      // Ignore any other type filters since we only show order_payment and transfer
     }
 
     // Apply status filter if provided
