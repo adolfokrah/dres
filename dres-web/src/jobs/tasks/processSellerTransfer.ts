@@ -25,12 +25,10 @@ export const processSellerTransferTask: TaskConfig = {
     const { payload } = req
     const { sellerId } = input as { sellerId: string }
 
-   
-
     try {
-      // Calculate cutoff time (7 hours ago)
+      // Calculate cutoff time (5 minutes ago) - for testing
       const cutoffTime = new Date()
-      cutoffTime.setHours(cutoffTime.getHours() - 7)
+      cutoffTime.setMinutes(cutoffTime.getMinutes() - 5)
 
       // Use MongoDB aggregation to calculate this seller's balance
       const db = payload.db
@@ -38,6 +36,7 @@ export const processSellerTransferTask: TaskConfig = {
 
       // Convert sellerId to ObjectId for MongoDB query
       const sellerObjectId = new ObjectId(sellerId)
+      payload.logger.info(`[ProcessSellerTransfer] Processing seller ${sellerId} - ${sellerObjectId}`)
 
       // Calculate balance: order_payments (older than cutoff) + transfers (completed or pending)
       // Only return if balance > 0 (filter in aggregation for atomicity)

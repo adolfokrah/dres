@@ -76,6 +76,7 @@ import { search } from './endpoints/search'
 import { getTopSellers } from './endpoints/topSellers'
 import { getStyleInfo } from './endpoints/styleInfo'
 import { seedEndpoint } from './endpoints/seed/endpoint'
+import { triggerAutoTransfer } from './endpoints/triggerAutoTransfer'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -227,6 +228,11 @@ export default buildConfig({
       path: '/seed',
       method: 'post',
       handler: seedEndpoint,
+    },
+    {
+      path: '/trigger-auto-transfer',
+      method: 'post',
+      handler: triggerAutoTransfer,
     },
   ],
   globals: [Header, Footer, SiteSettings],

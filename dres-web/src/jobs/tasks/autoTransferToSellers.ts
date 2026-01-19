@@ -19,17 +19,18 @@ let lastRunTimestamp: number = 0
 export const autoTransferToSellersTask: TaskConfig = {
   slug: 'autoTransferToSellers' as any,
   outputSchema: [{ name: 'sellersQueued', type: 'number' }],
-  // Schedule: Every 6 hours (0:00, 6:00, 12:00, 18:00)
-  // Using 'scheduled' queue to separate from regular job processing
+  // Schedule: Every 5 minutes for testing (change to '0 */6 * * *' for production)
   schedule: [
     {
-      cron: '0 */6 * * *',
-      queue: 'scheduled',
+      cron: '*/5 * * * *',
+      queue: 'default', // Use default queue like autoDeliverItems
     },
   ],
   handler: async ({ req }) => {
     const { payload } = req
 
+
+    payload.logger.info('Just called')
     // Prevent duplicate runs within 60 seconds
     const now = Date.now()
     if (now - lastRunTimestamp < 60000) {
@@ -40,9 +41,9 @@ export const autoTransferToSellersTask: TaskConfig = {
 
     payload.logger.info('[AutoTransfer] Starting scheduler task')
 
-    // Calculate cutoff time (7 hours ago)
+    // Calculate cutoff time (5 minutes ago) - for testing
     const cutoffTime = new Date()
-    cutoffTime.setHours(cutoffTime.getHours() - 7)
+    cutoffTime.setMinutes(cutoffTime.getMinutes() - 5)
 
 
     // return {

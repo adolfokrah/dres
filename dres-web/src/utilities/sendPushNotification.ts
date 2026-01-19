@@ -297,14 +297,41 @@ async function sendToTokens({
   failureCount: number
   failedTokens: string[]
 }> {
-  const message = {
+  const message: {
+    notification: { title: string; body: string; imageUrl?: string }
+    data: Record<string, string>
+    tokens: string[]
+    android?: { notification: { imageUrl: string } }
+    apns?: { payload: { aps: { 'mutable-content': number } }; fcm_options: { image: string } }
+  } = {
     notification: {
       title,
       body,
-      ...(imageUrl && { imageUrl }),
     },
     data,
     tokens,
+  }
+
+  // Add image for both Android and iOS
+  if (imageUrl) {
+    // Android uses notification.imageUrl
+    message.android = {
+      notification: {
+        imageUrl,
+      },
+    }
+    // iOS requires mutable-content and fcm_options.image
+    // Also requires Notification Service Extension in the iOS app
+    message.apns = {
+      payload: {
+        aps: {
+          'mutable-content': 1,
+        },
+      },
+      fcm_options: {
+        image: imageUrl,
+      },
+    }
   }
 
   const messagingInstance = getMessaging()
