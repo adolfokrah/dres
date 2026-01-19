@@ -93,25 +93,59 @@ export const getPurchaseDetails: PayloadHandler = async (req) => {
     const items = (order.items || []) as any[]
     const sellerGroupsMap = new Map<string, SellerGroup>()
 
+    // Collect unique seller IDs to fetch their photos
+    const sellerIds = new Set<string>()
     for (const item of items) {
       const seller = item.seller || {}
       const sellerId = typeof seller === 'object' ? seller.id : seller
+      if (sellerId) sellerIds.add(sellerId)
+    }
+
+    // Fetch all sellers with their photos in one query
+    const sellersMap = new Map<string, any>()
+    if (sellerIds.size > 0) {
+      const sellersResult = await payload.find({
+        collection: 'users',
+        where: {
+          id: { in: Array.from(sellerIds) },
+        },
+        depth: 1, // To get photo.url
+        limit: sellerIds.size,
+      })
+      for (const seller of sellersResult.docs) {
+        sellersMap.set(seller.id, seller)
+      }
+    }
+
+    for (const item of items) {
+      const itemSeller = item.seller || {}
+      const sellerId = typeof itemSeller === 'object' ? itemSeller.id : itemSeller
 
       if (!sellerId) continue
+
+      // Get full seller data from our fetched map
+      const seller = sellersMap.get(sellerId) || itemSeller
 
       if (!sellerGroupsMap.has(sellerId)) {
         // Get seller info from item (stored at purchase time) or from relation
         // Priority: stored sellerName > shopName > firstName lastName > username
         let sellerName = item.sellerName
         if (!sellerName && typeof seller === 'object') {
-          sellerName = seller.shopName || 
-            `${seller.firstName || ''} ${seller.lastName || ''}`.trim() || 
-            seller.username || 
+          sellerName = seller.shopName ||
+            `${seller.firstName || ''} ${seller.lastName || ''}`.trim() ||
+            seller.username ||
             'Unknown Seller'
         }
         sellerName = sellerName || 'Unknown Seller'
-        
-        const sellerImage = item.sellerImage || seller.profilePhoto?.url || null
+
+        // Get seller image - check stored image, then fetched seller's photo
+        let sellerImage = item.sellerImage || null
+        if (!sellerImage && seller.photo) {
+          if (typeof seller.photo === 'object' && seller.photo.url) {
+            sellerImage = seller.photo.url
+          }
+        }
+
         const sellerPhone = typeof seller === 'object' ? seller.phone || null : null
 
         sellerGroupsMap.set(sellerId, {

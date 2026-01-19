@@ -184,7 +184,7 @@ export const getStyleDetails: PayloadHandler = async (req) => {
               options,
               sellingPrice: sku.sellingPrice,
               compareAtPrice: sku.compareAtPrice || null,
-              stock: sku.stock || 0,
+              stock: sku.stock ?? null, // null = unlimited stock
             }
           }),
         )

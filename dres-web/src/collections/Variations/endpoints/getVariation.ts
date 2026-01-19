@@ -401,7 +401,7 @@ export const getVariation: PayloadHandler = async (req) => {
           options: resolvedOptions,
           sellingPrice: sku.sellingPrice || 0,
           compareAtPrice: sku.compareAtPrice || null,
-          stock: sku.stock || 0,
+          stock: sku.stock ?? null, // null = unlimited stock
           currency,
         }
       })
@@ -412,7 +412,7 @@ export const getVariation: PayloadHandler = async (req) => {
         options: resolveSkuOptions(sku),
         sellingPrice: sku.sellingPrice || 0,
         compareAtPrice: sku.compareAtPrice || null,
-        stock: sku.stock || 0,
+        stock: sku.stock ?? null, // null = unlimited stock
         currency,
       }))
     }
@@ -450,7 +450,7 @@ export const getVariation: PayloadHandler = async (req) => {
         options: resolveSkuOptions(sku),
         sellingPrice: sku.sellingPrice || 0,
         compareAtPrice: sku.compareAtPrice || null,
-        stock: sku.stock || 0,
+        stock: sku.stock ?? null, // null = unlimited stock
         currency,
       }))
 
