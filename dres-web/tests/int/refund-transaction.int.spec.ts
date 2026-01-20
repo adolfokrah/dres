@@ -31,6 +31,7 @@ async function createTestUser(overrides: { shopName?: string } = {}) {
       lastName: 'User',
       role: 'user',
       shopName: overrides.shopName,
+      username: `refundtest${uniqueId.replace(/-/g, '')}`,
       withdrawalAccount: {
         accountName: 'Test Account',
         accountNumber: '1234567890',
