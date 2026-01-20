@@ -261,7 +261,7 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
             data: {
               seller: sellerId,
               reason: 'item_returned',
-              notes: `Order ${doc.orderId}: "${item.variationTitle}" was returned. Reason: ${returnReason}`,
+              notes: `Order ${doc.orderId}: "${item.variationTitle}" was returned.`,
             },
           })
 
@@ -273,7 +273,7 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
             data: {
               user: sellerId,
               type: 'system',
-              message: `A buyer returned an item from order ${doc.orderId}. Reason: ${returnReason}.`,
+              message: `A buyer returned an item from order ${doc.orderId}.`,
               path: `/sell/orders`,
               metadata: {
                 orderId: doc.id,
