@@ -209,11 +209,8 @@ Respond ONLY with valid JSON (no markdown, no explanation):
       `[ImageValidation] Result for ${doc.id}: approved=${result.approved}, score=${result.score}, detected=${result.detectedType}`
     )
 
-    // Determine validation status
-    let status: 'pending' | 'approved' | 'flagged' | 'rejected' = 'approved'
-    if (!result.approved) {
-      status = result.score < 30 ? 'rejected' : 'flagged'
-    }
+    // Determine validation status (only 3 states: pending, approved, rejected)
+    const status: 'pending' | 'approved' | 'rejected' = result.approved ? 'approved' : 'rejected'
 
     // Build update data
     const updateData: Record<string, unknown> = {
@@ -225,11 +222,11 @@ Respond ONLY with valid JSON (no markdown, no explanation):
           : `Detected: ${result.detectedType}. Images approved.`,
     }
 
-    // If flagged or rejected, set variation status to draft
-    if (status === 'flagged' || status === 'rejected') {
+    // If rejected, set variation status to draft
+    if (status === 'rejected') {
       updateData.status = 'draft'
       payload.logger.warn(
-        `[ImageValidation] Variation ${doc.id} ${status}: ${result.issues.join(', ')}. Setting status to draft.`
+        `[ImageValidation] Variation ${doc.id} rejected: ${result.issues.join(', ')}. Setting status to draft.`
       )
     }
 
@@ -259,8 +256,8 @@ Respond ONLY with valid JSON (no markdown, no explanation):
       })
     }
 
-    // If flagged or rejected, notify the seller
-    if ((status === 'flagged' || status === 'rejected') && sellerId) {
+    // If rejected, notify the seller
+    if (status === 'rejected' && sellerId) {
       const issuesSummary = result.issues.length > 0
         ? result.issues.join(', ')
         : 'Image quality issues detected'
@@ -278,9 +275,7 @@ Respond ONLY with valid JSON (no markdown, no explanation):
         data: {
           user: sellerId,
           type: 'system',
-          message: status === 'rejected'
-            ? `Your product images were rejected: ${issuesSummary}. Please upload new images.`
-            : `Your product images need attention: ${issuesSummary}. Please review and update.`,
+          message: `Your product images were rejected: ${issuesSummary}. Please upload new images.`,
           image: firstImageId,
           path: `/sell/style/${styleId}/variation/${doc.id}`,
           metadata: {

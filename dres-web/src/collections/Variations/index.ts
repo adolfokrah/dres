@@ -273,7 +273,6 @@ export const Variations: CollectionConfig = {
       options: [
         { label: 'Pending', value: 'pending' },
         { label: 'Approved', value: 'approved' },
-        { label: 'Flagged', value: 'flagged' },
         { label: 'Rejected', value: 'rejected' },
       ],
       defaultValue: 'pending',

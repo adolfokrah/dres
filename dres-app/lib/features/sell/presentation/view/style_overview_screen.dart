@@ -267,114 +267,112 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
         details.title!.isNotEmpty &&
         details.categoryId != null;
 
-    return Container(
-      margin: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border.all(
-          color: isComplete ? AppColors.success : AppColors.border,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section header
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: AppColors.border),
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: isComplete 
-                        ? AppColors.success.withOpacity(0.1) 
-                        : AppColors.background,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isComplete ? AppColors.success : AppColors.border,
-                    ),
-                  ),
-                  child: Center(
-                    child: isComplete
-                        ? Icon(
-                            PhosphorIcons.check(PhosphorIconsStyle.bold),
-                            color: AppColors.success,
-                            size: 16,
-                          )
-                        : Text(
-                            '1',
-                            style: AppTypography.bodyS.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'PRODUCT DETAILS',
-                    style: AppTypography.bodyS.copyWith(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: _onEditProductDetails,
-                  child: Text(
-                    'Edit',
-                    style: AppTypography.bodyS.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+    return GestureDetector(
+      onTap: _onEditProductDetails,
+      child: Container(
+        margin: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          border: Border.all(
+            color: isComplete ? AppColors.success : AppColors.border,
           ),
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  details?.title ?? 'No title',
-                  style: AppTypography.bodyL.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: details?.title != null 
-                        ? AppColors.textPrimary 
-                        : AppColors.textHint,
-                  ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Section header
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: AppColors.border),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  _buildCategoryBreadcrumb(details),
-                  style: AppTypography.bodyS.copyWith(
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: isComplete
+                          ? AppColors.success.withValues(alpha: 0.1)
+                          : AppColors.background,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isComplete ? AppColors.success : AppColors.border,
+                      ),
+                    ),
+                    child: Center(
+                      child: isComplete
+                          ? Icon(
+                              PhosphorIcons.check(PhosphorIconsStyle.bold),
+                              color: AppColors.success,
+                              size: 16,
+                            )
+                          : Text(
+                              '1',
+                              style: AppTypography.bodyS.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'PRODUCT DETAILS',
+                      style: AppTypography.bodyS.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ),
+                  PhosphorIcon(
+                    PhosphorIconsRegular.caretRight,
+                    size: 16,
                     color: AppColors.textSecondary,
                   ),
-                ),
-                if (details?.brandName != null) ...[
-                  const SizedBox(height: 4),
+                ],
+              ),
+            ),
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Text(
-                    details!.brandName!,
+                    details?.title ?? 'No title',
+                    style: AppTypography.bodyL.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: details?.title != null
+                          ? AppColors.textPrimary
+                          : AppColors.textHint,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _buildCategoryBreadcrumb(details),
                     style: AppTypography.bodyS.copyWith(
                       color: AppColors.textSecondary,
                     ),
                   ),
+                  if (details?.brandName != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      details!.brandName!,
+                      style: AppTypography.bodyS.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -390,157 +388,206 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
     return parts.isNotEmpty ? parts.join(' > ') : 'No category selected';
   }
 
-  Widget _buildVariationsSection() {
-    return BlocBuilder<VariationsBloc, VariationsState>(
-      builder: (context, state) {
-        final isLoading = state.status == VariationsStatus.loading;
-        final isCreating = state.status == VariationsStatus.creating;
-        final variations = state.variations;
-        
-        // Check if at least one variation is complete
-        final hasCompleteVariation = variations.any((v) => 
-          v.images.length >= 3 && 
-          v.variants.isNotEmpty && 
-          v.skus.isNotEmpty
-        );
+  /// Check if style details are complete (title, category, brand)
+  bool _isStyleDetailsComplete(StyleDetailsState styleState) {
+    final details = styleState.styleDetails;
+    return details != null &&
+        details.title != null &&
+        details.title!.trim().isNotEmpty &&
+        details.categoryId != null &&
+        details.brandId != null;
+  }
 
-        return Container(
-          margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            border: Border.all(
-              color: hasCompleteVariation ? AppColors.success : AppColors.border,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Section header
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: const BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: AppColors.border),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: hasCompleteVariation 
-                            ? AppColors.success.withOpacity(0.1) 
-                            : AppColors.background,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: hasCompleteVariation ? AppColors.success : AppColors.border,
-                        ),
-                      ),
-                      child: Center(
-                        child: hasCompleteVariation
-                            ? Icon(
-                                PhosphorIcons.check(PhosphorIconsStyle.bold),
-                                color: AppColors.success,
-                                size: 16,
-                              )
-                            : Text(
-                                '2',
-                                style: AppTypography.bodyS.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'VARIATIONS',
-                        style: AppTypography.bodyS.copyWith(
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ),
-                    if (variations.isNotEmpty)
-                      Text(
-                        '${variations.length}',
-                        style: AppTypography.bodyS.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                  ],
+  Widget _buildVariationsSection() {
+    return BlocBuilder<StyleDetailsBloc, StyleDetailsState>(
+      builder: (context, styleState) {
+        // Check if style details are complete before allowing variations
+        final canAddVariation = _isStyleDetailsComplete(styleState);
+
+        return BlocBuilder<VariationsBloc, VariationsState>(
+          builder: (context, state) {
+            final isLoading = state.status == VariationsStatus.loading;
+            final isCreating = state.status == VariationsStatus.creating;
+            final variations = state.variations;
+
+            // Check if at least one variation is complete
+            final hasCompleteVariation = variations.any((v) =>
+                v.images.length >= 3 &&
+                v.variants.isNotEmpty &&
+                v.skus.isNotEmpty);
+
+            // Check if any variation has image issues (flagged or rejected)
+            final hasImageIssues = variations.any((v) => v.hasImageIssues);
+
+            // Can only add variation if style details are complete and not creating
+            final canAdd = canAddVariation && !isCreating;
+
+            // Determine section border color: red if issues, green if complete, default otherwise
+            Color sectionBorderColor;
+            if (hasImageIssues) {
+              sectionBorderColor = AppColors.error;
+            } else if (hasCompleteVariation) {
+              sectionBorderColor = AppColors.success;
+            } else {
+              sectionBorderColor = AppColors.border;
+            }
+
+            return Container(
+              margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                border: Border.all(
+                  color: sectionBorderColor,
                 ),
               ),
-              // Variations list
-              if (isLoading)
-                const Padding(
-                  padding: EdgeInsets.all(40),
-                  child: Center(
-                    child: CircularProgressIndicator(color: AppColors.textPrimary),
-                  ),
-                )
-              else if (variations.isEmpty)
-                _buildEmptyVariations()
-              else
-                ...variations.map((v) => _buildVariationItem(v)),
-              
-              // Add variation button
-              Container(
-                decoration: const BoxDecoration(
-                  border: Border(
-                    top: BorderSide(color: AppColors.border),
-                  ),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: isCreating ? null : _onAddVariation,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (isCreating)
-                            const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppColors.textPrimary,
-                              ),
-                            )
-                          else
-                            PhosphorIcon(
-                              PhosphorIcons.plus(),
-                              size: 16,
-                              color: AppColors.textPrimary,
-                            ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Add Variation',
-                            style: AppTypography.bodyM.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Section header
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(color: AppColors.border),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: hasImageIssues
+                                ? AppColors.error.withValues(alpha: 0.1)
+                                : hasCompleteVariation
+                                    ? AppColors.success.withValues(alpha: 0.1)
+                                    : AppColors.background,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: hasImageIssues
+                                  ? AppColors.error
+                                  : hasCompleteVariation
+                                      ? AppColors.success
+                                      : AppColors.border,
                             ),
                           ),
-                        ],
+                          child: Center(
+                            child: hasImageIssues
+                                ? Icon(
+                                    PhosphorIcons.x(PhosphorIconsStyle.bold),
+                                    color: AppColors.error,
+                                    size: 16,
+                                  )
+                                : hasCompleteVariation
+                                    ? Icon(
+                                        PhosphorIcons.check(PhosphorIconsStyle.bold),
+                                        color: AppColors.success,
+                                        size: 16,
+                                      )
+                                    : Text(
+                                        '2',
+                                        style: AppTypography.bodyS.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.textSecondary,
+                                        ),
+                                      ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'VARIATIONS',
+                            style: AppTypography.bodyS.copyWith(
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                        if (variations.isNotEmpty)
+                          Text(
+                            '${variations.length}',
+                            style: AppTypography.bodyS.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  // Variations list
+                  if (isLoading)
+                    const Padding(
+                      padding: EdgeInsets.all(40),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                            color: AppColors.textPrimary),
+                      ),
+                    )
+                  else if (variations.isEmpty)
+                    _buildEmptyVariations(canAddVariation)
+                  else
+                    ...variations.map((v) => _buildVariationItem(v)),
+
+                  // Add variation button
+                  Container(
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        top: BorderSide(color: AppColors.border),
+                      ),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: canAdd ? _onAddVariation : null,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (isCreating)
+                                const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                )
+                              else
+                                PhosphorIcon(
+                                  PhosphorIcons.plus(),
+                                  size: 16,
+                                  color: canAdd
+                                      ? AppColors.textPrimary
+                                      : AppColors.textHint,
+                                ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Add Variation',
+                                style: AppTypography.bodyM.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: canAdd
+                                      ? AppColors.textPrimary
+                                      : AppColors.textHint,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildEmptyVariations() {
+  Widget _buildEmptyVariations(bool canAddVariation) {
     return Padding(
       padding: const EdgeInsets.all(40),
       child: Center(
@@ -560,7 +607,9 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Add color variations of your product',
+              canAddVariation
+                  ? 'Add color variations of your product'
+                  : 'Complete product details first',
               style: AppTypography.bodyS.copyWith(
                 color: AppColors.textHint,
               ),
@@ -667,6 +716,10 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
   }
 
   VariationStatus _getVariationStatus(VariationModel variation) {
+    // Image issues take priority - show error state
+    if (variation.hasImageIssues) {
+      return VariationStatus.imageIssues;
+    }
     if (variation.images.length < 3 || variation.variants.isEmpty) {
       return VariationStatus.incomplete;
     }
@@ -684,6 +737,8 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
         return AppColors.warning;
       case VariationStatus.incomplete:
         return AppColors.textSecondary;
+      case VariationStatus.imageIssues:
+        return AppColors.error;
     }
   }
 
@@ -695,6 +750,8 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
         return PhosphorIcons.warning(PhosphorIconsStyle.fill);
       case VariationStatus.incomplete:
         return PhosphorIcons.circle();
+      case VariationStatus.imageIssues:
+        return PhosphorIcons.xCircle(PhosphorIconsStyle.fill);
     }
   }
 
@@ -711,6 +768,8 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
           return 'Add ${3 - variation.images.length} more photo${3 - variation.images.length > 1 ? 's' : ''}';
         }
         return 'Incomplete - add color';
+      case VariationStatus.imageIssues:
+        return 'Images rejected';
     }
   }
 
@@ -780,4 +839,5 @@ enum VariationStatus {
   complete,
   needsSku,
   incomplete,
+  imageIssues, // Images flagged or rejected
 }

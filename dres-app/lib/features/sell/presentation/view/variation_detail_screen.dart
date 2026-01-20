@@ -584,8 +584,19 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Draft status info banner
-                                if (variation?.isDraft == true)
+                                // Image validation error banner (rejected images)
+                                if (variation?.isImageRejected == true)
+                                  Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: AppInfoBanner.error(
+                                      title: 'Images Rejected',
+                                      text: variation!.imageValidationNotes ??
+                                          'Your product images were rejected. Please upload new images that clearly show the product.',
+                                    ),
+                                  ),
+
+                                // Draft status info banner (only show if no image issues)
+                                if (variation?.isDraft == true && variation?.hasImageIssues != true)
                                   const Padding(
                                     padding: EdgeInsets.all(20),
                                     child: AppInfoBanner.info(

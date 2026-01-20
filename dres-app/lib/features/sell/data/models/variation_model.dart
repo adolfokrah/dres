@@ -23,6 +23,10 @@ class VariationModel {
   final VariationStyleRef? style; // Reference to style with category
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  // Image validation fields
+  final String? imageValidationStatus; // 'pending', 'approved', 'rejected'
+  final int? imageValidationScore; // 0-100
+  final String? imageValidationNotes; // Notes/issues from AI validation
 
   VariationModel({
     required this.id,
@@ -37,6 +41,9 @@ class VariationModel {
     this.style,
     this.createdAt,
     this.updatedAt,
+    this.imageValidationStatus,
+    this.imageValidationScore,
+    this.imageValidationNotes,
   });
 
   /// Check if variation is a draft
@@ -44,6 +51,12 @@ class VariationModel {
 
   /// Check if variation is active
   bool get isActive => status == 'active';
+
+  /// Check if images are rejected
+  bool get isImageRejected => imageValidationStatus == 'rejected';
+
+  /// Check if images need attention (rejected)
+  bool get hasImageIssues => isImageRejected;
 
   /// Get image URLs (for backwards compatibility) - only returns images with valid URLs
   List<String> get images => imageObjects
@@ -137,6 +150,9 @@ class VariationModel {
       updatedAt: json['updatedAt'] != null
           ? DateTime.tryParse(json['updatedAt'])
           : null,
+      imageValidationStatus: json['imageValidationStatus'],
+      imageValidationScore: json['imageValidationScore'],
+      imageValidationNotes: json['imageValidationNotes'],
     );
   }
 

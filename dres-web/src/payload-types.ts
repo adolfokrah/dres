@@ -373,7 +373,7 @@ export interface Variation {
   /**
    * AI validation status for product images
    */
-  imageValidationStatus?: ('pending' | 'approved' | 'flagged' | 'rejected') | null;
+  imageValidationStatus?: ('pending' | 'approved' | 'rejected') | null;
   /**
    * Confidence score (0-100) from AI validation
    */

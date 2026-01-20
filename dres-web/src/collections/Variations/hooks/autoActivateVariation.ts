@@ -39,9 +39,9 @@ export const autoActivateVariation: CollectionAfterChangeHook = async ({
     return doc
   }
 
-  // Don't auto-activate if images are flagged or rejected
-  if (variation.imageValidationStatus === 'flagged' || variation.imageValidationStatus === 'rejected') {
-    req.payload.logger.info(`Skipping auto-activation for variation ${variation.id} - images ${variation.imageValidationStatus}`)
+  // Only auto-activate if images are approved (not pending, flagged, or rejected)
+  if (variation.imageValidationStatus !== 'approved') {
+    req.payload.logger.info(`Skipping auto-activation for variation ${variation.id} - imageValidationStatus is ${variation.imageValidationStatus || 'pending'} (requires 'approved')`)
     return doc
   }
 
