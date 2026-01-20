@@ -1,0 +1,9 @@
+# Lefthook configuration
+# https://github.com/evilmartians/lefthook
+
+pre-push:
+  commands:
+    integration-tests:
+      root: "dres-web/"
+      run: pnpm test:int
+      fail_text: "Integration tests failed. Please fix before pushing."
