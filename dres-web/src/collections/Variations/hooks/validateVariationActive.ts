@@ -10,6 +10,7 @@ interface VariationData {
   style?: string | { id: string }
   images?: (string | { id: string })[]
   variants?: VariantItem[]
+  imageValidationStatus?: 'pending' | 'approved' | 'rejected'
 }
 
 /**
@@ -28,12 +29,35 @@ export const validateVariationActive: CollectionBeforeChangeHook = async ({
   operation,
 }) => {
   const variationData = data as VariationData
-  
+
+  // Reset imageValidationStatus to 'pending' when images change
+  // This ensures validation runs again after image updates
+  if (operation === 'update' && variationData.images !== undefined && !req.context?.skipImageValidation) {
+    const currentImageIds = (variationData.images || []).map((img) =>
+      typeof img === 'string' ? img : img.id
+    )
+    const previousImageIds = (originalDoc?.images || []).map((img: string | { id: string }) =>
+      typeof img === 'string' ? img : img.id
+    )
+
+    // Check if images changed
+    const imagesChanged =
+      currentImageIds.length !== previousImageIds.length ||
+      currentImageIds.some((id, i) => id !== previousImageIds[i])
+
+    if (imagesChanged && currentImageIds.length > 0) {
+      variationData.imageValidationStatus = 'pending'
+      req.payload.logger.info(
+        `[ValidateVariationActive] Images changed for variation ${originalDoc?.id} - resetting imageValidationStatus to pending`
+      )
+    }
+  }
+
   // Only validate when explicitly setting status to 'active'
   // Skip validation for draft/archived status or when status isn't being changed
   const newStatus = variationData.status
   const oldStatus = originalDoc?.status
-  
+
   // If not setting to active, allow the operation
   if (newStatus !== 'active') {
     return data

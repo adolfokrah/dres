@@ -15,6 +15,21 @@ class ImagePickerUtils {
   /// Minimum image dimension required (width or height)
   static const int minImageDimension = 500;
 
+  /// Supported image formats for upload
+  static const List<String> supportedFormats = ['png', 'jpeg', 'jpg'];
+
+  /// Validate image format
+  /// Returns null if valid, or error message if invalid
+  static String? _validateImageFormat(String filePath) {
+    final extension = path.extension(filePath).toLowerCase().replaceAll('.', '');
+
+    if (!supportedFormats.contains(extension)) {
+      return 'Unsupported image format (.$extension). Please use PNG or JPEG images.';
+    }
+
+    return null; // Valid
+  }
+
   /// Validate image dimensions
   /// Returns null if valid, or error message if invalid
   static Future<String?> _validateImageDimensions(File file) async {
@@ -152,10 +167,19 @@ class ImagePickerUtils {
     if (result != null && result.isNotEmpty) {
       // Use originFile to get the full-resolution original image
       final file = await result.first.originFile;
-      if (file != null && compress) {
-        return await _compressImage(file);
+      if (file != null) {
+        // Validate image format
+        final formatError = _validateImageFormat(file.path);
+        if (formatError != null) {
+          print('⚠️ Image rejected: $formatError');
+          return null; // Return null for unsupported format
+        }
+
+        if (compress) {
+          return await _compressImage(file);
+        }
+        return file;
       }
-      return file;
     }
     return null;
   }
@@ -224,7 +248,15 @@ class ImagePickerUtils {
         final file = await asset.originFile;
         if (file != null) {
           print('📂 Picked file: ${path.basename(file.path)}');
-          
+
+          // Validate image format first
+          final formatError = _validateImageFormat(file.path);
+          if (formatError != null) {
+            print('⚠️ Image rejected: $formatError');
+            onImageSkipped?.call(formatError);
+            continue; // Skip this image
+          }
+
           // Validate image dimensions
           final validationError = await _validateImageDimensions(file);
           if (validationError != null) {

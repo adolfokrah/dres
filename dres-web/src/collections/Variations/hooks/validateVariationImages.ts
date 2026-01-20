@@ -97,6 +97,12 @@ async function performImageValidation(
     limit: imageIds.length,
   })
 
+  // Sort mediaDocs to match the original imageIds order
+  // payload.find returns docs in database order, not the order we requested
+  const sortedMediaDocs = imageIds
+    .map((id) => (mediaDocs.docs as MediaDoc[]).find((doc) => doc.id === id))
+    .filter((doc): doc is MediaDoc => doc !== undefined)
+
   // Get category and seller from style
   let categoryName = 'Unknown'
   let sellerId: string | null = null
@@ -126,7 +132,7 @@ async function performImageValidation(
   const imageContents: OpenAI.Chat.Completions.ChatCompletionContentPart[] = []
   const serverUrl = getServerSideURL()
 
-  for (const mediaDoc of mediaDocs.docs as MediaDoc[]) {
+  for (const mediaDoc of sortedMediaDocs) {
     if (mediaDoc.url) {
       // Convert relative URLs to absolute URLs for OpenAI
       const fullUrl = mediaDoc.url.startsWith('http')
