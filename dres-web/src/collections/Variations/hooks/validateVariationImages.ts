@@ -59,8 +59,9 @@ export const validateVariationImages: CollectionAfterChangeHook = async ({
     currentImageIds.length !== previousImageIds.length ||
     currentImageIds.some((id, i) => id !== previousImageIds[i])
 
-  // Only validate if images changed and there are images
-  if (!imagesChanged || currentImageIds.length === 0) {
+  // Only validate if images changed and there are at least 3 images
+  // (minimum required for a variation to be activated)
+  if (!imagesChanged || currentImageIds.length < 3) {
     return doc
   }
 

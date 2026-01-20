@@ -206,11 +206,42 @@ export const getVariation: PayloadHandler = async (req) => {
         }
       },
 
-      // Lookup variant attribute names
+      // Convert variant IDs from strings to ObjectIds for lookup
+      // Use $convert with onError to handle invalid ObjectIds gracefully
+      {
+        $addFields: {
+          variantObjectIds: {
+            $map: {
+              input: { $ifNull: ['$variants', []] },
+              as: 'v',
+              in: {
+                variant: {
+                  $convert: {
+                    input: '$$v.variant',
+                    to: 'objectId',
+                    onError: null,
+                    onNull: null
+                  }
+                },
+                value: {
+                  $convert: {
+                    input: '$$v.value',
+                    to: 'objectId',
+                    onError: null,
+                    onNull: null
+                  }
+                },
+                id: '$$v.id'
+              }
+            }
+          }
+        }
+      },
+      // Lookup variant attribute names using the converted ObjectIds
       {
         $lookup: {
           from: 'attributes',
-          localField: 'variants.variant',
+          localField: 'variantObjectIds.variant',
           foreignField: '_id',
           as: 'variantAttributes'
         }
@@ -218,7 +249,7 @@ export const getVariation: PayloadHandler = async (req) => {
       {
         $lookup: {
           from: 'attributeOptions',
-          localField: 'variants.value',
+          localField: 'variantObjectIds.value',
           foreignField: '_id',
           as: 'variantValues'
         }
@@ -339,12 +370,16 @@ export const getVariation: PayloadHandler = async (req) => {
     }
 
     // Helper to resolve variant details from lookup data
-    const resolveVariantDetails = (doc: any) => {
-      if (!doc.variants?.length) return []
-      return doc.variants.map((v: any) => {
+    const resolveVariantDetails = (doc: any, resolvedValues?: Map<string, string>) => {
+      // Use variantObjectIds if available (main variation), fall back to variants (related variations)
+      const variantSource = doc.variantObjectIds || doc.variants || []
+      if (!variantSource?.length) return []
+      return variantSource.map((v: any) => {
         const attr = doc.variantAttributes?.find((a: any) => idsMatch(a._id, v.variant))
-        const val = doc.variantValues?.find((vl: any) => idsMatch(vl._id, v.value))
-        return { name: attr?.name || '', value: val?.name || '' }
+        // Try lookup data first, then fall back to resolved values map
+        let val = doc.variantValues?.find((vl: any) => idsMatch(vl._id, v.value))
+        const valueName = val?.name || (resolvedValues ? resolvedValues.get(v.value?.toString()) : undefined)
+        return { name: attr?.name || '', value: valueName || '' }
       }).filter((d: any) => d.name && d.value)
     }
 
@@ -432,8 +467,23 @@ export const getVariation: PayloadHandler = async (req) => {
       details.push({ name: 'Brand', value: style.brandData[0].name })
     }
 
-    // Add attribute details
-    const attributeDetails = resolveVariantDetails(variation)
+    // Fetch variant values via Payload API since $lookup has collection naming issues
+    const valueIds = variation.variantObjectIds?.map((v: any) => v.value?.toString()).filter(Boolean) || []
+    const resolvedValuesMap = new Map<string, string>()
+
+    if (valueIds.length > 0) {
+      const valuesResult = await payload.find({
+        collection: 'attributeOptions',
+        where: { id: { in: valueIds } },
+        depth: 0
+      })
+      valuesResult.docs.forEach((doc: any) => {
+        resolvedValuesMap.set(doc.id, doc.name)
+      })
+    }
+
+    // Add variation-level attribute details (e.g., Color: Red, Material: Leather)
+    const attributeDetails = resolveVariantDetails(variation, resolvedValuesMap)
     details.push(...attributeDetails.map((d: any) => ({ name: d.name, value: d.value })))
 
     // Transform related variations

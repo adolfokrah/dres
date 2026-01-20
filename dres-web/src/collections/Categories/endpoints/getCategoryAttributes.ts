@@ -49,27 +49,34 @@ export const getCategoryAttributes: Endpoint = {
       // For each attribute, fetch its options filtered by category
       const attributesWithOptions = await Promise.all(
         attributesResult.docs.map(async (attr) => {
-          // Get options that either:
-          // 1. Have this category in their categories array, OR
-          // 2. Have no categories set (empty array)
-          const optionsResult = await req.payload.find({
+          // Fetch ALL options for this attribute first
+          const allOptionsResult = await req.payload.find({
             collection: 'attributeOptions',
             where: {
               attribute: { equals: attr.id },
-              or: [
-                { categories: { in: [id] } },
-                { categories: { exists: false } },
-              ],
             },
             limit: 0, // No limit - get all options
             sort: 'name',
+            depth: 0, // Don't populate categories, just get IDs
+          })
+
+          // Filter options: include if categories is empty/null OR contains this category
+          const filteredOptions = allOptionsResult.docs.filter((opt) => {
+            const categories = opt.categories as (string | { id: string })[] | null | undefined
+            // Include if no categories set (empty array, null, or undefined)
+            if (!categories || categories.length === 0) {
+              return true
+            }
+            // Include if this category is in the list
+            const categoryIds = categories.map((c) => (typeof c === 'string' ? c : c.id))
+            return categoryIds.includes(id)
           })
 
           return {
             id: attr.id,
             name: attr.name,
             level: attr.level,
-            options: optionsResult.docs.map((opt) => ({
+            options: filteredOptions.map((opt) => ({
               id: opt.id,
               name: opt.name,
               slug: opt.slug,
