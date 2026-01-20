@@ -129,25 +129,45 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
       const hasBuyerProtection = item.buyerProtection === true
       const shippingFee = item.shippingFee || 0
       const transferFee = 1 // Paystack transfer fee is 1 cedi flat
+      const isNotAvailable = item.shippingStatus === 'not_available'
 
       let refundAmount: number
       let refundNotes: string
 
       if (hasBuyerProtection) {
-        // WITH BUYER PROTECTION: Full item price + shipping
+        // WITH BUYER PROTECTION: Full item price + shipping (no fees deducted)
         refundAmount = itemTotal + shippingFee
         refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Full refund (BP): Item ${itemTotal} + Shipping ${shippingFee} = ${refundAmount}`
+      } else if (isNotAvailable) {
+        // NOT AVAILABLE (seller never shipped, no BP): Item + shipping - transaction fee
+        const feePercent = refundTransactionFeeRate * 100
+        const transactionFee = ((itemTotal + shippingFee) * refundTransactionFeeRate) + transferFee
+        refundAmount = Math.round((itemTotal + shippingFee - transactionFee) * 100) / 100
+        refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Not available: (Item ${itemTotal} + Shipping ${shippingFee}) - Fee (${feePercent}% + 1): ${transactionFee.toFixed(2)} = ${refundAmount}`
       } else {
-        // NO BUYER PROTECTION: Item price - transaction fee % - transfer fee
+        // NO BUYER PROTECTION (actual return): Item price - transaction fee % - transfer fee (no shipping refund)
         const feePercent = refundTransactionFeeRate * 100
         const transactionFee = (itemTotal * refundTransactionFeeRate) + transferFee
         refundAmount = Math.round((itemTotal - transactionFee) * 100) / 100
-        refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Item: ${itemTotal} - Fee (${feePercent}% + 1): ${transactionFee.toFixed(2)} = ${refundAmount}`
+        refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Return: Item ${itemTotal} - Fee (${feePercent}% + 1): ${transactionFee.toFixed(2)} = ${refundAmount}`
       }
 
-      payload.logger.info(`[Refund] ${item.variationTitle}: ${hasBuyerProtection ? 'BP' : 'No BP'} - Refund: ${refundAmount}`)
+      const refundType = hasBuyerProtection ? 'BP' : (isNotAvailable ? 'Not Available' : 'Return')
+      payload.logger.info(`[Refund] ${item.variationTitle}: ${refundType} - Refund: ${refundAmount}`)
 
       // Create refund transaction for customer
+      // Calculate fees based on refund type
+      let fees = 0
+      if (!hasBuyerProtection) {
+        if (isNotAvailable) {
+          // Not available: fee on (item + shipping)
+          fees = ((itemTotal + shippingFee) * refundTransactionFeeRate) + transferFee
+        } else {
+          // Regular return: fee on item only
+          fees = (itemTotal * refundTransactionFeeRate) + transferFee
+        }
+      }
+
       await payload.create({
         collection: 'transactions',
         data: {
@@ -158,7 +178,7 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
           order: doc.id,
           itemId: itemId,
           amount: refundAmount,
-          fees: hasBuyerProtection ? 0 : (itemTotal * refundTransactionFeeRate) + transferFee,
+          fees,
           paystackFees: transferFee,
           billingDetails: {
             accountName: billingDetails.accountName || '',
@@ -180,17 +200,22 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
           const itemSellerId = typeof i.seller === 'object' ? i.seller?.id : i.seller
           return itemSellerId === sellerId
         })
-        
+
         // Check if ALL seller items are returned or not_available
-        const allSellerItemsReturned = sellerItems.every(i => 
+        const allSellerItemsReturned = sellerItems.every(i =>
           i.shippingStatus === 'returned' || i.shippingStatus === 'not_available'
         )
-        
+
+        // Check if at least one item was actually returned (meaning delivery happened)
+        // 'not_available' means seller never shipped, so no shipping payment needed
+        const hasActualReturn = sellerItems.some(i => i.shippingStatus === 'returned')
+
         // Get shipping fee from any seller item (first item with shipping fee)
         const sellerShippingFee = sellerItems.find(i => i.shippingFee && i.shippingFee > 0)?.shippingFee || 0
-        
-        if (allSellerItemsReturned && sellerShippingFee > 0) {
-          // All items from seller are returned - create separate shipping payment
+
+        if (allSellerItemsReturned && hasActualReturn && sellerShippingFee > 0) {
+          // All items from seller are returned AND at least one was actually delivered then returned
+          // Create separate shipping payment since delivery did happen
           // Check if shipping payment already exists for this seller
           const existingShippingPayment = await payload.find({
             collection: 'transactions',
@@ -216,13 +241,46 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
                 amount: sellerShippingFee,
                 fees: transferFee,
                 paystackFees: transferFee,
-                notes: `Shipping fee for returned items from seller (all items returned)`,
+                notes: `Shipping fee for returned items from seller (all items returned after delivery)`,
               },
             })
-            payload.logger.info(`[Refund] All seller items returned - created shipping payment: ${sellerShippingFee}`)
+            payload.logger.info(`[Refund] All seller items returned after delivery - created shipping payment: ${sellerShippingFee}`)
           }
+        } else if (allSellerItemsReturned && !hasActualReturn) {
+          payload.logger.info(`[Refund] All seller items marked not_available (never shipped) - no shipping payment created`)
         } else if (!allSellerItemsReturned) {
           payload.logger.info(`[Refund] Seller has other items not returned - shipping will be included in order_payment on delivery`)
+        }
+
+        // Create sanction for returned items (not for not_available - those are handled by autoReturnStaleOrders task)
+        if (item.shippingStatus === 'returned') {
+          const returnReason = item.returnReason || 'Item returned by buyer'
+
+          await payload.create({
+            collection: 'seller-sanctions',
+            data: {
+              seller: sellerId,
+              reason: 'item_returned',
+              notes: `Order ${doc.orderId}: "${item.variationTitle}" was returned. Reason: ${returnReason}`,
+            },
+          })
+
+          payload.logger.info(`[Refund] Created sanction for seller ${sellerId} - item returned`)
+
+          // Notify the seller
+          await payload.create({
+            collection: 'notifications',
+            data: {
+              user: sellerId,
+              type: 'system',
+              message: `A buyer returned an item from order ${doc.orderId}. Reason: ${returnReason}.`,
+              path: `/sell/orders`,
+              metadata: {
+                orderId: doc.id,
+                orderNumber: doc.orderId,
+              },
+            },
+          })
         }
       }
     }

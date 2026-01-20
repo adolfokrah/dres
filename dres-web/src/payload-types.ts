@@ -90,6 +90,7 @@ export interface Config {
     'delivery-codes': DeliveryCode;
     'discount-codes': DiscountCode;
     orders: Order;
+    'seller-sanctions': SellerSanction;
     shippingRates: ShippingRate;
     transactions: Transaction;
     'boost-tiers': BoostTier;
@@ -180,6 +181,7 @@ export interface Config {
     'delivery-codes': DeliveryCodesSelect<false> | DeliveryCodesSelect<true>;
     'discount-codes': DiscountCodesSelect<false> | DiscountCodesSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
+    'seller-sanctions': SellerSanctionsSelect<false> | SellerSanctionsSelect<true>;
     shippingRates: ShippingRatesSelect<false> | ShippingRatesSelect<true>;
     transactions: TransactionsSelect<false> | TransactionsSelect<true>;
     'boost-tiers': BoostTiersSelect<false> | BoostTiersSelect<true>;
@@ -231,7 +233,9 @@ export interface Config {
   };
   jobs: {
     tasks: {
+      autoReturnStaleOrders: TaskAutoReturnStaleOrders;
       draftReminder: TaskDraftReminder;
+      processRefundTransactions: TaskProcessRefundTransactions;
       reviewNotifications: TaskReviewNotifications;
       savedSearchNotifications: TaskSavedSearchNotifications;
       autoDeliverItems: TaskAutoDeliverItems;
@@ -2392,6 +2396,29 @@ export interface DeliveryCode {
   createdAt: string;
 }
 /**
+ * Sanctions applied to sellers for policy violations
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "seller-sanctions".
+ */
+export interface SellerSanction {
+  id: string;
+  /**
+   * The seller who received this sanction
+   */
+  seller: string | User;
+  /**
+   * Reason for the sanction
+   */
+  reason: 'late_shipment' | 'item_returned' | 'fraud' | 'policy_violation' | 'other';
+  /**
+   * Additional details about the sanction
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Firebase Cloud Messaging tokens for push notifications
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2744,7 +2771,9 @@ export interface PayloadJob {
         completedAt: string;
         taskSlug:
           | 'inline'
+          | 'autoReturnStaleOrders'
           | 'draftReminder'
+          | 'processRefundTransactions'
           | 'reviewNotifications'
           | 'savedSearchNotifications'
           | 'autoDeliverItems'
@@ -2786,7 +2815,9 @@ export interface PayloadJob {
   taskSlug?:
     | (
         | 'inline'
+        | 'autoReturnStaleOrders'
         | 'draftReminder'
+        | 'processRefundTransactions'
         | 'reviewNotifications'
         | 'savedSearchNotifications'
         | 'autoDeliverItems'
@@ -2908,6 +2939,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'orders';
         value: string | Order;
+      } | null)
+    | ({
+        relationTo: 'seller-sanctions';
+        value: string | SellerSanction;
       } | null)
     | ({
         relationTo: 'shippingRates';
@@ -3729,6 +3764,17 @@ export interface OrdersSelect<T extends boolean = true> {
   placedAt?: T;
   notes?: T;
   transactions?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "seller-sanctions_select".
+ */
+export interface SellerSanctionsSelect<T extends boolean = true> {
+  seller?: T;
+  reason?: T;
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -4577,6 +4623,18 @@ export interface PayloadJobsStatsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskAutoReturnStaleOrders".
+ */
+export interface TaskAutoReturnStaleOrders {
+  input?: unknown;
+  output: {
+    ordersProcessed?: number | null;
+    itemsReturned?: number | null;
+    sellersSanctioned?: number | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "TaskDraftReminder".
  */
 export interface TaskDraftReminder {
@@ -4584,6 +4642,16 @@ export interface TaskDraftReminder {
   output: {
     sellersNotified?: number | null;
     sellersSkipped?: number | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskProcessRefundTransactions".
+ */
+export interface TaskProcessRefundTransactions {
+  input?: unknown;
+  output: {
+    transactionsProcessed?: number | null;
   };
 }
 /**

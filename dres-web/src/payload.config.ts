@@ -37,6 +37,7 @@ import { Carts } from './collections/Carts'
 import { DeliveryCodes } from './collections/DeliveryCodes'
 import { DiscountCodes } from './collections/DiscountCodes'
 import { Orders } from './collections/Orders'
+import { SellerSanctions } from './collections/SellerSanctions'
 import { ShippingRates } from './collections/ShippingRates'
 import { Transactions } from './collections/Transactions'
 
@@ -57,7 +58,9 @@ import { UserPoints } from './collections/UserPoints'
 import { Users } from './collections/Users'
 
 // Scheduled Tasks
+import { autoReturnStaleOrdersTask } from './jobs/tasks/autoReturnStaleOrders'
 import { draftReminderTask } from './jobs/tasks/draftReminder'
+import { processRefundTransactionsTask } from './jobs/tasks/processRefundTransactions'
 import { reviewNotificationsTask } from './jobs/tasks/reviewNotifications'
 import { savedSearchNotificationsTask } from './jobs/tasks/savedSearchNotifications'
 import { autoDeliverItemsTask } from './jobs/tasks/autoDeliverItems'
@@ -180,6 +183,7 @@ export default buildConfig({
     DeliveryCodes,
     DiscountCodes,
     Orders,
+    SellerSanctions,
     ShippingRates,
     Transactions,
     // Settings
@@ -264,7 +268,9 @@ export default buildConfig({
       return defaultJobsCollection
     },
     tasks: [
+      autoReturnStaleOrdersTask,
       draftReminderTask,
+      processRefundTransactionsTask,
       reviewNotificationsTask,
       savedSearchNotificationsTask,
       autoDeliverItemsTask,

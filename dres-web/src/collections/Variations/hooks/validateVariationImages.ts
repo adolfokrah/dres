@@ -59,9 +59,17 @@ export const validateVariationImages: CollectionAfterChangeHook = async ({
     currentImageIds.length !== previousImageIds.length ||
     currentImageIds.some((id, i) => id !== previousImageIds[i])
 
-  // Only validate if images changed and there are at least 3 images
-  // (minimum required for a variation to be activated)
-  if (!imagesChanged || currentImageIds.length < 3) {
+  // Only validate if:
+  // 1. Images changed
+  // 2. There are at least 3 images (minimum required for activation)
+  // 3. Status is 'pending' or not set (don't re-validate approved/rejected)
+  const validationStatus = doc.imageValidationStatus as string | undefined
+  const shouldValidate =
+    imagesChanged &&
+    currentImageIds.length >= 3 &&
+    (!validationStatus || validationStatus === 'pending')
+
+  if (!shouldValidate) {
     return doc
   }
 
