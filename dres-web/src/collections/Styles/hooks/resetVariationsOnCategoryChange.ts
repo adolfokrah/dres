@@ -55,7 +55,7 @@ export const resetVariationsOnCategoryChange: CollectionAfterChangeHook = async 
     // Also reset image validation status to pending for re-validation with new category
     for (const variation of variations.docs) {
       const hasImages = variation.images && Array.isArray(variation.images) && variation.images.length > 0
-      const wasRejectedOrFlagged = variation.imageValidationStatus === 'flagged' || variation.imageValidationStatus === 'rejected'
+      const wasRejectedOrFlagged =  variation.imageValidationStatus === 'rejected'
 
       await payload.update({
         collection: 'variations',
