@@ -85,7 +85,10 @@ export const getCategoryAttributes: Endpoint = {
         }),
       )
 
-      return Response.json({ attributes: attributesWithOptions })
+      // Only return attributes that have at least one valid option for this category
+      const filteredAttributes = attributesWithOptions.filter((attr) => attr.options.length > 0)
+
+      return Response.json({ attributes: filteredAttributes })
     } catch (error) {
       console.error('Error fetching category attributes:', error)
       return Response.json({ error: 'Failed to fetch category attributes' }, { status: 500 })
