@@ -370,6 +370,18 @@ export interface Variation {
     totalDocs?: number;
   };
   status?: ('draft' | 'active' | 'archived') | null;
+  /**
+   * AI validation status for product images
+   */
+  imageValidationStatus?: ('pending' | 'approved' | 'flagged' | 'rejected') | null;
+  /**
+   * Confidence score (0-100) from AI validation
+   */
+  imageValidationScore?: number | null;
+  /**
+   * Notes from AI validation (detected issues)
+   */
+  imageValidationNotes?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -3185,6 +3197,9 @@ export interface VariationsSelect<T extends boolean = true> {
   slug?: T;
   stats?: T;
   status?: T;
+  imageValidationStatus?: T;
+  imageValidationScore?: T;
+  imageValidationNotes?: T;
   updatedAt?: T;
   createdAt?: T;
 }

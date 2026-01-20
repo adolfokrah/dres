@@ -3,11 +3,12 @@ import type { CollectionConfig, Where } from 'payload'
 import { anyone } from '../../access/anyone'
 import { authenticated } from '../../access/authenticated'
 import { generateVariationSlug } from './hooks/generateVariationSlug'
-import { processProductMainImage } from './hooks/processProductMainImage'
+// processProductMainImage is now called from validateVariationImages after approval
 import { deleteRemovedImages } from './hooks/deleteRemovedImages'
 import { setProductImagesFolder } from './hooks/setProductImagesFolder'
 import { validateVariationActive } from './hooks/validateVariationActive'
 import { autoActivateVariation } from './hooks/autoActivateVariation'
+import { validateVariationImages } from './hooks/validateVariationImages'
 import { trendingVariations } from './endpoints/trending'
 import { newArrivals } from './endpoints/newArrivals'
 import { featuredVariations } from './endpoints/featured'
@@ -97,7 +98,7 @@ export const Variations: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [validateVariationActive, generateVariationSlug, deleteRemovedImages],
-    afterChange: [processProductMainImage, setProductImagesFolder, autoActivateVariation],
+    afterChange: [setProductImagesFolder, autoActivateVariation, validateVariationImages],
   },
   fields: [
     {
@@ -264,6 +265,42 @@ export const Variations: CollectionConfig = {
         },
       ],
       defaultValue: 'draft',
-    }
+    },
+    // Image Validation Fields
+    {
+      name: 'imageValidationStatus',
+      type: 'select',
+      options: [
+        { label: 'Pending', value: 'pending' },
+        { label: 'Approved', value: 'approved' },
+        { label: 'Flagged', value: 'flagged' },
+        { label: 'Rejected', value: 'rejected' },
+      ],
+      defaultValue: 'pending',
+      admin: {
+        position: 'sidebar',
+        description: 'AI validation status for product images',
+      },
+    },
+    {
+      name: 'imageValidationScore',
+      type: 'number',
+      min: 0,
+      max: 100,
+      admin: {
+        position: 'sidebar',
+        description: 'Confidence score (0-100) from AI validation',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'imageValidationNotes',
+      type: 'textarea',
+      admin: {
+        position: 'sidebar',
+        description: 'Notes from AI validation (detected issues)',
+        readOnly: true,
+      },
+    },
   ],
 }

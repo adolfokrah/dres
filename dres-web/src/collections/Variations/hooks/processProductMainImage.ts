@@ -68,8 +68,10 @@ export const processProductMainImage: CollectionAfterChangeHook = async ({
 
 /**
  * Process background removal asynchronously
+ * Exported so it can be called from validateVariationImages after approval
  */
-async function processBackgroundRemoval(payload: any, firstImageId: string) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function processBackgroundRemoval(payload: any, firstImageId: string) {
   try {
     // 1. Fetch the first image media document to get its ID and details
     const mediaDoc = await payload.findByID({

@@ -11,6 +11,7 @@ interface VariationDoc {
   style?: string | { id: string }
   images?: (string | { id: string })[]
   variants?: VariantItem[]
+  imageValidationStatus?: 'pending' | 'approved' | 'flagged' | 'rejected'
 }
 
 /**
@@ -26,13 +27,24 @@ export const autoActivateVariation: CollectionAfterChangeHook = async ({
   req,
   operation,
 }) => {
+  // Skip if context indicates we should skip hooks
+  if (req.context?.skipHooks) {
+    return doc
+  }
+
   const variation = doc as VariationDoc
-  
+
   // Only auto-activate draft variations
   if (variation.status !== 'draft') {
     return doc
   }
-  
+
+  // Don't auto-activate if images are flagged or rejected
+  if (variation.imageValidationStatus === 'flagged' || variation.imageValidationStatus === 'rejected') {
+    req.payload.logger.info(`Skipping auto-activation for variation ${variation.id} - images ${variation.imageValidationStatus}`)
+    return doc
+  }
+
   // Check images (need at least 3)
   const images = variation.images || []
   if (images.length < 3) {
