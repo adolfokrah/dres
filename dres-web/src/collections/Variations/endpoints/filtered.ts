@@ -515,6 +515,9 @@ export const filteredVariations: PayloadHandler = async (req) => {
 
     pipeline.push({ $sort: sortSpec })
 
+    // Save pipeline state before pagination for filter computation
+    const pipelineBeforePagination = [...pipeline]
+
     // ============================================
     // STAGE 12: Pagination with facet
     // ============================================
@@ -642,28 +645,80 @@ export const filteredVariations: PayloadHandler = async (req) => {
         filters = filters.filter((f: any) => f.options.length > 0)
       }
     } else {
-      // No category or collection filter - fetch all variation-level attributes with options
-      const attributesResult = await payload.find({
-        collection: 'attributes',
-        where: { level: { equals: 'variation' } },
-        depth: 0,
-        pagination: false,
+      // No category or collection filter - get filters based on categories in ALL matching results
+      // This ensures consistent filters across all pages (not just current page)
+
+      // Get distinct categories from ALL filtered results (before pagination)
+      const categoryPipeline = [...pipelineBeforePagination]
+      categoryPipeline.push({
+        $group: {
+          _id: '$styleData.category',
+        }
       })
 
-      filters = await Promise.all(
-        attributesResult.docs.map(async (attr: any) => {
-          const optionsResult = await payload.find({
-            collection: 'attributeOptions',
-            where: { attribute: { equals: attr.id } },
+      const categoryResults = await variationsCollection.aggregate(categoryPipeline)
+      const categoryIdsInResults = categoryResults
+        .map((r: any) => r._id?.toString())
+        .filter(Boolean)
+
+      if (categoryIdsInResults.length > 0) {
+        // Fetch categories with their attributes
+        const categoriesWithAttrs = await payload.find({
+          collection: 'categories',
+          where: { id: { in: categoryIdsInResults } },
+          depth: 1,
+          pagination: false,
+        })
+
+        // Collect unique attribute IDs from these categories
+        const attributeIdSet = new Set<string>()
+        categoriesWithAttrs.docs.forEach((cat: any) => {
+          (cat.attributes || []).forEach((attr: any) => {
+            const attrId = typeof attr === 'object' ? attr.id : attr
+            if (attrId) attributeIdSet.add(attrId)
+          })
+        })
+
+        if (attributeIdSet.size > 0) {
+          const attributeIds = Array.from(attributeIdSet)
+          const attributesResult = await payload.find({
+            collection: 'attributes',
+            where: { id: { in: attributeIds } },
+            depth: 0,
             pagination: false,
           })
-          return {
-            id: attr.id,
-            name: attr.name,
-            options: optionsResult.docs.map((o: any) => ({ id: o.id, name: o.name, slug: o.slug }))
-          }
-        })
-      )
+
+          filters = await Promise.all(
+            attributesResult.docs.map(async (attr: any) => {
+              const optionsResult = await payload.find({
+                collection: 'attributeOptions',
+                where: { attribute: { equals: attr.id } },
+                depth: 0,
+                pagination: false,
+              })
+
+              // Filter options: include if categories is empty OR contains any category in results
+              const filteredOptions = optionsResult.docs.filter((opt: any) => {
+                const optCategories = opt.categories as (string | { id: string })[] | null | undefined
+                if (!optCategories || optCategories.length === 0) {
+                  return true // Available for all categories
+                }
+                const optCategoryIds = optCategories.map((c: any) => typeof c === 'string' ? c : c.id)
+                return optCategoryIds.some((catId: string) => categoryIdsInResults.includes(catId))
+              })
+
+              return {
+                id: attr.id,
+                name: attr.name,
+                options: filteredOptions.map((o: any) => ({ id: o.id, name: o.name, slug: o.slug }))
+              }
+            })
+          )
+
+          // Only include attributes that have valid options
+          filters = filters.filter((f: any) => f.options.length > 0)
+        }
+      }
     }
 
     return Response.json({

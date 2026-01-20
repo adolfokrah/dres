@@ -7,31 +7,32 @@ const departments = [
 ]
 
 export const seedDepartments = async (payload: Payload): Promise<void> => {
-  payload.logger.info('Clearing departments...')
-
-  // Delete all existing departments
-  const existingDepartments = await payload.find({
-    collection: 'departments',
-    limit: 1000,
-  })
-
-  for (const doc of existingDepartments.docs) {
-    await payload.delete({
-      collection: 'departments',
-      id: doc.id,
-    })
-  }
-
-  payload.logger.info(`Deleted ${existingDepartments.docs.length} departments`)
   payload.logger.info('Seeding departments...')
 
+  let created = 0
+  let skipped = 0
+
   for (const dept of departments) {
+    // Check if department already exists by slug
+    const existing = await payload.find({
+      collection: 'departments',
+      where: { slug: { equals: dept.slug } },
+      limit: 1,
+    })
+
+    if (existing.docs.length > 0) {
+      skipped++
+      continue
+    }
+
     await payload.create({
       collection: 'departments',
       data: { name: dept.name, slug: dept.slug },
     })
-    payload.logger.info(`Created department: ${dept.name}`)
+    created++
   }
 
-  payload.logger.info(`Departments seeding complete! (${departments.length} departments)`)
+  payload.logger.info(
+    `Departments seeding complete! Created: ${created}, Skipped (already exist): ${skipped}`,
+  )
 }

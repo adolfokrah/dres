@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:dres/core/theme/app_colors.dart';
+import 'package:dres/core/widgets/webview_screen.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_text_field.dart';
@@ -11,7 +11,6 @@ import 'package:dres/core/widgets/app_password_field.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/auth/presentation/widgets/social_sign_in_buttons.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
-import 'package:dres/features/cart/logic/cart_bloc/cart_event.dart';
 import 'package:dres/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
@@ -404,11 +403,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     decoration: TextDecoration.underline,
                   ),
                   recognizer: TapGestureRecognizer()
-                    ..onTap = () async {
-                      final uri = Uri.parse('https://dres.app/terms-of-service');
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
-                      }
+                    ..onTap = () {
+                      openWebViewScreen(
+                        context,
+                        url: 'https://dres.app/terms-of-service',
+                        title: l10n.termsOfService,
+                      );
                     },
                 ),
                 TextSpan(text: l10n.andIHaveReadThe),
@@ -418,11 +418,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     decoration: TextDecoration.underline,
                   ),
                   recognizer: TapGestureRecognizer()
-                    ..onTap = () async {
-                      final uri = Uri.parse('https://dres.app/privacy-policy');
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri, mode: LaunchMode.externalApplication);
-                      }
+                    ..onTap = () {
+                      openWebViewScreen(
+                        context,
+                        url: 'https://dres.app/privacy-policy',
+                        title: l10n.privacyPolicy,
+                      );
                     },
                 ),
               ],

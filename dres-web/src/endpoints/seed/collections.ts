@@ -11,22 +11,6 @@ const collectionsData = [
 ]
 
 export const seedCollections = async (payload: Payload): Promise<void> => {
-  payload.logger.info('Clearing collections...')
-
-  // Delete all existing collections
-  const existingCollections = await payload.find({
-    collection: 'collections',
-    limit: 1000,
-  })
-
-  for (const doc of existingCollections.docs) {
-    await payload.delete({
-      collection: 'collections',
-      id: doc.id,
-    })
-  }
-
-  payload.logger.info(`Deleted ${existingCollections.docs.length} collections`)
   payload.logger.info('Seeding collections...')
 
   // Fetch all departments to get their IDs
@@ -34,27 +18,53 @@ export const seedCollections = async (payload: Payload): Promise<void> => {
     collection: 'departments',
     limit: 100,
   })
-  
+
   const departmentMap = new Map<string, string>()
   for (const dept of departmentsResult.docs) {
     departmentMap.set(dept.name, dept.id)
   }
 
+  let created = 0
+  let updated = 0
+
   for (const collection of collectionsData) {
     // Get department IDs for this collection
     const departmentIds = collection.departments
-      .map(deptName => departmentMap.get(deptName))
+      .map((deptName) => departmentMap.get(deptName))
       .filter((id): id is string => id !== undefined)
 
-    await payload.create({
+    // Check if collection already exists
+    const existing = await payload.find({
       collection: 'collections',
-      data: { 
-        name: collection.name,
-        departments: departmentIds,
-      },
+      where: { name: { equals: collection.name } },
+      limit: 1,
     })
-    payload.logger.info(`Created collection: ${collection.name} (${departmentIds.length} departments)`)
+
+    if (existing.docs.length > 0) {
+      // Update existing collection
+      await payload.update({
+        collection: 'collections',
+        id: existing.docs[0].id,
+        data: {
+          name: collection.name,
+          departments: departmentIds,
+        },
+      })
+      updated++
+    } else {
+      // Create new collection
+      await payload.create({
+        collection: 'collections',
+        data: {
+          name: collection.name,
+          departments: departmentIds,
+        },
+      })
+      created++
+    }
   }
 
-  payload.logger.info(`Collections seeding complete! (${collectionsData.length} collections)`)
+  payload.logger.info(
+    `Collections seeding complete! Created: ${created}, Updated: ${updated}`,
+  )
 }

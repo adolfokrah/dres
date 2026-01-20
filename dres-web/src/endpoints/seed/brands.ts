@@ -61,6 +61,15 @@ const fashionBrands = [
   { name: 'Harry Winston', description: 'American luxury jeweler' },
   { name: 'Pomellato', description: 'Italian luxury jewelry brand' },
   { name: 'David Yurman', description: 'American luxury jewelry brand' },
+  { name: 'Chopard', description: 'Swiss luxury watch and jewelry brand' },
+  { name: 'Piaget', description: 'Swiss luxury watch and jewelry brand' },
+  { name: 'Boucheron', description: 'French luxury jewelry brand' },
+  { name: 'Graff', description: 'British luxury jewelry brand' },
+  { name: 'Mikimoto', description: 'Japanese luxury pearl jewelry brand' },
+  { name: 'Swarovski', description: 'Austrian crystal and jewelry brand' },
+  { name: 'Pandora', description: 'Danish jewelry brand' },
+
+  // Luxury Watches
   { name: 'Rolex', description: 'Swiss luxury watch brand' },
   { name: 'Patek Philippe', description: 'Swiss luxury watch brand' },
   { name: 'Audemars Piguet', description: 'Swiss luxury watch brand' },
@@ -70,6 +79,42 @@ const fashionBrands = [
   { name: 'Breitling', description: 'Swiss luxury watch brand' },
   { name: 'Tudor', description: 'Swiss watch brand' },
   { name: 'Longines', description: 'Swiss watch brand' },
+  { name: 'Jaeger-LeCoultre', description: 'Swiss luxury watch brand' },
+  { name: 'Vacheron Constantin', description: 'Swiss luxury watch brand' },
+  { name: 'A. Lange & Söhne', description: 'German luxury watch brand' },
+  { name: 'Panerai', description: 'Italian luxury watch brand' },
+  { name: 'Hublot', description: 'Swiss luxury watch brand' },
+  { name: 'Zenith', description: 'Swiss luxury watch brand' },
+  { name: 'Girard-Perregaux', description: 'Swiss luxury watch brand' },
+  { name: 'Blancpain', description: 'Swiss luxury watch brand' },
+  { name: 'Ulysse Nardin', description: 'Swiss luxury watch brand' },
+  { name: 'Bell & Ross', description: 'French-Swiss watch brand' },
+  { name: 'Oris', description: 'Swiss watch brand' },
+  { name: 'Tissot', description: 'Swiss watch brand' },
+  { name: 'Hamilton', description: 'Swiss-American watch brand' },
+  { name: 'Seiko', description: 'Japanese watch brand' },
+  { name: 'Grand Seiko', description: 'Japanese luxury watch brand' },
+  { name: 'Citizen', description: 'Japanese watch brand' },
+  { name: 'Casio', description: 'Japanese electronics and watch brand' },
+  { name: 'G-Shock', description: 'Japanese shock-resistant watch brand by Casio' },
+  { name: 'Fossil', description: 'American watch and accessories brand' },
+  { name: 'Movado', description: 'Swiss-American watch brand' },
+  { name: 'Raymond Weil', description: 'Swiss watch brand' },
+  { name: 'Frederique Constant', description: 'Swiss watch brand' },
+  { name: 'Maurice Lacroix', description: 'Swiss watch brand' },
+  { name: 'Baume & Mercier', description: 'Swiss watch brand' },
+  { name: 'Richard Mille', description: 'Swiss luxury watch brand' },
+  { name: 'Roger Dubuis', description: 'Swiss luxury watch brand' },
+  { name: 'Franck Muller', description: 'Swiss luxury watch brand' },
+  { name: 'Jacob & Co.', description: 'American luxury watch and jewelry brand' },
+  { name: 'Daniel Wellington', description: 'Swedish watch brand' },
+  { name: 'MVMT', description: 'American watch and accessories brand' },
+  { name: 'Timex', description: 'American watch brand' },
+  { name: 'Swatch', description: 'Swiss watch brand' },
+  { name: 'Apple Watch', description: 'American smartwatch by Apple' },
+  { name: 'Samsung Galaxy Watch', description: 'South Korean smartwatch by Samsung' },
+  { name: 'Garmin', description: 'American GPS and smartwatch brand' },
+  { name: 'Fitbit', description: 'American fitness tracker and smartwatch brand' },
 
   // Fast Fashion & Retail
   { name: 'Zara', description: 'Spanish fast fashion retailer' },
@@ -265,23 +310,10 @@ const fashionBrands = [
 ]
 
 export const seedBrands = async (payload: Payload): Promise<void> => {
-  payload.logger.info('Clearing brands...')
-
-  // Delete all existing brands
-  const existingBrands = await payload.find({
-    collection: 'brands',
-    limit: 1000,
-  })
-
-  for (const doc of existingBrands.docs) {
-    await payload.delete({
-      collection: 'brands',
-      id: doc.id,
-    })
-  }
-
-  payload.logger.info(`Deleted ${existingBrands.docs.length} brands`)
   payload.logger.info('Seeding brands...')
+
+  let created = 0
+  let skipped = 0
 
   for (const brand of fashionBrands) {
     const slug = brand.name
@@ -290,6 +322,20 @@ export const seedBrands = async (payload: Payload): Promise<void> => {
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9-]/g, '')
 
+    // Check if brand already exists by slug
+    const existing = await payload.find({
+      collection: 'brands',
+      where: {
+        slug: { equals: slug },
+      },
+      limit: 1,
+    })
+
+    if (existing.docs.length > 0) {
+      skipped++
+      continue
+    }
+
     await payload.create({
       collection: 'brands',
       data: {
@@ -297,8 +343,9 @@ export const seedBrands = async (payload: Payload): Promise<void> => {
         slug,
       },
     })
+    created++
     payload.logger.info(`Created brand: ${brand.name}`)
   }
 
-  payload.logger.info(`Brands seeding complete! (${fashionBrands.length} brands)`)
+  payload.logger.info(`Brands seeding complete! Created: ${created}, Skipped (already exist): ${skipped}`)
 }

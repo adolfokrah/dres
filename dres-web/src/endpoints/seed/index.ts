@@ -1,4 +1,5 @@
 import type { Payload } from 'payload'
+import { assignBrandsToStyles } from './assignBrandsToStyles'
 import { seedAttributes } from './attributes'
 import { seedAttributeOptions } from './attributeOptions'
 import { seedBrands } from './brands'
@@ -29,3 +30,6 @@ export const seed = async ({
 
   payload.logger.info('✅ Seed complete!')
 }
+
+// Export individual seed functions for selective use
+export { assignBrandsToStyles }

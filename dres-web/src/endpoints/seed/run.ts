@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import { getPayload } from 'payload'
 import config from '../../payload.config'
+import { assignBrandsToStyles } from './assignBrandsToStyles'
 import { seedAttributes } from './attributes'
 import { seedAttributeOptions } from './attributeOptions'
 import { seedBoostTiers } from './boostTiers'
@@ -87,6 +88,9 @@ const runSeed = async () => {
     }
     if (args.includes('legal-pages')) {
       await seedLegalPages(payload)
+    }
+    if (args.includes('assign-brands')) {
+      await assignBrandsToStyles(payload)
     }
   }
 

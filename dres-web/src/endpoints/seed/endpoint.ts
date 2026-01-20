@@ -1,4 +1,5 @@
 import type { PayloadHandler } from 'payload'
+import { assignBrandsToStyles } from './assignBrandsToStyles'
 import { seedAttributes } from './attributes'
 import { seedAttributeOptions } from './attributeOptions'
 import { seedBoostTiers } from './boostTiers'
@@ -104,6 +105,9 @@ export const seedEndpoint: PayloadHandler = async (req) => {
         break
       case 'header':
         await seedHeader(payload)
+        break
+      case 'assign-brands':
+        await assignBrandsToStyles(payload)
         break
       default:
         return Response.json(
