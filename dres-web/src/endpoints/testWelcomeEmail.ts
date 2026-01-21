@@ -40,15 +40,14 @@ export const testWelcomeEmail: PayloadHandler = async (req) => {
           subject: 'Welcome to Dres! (Test)',
           html,
         })
-        payload.logger.info('Email send result:', result)
-        return Response.json({ success: true, message: `Test email sent to ${email}`, result })
-      } catch (sendError: any) {
-        payload.logger.error('Failed to send email:', sendError)
+        payload.logger.info({ msg: 'Email send result', result })
+        return Response.json({ success: true, message: `Test email sent to ${email}` })
+      } catch (sendError: unknown) {
+        payload.logger.error({ msg: 'Failed to send email', error: sendError })
         return Response.json(
           {
             error: 'Failed to send email',
-            details: sendError?.message || String(sendError),
-            code: sendError?.code,
+            details: sendError instanceof Error ? sendError.message : String(sendError),
           },
           { status: 500 },
         )
@@ -57,7 +56,7 @@ export const testWelcomeEmail: PayloadHandler = async (req) => {
 
     return Response.json({ error: 'Method not allowed' }, { status: 405 })
   } catch (error) {
-    payload.logger.error('Error in test welcome email:', error)
+    payload.logger.error({ msg: 'Error in test welcome email', error })
     return Response.json(
       { error: 'Failed to process email', details: String(error) },
       { status: 500 },
