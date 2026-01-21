@@ -264,15 +264,16 @@ async function handleBoostPaymentSuccess(
   // Get style and tier info from metadata
   const styleId = metadata?.styleId as string | undefined
   const tierId = metadata?.tierId as string | undefined
-  const tierDuration = metadata?.tierDuration as number | undefined
+  // Metadata values from Paystack come as strings, so parse to int
+  const tierDuration = metadata?.tierDuration ? parseInt(String(metadata.tierDuration), 10) : undefined
 
   if (!styleId || !tierId) {
     payload.logger.error(`🔔 handleBoostPaymentSuccess: Missing styleId or tierId in metadata`)
     return
   }
 
-  // Get tier info if duration not in metadata
-  let duration = tierDuration
+  // Get tier info if duration not in metadata or invalid
+  let duration = tierDuration && !isNaN(tierDuration) ? tierDuration : undefined
   if (!duration) {
     const tier = await payload.findByID({
       collection: 'boost-tiers',

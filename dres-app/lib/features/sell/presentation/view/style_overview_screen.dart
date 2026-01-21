@@ -248,15 +248,201 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Boost Banner (show for published styles that aren't boosted)
+              _buildBoostBanner(styleState),
+
               // Product Details Section
               _buildProductDetailsSection(styleState),
-              
+
               // Variations Section
               _buildVariationsSection(),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildBoostBanner(StyleDetailsState state) {
+    final details = state.styleDetails;
+
+    // Only show for published styles
+    if (details == null || !details.isPublished) {
+      return const SizedBox.shrink();
+    }
+
+    // Show different banner based on boost status
+    if (details.isBoosted && details.boostDetails != null) {
+      return _buildActiveBoostedBanner(details);
+    }
+
+    // Not boosted - show promotion banner
+    return GestureDetector(
+      onTap: () async {
+        final result = await context.push('/sell/style/${widget.styleId}/boost');
+        if (result == true) {
+          _loadData();
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.primary.withValues(alpha: 0.1),
+              AppColors.primary.withValues(alpha: 0.05),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: PhosphorIcon(
+                  PhosphorIcons.rocketLaunch(PhosphorIconsStyle.fill),
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Boost your listing',
+                    style: AppTypography.bodyM.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Get more visibility and sell faster',
+                    style: AppTypography.bodyS.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            PhosphorIcon(
+              PhosphorIcons.caretRight(),
+              size: 20,
+              color: AppColors.primary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveBoostedBanner(dynamic details) {
+    final boostDetails = details.boostDetails;
+    final tierName = boostDetails?.tierName ?? 'Boosted';
+    final daysRemaining = boostDetails?.daysRemaining ?? 0;
+    final hasAnalytics = boostDetails?.hasAnalytics ?? false;
+    final isExpiringSoon = boostDetails?.isExpiringSoon ?? false;
+
+    return GestureDetector(
+      onTap: hasAnalytics
+          ? () {
+              context.push(
+                '/sell/style/${widget.styleId}/stats',
+                extra: {'styleTitle': details.title},
+              );
+            }
+          : null,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.success.withValues(alpha: 0.1),
+              AppColors.success.withValues(alpha: 0.05),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          border: Border.all(
+            color: isExpiringSoon
+                ? AppColors.warning.withValues(alpha: 0.5)
+                : AppColors.success.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.success.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: PhosphorIcon(
+                  PhosphorIcons.rocketLaunch(PhosphorIconsStyle.fill),
+                  size: 20,
+                  color: AppColors.success,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tierName,
+                    style: AppTypography.bodyM.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isExpiringSoon
+                        ? '$daysRemaining day${daysRemaining != 1 ? 's' : ''} remaining'
+                        : '$daysRemaining days remaining',
+                    style: AppTypography.bodyS.copyWith(
+                      color: isExpiringSoon
+                          ? AppColors.warning
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (hasAnalytics) ...[
+              Text(
+                'View Analytics',
+                style: AppTypography.bodyS.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.success,
+                ),
+              ),
+              const SizedBox(width: 4),
+              PhosphorIcon(
+                PhosphorIcons.caretRight(),
+                size: 20,
+                color: AppColors.success,
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
