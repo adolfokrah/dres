@@ -4,6 +4,7 @@ import { authenticated } from '../../access/authenticated'
 import { adminOnly } from '../../access/adminOnly'
 import { generateUsername } from './hooks/generateUsername'
 import { beforeLogin } from './hooks/beforeLogin'
+import { sendWelcomeEmail } from './hooks/sendWelcomeEmail'
 import { getSellerInfo } from './endpoints/getSellerInfo'
 import { firebaseOAuth } from './endpoints/firebaseOAuth'
 import { addAddress, deleteAddress, setDefaultAddress, updateAddress } from './endpoints/addresses'
@@ -35,6 +36,7 @@ export const Users: CollectionConfig = {
   },
   hooks: {
     beforeLogin: [beforeLogin],
+    afterChange: [sendWelcomeEmail],
   },
   endpoints: [
     {
