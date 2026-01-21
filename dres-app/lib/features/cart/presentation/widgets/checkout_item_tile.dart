@@ -51,7 +51,7 @@ class CheckoutItemTile extends StatelessWidget {
                   image: imageUrl != null
                       ? DecorationImage(
                           image: NetworkImage(imageUrl),
-                          fit: BoxFit.cover,
+                          fit: BoxFit.contain,
                         )
                       : null,
                 ),

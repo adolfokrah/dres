@@ -58,6 +58,5 @@ Thumbs.db
 dres-4f135-firebase-adminsdk*.json
 AuthKey_*.p8
 
-# Firebase service account keys (sensitive - do not commit)
-dres-4f135-firebase-adminsdk*.json
-AuthKey_*.p8
+# Android release keystore
+dres-release-key.jks

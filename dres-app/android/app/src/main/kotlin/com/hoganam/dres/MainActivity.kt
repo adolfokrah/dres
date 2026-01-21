@@ -1,4 +1,4 @@
-package com.example.dres
+package com.hoganam.dres
 
 import io.flutter.embedding.android.FlutterActivity
 
