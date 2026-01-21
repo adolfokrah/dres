@@ -11,6 +11,7 @@
 	<key>com.apple.developer.associated-domains</key>
 	<array>
 		<string>applinks:dres.app</string>
+		<string>applinks:www.dres.app</string>
 		<string>applinks:localhost:3000</string>
 	</array>
 </dict>

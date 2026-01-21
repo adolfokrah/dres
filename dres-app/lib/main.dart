@@ -18,7 +18,6 @@ import 'package:dres/features/splash/logic/menu_bloc/menu_bloc.dart';
 import 'package:dres/features/splash/logic/menu_bloc/menu_event.dart';
 import 'package:dres/features/home/logic/bloc/home_bloc.dart';
 import 'package:dres/features/home/logic/bloc/home_event.dart';
-import 'package:dres/features/home/logic/bloc/home_state.dart';
 import 'package:dres/features/shop/logic/products_bloc/products_bloc.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_bloc.dart';
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_bloc.dart';

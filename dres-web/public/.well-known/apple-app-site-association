@@ -1,23 +1,23 @@
 {
   "applinks": {
-    "apps": [],
     "details": [
       {
-        "appID": "KXTS2ZGSMU.com.hoganam.dres",
-        "paths": [
-          "/products",
-          "/products/*",
-          "/sell",
-          "/home",
-          "/discover",
-          "/favourite",
-          "/profile",
-          "/profile/*",
-          "/orders",
-          "/orders/*",
-          "/cart",
-          "/checkout",
-          "/checkout/*"
+        "appIDs": ["KXTS2ZGSMU.com.hoganam.dres"],
+        "components": [
+          { "/": "/products", "comment": "Products listing" },
+          { "/": "/products/*", "comment": "Product detail" },
+          { "/": "/sell", "comment": "Sell screen" },
+          { "/": "/sell/*", "comment": "Sell nested routes" },
+          { "/": "/home", "comment": "Home screen" },
+          { "/": "/discover", "comment": "Discover screen" },
+          { "/": "/favourite", "comment": "Favourites screen" },
+          { "/": "/profile", "comment": "Profile screen" },
+          { "/": "/profile/*", "comment": "Profile nested routes" },
+          { "/": "/orders", "comment": "Orders screen" },
+          { "/": "/orders/*", "comment": "Order detail" },
+          { "/": "/cart", "comment": "Cart screen" },
+          { "/": "/checkout", "comment": "Checkout screen" },
+          { "/": "/checkout/*", "comment": "Checkout nested routes" }
         ]
       }
     ]
