@@ -9,7 +9,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../utilities/currency_utils.dart';
 
-enum QueryType { trending, newArrivals, recentlyViewed, featured }
+enum QueryType { trending, newArrivals, recentlyViewed, featured, weLove }
 
 class ProductArchiveBlock extends StatefulWidget {
   final String title;
@@ -60,13 +60,14 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
   Future<List<ProductCardData>> _fetchProducts() async {
     final departmentId = widget.department ?? 'men';
     final apiService = getIt<ApiService>();
-    
+
     String endpoint;
     if (widget.queryType == QueryType.trending) {
       endpoint = trendingVariations;
     } else if (widget.queryType == QueryType.newArrivals) {
       endpoint = newArrivals;
-    } else if (widget.queryType == QueryType.featured) {
+    } else if (widget.queryType == QueryType.featured || widget.queryType == QueryType.weLove) {
+      // Both featured and weLove use the same endpoint (which filters by showWeLoveBadge)
       endpoint = featuredVariations;
     } else if (widget.queryType == QueryType.recentlyViewed) {
       endpoint = recentlyViewedVariations;
@@ -207,6 +208,7 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
                             QueryType.trending => 'trending',
                             QueryType.newArrivals => 'new-arrivals',
                             QueryType.featured => 'featured',
+                            QueryType.weLove => 'we-love',
                             QueryType.recentlyViewed => 'recently-viewed',
                           };
                           

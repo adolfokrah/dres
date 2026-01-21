@@ -239,7 +239,9 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
       case 'recently-viewed':
         return QueryType.recentlyViewed;
       case 'featured':
-        return QueryType.featured;
+      case 'we-love':
+        // "featured" in CMS means "We Love" section - use weLove for proper filtering
+        return QueryType.weLove;
       case 'trending':
       default:
         return QueryType.trending;
