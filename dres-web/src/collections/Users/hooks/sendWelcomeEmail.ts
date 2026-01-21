@@ -15,6 +15,9 @@ export const sendWelcomeEmail: CollectionAfterChangeHook = async ({
   // Skip if no email
   if (!doc.email) return doc
 
+  // Skip in test environment
+  if (process.env.NODE_ENV === 'test' || process.env.VITEST) return doc
+
   // Skip if this is an OAuth user without email verification needed
   // (they already have a verified email from the OAuth provider)
 
