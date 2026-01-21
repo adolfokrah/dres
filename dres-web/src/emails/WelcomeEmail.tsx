@@ -1,230 +1,113 @@
 import {
-  Body,
   Button,
-  Container,
-  Head,
-  Heading,
-  Hr,
-  Html,
   Img,
-  Link,
   Preview,
   Section,
   Text,
 } from '@react-email/components'
 import * as React from 'react'
-
-interface WelcomeEmailProps {
-  firstName?: string
-  loginUrl?: string
-}
+import { EmailLayout } from './components/EmailLayout'
 
 const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://dres.app'
 
-export const WelcomeEmail = ({
-  firstName = 'there',
-  loginUrl = `${baseUrl}/login`,
-}: WelcomeEmailProps) => {
+export const WelcomeEmail = () => {
   return (
-    <Html>
-      <Head />
+    <>
       <Preview>Welcome to Dres - Your fashion marketplace awaits</Preview>
-      <Body style={main}>
-        <Container style={container}>
-          {/* Logo */}
-          <Section style={logoSection}>
-            <Img
-              src={`${baseUrl}/logo.png`}
-              width="80"
-              height="80"
-              alt="Dres"
-              style={logo}
-            />
-          </Section>
+      <EmailLayout preview="Welcome to Dres - Your fashion marketplace awaits">
+        {/* Hero Banner */}
+        <Section className="mb-6">
+          <Img
+            src="https://www.dres.app/api/media/file/image.png"
+            width="100%"
+            alt="Welcome to Dres"
+            className="w-full"
+          />
+        </Section>
 
-          {/* Main Content */}
-          <Section style={content}>
-            <Heading style={heading}>Welcome to Dres!</Heading>
+        <Text className="text-textSecondary text-base leading-7 m-0 mb-4 text-center">
+          Welcome to Dres, your new favorite fashion marketplace. Discover unique
+          pieces from sellers around the world, or start selling your own style.
+          The more you browse, the better we get at showing you exactly what you love!
+        </Text>
 
-            <Text style={paragraph}>
-              Hi {firstName},
-            </Text>
+        {/* CTA Buttons */}
+        <Section className="text-center mb-4">
+          <Button
+            href={`${baseUrl}/products?department=women&title=Women`}
+            style={{
+              backgroundColor: '#000000',
+              color: '#ffffff',
+              fontWeight: 600,
+              fontSize: '14px',
+              padding: '12px 0',
+              textDecoration: 'none',
+              display: 'inline-block',
+              width: '220px',
+              textAlign: 'center',
+            }}
+          >
+            SHOP WOMENSWEAR
+          </Button>
+        </Section>
 
-            <Text style={paragraph}>
-              We're thrilled to have you join the Dres community! Whether you're here to discover
-              unique fashion pieces or share your style with the world, you've come to the right place.
-            </Text>
+        <Section className="text-center mb-4">
+          <Button
+            href={`${baseUrl}/products?department=men&title=Men`}
+            style={{
+              backgroundColor: '#000000',
+              color: '#ffffff',
+              fontWeight: 600,
+              fontSize: '14px',
+              padding: '12px 0',
+              textDecoration: 'none',
+              display: 'inline-block',
+              width: '220px',
+              textAlign: 'center',
+            }}
+          >
+            SHOP MENSWEAR
+          </Button>
+        </Section>
 
-            <Text style={paragraph}>
-              Here's what you can do with Dres:
-            </Text>
+        {/* Make Some Money Section */}
+        <Section className="mt-8 mb-6">
+          <Img
+            src="https://www.dres.app/api/media/file/image-1.png"
+            width="100%"
+            alt="Make Some Money"
+            className="w-full"
+          />
+        </Section>
 
-            <Section style={featureList}>
-              <Text style={featureItem}>
-                <strong>Shop</strong> - Browse curated collections from talented sellers
-              </Text>
-              <Text style={featureItem}>
-                <strong>Sell</strong> - List your items and reach fashion-forward buyers
-              </Text>
-              <Text style={featureItem}>
-                <strong>Connect</strong> - Follow your favorite sellers and get updates
-              </Text>
-            </Section>
+        <Text className="text-textSecondary text-base leading-7 m-0 mb-4 text-center">
+          Turn your closet into cash. Selling on Dres is simple — snap a few photos,
+          set your price, and reach buyers who love your style. Start listing today
+          and watch your wardrobe work for you.
+        </Text>
 
-            <Section style={buttonSection}>
-              <Button style={button} href={loginUrl}>
-                Start Exploring
-              </Button>
-            </Section>
-
-            <Hr style={hr} />
-
-            <Text style={paragraph}>
-              Need help getting started? Check out our{' '}
-              <Link href={`${baseUrl}/help`} style={link}>
-                Help Center
-              </Link>{' '}
-              or reply to this email - we're always happy to help!
-            </Text>
-
-            <Text style={signoff}>
-              Happy shopping,
-              <br />
-              The Dres Team
-            </Text>
-          </Section>
-
-          {/* Footer */}
-          <Section style={footer}>
-            <Text style={footerText}>
-              © {new Date().getFullYear()} Dres. All rights reserved.
-            </Text>
-            <Text style={footerLinks}>
-              <Link href={`${baseUrl}/privacy`} style={footerLink}>
-                Privacy Policy
-              </Link>
-              {' • '}
-              <Link href={`${baseUrl}/terms`} style={footerLink}>
-                Terms of Service
-              </Link>
-            </Text>
-          </Section>
-        </Container>
-      </Body>
-    </Html>
+        <Section className="text-center mb-4">
+          <Button
+            href={`${baseUrl}/sell`}
+            style={{
+              backgroundColor: '#ffffff',
+              color: '#000000',
+              fontWeight: 600,
+              fontSize: '14px',
+              padding: '12px 0',
+              textDecoration: 'none',
+              display: 'inline-block',
+              width: '220px',
+              textAlign: 'center',
+              border: '2px solid #000000',
+            }}
+          >
+            LET&apos;S GO
+          </Button>
+        </Section>
+      </EmailLayout>
+    </>
   )
-}
-
-// Styles
-const main = {
-  backgroundColor: '#f6f6f6',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-}
-
-const container = {
-  margin: '0 auto',
-  padding: '40px 20px',
-  maxWidth: '580px',
-}
-
-const logoSection = {
-  textAlign: 'center' as const,
-  padding: '20px 0',
-}
-
-const logo = {
-  margin: '0 auto',
-}
-
-const content = {
-  backgroundColor: '#ffffff',
-  borderRadius: '8px',
-  padding: '40px',
-}
-
-const heading = {
-  color: '#1a1a1a',
-  fontSize: '28px',
-  fontWeight: '600',
-  textAlign: 'center' as const,
-  margin: '0 0 30px',
-}
-
-const paragraph = {
-  color: '#4a4a4a',
-  fontSize: '16px',
-  lineHeight: '26px',
-  margin: '0 0 20px',
-}
-
-const featureList = {
-  margin: '20px 0 30px',
-  padding: '20px',
-  backgroundColor: '#fafafa',
-  borderRadius: '6px',
-}
-
-const featureItem = {
-  color: '#4a4a4a',
-  fontSize: '15px',
-  lineHeight: '24px',
-  margin: '0 0 12px',
-}
-
-const buttonSection = {
-  textAlign: 'center' as const,
-  margin: '30px 0',
-}
-
-const button = {
-  backgroundColor: '#1a1a1a',
-  borderRadius: '6px',
-  color: '#ffffff',
-  fontSize: '16px',
-  fontWeight: '600',
-  textDecoration: 'none',
-  textAlign: 'center' as const,
-  padding: '14px 32px',
-  display: 'inline-block',
-}
-
-const hr = {
-  borderColor: '#e6e6e6',
-  margin: '30px 0',
-}
-
-const link = {
-  color: '#1a1a1a',
-  textDecoration: 'underline',
-}
-
-const signoff = {
-  color: '#4a4a4a',
-  fontSize: '16px',
-  lineHeight: '26px',
-  margin: '20px 0 0',
-}
-
-const footer = {
-  textAlign: 'center' as const,
-  padding: '20px 0',
-}
-
-const footerText = {
-  color: '#8c8c8c',
-  fontSize: '13px',
-  margin: '0 0 10px',
-}
-
-const footerLinks = {
-  color: '#8c8c8c',
-  fontSize: '13px',
-  margin: '0',
-}
-
-const footerLink = {
-  color: '#8c8c8c',
-  textDecoration: 'underline',
 }
 
 export default WelcomeEmail

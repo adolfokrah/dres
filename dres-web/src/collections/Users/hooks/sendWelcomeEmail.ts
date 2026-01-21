@@ -19,14 +19,10 @@ export const sendWelcomeEmail: CollectionAfterChangeHook = async ({
   // (they already have a verified email from the OAuth provider)
 
   const { payload } = req
-  const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://dres.app'
 
   try {
     // Render the welcome email
-    const html = await renderWelcomeEmail({
-      firstName: doc.firstName || 'there',
-      loginUrl: `${baseUrl}/login`,
-    })
+    const html = await renderWelcomeEmail()
 
     // Send the email using Payload's email adapter
     await payload.sendEmail({
