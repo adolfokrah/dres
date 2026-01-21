@@ -17,15 +17,18 @@ interface EmailLayoutProps {
   children: React.ReactNode
 }
 
+// Use base URL for assets/pages, but app deep link URL for links that should open in app
 const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://dres.app'
+// Always use dres.app (without www) for deep links to match app's universal link config
+const appDeepLinkUrl = 'https://dres.app'
 
-// Deep links for app navigation
+// Deep links for app navigation - use appDeepLinkUrl for universal link compatibility
 const deepLinks = {
-  newArrivals: `${baseUrl}/products?filterType=new-arrivals&title=New%20Arrivals`,
-  men: `${baseUrl}/products?department=men&title=Men`,
-  women: `${baseUrl}/products?department=women&title=Women`,
-  kids: `${baseUrl}/products?department=kids&title=Kids`,
-  sell: `${baseUrl}/sell`,
+  newArrivals: `${appDeepLinkUrl}/products?filterType=new-arrivals&title=New%20Arrivals`,
+  men: `${appDeepLinkUrl}/products?department=men&title=Men`,
+  women: `${appDeepLinkUrl}/products?department=women&title=Women`,
+  kids: `${appDeepLinkUrl}/products?department=kids&title=Kids`,
+  sell: `${appDeepLinkUrl}/sell`,
 }
 
 export const EmailLayout = ({ preview, children }: EmailLayoutProps) => {

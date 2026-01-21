@@ -68,11 +68,19 @@ Future<void> main() async {
       } else {
         fullPath = initialLink.path;
       }
+      // Append query string if present
+      if (initialLink.query.isNotEmpty) {
+        fullPath = '$fullPath?${initialLink.query}';
+      }
     } else {
-      // HTTP/HTTPS: https://dres.app/products/slug => just use path: /products/slug
+      // HTTP/HTTPS: https://dres.app/products/slug?query=value => path + query
       fullPath = initialLink.path;
+      // Append query string if present
+      if (initialLink.query.isNotEmpty) {
+        fullPath = '$fullPath?${initialLink.query}';
+      }
     }
-    
+
     AppRoutes.pendingDeepLink = fullPath;
     debugPrint('🔗 Pending deep link set to: $fullPath');
   } else {
@@ -107,16 +115,33 @@ class _MainAppState extends State<MainApp> {
         } else {
           fullPath = uri.path;
         }
+        // Append query string if present
+        if (uri.query.isNotEmpty) {
+          fullPath = '$fullPath?${uri.query}';
+        }
       } else {
-        // HTTP/HTTPS: https://dres.app/products/slug => just use path: /products/slug
+        // HTTP/HTTPS: https://dres.app/products/slug?query=value => path + query
         fullPath = uri.path;
+        // Append query string if present
+        if (uri.query.isNotEmpty) {
+          fullPath = '$fullPath?${uri.query}';
+        }
       }
-      
+
       debugPrint('🔗 Navigating to: $fullPath');
       if (fullPath.isNotEmpty && fullPath != '/') {
-        // Use push to add on top of current stack (avoid shell conflict)
-        AppRoutes.router.push(fullPath);
-        debugPrint('🔗 Navigation pushed');
+        // Shell tab routes (bottom nav) need 'go' to switch tabs
+        // Other routes use 'push' to add on top of current stack
+        final shellRoutes = ['/home', '/discover', '/sell', '/favourite', '/profile'];
+        final isShellRoute = shellRoutes.any((route) => fullPath == route || fullPath.startsWith('$route?'));
+
+        if (isShellRoute) {
+          AppRoutes.router.go(fullPath);
+          debugPrint('🔗 Navigation go (shell route)');
+        } else {
+          AppRoutes.router.push(fullPath);
+          debugPrint('🔗 Navigation pushed');
+        }
       }
     });
   }

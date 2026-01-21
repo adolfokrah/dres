@@ -4,7 +4,21 @@
     "details": [
       {
         "appID": "KXTS2ZGSMU.com.hoganam.dres",
-        "paths": ["/products/*"]
+        "paths": [
+          "/products",
+          "/products/*",
+          "/sell",
+          "/home",
+          "/discover",
+          "/favourite",
+          "/profile",
+          "/profile/*",
+          "/orders",
+          "/orders/*",
+          "/cart",
+          "/checkout",
+          "/checkout/*"
+        ]
       }
     ]
   },

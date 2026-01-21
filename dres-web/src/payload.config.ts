@@ -80,6 +80,7 @@ import { getTopSellers } from './endpoints/topSellers'
 import { getStyleInfo } from './endpoints/styleInfo'
 import { seedEndpoint } from './endpoints/seed/endpoint'
 import { triggerAutoTransfer } from './endpoints/triggerAutoTransfer'
+import { testWelcomeEmail } from './endpoints/testWelcomeEmail'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -237,6 +238,16 @@ export default buildConfig({
       path: '/trigger-auto-transfer',
       method: 'post',
       handler: triggerAutoTransfer,
+    },
+    {
+      path: '/test-welcome-email',
+      method: 'get',
+      handler: testWelcomeEmail,
+    },
+    {
+      path: '/test-welcome-email',
+      method: 'post',
+      handler: testWelcomeEmail,
     },
   ],
   globals: [Header, Footer, SiteSettings],
