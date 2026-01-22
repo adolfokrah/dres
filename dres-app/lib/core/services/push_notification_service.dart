@@ -38,8 +38,8 @@ class PushNotificationService {
   PushNotificationService({required ApiService apiService}) : _apiService = apiService;
 
   /// Initialize push notification service
-  /// Note: This only sets up FCM and gets the token.
-  /// Call registerToken() after user logs in to send token to server.
+  /// This sets up FCM, gets the token, and registers it with the server.
+  /// Works for both authenticated and anonymous users.
   Future<void> initialize() async {
     // Prevent multiple initializations (e.g., from hot reload)
     if (_isInitialized) {
@@ -57,8 +57,8 @@ class PushNotificationService {
     // Initialize local notifications for foreground
     await _initializeLocalNotifications();
 
-    // Try to get FCM token (non-blocking - will retry later if needed)
-    _getToken();
+    // Try to get FCM token and register with server (works for anonymous users too)
+    await _getTokenAndRegister();
 
     // Listen for token refresh (this will fire when APNS token becomes available on iOS)
     _messaging.onTokenRefresh.listen(_onTokenRefresh);
@@ -149,9 +149,8 @@ class PushNotificationService {
     }
   }
 
-  /// Get FCM token (internal - doesn't send to server)
-  /// This is fire-and-forget on iOS since APNS token may not be ready
-  Future<void> _getToken() async {
+  /// Get FCM token and register with server (works for anonymous users too)
+  Future<void> _getTokenAndRegister() async {
     try {
       // On iOS, APNS token might not be ready yet
       // The token will come through onTokenRefresh when ready
@@ -163,9 +162,15 @@ class PushNotificationService {
         }
         debugPrint('🔔 APNS Token available');
       }
-      
+
       _fcmToken = await _messaging.getToken();
       debugPrint('🔔 FCM Token: $_fcmToken');
+
+      // Register token with server (works for both anonymous and authenticated users)
+      if (_fcmToken != null) {
+        await _sendTokenToServer(_fcmToken!);
+        _isTokenRegistered = true;
+      }
     } catch (e) {
       debugPrint('🔔 Error getting FCM token (will retry via onTokenRefresh): $e');
       // Don't throw - token will come through onTokenRefresh when APNS is ready
@@ -176,27 +181,22 @@ class PushNotificationService {
   void _onTokenRefresh(String token) {
     debugPrint('🔔 FCM Token received/refreshed: $token');
     _fcmToken = token;
-    // Only send to server if we've already registered (user is logged in)
-    if (_isTokenRegistered) {
-      _sendTokenToServer(token);
-    }
+    // Always send to server (works for both anonymous and authenticated users)
+    _sendTokenToServer(token);
+    _isTokenRegistered = true;
   }
 
-  /// Register FCM token with server (call after user logs in)
-  /// This should be called after successful authentication
+  /// Register FCM token with server (call after user logs in to associate token with user)
+  /// This updates the existing token record to link it to the authenticated user
   Future<void> registerToken() async {
-    // Mark that we want to register - if token comes later via onTokenRefresh, it will be sent
     _isTokenRegistered = true;
-    
+
     if (_fcmToken == null) {
       // Try to get token if we don't have one
-      await _getToken();
-    }
-    
-    if (_fcmToken != null) {
-      await _sendTokenToServer(_fcmToken!);
+      await _getTokenAndRegister();
     } else {
-      debugPrint('🔔 FCM token not available yet, will register when received');
+      // Token already exists, update it to associate with the logged-in user
+      await _sendTokenToServer(_fcmToken!);
     }
   }
 

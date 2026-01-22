@@ -2431,9 +2431,9 @@ export interface FcmToken {
    */
   token: string;
   /**
-   * The user this token belongs to
+   * The user this token belongs to (optional for anonymous users)
    */
-  user: string | User;
+  user?: (string | null) | User;
   /**
    * The platform/device type
    */

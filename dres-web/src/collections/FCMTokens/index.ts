@@ -1,7 +1,5 @@
 import type { CollectionConfig } from 'payload'
 
-import { authenticated } from '../../access/authenticated'
-
 export const FCMTokens: CollectionConfig = {
   slug: 'fcm-tokens',
   admin: {
@@ -10,7 +8,7 @@ export const FCMTokens: CollectionConfig = {
     description: 'Firebase Cloud Messaging tokens for push notifications',
   },
   access: {
-    // Only admins can read all tokens
+    // Admins can read all, authenticated users can read their own
     read: ({ req: { user } }) => {
       if (!user) return false
       if (user.role === 'admin') return true
@@ -20,9 +18,9 @@ export const FCMTokens: CollectionConfig = {
         },
       }
     },
-    // Authenticated users can create tokens (via endpoint)
-    create: authenticated,
-    // Users can only update their own tokens
+    // Allow anyone to create tokens (for anonymous users)
+    create: () => true,
+    // Users can only update their own tokens, or tokens they created (by deviceId)
     update: ({ req: { user } }) => {
       if (!user) return false
       if (user.role === 'admin') return true
@@ -63,10 +61,10 @@ export const FCMTokens: CollectionConfig = {
       name: 'user',
       type: 'relationship',
       relationTo: 'users',
-      required: true,
+      required: false, // Optional - allows anonymous users to register tokens
       hasMany: false,
       admin: {
-        description: 'The user this token belongs to',
+        description: 'The user this token belongs to (optional for anonymous users)',
       },
     },
     {
