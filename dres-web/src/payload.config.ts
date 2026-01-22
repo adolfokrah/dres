@@ -81,6 +81,7 @@ import { getStyleInfo } from './endpoints/styleInfo'
 import { seedEndpoint } from './endpoints/seed/endpoint'
 import { triggerAutoTransfer } from './endpoints/triggerAutoTransfer'
 import { testWelcomeEmail } from './endpoints/testWelcomeEmail'
+import { sendPush } from './endpoints/sendPush'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -248,6 +249,11 @@ export default buildConfig({
       path: '/test-welcome-email',
       method: 'post',
       handler: testWelcomeEmail,
+    },
+    {
+      path: '/send-push',
+      method: 'post',
+      handler: sendPush,
     },
   ],
   globals: [Header, Footer, SiteSettings],

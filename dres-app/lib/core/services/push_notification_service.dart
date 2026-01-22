@@ -215,8 +215,10 @@ class PushNotificationService {
       final docs = existingResponse.data['docs'] as List?;
 
       if (docs != null && docs.isNotEmpty) {
-        // Token exists, update it (to refresh lastUsed timestamp)
+        // Token exists, update it (to refresh lastUsed timestamp and associate with user)
         final existingId = docs[0]['id'];
+        // Note: When authenticated, the server will automatically associate the user
+        // via the beforeChange hook if the request includes auth headers
         await _apiService.patch(
           '/fcm-tokens/$existingId',
           data: {
@@ -224,7 +226,7 @@ class PushNotificationService {
             'isActive': true,
           },
         );
-        debugPrint('🔔 FCM token updated on server');
+        debugPrint('🔔 FCM token updated on server (id: $existingId)');
       } else {
         // Create new token
         await _apiService.post(

@@ -46,6 +46,8 @@ export async function sendPushNotification({
   failedTokens: string[]
 }> {
   try {
+    console.log(`[Push] sendPushNotification called for userId: ${userId}, title: ${title}`)
+
     // Fetch active FCM tokens for this user
     const fcmTokensResult = await payload.find({
       collection: 'fcm-tokens',
@@ -55,6 +57,8 @@ export async function sendPushNotification({
       },
       limit: 10, // Max 10 devices per user
     })
+
+    console.log(`[Push] Found ${fcmTokensResult.docs.length} FCM tokens for user ${userId}`)
 
     if (fcmTokensResult.docs.length === 0) {
       console.log(`[Push] No active FCM tokens for user ${userId}`)
@@ -306,7 +310,16 @@ async function sendToTokens({
     data: Record<string, string>
     tokens: string[]
     android?: { notification: { imageUrl: string } }
-    apns?: { payload: { aps: { 'mutable-content': number } }; fcm_options: { image: string } }
+    apns?: {
+      payload: {
+        aps: {
+          alert?: { title: string; body: string }
+          'mutable-content'?: number
+          sound?: string
+        }
+      }
+      fcm_options?: { image: string }
+    }
   } = {
     notification: {
       title,
@@ -314,6 +327,19 @@ async function sendToTokens({
     },
     data,
     tokens,
+  }
+
+  // Configure iOS APNS payload (required for iOS notifications to display properly)
+  message.apns = {
+    payload: {
+      aps: {
+        alert: {
+          title,
+          body,
+        },
+        sound: 'default',
+      },
+    },
   }
 
   // Add image for both Android and iOS
@@ -327,12 +353,16 @@ async function sendToTokens({
         imageUrl,
       },
     }
-    // iOS requires mutable-content and fcm_options.image
-    // Also requires Notification Service Extension in the iOS app
+    // iOS requires mutable-content for Notification Service Extension to modify content
     message.apns = {
       payload: {
         aps: {
+          alert: {
+            title,
+            body,
+          },
           'mutable-content': 1,
+          sound: 'default',
         },
       },
       fcm_options: {

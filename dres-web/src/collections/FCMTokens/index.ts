@@ -93,12 +93,16 @@ export const FCMTokens: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [
-      ({ data, req, operation }) => {
+      ({ data, req, originalDoc }) => {
         // Auto-update lastUsed timestamp
         data.lastUsed = new Date().toISOString()
 
-        // Auto-set user from authenticated request on create
-        if (operation === 'create' && req.user && !data.user) {
+        // Auto-set user from authenticated request
+        // On create: set user if not already set
+        // On update: set user if authenticated and token doesn't have a user yet
+        // This handles the case where an anonymous user logs in
+        const existingUser = originalDoc?.user
+        if (req.user && !existingUser && !data.user) {
           data.user = req.user.id
         }
 

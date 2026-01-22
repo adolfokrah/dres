@@ -91,7 +91,9 @@ export const sendPushNotificationHook: CollectionAfterChangeHook<Notification> =
   }
 
   // Send push notification
-  await sendPushNotification({
+  console.log(`[PushHook] Calling sendPushNotification for user ${userId} with title: ${getNotificationTitle(doc.type ?? 'system')}`)
+
+  const result = await sendPushNotification({
     userId,
     title: getNotificationTitle(doc.type ?? 'system'),
     body: doc.message,
@@ -104,6 +106,8 @@ export const sendPushNotificationHook: CollectionAfterChangeHook<Notification> =
     },
     payload: req.payload,
   })
+
+  console.log(`[PushHook] sendPushNotification result:`, JSON.stringify(result))
 
   return doc
 }
