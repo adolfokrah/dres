@@ -8,27 +8,35 @@ export const FCMTokens: CollectionConfig = {
     description: 'Firebase Cloud Messaging tokens for push notifications',
   },
   access: {
-    // Admins can read all, authenticated users can read their own
+    // Anyone can read tokens without a user, authenticated users can read their own
     read: ({ req: { user } }) => {
-      if (!user) return false
-      if (user.role === 'admin') return true
-      return {
-        user: {
-          equals: user.id,
-        },
+      if (user?.role === 'admin') return true
+      if (user) {
+        return {
+          or: [
+            { user: { equals: user.id } },
+            { user: { exists: false } },
+          ],
+        }
       }
+      // Anonymous users can only read tokens without a user
+      return { user: { exists: false } }
     },
     // Allow anyone to create tokens (for anonymous users)
     create: () => true,
-    // Users can only update their own tokens, or tokens they created (by deviceId)
+    // Anyone can update tokens without a user, authenticated users can update their own
     update: ({ req: { user } }) => {
-      if (!user) return false
-      if (user.role === 'admin') return true
-      return {
-        user: {
-          equals: user.id,
-        },
+      if (user?.role === 'admin') return true
+      if (user) {
+        return {
+          or: [
+            { user: { equals: user.id } },
+            { user: { exists: false } },
+          ],
+        }
       }
+      // Anonymous users can only update tokens without a user
+      return { user: { exists: false } }
     },
     // Users can only delete their own tokens
     delete: ({ req: { user } }) => {

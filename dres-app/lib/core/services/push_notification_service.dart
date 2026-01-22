@@ -208,14 +208,14 @@ class PushNotificationService {
         '/fcm-tokens',
         queryParameters: {
           'where[token][equals]': token,
-          'limit': 1,
+          'limit': '1',
         },
       );
-      
+
       final docs = existingResponse.data['docs'] as List?;
-      
+
       if (docs != null && docs.isNotEmpty) {
-        // Token exists, update it (to update lastUsed timestamp)
+        // Token exists, update it (to refresh lastUsed timestamp)
         final existingId = docs[0]['id'];
         await _apiService.patch(
           '/fcm-tokens/$existingId',
