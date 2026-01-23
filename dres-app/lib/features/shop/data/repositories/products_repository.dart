@@ -21,6 +21,7 @@ class ProductsRepository {
     Map<String, List<String>>? selectedAttributes,
     double? minPrice,
     double? maxPrice,
+    List<String>? shippingTo, // City IDs to filter by shipping destination
     int page = 1,
     int limit = 20,
   }) async {
@@ -44,7 +45,10 @@ class ProductsRepository {
       if (sortPrice != null) queryParams['sortPrice'] = sortPrice;
       if (minPrice != null) queryParams['minPrice'] = minPrice;
       if (maxPrice != null) queryParams['maxPrice'] = maxPrice;
-      
+      if (shippingTo != null && shippingTo.isNotEmpty) {
+        queryParams['shippingTo'] = shippingTo.join(',');
+      }
+
       // Add attribute filters
       // Format: attributes=attributeId:optionId1,optionId2
       if (selectedAttributes != null && selectedAttributes.isNotEmpty) {

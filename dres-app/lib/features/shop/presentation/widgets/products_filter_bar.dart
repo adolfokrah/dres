@@ -4,6 +4,9 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/models/attribute_filter_model.dart';
+import 'package:dres/core/di/injection.dart';
+import 'package:dres/core/widgets/city_selection_sheet.dart';
+import 'package:dres/features/cart/data/repositories/location_repository.dart';
 import 'package:dres/l10n/app_localizations.dart';
 
 enum SortOption {
@@ -24,10 +27,13 @@ class ProductsFilterBar extends StatelessWidget {
   final Map<String, List<String>> selectedAttributes;
   final double? minPrice;
   final double? maxPrice;
+  final List<String> selectedShippingCities; // Selected city IDs
+  final String? userCountryId; // User's country to filter cities
   final Function(SortOption) onSortChanged;
   final Function(PriceOption) onPriceChanged;
   final Function(String attributeId, List<String> optionIds)? onAttributeFilterChanged;
   final Function(double? min, double? max)? onPriceRangeChanged;
+  final Function(List<String> cityIds)? onShippingToChanged;
 
   const ProductsFilterBar({
     super.key,
@@ -37,10 +43,13 @@ class ProductsFilterBar extends StatelessWidget {
     this.selectedAttributes = const {},
     this.minPrice,
     this.maxPrice,
+    this.selectedShippingCities = const [],
+    this.userCountryId,
     required this.onSortChanged,
     required this.onPriceChanged,
     this.onAttributeFilterChanged,
     this.onPriceRangeChanged,
+    this.onShippingToChanged,
   });
 
   @override
@@ -88,7 +97,20 @@ class ProductsFilterBar extends StatelessWidget {
             isActive: minPrice != null || maxPrice != null,
           ),
           const SizedBox(width: 7),
-          
+
+          // Shipping To Filter (only show if user has country set)
+          if (userCountryId != null) ...[
+            _buildFilterButton(
+              context: context,
+              label: selectedShippingCities.isEmpty
+                  ? 'Shipping To'
+                  : 'Shipping To (${selectedShippingCities.length})',
+              onTap: () => _showShippingToOptions(context),
+              isActive: selectedShippingCities.isNotEmpty,
+            ),
+            const SizedBox(width: 7),
+          ],
+
           // Attribute Filters
           ...filters.map((filter) {
             final hasSelection = selectedAttributes.containsKey(filter.id) && 
@@ -642,6 +664,139 @@ class ProductsFilterBar extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showShippingToOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.background,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
+      builder: (context) => _ShippingToLoaderSheet(
+        selectedCityIds: selectedShippingCities,
+        onSelectionChanged: (cityIds) {
+          onShippingToChanged?.call(cityIds);
+        },
+      ),
+    );
+  }
+}
+
+/// Wrapper sheet that loads regions and displays CitySelectionSheet
+class _ShippingToLoaderSheet extends StatefulWidget {
+  final List<String> selectedCityIds;
+  final Function(List<String>) onSelectionChanged;
+
+  const _ShippingToLoaderSheet({
+    required this.selectedCityIds,
+    required this.onSelectionChanged,
+  });
+
+  @override
+  State<_ShippingToLoaderSheet> createState() => _ShippingToLoaderSheetState();
+}
+
+class _ShippingToLoaderSheetState extends State<_ShippingToLoaderSheet> {
+  bool _isLoading = true;
+  String? _error;
+  RegionsByCountryResponse? _regionsData;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRegions();
+  }
+
+  Future<void> _loadRegions() async {
+    try {
+      final locationRepository = LocationRepository(apiService: getIt());
+      final data = await locationRepository.getRegionsWithCities();
+
+      if (mounted) {
+        setState(() {
+          _regionsData = data;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: const Center(
+          child: CircularProgressIndicator(
+            color: AppColors.textPrimary,
+          ),
+        ),
+      );
+    }
+
+    if (_error != null || _regionsData == null) {
+      return SizedBox(
+        height: MediaQuery.of(context).size.height * 0.5,
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                PhosphorIcon(
+                  PhosphorIconsRegular.warning,
+                  size: 48,
+                  color: AppColors.error,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Failed to load cities',
+                  style: AppTypography.bodyL.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isLoading = true;
+                      _error = null;
+                    });
+                    _loadRegions();
+                  },
+                  child: Text(
+                    'Tap to retry',
+                    style: AppTypography.bodyM.copyWith(
+                      color: AppColors.textSecondary,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return CitySelectionSheet(
+      allCities: _regionsData!.allCities,
+      regions: _regionsData!.regions,
+      selectedCityIds: widget.selectedCityIds.toSet(),
+      title: 'Shipping To',
+      onSelectionChanged: (ids, cities) {
+        widget.onSelectionChanged(ids.toList());
+      },
     );
   }
 }

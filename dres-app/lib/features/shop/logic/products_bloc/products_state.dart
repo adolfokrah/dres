@@ -31,6 +31,7 @@ class ProductsState extends Equatable {
   final Map<String, List<String>> selectedAttributes;
   final double? minPrice;
   final double? maxPrice;
+  final List<String> shippingTo; // Selected city IDs for shipping filter
 
   const ProductsState({
     this.status = ProductsStatus.initial,
@@ -53,6 +54,7 @@ class ProductsState extends Equatable {
     this.selectedAttributes = const {},
     this.minPrice,
     this.maxPrice,
+    this.shippingTo = const [],
   });
 
   ProductsState copyWith({
@@ -76,6 +78,7 @@ class ProductsState extends Equatable {
     Map<String, List<String>>? selectedAttributes,
     NullableValue<double>? minPrice,
     NullableValue<double>? maxPrice,
+    List<String>? shippingTo,
   }) {
     return ProductsState(
       status: status ?? this.status,
@@ -98,6 +101,7 @@ class ProductsState extends Equatable {
       selectedAttributes: selectedAttributes ?? this.selectedAttributes,
       minPrice: minPrice != null ? minPrice.value : this.minPrice,
       maxPrice: maxPrice != null ? maxPrice.value : this.maxPrice,
+      shippingTo: shippingTo ?? this.shippingTo,
     );
   }
 
@@ -123,5 +127,6 @@ class ProductsState extends Equatable {
         selectedAttributes,
         minPrice,
         maxPrice,
+        shippingTo,
       ];
 }

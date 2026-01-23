@@ -16,6 +16,7 @@ import 'package:dres/features/shop/presentation/widgets/products_filter_bar.dart
 import 'package:dres/features/shop/presentation/widgets/products_empty_state.dart';
 import 'package:dres/features/saved_searches/logic/saved_searches_bloc/saved_searches_bloc.dart';
 import 'package:dres/features/saved_searches/presentation/widgets/save_search_dialog.dart';
+import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/l10n/app_localizations.dart';
 
 class ProductsScreen extends StatefulWidget {
@@ -144,7 +145,8 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
         preferredSize: const Size.fromHeight(56),
         child: SafeArea(
           child: UnifiedHeader.simple(
-            title: '',
+            title: widget.title,
+            showSearchIcon: true,
             onBackTap: () {
               if (context.canPop()) {
                 context.pop();
@@ -193,48 +195,61 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
                         ),
 
                         // Filter Bar
-                        ProductsFilterBar(
-                          selectedSort: state.sortBy == 'oldest'
-                              ? SortOption.oldest
-                              : SortOption.latest,
-                          selectedPrice: state.sortPrice == null
-                              ? PriceOption.all
-                              : state.sortPrice == 'desc'
-                              ? PriceOption.highToLow
-                              : PriceOption.lowToHigh,
-                          filters: state.filters,
-                          selectedAttributes: state.selectedAttributes,
-                          minPrice: state.minPrice,
-                          maxPrice: state.maxPrice,
-                          onSortChanged: (sortOption) {
-                            final sortBy = sortOption == SortOption.oldest
-                                ? 'oldest'
-                                : 'latest';
-                            context.read<ProductsBloc>().add(
-                              ChangeSortOption(sortBy),
-                            );
-                          },
-                          onPriceChanged: (priceOption) {
-                            final sortPrice = priceOption == PriceOption.all
-                                ? null
-                                : priceOption == PriceOption.highToLow
-                                ? 'desc'
-                                : 'asc';
-                            context.read<ProductsBloc>().add(
-                              ChangePriceSort(sortPrice),
-                            );
-                          },
-                          onAttributeFilterChanged: (attributeId, optionIds) {
-                            context.read<ProductsBloc>().add(
-                              ChangeAttributeFilter(
-                                attributeId: attributeId,
-                                optionIds: optionIds,
-                              ),
-                            );
-                          },
-                          onPriceRangeChanged: (min, max) {
-                            context.read<ProductsBloc>().add(
-                              ChangePriceRange(minPrice: min, maxPrice: max),
+                        BlocBuilder<AuthBloc, AuthState>(
+                          bloc: getIt<AuthBloc>(),
+                          builder: (context, authState) {
+                            final userCountryId = authState.user?.country?.id;
+                            return ProductsFilterBar(
+                              selectedSort: state.sortBy == 'oldest'
+                                  ? SortOption.oldest
+                                  : SortOption.latest,
+                              selectedPrice: state.sortPrice == null
+                                  ? PriceOption.all
+                                  : state.sortPrice == 'desc'
+                                  ? PriceOption.highToLow
+                                  : PriceOption.lowToHigh,
+                              filters: state.filters,
+                              selectedAttributes: state.selectedAttributes,
+                              minPrice: state.minPrice,
+                              maxPrice: state.maxPrice,
+                              selectedShippingCities: state.shippingTo,
+                              userCountryId: userCountryId,
+                              onSortChanged: (sortOption) {
+                                final sortBy = sortOption == SortOption.oldest
+                                    ? 'oldest'
+                                    : 'latest';
+                                context.read<ProductsBloc>().add(
+                                  ChangeSortOption(sortBy),
+                                );
+                              },
+                              onPriceChanged: (priceOption) {
+                                final sortPrice = priceOption == PriceOption.all
+                                    ? null
+                                    : priceOption == PriceOption.highToLow
+                                    ? 'desc'
+                                    : 'asc';
+                                context.read<ProductsBloc>().add(
+                                  ChangePriceSort(sortPrice),
+                                );
+                              },
+                              onAttributeFilterChanged: (attributeId, optionIds) {
+                                context.read<ProductsBloc>().add(
+                                  ChangeAttributeFilter(
+                                    attributeId: attributeId,
+                                    optionIds: optionIds,
+                                  ),
+                                );
+                              },
+                              onPriceRangeChanged: (min, max) {
+                                context.read<ProductsBloc>().add(
+                                  ChangePriceRange(minPrice: min, maxPrice: max),
+                                );
+                              },
+                              onShippingToChanged: (cityIds) {
+                                context.read<ProductsBloc>().add(
+                                  ChangeShippingToFilter(cityIds),
+                                );
+                              },
                             );
                           },
                         ),

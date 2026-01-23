@@ -20,9 +20,11 @@ class FetchProducts extends ProductsEvent {
   final Map<String, List<String>>? selectedAttributes;
   final double? minPrice;
   final double? maxPrice;
+  final List<String>? shippingTo; // City IDs for shipping destination filter
   final bool updateMinPrice;
   final bool updateMaxPrice;
   final bool updatePriceSort;
+  final bool updateShippingTo;
   final int page;
 
   const FetchProducts({
@@ -38,14 +40,16 @@ class FetchProducts extends ProductsEvent {
     this.selectedAttributes,
     this.minPrice,
     this.maxPrice,
+    this.shippingTo,
     this.updateMinPrice = false,
     this.updateMaxPrice = false,
     this.updatePriceSort = false,
+    this.updateShippingTo = false,
     this.page = 1,
   });
 
   @override
-  List<Object?> get props => [query, departmentId, categoryId, collectionId, styleId, brandId, filterType, sortBy, sortPrice, selectedAttributes, minPrice, maxPrice, updateMinPrice, updateMaxPrice, updatePriceSort, page];
+  List<Object?> get props => [query, departmentId, categoryId, collectionId, styleId, brandId, filterType, sortBy, sortPrice, selectedAttributes, minPrice, maxPrice, shippingTo, updateMinPrice, updateMaxPrice, updatePriceSort, updateShippingTo, page];
 }
 
 class LoadMoreProducts extends ProductsEvent {
@@ -102,4 +106,13 @@ class ChangePriceRange extends ProductsEvent {
 
 class RefreshProducts extends ProductsEvent {
   const RefreshProducts();
+}
+
+class ChangeShippingToFilter extends ProductsEvent {
+  final List<String> cityIds;
+
+  const ChangeShippingToFilter(this.cityIds);
+
+  @override
+  List<Object?> get props => [cityIds];
 }

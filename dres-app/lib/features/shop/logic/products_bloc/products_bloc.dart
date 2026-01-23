@@ -18,6 +18,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
     on<ResetProducts>(_onResetProducts);
     on<ChangeAttributeFilter>(_onChangeAttributeFilter);
     on<ChangePriceRange>(_onChangePriceRange);
+    on<ChangeShippingToFilter>(_onChangeShippingToFilter);
   }
 
   Future<void> _onFetchProducts(
@@ -38,6 +39,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       selectedAttributes: event.selectedAttributes ?? state.selectedAttributes,
       minPrice: event.updateMinPrice ? NullableValue(event.minPrice) : null,
       maxPrice: event.updateMaxPrice ? NullableValue(event.maxPrice) : null,
+      shippingTo: event.updateShippingTo ? event.shippingTo : null,
     ));
 
     try {
@@ -54,6 +56,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         selectedAttributes: event.selectedAttributes ?? state.selectedAttributes,
         minPrice: event.minPrice ?? state.minPrice,
         maxPrice: event.maxPrice ?? state.maxPrice,
+        shippingTo: event.updateShippingTo ? event.shippingTo : state.shippingTo.isEmpty ? null : state.shippingTo,
         page: event.page,
       );
 
@@ -102,6 +105,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         selectedAttributes: state.selectedAttributes,
         minPrice: state.minPrice,
         maxPrice: state.maxPrice,
+        shippingTo: state.shippingTo.isEmpty ? null : state.shippingTo,
         page: state.currentPage + 1,
       );
 
@@ -242,8 +246,33 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       selectedAttributes: state.selectedAttributes,
       minPrice: event.minPrice,
       maxPrice: event.maxPrice,
+      shippingTo: state.shippingTo,
       updateMinPrice: true,
       updateMaxPrice: true,
+      page: 1,
+    ));
+  }
+
+  Future<void> _onChangeShippingToFilter(
+    ChangeShippingToFilter event,
+    Emitter<ProductsState> emit,
+  ) async {
+    // Refetch products with updated shipping filter
+    add(FetchProducts(
+      query: state.query,
+      departmentId: state.departmentId,
+      categoryId: state.categoryId,
+      collectionId: state.collectionId,
+      styleId: state.styleId,
+      brandId: state.brandId,
+      filterType: state.filterType,
+      sortBy: state.sortBy,
+      sortPrice: state.sortPrice,
+      selectedAttributes: state.selectedAttributes,
+      minPrice: state.minPrice,
+      maxPrice: state.maxPrice,
+      shippingTo: event.cityIds,
+      updateShippingTo: true,
       page: 1,
     ));
   }

@@ -114,6 +114,7 @@ export const filteredVariations: PayloadHandler = async (req) => {
     attributes,
     minPrice,
     maxPrice,
+    shippingTo, // Comma-separated city IDs to filter by shipping destination
     limit = 20,
     page = 1
   } = req.query
@@ -126,6 +127,42 @@ export const filteredVariations: PayloadHandler = async (req) => {
     resolveBrandId(payload, brand as string | undefined),
     getUserCountryInfo(req)
   ])
+
+  // Get sellers who ship to selected cities (for shippingTo filter)
+  let shippingToSellerIds: Set<string> = new Set()
+  const shippingToCityIds: string[] = []
+
+  if (shippingTo && typeof shippingTo === 'string') {
+    // Parse comma-separated city IDs
+    const cityIds = shippingTo.split(',').map(id => id.trim()).filter(Boolean)
+    shippingToCityIds.push(...cityIds)
+
+    if (cityIds.length > 0) {
+      // Find all sellers who ship to ANY of these cities
+      // For hasMany relationships, we need to use 'contains' for each city
+      const shippingRates = await payload.find({
+        collection: 'shippingRates',
+        where: {
+          and: [
+            {
+              or: cityIds.map(cityId => ({
+                cities: { contains: cityId }
+              }))
+            },
+            { isActive: { equals: true } },
+          ],
+        },
+        depth: 0,
+        pagination: false,
+      })
+
+      // Collect unique seller IDs
+      shippingRates.docs.forEach((rate) => {
+        const sellerId = typeof rate.user === 'object' ? rate.user.id : rate.user
+        if (sellerId) shippingToSellerIds.add(sellerId as string)
+      })
+    }
+  }
 
   // Parse attribute filters upfront
   const attributeFilters: Record<string, ObjectId[]> = {}
@@ -421,6 +458,30 @@ export const filteredVariations: PayloadHandler = async (req) => {
     // We-love filter - only show items with showWeLoveBadge enabled
     if (filterType === 'we-love') {
       pipeline.push({ $match: { showWeLoveBadge: true } })
+    }
+
+    // Shipping destination filter - only show products from sellers who ship to selected cities
+    // If shippingTo was provided but no sellers found, return empty results
+    if (shippingToCityIds.length > 0) {
+      if (shippingToSellerIds.size > 0) {
+        const shippingToSellerObjIds = Array.from(shippingToSellerIds)
+          .map(id => toObjectId(id))
+          .filter((id): id is ObjectId => id !== null)
+
+        if (shippingToSellerObjIds.length > 0) {
+          pipeline.push({
+            $match: {
+              'styleData.seller': { $in: shippingToSellerObjIds }
+            }
+          })
+        } else {
+          // Valid seller IDs couldn't be converted - match nothing
+          pipeline.push({ $match: { _id: { $exists: false } } })
+        }
+      } else {
+        // No sellers ship to the selected cities - return empty results
+        pipeline.push({ $match: { _id: { $exists: false } } })
+      }
     }
 
     // ============================================
