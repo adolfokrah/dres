@@ -9,7 +9,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../utilities/currency_utils.dart';
 
-enum QueryType { trending, newArrivals, recentlyViewed, featured, weLove }
+enum QueryType { trending, newArrivals, recentlyViewed, featured, weLove, onSale }
 
 class ProductArchiveBlock extends StatefulWidget {
   final String title;
@@ -74,6 +74,8 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
       endpoint = featuredVariations;
     } else if (widget.queryType == QueryType.recentlyViewed) {
       endpoint = recentlyViewedVariations;
+    } else if (widget.queryType == QueryType.onSale) {
+      endpoint = filteredVariations;
     } else {
       return [];
     }
@@ -82,6 +84,11 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
       'limit': widget.limit,
       'department': departmentId,
     };
+
+    // Add filterType for on-sale query
+    if (widget.queryType == QueryType.onSale) {
+      queryParams['filterType'] = 'on-sale';
+    }
     
     final response = await apiService.dio.get(
       endpoint,
@@ -95,7 +102,9 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
       );
     }
 
-    var products = (response.data['docs'] as List)
+    // The filtered endpoint returns 'variations', other endpoints return 'docs'
+    final dataKey = widget.queryType == QueryType.onSale ? 'variations' : 'docs';
+    var products = (response.data[dataKey] as List)
         .map((p) => ProductCardData.fromJson(p))
         .toList();
 
@@ -161,7 +170,7 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
         ),
         const SizedBox(height: 14),
                 SizedBox(
-                  height: 350,
+                  height: 310,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -220,25 +229,18 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
                             QueryType.featured => 'featured',
                             QueryType.weLove => 'we-love',
                             QueryType.recentlyViewed => 'recently-viewed',
+                            QueryType.onSale => 'on-sale',
                           };
-                          
-                          // Build query parameters
-                          final queryParams = <String, String>{
-                            'title': widget.title,
-                            'filterType': filterType,
-                          };
-                          if (widget.department != null) {
-                            // Pass as department (not departmentId) since it's a slug
-                            queryParams['department'] = widget.department!;
-                          }
-                          
-                          // Build the URL with query params
-                          final queryString = queryParams.entries
-                              .map((e) => '${e.key}=${Uri.encodeComponent(e.value)}')
-                              .join('&');
-                          
-                          // Navigate to products screen with filters
-                          context.push('/discover/categories/products?$queryString');
+
+                          // Navigate to products screen with filters (using extra like shop screen does)
+                          context.push(
+                            '/discover/categories/products',
+                            extra: {
+                              'departmentId': widget.department,
+                              'filterType': filterType,
+                              'title': widget.title,
+                            },
+                          );
                         },
                       ),
                     ),

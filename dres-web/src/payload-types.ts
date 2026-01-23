@@ -2334,7 +2334,7 @@ export interface ProductArchiveBlock {
   /**
    * Type of products to display
    */
-  queryType: 'trending' | 'new-arrivals' | 'recently-viewed' | 'featured';
+  queryType: 'trending' | 'new-arrivals' | 'recently-viewed' | 'featured' | 'on-sale';
   /**
    * Show the "See all" button
    */

@@ -63,7 +63,7 @@ class CallToActionBlock extends StatelessWidget {
                       style: AppTypography.titleXL.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w400,
-                        fontSize: 34
+                        fontSize: 29
                       ),
                     ),
                     const SizedBox(height: 14),

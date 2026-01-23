@@ -39,6 +39,10 @@ export const ProductArchiveBlock: Block = {
           label: 'Featured',
           value: 'featured',
         },
+        {
+          label: 'On Sale',
+          value: 'on-sale',
+        },
       ],
       admin: {
         description: 'Type of products to display',

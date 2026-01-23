@@ -148,7 +148,7 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                     ...page.layout.asMap().entries.map(
                       (entry) => Padding(
                         padding: EdgeInsets.only(
-                          bottom:  16,
+                          top:  16,
                         ),
                         child: _buildBlock(context, entry.value, entry.key),
                       ),
@@ -242,6 +242,8 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
       case 'we-love':
         // "featured" in CMS means "We Love" section - use weLove for proper filtering
         return QueryType.weLove;
+      case 'on-sale':
+        return QueryType.onSale;
       case 'trending':
       default:
         return QueryType.trending;

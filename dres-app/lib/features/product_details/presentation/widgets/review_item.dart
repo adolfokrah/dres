@@ -36,7 +36,7 @@ class ReviewItem extends StatelessWidget {
                       image: NetworkImage(
                         MediaUtils.resolveUrl(reviewerImage) ?? '',
                       ),
-                      fit: BoxFit.contain,
+                      fit: BoxFit.cover,
                     )
                   : null,
             ),
@@ -82,10 +82,9 @@ class ReviewItem extends StatelessWidget {
                             width: 40,
                             height: 45,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFD9D9D9),
                               image: DecorationImage(
                                 image: NetworkImage(fullUrl),
-                                fit: BoxFit.cover,
+                                fit: BoxFit.contain,
                               ),
                             ),
                           ),

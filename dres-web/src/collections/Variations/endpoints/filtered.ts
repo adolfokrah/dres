@@ -426,19 +426,19 @@ export const filteredVariations: PayloadHandler = async (req) => {
     // ============================================
     pipeline.push({
       $addFields: {
-        // Check for on-sale SKUs
+        // Check for on-sale SKUs (compareAtPrice must be greater than sellingPrice)
         hasOnSaleSku: {
           $gt: [
-            { $size: { $filter: { input: '$skuData', as: 's', cond: { $and: [{ $gt: ['$$s.compareAtPrice', 0] }, { $ne: ['$$s.compareAtPrice', null] }] } } } },
+            { $size: { $filter: { input: '$skuData', as: 's', cond: { $and: [{ $gt: ['$$s.compareAtPrice', 0] }, { $ne: ['$$s.compareAtPrice', null] }, { $gt: ['$$s.compareAtPrice', '$$s.sellingPrice'] }] } } } },
             0
           ]
         },
         // Min price for sorting/filtering
         minPriceValue: { $ifNull: [{ $min: '$skuData.sellingPrice' }, 0] },
-        // Select best SKU (prefer one with discount)
+        // Select best SKU (prefer one with discount where compareAtPrice > sellingPrice)
         selectedSku: {
           $ifNull: [
-            { $first: { $filter: { input: '$skuData', as: 's', cond: { $and: [{ $gt: ['$$s.compareAtPrice', 0] }, { $ne: ['$$s.compareAtPrice', null] }] } } } },
+            { $first: { $filter: { input: '$skuData', as: 's', cond: { $and: [{ $gt: ['$$s.compareAtPrice', 0] }, { $ne: ['$$s.compareAtPrice', null] }, { $gt: ['$$s.compareAtPrice', '$$s.sellingPrice'] }] } } } },
             { $first: '$skuData' }
           ]
         },
