@@ -28,7 +28,7 @@ class BadgeWidget extends StatelessWidget {
       ),
       child: Text(
         text.toUpperCase(),
-        style: AppTypography.bodyS.copyWith(
+        style: AppTypography.bodyXS.copyWith(
           fontWeight: FontWeight.w500,
           color: textColor ?? Colors.white,
         ),

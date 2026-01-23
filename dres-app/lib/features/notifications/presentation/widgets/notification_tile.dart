@@ -37,7 +37,7 @@ class NotificationTile extends StatelessWidget {
                       imageUrl: notification.imageUrl!,
                       width: 60,
                       height: 60,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                       placeholder: (context, url) => Container(
                         width: 60,
                         height: 60,

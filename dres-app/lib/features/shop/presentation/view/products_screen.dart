@@ -324,7 +324,7 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.5,
+          childAspectRatio: 0.58,
         ),
         itemCount:
             state.products.length +

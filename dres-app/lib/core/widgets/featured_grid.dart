@@ -28,7 +28,7 @@ class FeaturedGrid extends StatelessWidget {
         // Title
         if (title.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Text(
               title,
               style: AppTypography.titleL.copyWith(
@@ -40,7 +40,7 @@ class FeaturedGrid extends StatelessWidget {
 
         // Horizontal scroll
         SizedBox(
-          height: 250, // Portrait image (150 * 4/3) + label + padding
+          height: 220, // Portrait image (150 * 4/3) + label + padding
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -51,7 +51,7 @@ class FeaturedGrid extends StatelessWidget {
               return _GridItem(
                 item: item,
                 imageUrl: MediaUtils.getMediumUrl(item.image),
-                width: 150,
+                width: 140,
                 aspectRatio: aspectRatio,
                 onTap: item.link != null && item.link!.isNotEmpty
                     ? () => context.push(item.link!)
@@ -60,7 +60,6 @@ class FeaturedGrid extends StatelessWidget {
             },
           ),
         ),
-        const SizedBox(height: 16),
       ],
     );
   }
@@ -93,7 +92,7 @@ class _GridItem extends StatelessWidget {
           children: [
             // Image - fixed size, cover to fill uniformly
             Container(
-              height: 200,
+              height: 170,
               width: width,
               clipBehavior: Clip.hardEdge,
               decoration: BoxDecoration(

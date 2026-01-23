@@ -148,7 +148,7 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
                     ...page.layout.asMap().entries.map(
                       (entry) => Padding(
                         padding: EdgeInsets.only(
-                          bottom: entry.key < page.layout.length - 1 ? 16 : 0,
+                          bottom:  16,
                         ),
                         child: _buildBlock(context, entry.value, entry.key),
                       ),
@@ -198,7 +198,7 @@ class _HomeScreenViewState extends State<_HomeScreenView> {
           showSeeAll: productArchive.showSeeAll,
           seeAllText: productArchive.seeAllText ?? 'See all',
           department: departmentSlug,
-          limit: productArchive.limit ?? 8,
+          limit: productArchive.limit ?? 12,
         );
       case 'cta':
         final cta = block as CallToActionBlockModel;

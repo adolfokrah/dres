@@ -36,7 +36,7 @@ class ReviewItem extends StatelessWidget {
                       image: NetworkImage(
                         MediaUtils.resolveUrl(reviewerImage) ?? '',
                       ),
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                     )
                   : null,
             ),

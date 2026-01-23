@@ -99,15 +99,16 @@ class _ProductCardState extends State<ProductCard> {
           children: [
             // Image Container
             AspectRatio(
-              aspectRatio: 1,
+              aspectRatio: 1.1,
               child: Stack(
                 children: [
                   Container(
                     color: Colors.white,
+                    padding: EdgeInsets.all(5),
                     child: widget.thumbnail != null
                         ? Center(
                           child: Image.network(
-                              MediaUtils.resolveUrl(widget.thumbnail) ?? '',
+                               MediaUtils.resolveUrl(widget.thumbnail) ?? '',
                               fit: BoxFit.contain,
                               errorBuilder: (context, error, stackTrace) {
                                 return Center(
@@ -161,7 +162,7 @@ class _ProductCardState extends State<ProductCard> {
                         Expanded(
                           child: Text(
                             widget.brand!.toUpperCase(),
-                            style: AppTypography.bodyL.copyWith(
+                            style: AppTypography.bodyM.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                             maxLines: 1,
@@ -185,8 +186,8 @@ class _ProductCardState extends State<ProductCard> {
                   if (widget.category != null) ...[
                     Text(
                       widget.category!,
-                      style: AppTypography.bodyL.copyWith(
-                        color: AppColors.primary,
+                      style: AppTypography.bodyM.copyWith(
+                        color: AppColors.primary.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w500
                       ),
                       maxLines: 1,
@@ -197,10 +198,11 @@ class _ProductCardState extends State<ProductCard> {
                   // Title
                   Text(
                     widget.title,
-                    style: AppTypography.bodyL.copyWith(
-                       fontWeight: FontWeight.w500
+                    style: AppTypography.bodyM.copyWith(
+                       fontWeight: FontWeight.w500,
+                       color: AppColors.textPrimary.withValues(alpha: 0.7),
                     ),
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const Spacer(),

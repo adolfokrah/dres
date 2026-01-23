@@ -20,6 +20,8 @@ class ProductArchiveBlock extends StatefulWidget {
   final int limit;
   final Function(String id, bool isFavorited)? onFavoriteToggle;
   final Set<String> favoritedProducts;
+  /// Variation ID to exclude from results (useful for "recently viewed" on product details)
+  final String? excludeVariationId;
 
   const ProductArchiveBlock({
     super.key,
@@ -31,6 +33,7 @@ class ProductArchiveBlock extends StatefulWidget {
     this.limit = 8,
     this.onFavoriteToggle,
     this.favoritedProducts = const {},
+    this.excludeVariationId,
   });
 
   @override
@@ -91,10 +94,17 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
         Map<String, dynamic>.from(response.data['currency']),
       );
     }
-    
-    return (response.data['docs'] as List)
+
+    var products = (response.data['docs'] as List)
         .map((p) => ProductCardData.fromJson(p))
         .toList();
+
+    // Filter out excluded variation if specified
+    if (widget.excludeVariationId != null) {
+      products = products.where((p) => p.id != widget.excludeVariationId).toList();
+    }
+
+    return products;
   }
 
   @override
@@ -136,7 +146,7 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16, top: 24, bottom: 0),
+          padding: const EdgeInsets.only(left: 16, right: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -151,7 +161,7 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
         ),
         const SizedBox(height: 14),
                 SizedBox(
-                  height: 450,
+                  height: 350,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -159,7 +169,7 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
                     itemBuilder: (context, index) {
                       final product = products[index];
                       return SizedBox(
-                        width: 200,
+                        width: 160,
                         child: ProductCard(
                           id: product.id,
                           thumbnail: product.thumbnail,
