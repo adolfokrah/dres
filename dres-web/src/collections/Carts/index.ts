@@ -308,6 +308,16 @@ export const Carts: CollectionConfig = {
         description: 'Optional notes for the order',
       },
     },
+    {
+      name: 'cartReminderSentAt',
+      type: 'date',
+      admin: {
+        description: 'When the abandoned cart reminder was last sent',
+        date: {
+          pickerAppearance: 'dayAndTime',
+        },
+      },
+    },
   ],
   timestamps: true,
 }

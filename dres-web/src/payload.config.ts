@@ -66,6 +66,7 @@ import { savedSearchNotificationsTask } from './jobs/tasks/savedSearchNotificati
 import { autoDeliverItemsTask } from './jobs/tasks/autoDeliverItems'
 import { autoTransferToSellersTask } from './jobs/tasks/autoTransferToSellers'
 import { processSellerTransferTask } from './jobs/tasks/processSellerTransfer'
+import { abandonedCartReminderTask } from './jobs/tasks/abandonedCartReminder'
 
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
@@ -293,6 +294,7 @@ export default buildConfig({
       autoDeliverItemsTask,
       autoTransferToSellersTask,
       processSellerTransferTask,
+      abandonedCartReminderTask,
     ],
     // Auto-run scheduled jobs - process all queues every minute
     autoRun: [

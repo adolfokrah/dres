@@ -110,6 +110,7 @@ export const Notifications: CollectionConfig = {
         { label: 'Review Request', value: 'review_request' },
         { label: 'Promotion', value: 'promotion' },
         { label: 'New Follower', value: 'new_follower' },
+        { label: 'Abandoned Cart', value: 'abandoned_cart' },
         { label: 'System', value: 'system' },
       ],
       admin: {

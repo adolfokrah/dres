@@ -34,6 +34,7 @@ class UnifiedHeader extends StatelessWidget {
     this.onBackTap,
     this.notificationCount = 0,
     this.rightWidget,
+    this.showSearchIcon = false,
   });
 
   /// Search bar header (Home/Discover style)
@@ -44,12 +45,13 @@ class UnifiedHeader extends StatelessWidget {
   }) = _SearchHeader;
 
   /// Simple header with title
-  /// back button + title + cart
+  /// back button + title + search + cart
   const factory UnifiedHeader.simple({
     Key? key,
     required String title,
     VoidCallback? onBackTap,
     VoidCallback? onCartTap,
+    bool showSearchIcon,
   }) = _SimpleHeader;
 
   /// Title header with bell icon
@@ -77,6 +79,7 @@ class UnifiedHeader extends StatelessWidget {
   final VoidCallback? onBackTap;
   final int notificationCount;
   final Widget? rightWidget;
+  final bool showSearchIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -161,8 +164,22 @@ class UnifiedHeader extends StatelessWidget {
   Widget _buildRightWidget(BuildContext context) {
     switch (variant) {
       case HeaderVariant.search:
-      case HeaderVariant.simple:
       case HeaderVariant.titleWithBell:
+        return CartIconButton(onTap: onCartTap);
+      case HeaderVariant.simple:
+        if (showSearchIcon) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _HeaderIconButton(
+                icon: PhosphorIcons.magnifyingGlass(),
+                onTap: () => context.push('/search'),
+              ),
+              const SizedBox(width: 12),
+              CartIconButton(onTap: onCartTap),
+            ],
+          );
+        }
         return CartIconButton(onTap: onCartTap);
       case HeaderVariant.titleOnly:
         return rightWidget ?? const SizedBox(width: 40);
@@ -196,11 +213,13 @@ class _SimpleHeader extends UnifiedHeader {
     required String title,
     VoidCallback? onBackTap,
     VoidCallback? onCartTap,
+    bool showSearchIcon = false,
   }) : super._(
          variant: HeaderVariant.simple,
          title: title,
          onBackTap: onBackTap,
          onCartTap: onCartTap,
+         showSearchIcon: showSearchIcon,
        );
 }
 

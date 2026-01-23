@@ -427,6 +427,8 @@ export function getNotificationTitle(type: string): string {
       return '📦 Order Update'
     case 'promotion':
       return '🎉 Special Offer'
+    case 'abandoned_cart':
+      return '🛒 Don\'t forget your cart!'
     case 'system':
     default:
       return '🔔 DRES Notification'

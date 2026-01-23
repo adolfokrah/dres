@@ -183,7 +183,7 @@ class AuthCountry {
     if (currencyData is Map<String, dynamic>) {
       currency = AuthCurrency.fromJson(currencyData);
     }
-    
+
     return AuthCountry(
       id: json['id']?.toString() ?? '',
       name: json['name'] ?? '',

@@ -241,6 +241,7 @@ export interface Config {
       autoDeliverItems: TaskAutoDeliverItems;
       autoTransferToSellers: TaskAutoTransferToSellers;
       processSellerTransfer: TaskProcessSellerTransfer;
+      abandonedCartReminder: TaskAbandonedCartReminder;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
@@ -1232,6 +1233,10 @@ export interface Cart {
    * Optional notes for the order
    */
   notes?: string | null;
+  /**
+   * When the abandoned cart reminder was last sent
+   */
+  cartReminderSentAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -2473,7 +2478,16 @@ export interface Notification {
    * Type of notification
    */
   type?:
-    | ('price_drop' | 'back_in_stock' | 'order_update' | 'review_request' | 'promotion' | 'new_follower' | 'system')
+    | (
+        | 'price_drop'
+        | 'back_in_stock'
+        | 'order_update'
+        | 'review_request'
+        | 'promotion'
+        | 'new_follower'
+        | 'abandoned_cart'
+        | 'system'
+      )
     | null;
   /**
    * Notification image (e.g., product/variation image)
@@ -2779,6 +2793,7 @@ export interface PayloadJob {
           | 'autoDeliverItems'
           | 'autoTransferToSellers'
           | 'processSellerTransfer'
+          | 'abandonedCartReminder'
           | 'schedulePublish';
         taskID: string;
         input?:
@@ -2823,6 +2838,7 @@ export interface PayloadJob {
         | 'autoDeliverItems'
         | 'autoTransferToSellers'
         | 'processSellerTransfer'
+        | 'abandonedCartReminder'
         | 'schedulePublish'
       )
     | null;
@@ -3629,6 +3645,7 @@ export interface CartsSelect<T extends boolean = true> {
   currency?: T;
   purchasedAt?: T;
   notes?: T;
+  cartReminderSentAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -4709,6 +4726,17 @@ export interface TaskProcessSellerTransfer {
   output: {
     transferred?: number | null;
     success?: boolean | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskAbandonedCartReminder".
+ */
+export interface TaskAbandonedCartReminder {
+  input?: unknown;
+  output: {
+    cartsProcessed?: number | null;
+    remindersSkipped?: number | null;
   };
 }
 /**
