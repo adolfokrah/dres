@@ -48,25 +48,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     );
   }
 
-  String _authenticityLabel(String value) {
-    switch (value) {
-      case 'original':
-        return 'Original';
-      case 'replica':
-        return 'Replica';
-      default:
-        return value;
-    }
-  }
-
-  Color _authenticityColor(String value) {
-    switch (value) {
-      case 'replica':
-        return AppColors.warning;
-      default:
-        return AppColors.textSecondary;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -253,30 +234,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                     style: AppTypography.bodyL,
                                   ),
                                   const SizedBox(height: 5),
-                                  if (variation.authenticity != null &&
-                                      variation.authenticity!.isNotEmpty)
-                                    Row(
-                                      children: [
-                                        Text(
-                                          'Authenticity: ',
-                                          style: AppTypography.bodyL,
-                                        ),
-                                        Text(
-                                          _authenticityLabel(
-                                            variation.authenticity!,
-                                          ),
-                                          style: AppTypography.bodyL.copyWith(
-                                            fontWeight: FontWeight.w700,
-                                            color: _authenticityColor(
-                                              variation.authenticity!,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  if (variation.authenticity != null &&
-                                      variation.authenticity!.isNotEmpty)
-                                    const SizedBox(height: 5),
                                   Text(
                                     variation.variationsTitle != null
                                         ? '${variation.title} '

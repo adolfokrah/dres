@@ -240,21 +240,24 @@ class _CartScreenState extends State<CartScreen> {
             // Check if any items are currently loading (deleting/updating)
             final hasLoadingItems = _loadingItems.values.any((v) => v);
 
+            // Show loading bar when cart is loading or items are being updated
+            final isLoading = state.status == CartStatus.loading || hasLoadingItems;
+
             return Column(
               children: [
-                // Loading bar at top when items are being deleted/updated
-                if (hasLoadingItems)
-                  const LinearProgressIndicator(
-                    backgroundColor: AppColors.secondary,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                  ),
-                
                 // Header
                 CartHeader(
                   itemCount: state.itemCount,
                   isEditMode: _isEditMode,
                   onEditTap: _toggleEditMode,
                 ),
+
+                // Loading bar below header when cart is loading or items are being updated
+                if (isLoading)
+                  const LinearProgressIndicator(
+                    backgroundColor: AppColors.secondary,
+                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  ),
 
                 // Scrollable content: seller sections
                 Expanded(

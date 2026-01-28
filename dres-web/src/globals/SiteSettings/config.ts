@@ -35,6 +35,17 @@ export const SiteSettings: GlobalConfig = {
       },
     },
     {
+      name: 'minBuyerProtectionFee',
+      label: 'Minimum Buyer Protection Fee (GHS)',
+      type: 'number',
+      required: true,
+      defaultValue: 5,
+      min: 0,
+      admin: {
+        description: 'The minimum buyer protection fee in GHS. If the calculated percentage is less than this, this minimum will be charged.',
+      },
+    },
+    {
       name: 'refundTransactionFeeRate',
       label: 'Refund Transaction Fee Rate (%)',
       type: 'number',

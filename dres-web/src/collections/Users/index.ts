@@ -354,6 +354,28 @@ export const Users: CollectionConfig = {
                     },
                   ],
                 },
+                {
+                  type: 'row',
+                  fields: [
+                    {
+                      name: 'bankCode',
+                      type: 'text',
+                      admin: {
+                        description: 'Bank code from Paystack (e.g., 058 for GTBank)',
+                        width: '50%',
+                      },
+                    },
+                    {
+                      name: 'recipientCode',
+                      type: 'text',
+                      admin: {
+                        description: 'Paystack recipient code for transfers (auto-generated)',
+                        width: '50%',
+                        readOnly: true,
+                      },
+                    },
+                  ],
+                },
               ],
             },
           ],

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -9,6 +10,7 @@ import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/utilities/image_picker_utils.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/services/api_exception.dart';
+import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/orders/data/models/order_model.dart';
 import 'package:dres/features/orders/data/repositories/orders_repository.dart';
 
@@ -45,11 +47,110 @@ class _ReturnItemScreenState extends State<ReturnItemScreen> {
   bool _isSubmitting = false;
   OrderItemModel? _item;
   bool _isLoading = true;
+  bool _hasWithdrawalAccount = true; // Assume true until checked
 
   @override
   void initState() {
     super.initState();
     _loadOrderItem();
+    _checkWithdrawalAccount();
+  }
+
+  /// Check if user has a withdrawal account set up for receiving refunds
+  void _checkWithdrawalAccount() {
+    final authState = context.read<AuthBloc>().state;
+    final hasAccount = authState.user?.withdrawalAccount?.hasData ?? false;
+
+    setState(() {
+      _hasWithdrawalAccount = hasAccount;
+    });
+
+    // Show bottom sheet if no withdrawal account after frame is built
+    if (!hasAccount) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _showWithdrawalAccountRequired();
+        }
+      });
+    }
+  }
+
+  /// Show bottom sheet explaining withdrawal account is required
+  void _showWithdrawalAccountRequired() {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: AppColors.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
+      builder: (sheetContext) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.warning.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                PhosphorIcons.bank(),
+                size: 32,
+                color: AppColors.warning,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Withdrawal Account Required',
+              style: AppTypography.titleL.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'To request a return and receive your refund, you need to set up a withdrawal account first. This is where your refund will be sent.',
+              style: AppTypography.bodyM.copyWith(
+                color: AppColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            AppButton.filled(
+              text: 'Set Up Withdrawal Account',
+              onPressed: () {
+                Navigator.of(sheetContext).pop('setup');
+              },
+              width: double.infinity,
+            ),
+            const SizedBox(height: 12),
+            AppButton.outlined(
+              text: 'Go Back',
+              onPressed: () {
+                Navigator.of(sheetContext).pop('back');
+              },
+              width: double.infinity,
+            ),
+          ],
+        ),
+      ),
+    ).then((result) async {
+      if (!mounted) return;
+
+      if (result == 'setup') {
+        await context.push('/withdrawal-account-setup');
+        if (mounted) {
+          _checkWithdrawalAccount();
+        }
+      } else if (result == 'back') {
+        context.pop();
+      }
+    });
   }
 
   Future<void> _loadOrderItem() async {
@@ -86,6 +187,12 @@ class _ReturnItemScreenState extends State<ReturnItemScreen> {
   }
 
   Future<void> _submitReturn() async {
+    // Check withdrawal account first
+    if (!_hasWithdrawalAccount) {
+      _showWithdrawalAccountRequired();
+      return;
+    }
+
     if (_selectedReason == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

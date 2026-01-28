@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/theme/app_colors.dart';
+import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_text_field.dart';
@@ -104,22 +106,20 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
     return '';
   }
 
+  String get _authenticityDisplayText {
+    if (_selectedAuthenticity == 'original') {
+      return 'Original';
+    } else if (_selectedAuthenticity == 'replica') {
+      return 'Replica';
+    }
+    return '';
+  }
+
   bool get _canProceed {
     return _titleController.text.trim().isNotEmpty &&
         _selectedCategoryId != null &&
         _selectedBrandId != null &&
         _selectedAuthenticity != null;
-  }
-
-  String get _authenticityDisplayText {
-    switch (_selectedAuthenticity) {
-      case 'original':
-        return 'Original';
-      case 'replica':
-        return 'Replica';
-      default:
-        return '';
-    }
   }
 
   Future<void> _onCategoryTap() async {
@@ -150,6 +150,81 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
     }
   }
 
+  void _onAuthenticityTap() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Authenticity',
+                    style: AppTypography.titleL.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: PhosphorIcon(
+                      PhosphorIcons.x(),
+                      size: 24,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Options
+            ListTile(
+              title: Text(
+                'Original',
+                style: AppTypography.bodyL,
+              ),
+              subtitle: Text(
+                'Authentic branded item',
+                style: AppTypography.bodyM.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              onTap: () {
+                setState(() => _selectedAuthenticity = 'original');
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: Text(
+                'Replica',
+                style: AppTypography.bodyL,
+              ),
+              subtitle: Text(
+                'Non-authentic or unbranded item',
+                style: AppTypography.bodyM.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              onTap: () {
+                setState(() => _selectedAuthenticity = 'replica');
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _onSave() {
     if (!_canProceed || _isUpdating) return;
 
@@ -166,35 +241,6 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
         authenticity: _selectedAuthenticity,
       ),
     );
-  }
-
-  Future<void> _onAuthenticityTap() async {
-    final selected = await showModalBottomSheet<String>(
-      context: context,
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: const Text('Original'),
-                onTap: () => Navigator.of(context).pop('original'),
-              ),
-              ListTile(
-                title: const Text('Replica'),
-                onTap: () => Navigator.of(context).pop('replica'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-
-    if (selected != null) {
-      setState(() {
-        _selectedAuthenticity = selected;
-      });
-    }
   }
 
   @override

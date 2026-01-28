@@ -1,5 +1,5 @@
 import type { Endpoint } from 'payload'
-import { getBanks, resolveAccountNumber } from '../../../utilities/paystack'
+import { getBanks, resolveAccountNumber, createTransferRecipient } from '../../../utilities/paystack'
 import { User } from '../../../payload-types'
 
 /**
@@ -146,15 +146,33 @@ export const saveWithdrawalAccountEndpoint: Endpoint = {
         )
       }
 
-      // Update user's withdrawal account
+      // Create transfer recipient in Paystack
+      const recipientResult = await createTransferRecipient({
+        type: 'nuban', // Bank account type
+        name: accountName,
+        accountNumber: accountNumber,
+        bankCode: bankCode,
+        currency: 'GHS', // Default to GHS, can be made dynamic based on user's country
+      })
+
+      if (!recipientResult.success) {
+        return Response.json(
+          { error: `Failed to create transfer recipient: ${recipientResult.error}` },
+          { status: 400 }
+        )
+      }
+
+      // Update user's withdrawal account with recipient code
       await req.payload.update({
         collection: 'users',
         id: user.id,
         data: {
           withdrawalAccount: {
             bank: bankName,
+            bankCode: bankCode,
             accountNumber: accountNumber,
             accountName: accountName,
+            recipientCode: recipientResult.data?.recipient_code,
           },
         },
       })
@@ -162,6 +180,7 @@ export const saveWithdrawalAccountEndpoint: Endpoint = {
       return Response.json({
         success: true,
         message: 'Withdrawal account saved successfully',
+        recipientCode: recipientResult.data?.recipient_code,
       })
     } catch (error) {
       console.error('Error saving withdrawal account:', error)

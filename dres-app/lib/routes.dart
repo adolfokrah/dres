@@ -378,6 +378,14 @@ class AppRoutes {
         },
       ),
 
+      // Withdrawal Account Setup (outside shell, full screen - for use from return flow)
+      GoRoute(
+        path: '/withdrawal-account-setup',
+        name: 'withdrawal-account-setup',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const WithdrawalAccountScreen(),
+      ),
+
       // Addresses (outside shell, full screen)
       GoRoute(
         path: '/addresses',

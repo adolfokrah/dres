@@ -17,7 +17,7 @@ class AuthenticityPhotosTip extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.background,
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.3),
+          color: AppColors.primaryLight.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -47,19 +47,8 @@ class AuthenticityPhotosTip extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Photo placeholders row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildPhotoPlaceholder(
-                imagePath: 'assets/images/authentic-labels/label_one.png',
-              ),
-              _buildPhotoPlaceholder(
-                imagePath: 'assets/images/authentic-labels/label_two.png',
-              ),
-              _buildPhotoPlaceholder(
-                imagePath: 'assets/images/authentic-labels/label_three.png',
-              ),
-            ],
+          _buildPhotoPlaceholder(
+                imagePath: 'assets/images/authentic-labels/main.png',
           ),
 
           const SizedBox(height: 12),
@@ -86,15 +75,8 @@ class AuthenticityPhotosTip extends StatelessWidget {
     required String imagePath,
   }) {
     return Container(
-      width: 100,
-      height: 100,
-      decoration: BoxDecoration(
-        color: Color(0xFF4C5153),
-        border: Border.all(
-          color: AppColors.border,
-          width: 1,
-        ),
-      ),
+      width: double.infinity,
+      height: 80,
       child: ClipRect(
         child: Image.asset(
           imagePath,

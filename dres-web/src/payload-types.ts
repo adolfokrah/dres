@@ -234,13 +234,13 @@ export interface Config {
   jobs: {
     tasks: {
       autoReturnStaleOrders: TaskAutoReturnStaleOrders;
+      autoReturnStaleDeliveries: TaskAutoReturnStaleDeliveries;
       draftReminder: TaskDraftReminder;
-      processRefundTransactions: TaskProcessRefundTransactions;
+      autoTransferBuyerRefund: TaskAutoTransferBuyerRefund;
+      autoTransferSellerOrderPayment: TaskAutoTransferSellerOrderPayment;
       reviewNotifications: TaskReviewNotifications;
       savedSearchNotifications: TaskSavedSearchNotifications;
       autoDeliverItems: TaskAutoDeliverItems;
-      autoTransferToSellers: TaskAutoTransferToSellers;
-      processSellerTransfer: TaskProcessSellerTransfer;
       abandonedCartReminder: TaskAbandonedCartReminder;
       joinDresPush: TaskJoinDresPush;
       onSalePromoPush: TaskOnSalePromoPush;
@@ -559,6 +559,14 @@ export interface User {
      * Bank or payment provider (e.g., MTN Mobile Money)
      */
     bank?: string | null;
+    /**
+     * Bank code from Paystack (e.g., 058 for GTBank)
+     */
+    bankCode?: string | null;
+    /**
+     * Paystack recipient code for transfers (auto-generated)
+     */
+    recipientCode?: string | null;
   };
   /**
    * Saved addresses for shipping
@@ -1567,7 +1575,7 @@ export interface Transaction {
   /**
    * Type of transaction
    */
-  type: 'order_payment' | 'transfer' | 'deposit' | 'refund' | 'return_charge' | 'shipping_payment' | 'boost_payment';
+  type: 'order_payment' | 'transfer' | 'deposit' | 'refund' | 'return_charge' | 'boost_payment';
   /**
    * Transaction status
    */
@@ -2792,13 +2800,13 @@ export interface PayloadJob {
         taskSlug:
           | 'inline'
           | 'autoReturnStaleOrders'
+          | 'autoReturnStaleDeliveries'
           | 'draftReminder'
-          | 'processRefundTransactions'
+          | 'autoTransferBuyerRefund'
+          | 'autoTransferSellerOrderPayment'
           | 'reviewNotifications'
           | 'savedSearchNotifications'
           | 'autoDeliverItems'
-          | 'autoTransferToSellers'
-          | 'processSellerTransfer'
           | 'abandonedCartReminder'
           | 'joinDresPush'
           | 'onSalePromoPush'
@@ -2839,13 +2847,13 @@ export interface PayloadJob {
     | (
         | 'inline'
         | 'autoReturnStaleOrders'
+        | 'autoReturnStaleDeliveries'
         | 'draftReminder'
-        | 'processRefundTransactions'
+        | 'autoTransferBuyerRefund'
+        | 'autoTransferSellerOrderPayment'
         | 'reviewNotifications'
         | 'savedSearchNotifications'
         | 'autoDeliverItems'
-        | 'autoTransferToSellers'
-        | 'processSellerTransfer'
         | 'abandonedCartReminder'
         | 'joinDresPush'
         | 'onSalePromoPush'
@@ -4040,6 +4048,8 @@ export interface UsersSelect<T extends boolean = true> {
         accountName?: T;
         accountNumber?: T;
         bank?: T;
+        bankCode?: T;
+        recipientCode?: T;
       };
   addresses?:
     | T
@@ -4488,6 +4498,10 @@ export interface SiteSetting {
    */
   buyerProtectionFeeRate: number;
   /**
+   * The minimum buyer protection fee in GHS. If the calculated percentage is less than this, this minimum will be charged.
+   */
+  minBuyerProtectionFee: number;
+  /**
    * Fee deducted from refunds when customer has no buyer protection (e.g., 3 for 3%)
    */
   refundTransactionFeeRate: number;
@@ -4629,6 +4643,7 @@ export interface FooterSelect<T extends boolean = true> {
 export interface SiteSettingsSelect<T extends boolean = true> {
   commissionRate?: T;
   buyerProtectionFeeRate?: T;
+  minBuyerProtectionFee?: T;
   refundTransactionFeeRate?: T;
   defaultShippingRate?: T;
   pointsEarningRate?: T;
@@ -4663,6 +4678,18 @@ export interface TaskAutoReturnStaleOrders {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskAutoReturnStaleDeliveries".
+ */
+export interface TaskAutoReturnStaleDeliveries {
+  input?: unknown;
+  output: {
+    ordersProcessed?: number | null;
+    itemsReturned?: number | null;
+    sellersSanctioned?: number | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "TaskDraftReminder".
  */
 export interface TaskDraftReminder {
@@ -4674,12 +4701,26 @@ export interface TaskDraftReminder {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskProcessRefundTransactions".
+ * via the `definition` "TaskAutoTransferBuyerRefund".
  */
-export interface TaskProcessRefundTransactions {
+export interface TaskAutoTransferBuyerRefund {
   input?: unknown;
   output: {
     transactionsProcessed?: number | null;
+    transfersInitiated?: number | null;
+    skipped?: number | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskAutoTransferSellerOrderPayment".
+ */
+export interface TaskAutoTransferSellerOrderPayment {
+  input?: unknown;
+  output: {
+    sellersProcessed?: number | null;
+    transfersInitiated?: number | null;
+    skipped?: number | null;
   };
 }
 /**
@@ -4714,29 +4755,6 @@ export interface TaskAutoDeliverItems {
   output: {
     ordersUpdated?: number | null;
     itemsDelivered?: number | null;
-  };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskAutoTransferToSellers".
- */
-export interface TaskAutoTransferToSellers {
-  input?: unknown;
-  output: {
-    sellersQueued?: number | null;
-  };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskProcessSellerTransfer".
- */
-export interface TaskProcessSellerTransfer {
-  input: {
-    sellerId: string;
-  };
-  output: {
-    transferred?: number | null;
-    success?: boolean | null;
   };
 }
 /**
