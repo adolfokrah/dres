@@ -4494,15 +4494,15 @@ export interface SiteSetting {
    */
   commissionRate: number;
   /**
-   * The buyer protection fee as a percentage of item price only (not shipping). e.g., 10 for 10%
+   * Minimum subtotal required to place an order (excludes shipping and BP fees)
+   */
+  minOrderValue: number;
+  /**
+   * The buyer protection fee as a percentage of item total (price × quantity). e.g., 4 for 4%
    */
   buyerProtectionFeeRate: number;
   /**
-   * The minimum buyer protection fee in GHS. If the calculated percentage is less than this, this minimum will be charged.
-   */
-  minBuyerProtectionFee: number;
-  /**
-   * Fee deducted from refunds when customer has no buyer protection (e.g., 3 for 3%)
+   * Fee deducted from refunds when customer has no buyer protection (e.g., 5 for 5%)
    */
   refundTransactionFeeRate: number;
   /**
@@ -4642,8 +4642,8 @@ export interface FooterSelect<T extends boolean = true> {
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
   commissionRate?: T;
+  minOrderValue?: T;
   buyerProtectionFeeRate?: T;
-  minBuyerProtectionFee?: T;
   refundTransactionFeeRate?: T;
   defaultShippingRate?: T;
   pointsEarningRate?: T;

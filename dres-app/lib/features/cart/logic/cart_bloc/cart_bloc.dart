@@ -58,10 +58,12 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           validation: const CartValidation(),
         ));
       } else {
+        final validation = _toCartValidation(response.validation);
+        debugPrint('🛒 CartBloc: Validation received: valid=${validation.valid}, reasons=${validation.reasons}');
         emit(state.copyWith(
           status: CartStatus.loaded,
           cart: response.cart,
-          validation: _toCartValidation(response.validation),
+          validation: validation,
         ));
         
         // If there's a pending shipping city, process it now

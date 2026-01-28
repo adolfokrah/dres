@@ -326,6 +326,23 @@ export const updateShipping: PayloadHandler = async (req) => {
       )
     }
 
+    // Check minimum order value
+    let minOrderValue = 30 // Default ₵30
+    try {
+      const siteSettings = await payload.findGlobal({ slug: 'site-settings' })
+      if (siteSettings?.minOrderValue) {
+        minOrderValue = siteSettings.minOrderValue as number
+      }
+    } catch {
+      // Use default
+    }
+
+    const subtotal = updatedCart.subtotal || 0
+    if (subtotal < minOrderValue) {
+      validation.valid = false
+      validation.reasons.push(`Minimum order value is ₵${minOrderValue.toFixed(2)}. Add ₵${(minOrderValue - subtotal).toFixed(2)} more to checkout.`)
+    }
+
     // Return cart with enriched items
     const enrichedCart = {
       ...updatedCart,

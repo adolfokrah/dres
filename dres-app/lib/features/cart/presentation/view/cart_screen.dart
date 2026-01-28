@@ -16,6 +16,8 @@ import 'package:dres/features/cart/presentation/widgets/seller_header.dart';
 import 'package:dres/features/cart/presentation/widgets/cart_item_tile.dart';
 import 'package:dres/features/cart/presentation/widgets/seller_unavailable_message.dart';
 import 'package:dres/features/cart/presentation/widgets/cart_summary.dart';
+import 'package:dres/features/cart/presentation/widgets/cart_skeleton.dart';
+import 'package:dres/core/widgets/app_info_banner.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 class CartScreen extends StatefulWidget {
@@ -216,8 +218,9 @@ class _CartScreenState extends State<CartScreen> {
           },
           child: BlocBuilder<CartBloc, CartState>(
             builder: (context, state) {
+            // Show skeleton loader only on initial load
             if (state.status == CartStatus.loading && state.cart == null) {
-              return const Center(child: CircularProgressIndicator());
+              return const CartSkeleton();
             }
 
             if (state.cart == null || state.items.isEmpty) {
@@ -263,6 +266,19 @@ class _CartScreenState extends State<CartScreen> {
                 Expanded(
                   child: ListView(
                     children: [
+                      // Validation warning banner
+                      if (!state.isValid && !state.hasShippingError)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                          child: AppInfoBanner.warning(
+                            text: state.validation.reasons
+                                .where((reason) =>
+                                    !reason.toLowerCase().contains('shipping not available') &&
+                                    !reason.toLowerCase().contains("doesn't deliver"))
+                                .join('\n'),
+                          ),
+                        ),
+
                       // Cart items grouped by seller
                       ...sellerGroups.map((group) => _SellerSection(
                         group: group,

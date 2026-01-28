@@ -271,10 +271,12 @@ class CartSellerInfo {
   });
 
   factory CartSellerInfo.fromJson(Map<String, dynamic> json) {
-    // Get photo URL
+    // Get photo URL - handle both string and object
     String? photoUrl;
     final photo = json['photo'];
-    if (photo is Map) {
+    if (photo is String) {
+      photoUrl = photo;
+    } else if (photo is Map) {
       photoUrl = photo['url'];
     }
 

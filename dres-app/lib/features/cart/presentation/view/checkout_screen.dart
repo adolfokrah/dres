@@ -5,6 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_button.dart';
+import 'package:dres/core/widgets/app_info_banner.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/features/payment/presentation/view/payment_screen.dart';
 import 'package:dres/features/cart/data/models/seller_group.dart';
@@ -18,6 +19,7 @@ import 'package:dres/features/cart/presentation/widgets/seller_checkout_card.dar
 import 'package:dres/features/cart/presentation/widgets/promo_code_section.dart';
 import 'package:dres/features/cart/presentation/widgets/order_summary_section.dart';
 import 'package:dres/features/cart/presentation/widgets/checkout_bottom_bar.dart';
+import 'package:dres/features/cart/presentation/widgets/cart_skeleton.dart';
 import 'package:dres/features/payment/data/repositories/payment_repository.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -429,9 +431,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             },
             child: BlocBuilder<CartBloc, CartState>(
             builder: (context, cartState) {
-              // Show loading while fetching cart initially
+              // Show skeleton only on initial load (not during refetch)
               if (cartState.status == CartStatus.loading && cartState.cart == null) {
-                return const Center(child: CircularProgressIndicator());
+                return const CartSkeleton();
               }
 
               // Don't show empty checkout if we're in the middle of placing an order
@@ -452,11 +454,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
               // Use validation from backend
               final hasValidItems = cartState.isValid;
-              final validationReason = cartState.validationReason;
+              final validationReasons = cartState.validation.reasons;
               // Check if validation error is shipping-related (shown at seller level, not here)
               final hasShippingError = cartState.hasShippingError;
               // Only show top-level warning for item errors (not shipping errors)
               final hasItemErrors = !hasValidItems && !hasShippingError;
+
+              debugPrint('🔍 Checkout Validation: hasValidItems=$hasValidItems, hasShippingError=$hasShippingError, hasItemErrors=$hasItemErrors, reasons=$validationReasons');
 
               // Calculate totals from actual cart data
               final itemsTotal = sellerGroups.fold(
@@ -506,29 +510,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             children: [
                               // Warning banner if items have issues (not shipping errors - those show at seller level)
                               if (hasItemErrors)
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.all(16),
-                                  color: AppColors.warning.withOpacity(0.1),
-                                  child: Row(
-                                    children: [
-                                      PhosphorIcon(
-                                        PhosphorIconsRegular.warning,
-                                        color: AppColors.warning,
-                                        size: 20,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Text(
-                                          validationReason ?? 'Some items require attention. Please update your cart.',
-                                          style: AppTypography.bodyS.copyWith(
-                                            color: AppColors.warning,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                AppInfoBanner.warning(
+                                  text: validationReasons
+                                      .where((reason) =>
+                                          !reason.toLowerCase().contains('shipping not available') &&
+                                          !reason.toLowerCase().contains("doesn't deliver"))
+                                      .join('\n'),
                                 ),
 
                               // Shipping section

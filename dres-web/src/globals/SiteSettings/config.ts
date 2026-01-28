@@ -23,26 +23,26 @@ export const SiteSettings: GlobalConfig = {
       },
     },
     {
+      name: 'minOrderValue',
+      label: 'Minimum Order Value (GHS)',
+      type: 'number',
+      required: true,
+      defaultValue: 30,
+      min: 0,
+      admin: {
+        description: 'Minimum subtotal required to place an order (excludes shipping and BP fees)',
+      },
+    },
+    {
       name: 'buyerProtectionFeeRate',
       label: 'Buyer Protection Fee Rate (%)',
       type: 'number',
       required: true,
-      defaultValue: 10,
+      defaultValue: 4,
       min: 0,
       max: 100,
       admin: {
-        description: 'The buyer protection fee as a percentage of item price only (not shipping). e.g., 10 for 10%',
-      },
-    },
-    {
-      name: 'minBuyerProtectionFee',
-      label: 'Minimum Buyer Protection Fee (GHS)',
-      type: 'number',
-      required: true,
-      defaultValue: 5,
-      min: 0,
-      admin: {
-        description: 'The minimum buyer protection fee in GHS. If the calculated percentage is less than this, this minimum will be charged.',
+        description: 'The buyer protection fee as a percentage of item total (price × quantity). e.g., 4 for 4%',
       },
     },
     {
@@ -50,11 +50,11 @@ export const SiteSettings: GlobalConfig = {
       label: 'Refund Transaction Fee Rate (%)',
       type: 'number',
       required: true,
-      defaultValue: 3,
+      defaultValue: 5,
       min: 0,
       max: 100,
       admin: {
-        description: 'Fee deducted from refunds when customer has no buyer protection (e.g., 3 for 3%)',
+        description: 'Fee deducted from refunds when customer has no buyer protection (e.g., 5 for 5%)',
       },
     },
     {

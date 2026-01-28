@@ -304,16 +304,24 @@ export const getCart: PayloadHandler = async (req) => {
 
       // Build seller info
       const sellerPhoto = seller?.photoData?.[0]
+      const photoUrl = sellerPhoto ? getMediaUrl(sellerPhoto, 'thumbnail') : null
       const sellerInfo = seller ? {
         id: seller._id.toString(),
         displayName: seller.shopName || `${seller.firstName || ''} ${seller.lastName || ''}`.trim() || 'Seller',
         shopName: seller.shopName,
         firstName: seller.firstName,
         lastName: seller.lastName,
-        photo: sellerPhoto ? getMediaUrl(sellerPhoto, 'thumbnail') : null,
+        photo: photoUrl,
         vacationMode: seller.vacationMode || false,
         isTrusted: seller.isTrusted || false,
       } : null
+
+      // Debug: Log if seller or photo is missing
+      if (!seller) {
+        payload.logger.warn(`⚠️ Missing seller data for variation ${variation?._id}`)
+      } else if (!photoUrl && seller.photo) {
+        payload.logger.info(`📸 Seller ${seller._id} has photo ID ${seller.photo} but no photoData in aggregation`)
+      }
 
       // Build SKU options - use pre-fetched data if available
       let skuOptions: Array<{ option: string; value: string }> = []
@@ -352,7 +360,11 @@ export const getCart: PayloadHandler = async (req) => {
           slug: variation.slug,
           thumbnail,
           brand: brand?.name || null,
-          seller: sellerInfo,
+          seller: sellerInfo, // For direct access
+          style: { // For nested access (mobile app expects this)
+            seller: sellerInfo,
+            brand: brand?.name ? { name: brand.name } : null,
+          },
         } : null,
         // SKU info
         sku: sku ? {
@@ -384,6 +396,22 @@ export const getCart: PayloadHandler = async (req) => {
     if (invalidItems.some((item: any) => item.isNotInYourCountry)) validationIssues.push('Some items are not available in your country')
     if (invalidItems.some((item: any) => item.isSellerOnVacation)) validationIssues.push('Some sellers are on vacation')
 
+    // Check minimum order value
+    let minOrderValue = 30 // Default ₵30
+    try {
+      const siteSettings = await payload.findGlobal({ slug: 'site-settings' })
+      if (siteSettings?.minOrderValue) {
+        minOrderValue = siteSettings.minOrderValue as number
+      }
+    } catch {
+      // Use default
+    }
+
+    const belowMinimumOrder = subtotal < minOrderValue
+    if (belowMinimumOrder) {
+      validationIssues.push(`Minimum order value is ₵${minOrderValue.toFixed(2)}. Add ₵${(minOrderValue - subtotal).toFixed(2)} more to checkout.`)
+    }
+
     return Response.json({
       cart: {
         id: cartResult._id.toString(),
@@ -398,7 +426,7 @@ export const getCart: PayloadHandler = async (req) => {
       },
       message: 'Cart retrieved successfully',
       validation: {
-        valid: invalidItems.length === 0,
+        valid: invalidItems.length === 0 && !belowMinimumOrder,
         reasons: validationIssues,
       },
     })

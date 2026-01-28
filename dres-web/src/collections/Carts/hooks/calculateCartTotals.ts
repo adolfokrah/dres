@@ -25,16 +25,12 @@ export const calculateCartTotals: CollectionBeforeChangeHook = async ({
   req,
   operation,
 }) => {
-  // Fetch buyer protection fee rate and minimum from site settings
-  let buyerProtectionFeeRate = 0.10 // Default 10%
-  let minBuyerProtectionFee = 5 // Default minimum 5 GHS
+  // Fetch buyer protection fee rate from site settings
+  let buyerProtectionFeeRate = 0.04 // Default 4%
   try {
     const siteSettings = await req.payload.findGlobal({ slug: 'site-settings' })
     if (siteSettings?.buyerProtectionFeeRate) {
       buyerProtectionFeeRate = (siteSettings.buyerProtectionFeeRate as number) / 100
-    }
-    if (siteSettings?.minBuyerProtectionFee) {
-      minBuyerProtectionFee = siteSettings.minBuyerProtectionFee as number
     }
   } catch {
     // Use default
@@ -114,13 +110,12 @@ export const calculateCartTotals: CollectionBeforeChangeHook = async ({
         }
       }
 
-      // Calculate buyer protection fees: % of item total (from CMS settings) with minimum
+      // Calculate buyer protection fees: % of item total
       for (const item of data.items as CartItem[]) {
         if (item.buyerProtection) {
           const itemTotal = (item.price || 0) * (item.quantity || 1)
           const calculatedFee = itemTotal * buyerProtectionFeeRate
-          // Apply minimum fee
-          item.buyerProtectionFee = Math.round(Math.max(calculatedFee, minBuyerProtectionFee) * 100) / 100
+          item.buyerProtectionFee = Math.round(calculatedFee * 100) / 100
         } else {
           item.buyerProtectionFee = 0
         }
@@ -273,11 +268,11 @@ export const calculateCartTotals: CollectionBeforeChangeHook = async ({
     const item = data.items[i] as CartItem
     const originalItem = originalItems[i]
 
-    // Buyer protection = % of item total (from CMS settings) with minimum
+    // Buyer protection = % of item total
     const itemTotal = (item.price || 0) * (item.quantity || 1)
     const calculatedFee = itemTotal * buyerProtectionFeeRate
     const expectedFee = item.buyerProtection
-      ? Math.round(Math.max(calculatedFee, minBuyerProtectionFee) * 100) / 100
+      ? Math.round(calculatedFee * 100) / 100
       : 0
 
     const currentFee = originalItem?.buyerProtectionFee ?? 0

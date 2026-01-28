@@ -74,6 +74,29 @@ export const placeOrder: PayloadHandler = async (req) => {
       )
     }
 
+    // Check minimum order value
+    let minOrderValue = 30 // Default ₵30
+    try {
+      const siteSettings = await payload.findGlobal({ slug: 'site-settings' })
+      if (siteSettings?.minOrderValue) {
+        minOrderValue = siteSettings.minOrderValue as number
+      }
+    } catch {
+      // Use default
+    }
+
+    const cartSubtotal = cart.subtotal || 0
+    if (cartSubtotal < minOrderValue) {
+      return Response.json(
+        {
+          error: `Minimum order value is ₵${minOrderValue.toFixed(2)}`,
+          minOrderValue,
+          currentSubtotal: cartSubtotal
+        },
+        { status: 400 }
+      )
+    }
+
     // Get the shipping address from user's addresses array
     const userDoc = await payload.findByID({
       collection: 'users',
