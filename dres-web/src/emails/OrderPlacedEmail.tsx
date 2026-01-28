@@ -203,8 +203,8 @@ export const OrderPlacedEmail = ({
     day: 'numeric',
   })
 
-  const hasDiscount = discountAmount > 0
-  const hasPointsRedeemed = pointsRedeemed > 0 && pointsValue > 0
+  const hasDiscount = (discountAmount ?? 0) > 0
+  const hasPointsRedeemed = (pointsRedeemed ?? 0) > 0 && (pointsValue ?? 0) > 0
 
   return (
     <>
@@ -332,7 +332,7 @@ export const OrderPlacedEmail = ({
             </Column>
             <Column style={{ textAlign: 'right' }}>
               <Text style={{ margin: 0, fontSize: '14px', color: '#66BB6A' }}>
-                -{currencySymbol} {discountAmount.toFixed(2)}
+                -{currencySymbol} {(discountAmount ?? 0).toFixed(2)}
               </Text>
             </Column>
           </Row>
@@ -342,12 +342,12 @@ export const OrderPlacedEmail = ({
           <Row style={{ marginBottom: '8px' }}>
             <Column>
               <Text style={{ margin: 0, fontSize: '14px', color: '#66BB6A' }}>
-                Points Redeemed ({pointsRedeemed} pts)
+                Points Redeemed ({pointsRedeemed ?? 0} pts)
               </Text>
             </Column>
             <Column style={{ textAlign: 'right' }}>
               <Text style={{ margin: 0, fontSize: '14px', color: '#66BB6A' }}>
-                -{currencySymbol} {pointsValue.toFixed(2)}
+                -{currencySymbol} {(pointsValue ?? 0).toFixed(2)}
               </Text>
             </Column>
           </Row>

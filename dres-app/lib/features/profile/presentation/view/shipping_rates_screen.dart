@@ -42,13 +42,41 @@ class _ShippingRatesScreenState extends State<ShippingRatesScreen> {
           child: Column(
             children: [
               _buildHeader(context),
+              // Info notice about refund policy
+              Container(
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.secondary,
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    PhosphorIcon(
+                      PhosphorIcons.info(),
+                      size: 18,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Delivery fees are only refunded on successful orders.',
+                        style: AppTypography.bodyS.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               Expanded(
                 child: BlocConsumer<ShippingRatesBloc, ShippingRatesState>(
                   listener: (context, state) {
                     if (state.status == ShippingRatesStatus.deleted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Shipping rate deleted'),
+                          content: Text('Delivery fee deleted'),
                           backgroundColor: AppColors.success,
                         ),
                       );
@@ -89,7 +117,7 @@ class _ShippingRatesScreenState extends State<ShippingRatesScreen> {
                   ),
                 ),
                 child: AppButton.filled(
-                  text: 'Add Shipping Rate',
+                  text: 'Add Delivery Fee',
                   isFullWidth: true,
                   onPressed: () => _showAddEditSheet(context),
                 ),
@@ -127,7 +155,7 @@ class _ShippingRatesScreenState extends State<ShippingRatesScreen> {
           ),
           Expanded(
             child: Text(
-              'Shipping Rates',
+              'Delivery Fees',
               style: AppTypography.bodyL.copyWith(color: AppColors.textPrimary),
               textAlign: TextAlign.center,
             ),
@@ -152,12 +180,12 @@ class _ShippingRatesScreenState extends State<ShippingRatesScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No shipping rates yet',
+              'No delivery fees yet',
               style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
             ),
             const SizedBox(height: 8),
             Text(
-              'Add shipping rates to let buyers know how much delivery costs to their city.',
+              'Add delivery fees to let buyers know how much delivery costs to their city.',
               style: AppTypography.bodyM.copyWith(color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
@@ -309,11 +337,11 @@ class _ShippingRatesScreenState extends State<ShippingRatesScreen> {
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         backgroundColor: AppColors.surface,
         title: Text(
-          'Delete Shipping Rate',
+          'Delete Delivery Fee',
           style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
         ),
         content: Text(
-          'Are you sure you want to delete this shipping rate?',
+          'Are you sure you want to delete this delivery fee?',
           style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
         ),
         actions: [
@@ -497,7 +525,7 @@ class _ShippingRateFormSheetState extends State<_ShippingRateFormSheet> {
                         ),
                       ),
                       Text(
-                        _isEditing ? 'Edit Shipping Rate' : 'Add Shipping Rate',
+                        _isEditing ? 'Edit Delivery Fee' : 'Add Delivery Fee',
                         style: AppTypography.bodyL.copyWith(color: AppColors.textPrimary),
                       ),
                       const SizedBox(width: 20),
@@ -606,7 +634,7 @@ class _ShippingRateFormSheetState extends State<_ShippingRateFormSheet> {
                     ),
                   ),
                   child: AppButton.filled(
-                    text: _isEditing ? 'Save Changes' : 'Add Shipping Rate',
+                    text: _isEditing ? 'Save Changes' : 'Add Delivery Fee',
                     isFullWidth: true,
                     onPressed: _onSave,
                   ),

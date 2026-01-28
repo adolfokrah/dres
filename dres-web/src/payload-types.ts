@@ -2429,7 +2429,7 @@ export interface SellerSanction {
   /**
    * Reason for the sanction
    */
-  reason: 'late_shipment' | 'item_returned' | 'fraud' | 'policy_violation' | 'other';
+  reason: 'late_shipment' | 'failed_delivery' | 'item_returned' | 'fraud' | 'policy_violation' | 'other';
   /**
    * Additional details about the sanction
    */

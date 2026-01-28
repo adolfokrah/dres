@@ -43,6 +43,7 @@ export const SellerSanctions: CollectionConfig = {
       required: true,
       options: [
         { label: 'Late shipment', value: 'late_shipment' },
+        { label: 'Failed delivery', value: 'failed_delivery' },
         { label: 'Item returned', value: 'item_returned' },
         { label: 'Fraudulent activity', value: 'fraud' },
         { label: 'Policy violation', value: 'policy_violation' },

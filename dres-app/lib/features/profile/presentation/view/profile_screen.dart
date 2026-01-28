@@ -116,7 +116,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
 
                         _buildMenuItem(
-                          title: 'Shipping Rates',
+                          title: 'Delivery Fees',
                           onTap: () {
                             context.push('/profile/shipping-rates');
                           },
