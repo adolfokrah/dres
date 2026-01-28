@@ -35,7 +35,8 @@ async function createTestUser(overrides: { shopName?: string } = {}) {
       withdrawalAccount: {
         accountName: 'Test Account',
         accountNumber: '1234567890',
-        bank: 'Test Bank',
+        bankCode: '058', // Test bank code (required for refunds)
+        bankName: 'Test Bank',
       },
     },
   })
@@ -166,28 +167,6 @@ async function getRefundTransactions(orderId: string, customerId?: string) {
 }
 
 /**
- * Helper to get shipping payment transactions for an order
- */
-async function getShippingPaymentTransactions(orderId: string, sellerId?: string) {
-  const where: Record<string, unknown> = {
-    and: [
-      { order: { equals: orderId } },
-      { type: { equals: 'shipping_payment' } },
-    ],
-  }
-
-  if (sellerId) {
-    (where.and as Array<Record<string, unknown>>).push({ user: { equals: sellerId } })
-  }
-
-  const result = await payload.find({
-    collection: 'transactions',
-    where,
-  })
-  return result.docs
-}
-
-/**
  * Cleanup helper
  */
 async function cleanupTestData() {
@@ -270,35 +249,6 @@ describe('Refund Transaction Creation Tests', () => {
       expect(refunds[0].type).toBe('refund')
     })
 
-    it('creates shipping_payment for seller when all items returned with BP', async () => {
-      const customer = await createTestUser()
-      const seller = await createTestUser({ shopName: 'Test Shop' })
-
-      const order = await createTestOrder(customer.id, [
-        {
-          seller: seller.id,
-          price: 100,
-          originalPrice: 80,
-          shippingFee: 15,
-          buyerProtection: true,
-          buyerProtectionFee: 8,
-          shippingStatus: 'placed',
-        },
-      ])
-
-      await createDepositTransaction(customer.id, order.id, 123)
-
-      // Return the item
-      await updateOrderItemStatus(order.id, 0, 'returned')
-
-      // Get shipping payment for seller
-      const shippingPayments = await getShippingPaymentTransactions(order.id, seller.id)
-
-      expect(shippingPayments).toHaveLength(1)
-      expect(shippingPayments[0].amount).toBe(15) // Shipping fee
-      expect(shippingPayments[0].type).toBe('shipping_payment')
-      expect(shippingPayments[0].status).toBe('pending')
-    })
   })
 
   describe('Single Item Return without Buyer Protection', () => {
@@ -436,81 +386,6 @@ describe('Refund Transaction Creation Tests', () => {
       expect(refunds[0].amount).toBe(110)
     })
 
-    it('does NOT create shipping_payment when only some items returned', async () => {
-      const customer = await createTestUser()
-      const seller = await createTestUser({ shopName: 'Test Shop' })
-
-      const order = await createTestOrder(customer.id, [
-        {
-          seller: seller.id,
-          price: 100,
-          originalPrice: 80,
-          shippingFee: 10,
-          buyerProtection: true,
-          buyerProtectionFee: 8,
-          shippingStatus: 'placed',
-        },
-        {
-          seller: seller.id,
-          price: 50,
-          originalPrice: 40,
-          shippingFee: 0,
-          buyerProtection: true,
-          buyerProtectionFee: 4,
-          shippingStatus: 'placed',
-        },
-      ])
-
-      await createDepositTransaction(customer.id, order.id, 172)
-
-      // Return first, deliver second
-      await updateOrderItemStatus(order.id, 0, 'returned')
-      await updateOrderItemStatus(order.id, 1, 'delivered')
-
-      const shippingPayments = await getShippingPaymentTransactions(order.id, seller.id)
-
-      // No shipping_payment because not ALL seller items are returned
-      // Shipping will be included in order_payment when item is delivered
-      expect(shippingPayments).toHaveLength(0)
-    })
-
-    it('creates shipping_payment when ALL seller items are returned', async () => {
-      const customer = await createTestUser()
-      const seller = await createTestUser({ shopName: 'Test Shop' })
-
-      const order = await createTestOrder(customer.id, [
-        {
-          seller: seller.id,
-          price: 100,
-          originalPrice: 80,
-          shippingFee: 10, // Shipping on first item
-          buyerProtection: true,
-          buyerProtectionFee: 8,
-          shippingStatus: 'placed',
-        },
-        {
-          seller: seller.id,
-          price: 50,
-          originalPrice: 40,
-          shippingFee: 0,
-          buyerProtection: true,
-          buyerProtectionFee: 4,
-          shippingStatus: 'placed',
-        },
-      ])
-
-      await createDepositTransaction(customer.id, order.id, 172)
-
-      // Return both items
-      await updateOrderItemStatus(order.id, 0, 'returned')
-      await updateOrderItemStatus(order.id, 1, 'returned')
-
-      const shippingPayments = await getShippingPaymentTransactions(order.id, seller.id)
-
-      // Shipping payment created since ALL seller items returned
-      expect(shippingPayments).toHaveLength(1)
-      expect(shippingPayments[0].amount).toBe(10) // Shipping fee
-    })
   })
 
   describe('Multi-Seller Order Returns', () => {
@@ -555,91 +430,6 @@ describe('Refund Transaction Creation Tests', () => {
       // Seller 2 item: 60 + 8 = 68
       // Seller 1 item: 100 + 10 = 110
       expect(refundAmounts).toEqual([68, 110])
-    })
-
-    it('creates shipping_payment for each seller with all items returned', async () => {
-      const customer = await createTestUser()
-      const seller1 = await createTestUser({ shopName: 'Shop 1' })
-      const seller2 = await createTestUser({ shopName: 'Shop 2' })
-
-      const order = await createTestOrder(customer.id, [
-        {
-          seller: seller1.id,
-          price: 100,
-          originalPrice: 80,
-          shippingFee: 10,
-          buyerProtection: true,
-          buyerProtectionFee: 8,
-          shippingStatus: 'placed',
-        },
-        {
-          seller: seller2.id,
-          price: 60,
-          originalPrice: 50,
-          shippingFee: 15,
-          buyerProtection: true,
-          buyerProtectionFee: 5,
-          shippingStatus: 'placed',
-        },
-      ])
-
-      await createDepositTransaction(customer.id, order.id, 198)
-
-      // Return both
-      await updateOrderItemStatus(order.id, 0, 'returned')
-      await updateOrderItemStatus(order.id, 1, 'returned')
-
-      const seller1ShippingPayments = await getShippingPaymentTransactions(order.id, seller1.id)
-      const seller2ShippingPayments = await getShippingPaymentTransactions(order.id, seller2.id)
-
-      expect(seller1ShippingPayments).toHaveLength(1)
-      expect(seller1ShippingPayments[0].amount).toBe(10)
-
-      expect(seller2ShippingPayments).toHaveLength(1)
-      expect(seller2ShippingPayments[0].amount).toBe(15)
-    })
-
-    it('only creates shipping_payment for seller with ALL items returned', async () => {
-      const customer = await createTestUser()
-      const seller1 = await createTestUser({ shopName: 'Shop 1' })
-      const seller2 = await createTestUser({ shopName: 'Shop 2' })
-
-      const order = await createTestOrder(customer.id, [
-        {
-          seller: seller1.id,
-          price: 100,
-          originalPrice: 80,
-          shippingFee: 10,
-          buyerProtection: true,
-          buyerProtectionFee: 8,
-          shippingStatus: 'placed',
-        },
-        {
-          seller: seller2.id,
-          price: 60,
-          originalPrice: 50,
-          shippingFee: 15,
-          buyerProtection: true,
-          buyerProtectionFee: 5,
-          shippingStatus: 'placed',
-        },
-      ])
-
-      await createDepositTransaction(customer.id, order.id, 198)
-
-      // Return seller1 item, deliver seller2 item
-      await updateOrderItemStatus(order.id, 0, 'returned')
-      await updateOrderItemStatus(order.id, 1, 'delivered')
-
-      const seller1ShippingPayments = await getShippingPaymentTransactions(order.id, seller1.id)
-      const seller2ShippingPayments = await getShippingPaymentTransactions(order.id, seller2.id)
-
-      // Seller1 gets shipping payment (all their items returned)
-      expect(seller1ShippingPayments).toHaveLength(1)
-      expect(seller1ShippingPayments[0].amount).toBe(10)
-
-      // Seller2 does NOT get shipping_payment (item delivered, shipping in order_payment)
-      expect(seller2ShippingPayments).toHaveLength(0)
     })
   })
 

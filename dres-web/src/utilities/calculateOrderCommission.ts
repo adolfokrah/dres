@@ -59,11 +59,7 @@ export async function calculateOrderCommission(payload: Payload, orderId: string
   // Count fees from:
   // - deposit: platform markup (income)
   // - refund: fee deducted from customer refund (income when no BP)
-  // Don't count: shipping_payment fees (that's a cost)
   const totalFees = transactions.docs.reduce((sum, txn) => {
-    if (txn.type === 'shipping_payment') {
-      return sum // Don't count shipping payment fees as income
-    }
     return sum + (txn.fees || 0)
   }, 0)
 

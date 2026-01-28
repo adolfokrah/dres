@@ -183,11 +183,16 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
         variationTitles.push(`${item.variationTitle || 'Item'} (Qty: ${item.quantity})`)
       }
 
-      // Get shipping fee from ANY seller item (first item with shipping fee)
-      // This handles case where first item was returned but had the shipping fee
-      const shippingFee = sellerItems.find(item => item.shippingFee > 0)?.shippingFee || 0
+      // Check if any item was returned - if so, seller loses shipping fee (penalty)
+      const hasReturnedItems = sellerItems.some(item => item.shippingStatus === 'returned')
 
-      // Seller payout = total original prices + ONE shipping fee
+      // Get shipping fee from ANY seller item (first item with shipping fee)
+      // Only include if no items were returned
+      const shippingFee = hasReturnedItems
+        ? 0
+        : (sellerItems.find(item => item.shippingFee > 0)?.shippingFee || 0)
+
+      // Seller payout = total original prices + shipping fee (only if no returns)
       const sellerPayout = totalOriginalPrice + shippingFee
 
       // Platform fees = selling price - original price (the markup)
@@ -218,7 +223,9 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
               accountNumber: withdrawalAccount?.accountNumber || '',
               bank: withdrawalAccount?.bank || '',
             },
-            notes: `Bulk seller payout for ${deliveredItems.length} item(s): ${variationTitles.join(', ')}. Products: ${totalOriginalPrice}, Shipping: ${shippingFee}, Total: ${sellerPayout}`,
+            notes: hasReturnedItems
+              ? `Bulk seller payout for ${deliveredItems.length} item(s): ${variationTitles.join(', ')}. Products: ${totalOriginalPrice}, Shipping: 0 (penalty - item returned), Total: ${sellerPayout}`
+              : `Bulk seller payout for ${deliveredItems.length} item(s): ${variationTitles.join(', ')}. Products: ${totalOriginalPrice}, Shipping: ${shippingFee}, Total: ${sellerPayout}`,
           },
         })
 

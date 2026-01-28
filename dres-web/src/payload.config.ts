@@ -60,12 +60,12 @@ import { Users } from './collections/Users'
 // Scheduled Tasks
 import { autoReturnStaleOrdersTask } from './jobs/tasks/autoReturnStaleOrders'
 import { draftReminderTask } from './jobs/tasks/draftReminder'
-import { processRefundTransactionsTask } from './jobs/tasks/processRefundTransactions'
+import { autoTransferBuyerRefundTask } from './jobs/tasks/autoTransferBuyerRefund'
+import { autoTransferSellerOrderPaymentTask } from './jobs/tasks/autoTransferSellerOrderPayment'
 import { reviewNotificationsTask } from './jobs/tasks/reviewNotifications'
 import { savedSearchNotificationsTask } from './jobs/tasks/savedSearchNotifications'
 import { autoDeliverItemsTask } from './jobs/tasks/autoDeliverItems'
-import { autoTransferToSellersTask } from './jobs/tasks/autoTransferToSellers'
-import { processSellerTransferTask } from './jobs/tasks/processSellerTransfer'
+import { autoReturnStaleDeliveriesTask } from './jobs/tasks/autoReturnStaleDeliveries'
 import { abandonedCartReminderTask } from './jobs/tasks/abandonedCartReminder'
 import { joinDresPushTask } from './jobs/tasks/joinDresPush'
 import { onSalePromoPushTask } from './jobs/tasks/onSalePromoPush'
@@ -289,13 +289,13 @@ export default buildConfig({
     },
     tasks: [
       autoReturnStaleOrdersTask,
+      autoReturnStaleDeliveriesTask,
       draftReminderTask,
-      processRefundTransactionsTask,
+      autoTransferBuyerRefundTask,
+      autoTransferSellerOrderPaymentTask,
       reviewNotificationsTask,
       savedSearchNotificationsTask,
       autoDeliverItemsTask,
-      autoTransferToSellersTask,
-      processSellerTransferTask,
       abandonedCartReminderTask,
       joinDresPushTask,
       onSalePromoPushTask,

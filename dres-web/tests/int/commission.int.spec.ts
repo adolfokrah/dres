@@ -417,7 +417,7 @@ describe('Commission Calculation Integration Tests', () => {
       expect(result?.totalPaystackFees).toBe(1.5)
     })
 
-    it('excludes shipping_payment fees from income', async () => {
+    it('sums fees from all completed transactions', async () => {
       const user = await createTestUser()
 
       const order = await createTestOrder(user.id, [
@@ -437,9 +437,9 @@ describe('Commission Calculation Integration Tests', () => {
         paystackFees: 1.5,
       })
 
-      // Shipping payment (fees should NOT count as income)
+      // Refund transaction (fees are summed from all completed transactions)
       await createTestTransaction(user.id, order.id, {
-        type: 'shipping_payment',
+        type: 'refund',
         amount: 10,
         fees: 10,
         paystackFees: 1,
@@ -447,10 +447,10 @@ describe('Commission Calculation Integration Tests', () => {
 
       const result = await calculateOrderCommission(payload, order.id)
 
-      // shipping_payment fees (10) should NOT be in totalTransactionFees
-      expect(result?.totalTransactionFees).toBe(5)
-      // But its paystackFees (1) SHOULD be counted
-      expect(result?.totalPaystackFees).toBe(2.5) // 1.5 + 1
+      // All transaction fees are summed: 5 + 10 = 15
+      expect(result?.totalTransactionFees).toBe(15)
+      // All paystack fees are summed: 1.5 + 1 = 2.5
+      expect(result?.totalPaystackFees).toBe(2.5)
     })
   })
 })

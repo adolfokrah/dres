@@ -84,26 +84,27 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
       payload.logger.warn('[Refund] Could not fetch site settings, using default 3% fee')
     }
 
-    // Get customer and deposit info (only once, outside the loop)
+    // Get customer info and withdrawal account (only once, outside the loop)
     const customerId = typeof doc.customer === 'object' ? doc.customer.id : doc.customer
-    
-    const depositTransaction = await payload.find({
-      collection: 'transactions',
-      where: {
-        and: [
-          { order: { equals: doc.id } },
-          { type: { equals: 'deposit' } },
-          { user: { equals: customerId } },
-        ],
-      },
-      limit: 1,
+
+    // Fetch customer to get their withdrawal account for refund
+    const customer = await payload.findByID({
+      collection: 'users',
+      id: customerId,
+      depth: 0,
     })
-    const deposit = depositTransaction.docs[0]
-    
-    const billingDetails = (deposit?.billingDetails || {}) as {
-      accountName?: string
+
+    const withdrawalAccount = (customer?.withdrawalAccount || {}) as {
+      bankCode?: string
+      bankName?: string
       accountNumber?: string
-      bank?: string
+      accountName?: string
+    }
+
+    // Check if customer has a valid withdrawal account
+    if (!withdrawalAccount.accountNumber || !withdrawalAccount.bankCode) {
+      payload.logger.warn(`[Refund] Customer ${customerId} has no withdrawal account set up - skipping refund creation`)
+      return doc
     }
 
     // Create refund for each item
@@ -181,107 +182,43 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
           fees,
           paystackFees: transferFee,
           billingDetails: {
-            accountName: billingDetails.accountName || '',
-            accountNumber: billingDetails.accountNumber || '',
-            bank: billingDetails.bank || '',
+            accountName: withdrawalAccount.accountName || '',
+            accountNumber: withdrawalAccount.accountNumber || '',
+            bank: withdrawalAccount.bankCode || '',
           },
           notes: refundNotes,
         },
       })
 
-      // Check if ALL items from this seller are now returned/not_available
-      // Only create separate shipping_payment if ALL seller items are returned
-      // Otherwise, shipping will be included in order_payment when other items are delivered
+      // Create sanction for returned items (penalty for seller - they receive nothing)
       const sellerId = typeof item.seller === 'object' ? item.seller?.id : item.seller
-      
-      if (sellerId) {
-        // Get all items from this seller in the order
-        const sellerItems = currentItems.filter(i => {
-          const itemSellerId = typeof i.seller === 'object' ? i.seller?.id : i.seller
-          return itemSellerId === sellerId
+
+      if (sellerId && item.shippingStatus === 'returned') {
+        await payload.create({
+          collection: 'seller-sanctions',
+          data: {
+            seller: sellerId,
+            reason: 'item_returned',
+            notes: `Order ${doc.orderId}: "${item.variationTitle}" was returned.`,
+          },
         })
 
-        // Check if ALL seller items are returned or not_available
-        const allSellerItemsReturned = sellerItems.every(i =>
-          i.shippingStatus === 'returned' || i.shippingStatus === 'not_available'
-        )
+        payload.logger.info(`[Refund] Created sanction for seller ${sellerId} - item returned`)
 
-        // Check if at least one item was actually returned (meaning delivery happened)
-        // 'not_available' means seller never shipped, so no shipping payment needed
-        const hasActualReturn = sellerItems.some(i => i.shippingStatus === 'returned')
-
-        // Get shipping fee from any seller item (first item with shipping fee)
-        const sellerShippingFee = sellerItems.find(i => i.shippingFee && i.shippingFee > 0)?.shippingFee || 0
-
-        if (allSellerItemsReturned && hasActualReturn && sellerShippingFee > 0) {
-          // All items from seller are returned AND at least one was actually delivered then returned
-          // Create separate shipping payment since delivery did happen
-          // Check if shipping payment already exists for this seller
-          const existingShippingPayment = await payload.find({
-            collection: 'transactions',
-            where: {
-              and: [
-                { order: { equals: doc.id } },
-                { type: { equals: 'shipping_payment' } },
-                { user: { equals: sellerId } },
-              ],
+        // Notify the seller
+        await payload.create({
+          collection: 'notifications',
+          data: {
+            user: sellerId,
+            type: 'system',
+            message: `A buyer returned an item from order ${doc.orderId}.`,
+            path: `/sell/orders`,
+            metadata: {
+              orderId: doc.id,
+              orderNumber: doc.orderId,
             },
-            limit: 1,
-          })
-
-          if (existingShippingPayment.docs.length === 0) {
-            await payload.create({
-              collection: 'transactions',
-              data: {
-                transactionId: generateTransactionId(),
-                type: 'shipping_payment',
-                status: 'pending',
-                user: sellerId,
-                order: doc.id,
-                amount: sellerShippingFee,
-                fees: transferFee,
-                paystackFees: transferFee,
-                notes: `Shipping fee for returned items from seller (all items returned after delivery)`,
-              },
-            })
-            payload.logger.info(`[Refund] All seller items returned after delivery - created shipping payment: ${sellerShippingFee}`)
-          }
-        } else if (allSellerItemsReturned && !hasActualReturn) {
-          payload.logger.info(`[Refund] All seller items marked not_available (never shipped) - no shipping payment created`)
-        } else if (!allSellerItemsReturned) {
-          payload.logger.info(`[Refund] Seller has other items not returned - shipping will be included in order_payment on delivery`)
-        }
-
-        // Create sanction for returned items (not for not_available - those are handled by autoReturnStaleOrders task)
-        if (item.shippingStatus === 'returned') {
-          const returnReason = item.returnReason || 'Item returned by buyer'
-
-          await payload.create({
-            collection: 'seller-sanctions',
-            data: {
-              seller: sellerId,
-              reason: 'item_returned',
-              notes: `Order ${doc.orderId}: "${item.variationTitle}" was returned.`,
-            },
-          })
-
-          payload.logger.info(`[Refund] Created sanction for seller ${sellerId} - item returned`)
-
-          // Notify the seller
-          await payload.create({
-            collection: 'notifications',
-            data: {
-              user: sellerId,
-              type: 'system',
-              message: `A buyer returned an item from order ${doc.orderId}.`,
-              path: `/sell/orders`,
-              metadata: {
-                orderId: doc.id,
-                orderNumber: doc.orderId,
-              },
-            },
-          })
-        }
+          },
+        })
       }
     }
 

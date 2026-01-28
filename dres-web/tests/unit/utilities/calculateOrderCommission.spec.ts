@@ -425,7 +425,7 @@ describe('calculateOrderCommission (Unit Tests)', () => {
       expect(result?.totalCommission).toBe(8)
     })
 
-    it('excludes shipping_payment fees from income', async () => {
+    it('sums fees from all completed transactions', async () => {
       const order = createMockOrder([
         {
           seller: 'seller-1',
@@ -439,15 +439,15 @@ describe('calculateOrderCommission (Unit Tests)', () => {
 
       const transactions = [
         createMockTransaction('deposit', { fees: 5, paystackFees: 1.5 }),
-        createMockTransaction('shipping_payment', { fees: 10, paystackFees: 1 }),
+        createMockTransaction('refund', { fees: 10, paystackFees: 1 }),
       ]
 
       const payload = createMockPayload(order, transactions)
       const result = await calculateOrderCommission(payload, 'order-123')
 
-      // shipping_payment fees (10) should NOT be in totalTransactionFees
-      expect(result?.totalTransactionFees).toBe(5)
-      // But its paystackFees (1) SHOULD be counted
+      // All transaction fees are summed
+      expect(result?.totalTransactionFees).toBe(15) // 5 + 10
+      // All paystack fees are summed
       expect(result?.totalPaystackFees).toBe(2.5) // 1.5 + 1
     })
 

@@ -96,7 +96,6 @@ export const Transactions: CollectionConfig = {
             { label: 'Deposit (Customer Payment)', value: 'deposit' },
             { label: 'Refund', value: 'refund' },
             { label: 'Return Charge (Seller Fee)', value: 'return_charge' },
-            { label: 'Shipping Payment (Return)', value: 'shipping_payment' },
             { label: 'Boost Payment', value: 'boost_payment' },
           ],
           admin: {

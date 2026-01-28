@@ -316,7 +316,7 @@ describe('Seller Payout Calculation Tests', () => {
   })
 
   describe('Partial Delivery (Some Items Returned)', () => {
-    it('only pays seller for delivered items when some items returned', async () => {
+    it('pays seller for delivered items WITHOUT shipping when any item is returned (penalty)', async () => {
       const customer = await createTestUser()
       const seller = await createTestUser()
 
@@ -344,14 +344,14 @@ describe('Seller Payout Calculation Tests', () => {
       const orderPayment = await getSellerOrderPayment(order.id, seller.id)
 
       expect(orderPayment).not.toBeNull()
-      // Seller payout = only delivered item (80) + shipping (10) = 90
+      // Seller payout = only delivered item (80), NO shipping (penalty for return)
       // NOT including returned item's originalPrice (40)
-      expect(orderPayment?.amount).toBe(90)
+      expect(orderPayment?.amount).toBe(80)
       // Platform fees = only from delivered: 100 - 80 = 20
       expect(orderPayment?.fees).toBe(20)
     })
 
-    it('still includes shipping if first item returned but others delivered', async () => {
+    it('does NOT include shipping when any item is returned (penalty)', async () => {
       const customer = await createTestUser()
       const seller = await createTestUser()
 
@@ -379,9 +379,8 @@ describe('Seller Payout Calculation Tests', () => {
       const orderPayment = await getSellerOrderPayment(order.id, seller.id)
 
       expect(orderPayment).not.toBeNull()
-      // Seller payout = delivered item (40) + shipping (10) = 50
-      // Shipping is still included even though first item was returned
-      expect(orderPayment?.amount).toBe(50)
+      // Seller payout = delivered item (40), NO shipping (penalty for return)
+      expect(orderPayment?.amount).toBe(40)
       expect(orderPayment?.fees).toBe(10) // 50 - 40
     })
   })
