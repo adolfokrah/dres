@@ -467,6 +467,17 @@ export const getVariation: PayloadHandler = async (req) => {
       details.push({ name: 'Brand', value: style.brandData[0].name })
     }
 
+    if (style.authenticity) {
+      const authenticityLabel =
+        style.authenticity === 'original'
+          ? 'Original'
+          : style.authenticity === 'replica'
+            ? 'Replica'
+            : style.authenticity
+
+      details.push({ name: 'Authenticity', value: authenticityLabel })
+    }
+
     // Fetch variant values via Payload API since $lookup has collection naming issues
     const valueIds = variation.variantObjectIds?.map((v: any) => v.value?.toString()).filter(Boolean) || []
     const resolvedValuesMap = new Map<string, string>()
@@ -663,6 +674,7 @@ export const getVariation: PayloadHandler = async (req) => {
         slug: variation.slug || '',
         images,
         styleDescription: style.description || null,
+        authenticity: style.authenticity || null,
         details,
         skus,
         variationsTitle,

@@ -67,6 +67,7 @@ class VariationDetailScreen extends StatefulWidget {
   final String variationId;
   final String? variationName;
   final String? categoryId;
+  final String? authenticity;
 
   const VariationDetailScreen({
     super.key,
@@ -74,6 +75,7 @@ class VariationDetailScreen extends StatefulWidget {
     required this.variationId,
     this.variationName,
     this.categoryId,
+    this.authenticity,
   });
 
   @override
@@ -881,13 +883,14 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
               final index = images.indexOf(url);
               return {
                 'url': url,
-                'id': index < (variation?.imageIds.length ?? 0) 
-                    ? variation!.imageIds[index] 
+                'id': index < (variation?.imageIds.length ?? 0)
+                    ? variation!.imageIds[index]
                     : 'MISSING_ID'
               };
             }).toList(),
             'selectedImages': _selectedImages,
             'maxImages': 15,
+            'authenticity': widget.authenticity,
             'onImagesChanged': (List<String> allOrderedImages) {
               setState(() {
                 // Store display URLs for UI

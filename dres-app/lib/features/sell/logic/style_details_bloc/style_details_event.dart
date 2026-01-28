@@ -31,6 +31,7 @@ class StyleDetailsUpdateRequested extends StyleDetailsEvent {
   final String? collectionId;
   final String categoryId;
   final String brandId;
+   final String? authenticity;
 
   const StyleDetailsUpdateRequested({
     required this.styleId,
@@ -40,6 +41,7 @@ class StyleDetailsUpdateRequested extends StyleDetailsEvent {
     this.collectionId,
     required this.categoryId,
     required this.brandId,
+    this.authenticity,
   });
 
   @override
@@ -51,6 +53,7 @@ class StyleDetailsUpdateRequested extends StyleDetailsEvent {
         collectionId,
         categoryId,
         brandId,
+        authenticity,
       ];
 }
 

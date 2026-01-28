@@ -67,6 +67,8 @@ import { autoDeliverItemsTask } from './jobs/tasks/autoDeliverItems'
 import { autoTransferToSellersTask } from './jobs/tasks/autoTransferToSellers'
 import { processSellerTransferTask } from './jobs/tasks/processSellerTransfer'
 import { abandonedCartReminderTask } from './jobs/tasks/abandonedCartReminder'
+import { joinDresPushTask } from './jobs/tasks/joinDresPush'
+import { onSalePromoPushTask } from './jobs/tasks/onSalePromoPush'
 
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
@@ -295,6 +297,8 @@ export default buildConfig({
       autoTransferToSellersTask,
       processSellerTransferTask,
       abandonedCartReminderTask,
+      joinDresPushTask,
+      onSalePromoPushTask,
     ],
     // Auto-run scheduled jobs - process all queues every minute
     autoRun: [

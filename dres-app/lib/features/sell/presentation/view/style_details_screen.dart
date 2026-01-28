@@ -41,6 +41,9 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
   String? _selectedBrandId;
   String? _selectedBrandName;
 
+  // Authenticity of item
+  String? _selectedAuthenticity; // 'original' or 'replica'
+
   bool _isUpdating = false;
 
   @override
@@ -84,6 +87,9 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
         _selectedBrandId = details.brandId;
         _selectedBrandName = details.brandName;
       }
+      if (_selectedAuthenticity == null && details.authenticity != null) {
+        _selectedAuthenticity = details.authenticity;
+      }
     }
   }
 
@@ -101,7 +107,19 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
   bool get _canProceed {
     return _titleController.text.trim().isNotEmpty &&
         _selectedCategoryId != null &&
-        _selectedBrandId != null;
+        _selectedBrandId != null &&
+        _selectedAuthenticity != null;
+  }
+
+  String get _authenticityDisplayText {
+    switch (_selectedAuthenticity) {
+      case 'original':
+        return 'Original';
+      case 'replica':
+        return 'Replica';
+      default:
+        return '';
+    }
   }
 
   Future<void> _onCategoryTap() async {
@@ -145,8 +163,38 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
         collectionId: _selectedCollectionId,
         categoryId: _selectedCategoryId!,
         brandId: _selectedBrandId!,
+        authenticity: _selectedAuthenticity,
       ),
     );
+  }
+
+  Future<void> _onAuthenticityTap() async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: const Text('Original'),
+                onTap: () => Navigator.of(context).pop('original'),
+              ),
+              ListTile(
+                title: const Text('Replica'),
+                onTap: () => Navigator.of(context).pop('replica'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (selected != null) {
+      setState(() {
+        _selectedAuthenticity = selected;
+      });
+    }
   }
 
   @override
@@ -253,6 +301,13 @@ class _StyleDetailsScreenState extends State<StyleDetailsScreen> {
                                   label: 'Brand',
                                   value: _selectedBrandName ?? '',
                                   onTap: _onBrandTap,
+                                ),
+
+                                // Authenticity selector
+                                SellSelectorRow(
+                                  label: 'Authenticity of item',
+                                  value: _authenticityDisplayText,
+                                  onTap: _onAuthenticityTap,
                                 ),
 
                                 const SizedBox(height: 20),

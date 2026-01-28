@@ -49,6 +49,7 @@ class UpdateStyleDetailsRequest {
   final String? collectionId;
   final String categoryId;
   final String brandId;
+  final String? authenticity;
 
   UpdateStyleDetailsRequest({
     required this.title,
@@ -57,6 +58,7 @@ class UpdateStyleDetailsRequest {
     this.collectionId,
     required this.categoryId,
     required this.brandId,
+    this.authenticity,
   });
 
   Map<String, dynamic> toJson() {
@@ -68,6 +70,7 @@ class UpdateStyleDetailsRequest {
       if (collectionId != null) 'collection': collectionId,
       'category': categoryId,
       'brand': brandId,
+      if (authenticity != null) 'authenticity': authenticity,
     };
   }
 }
@@ -127,6 +130,7 @@ class StyleDetailsModel {
   final String? title;
   final String? description;
   final String status; // 'draft' or 'published'
+  final String? authenticity;
   final String? departmentId;
   final String? departmentName;
   final String? collectionId;
@@ -149,6 +153,7 @@ class StyleDetailsModel {
     this.title,
     this.description,
     this.status = 'draft',
+    this.authenticity,
     this.departmentId,
     this.departmentName,
     this.collectionId,
@@ -200,6 +205,7 @@ class StyleDetailsModel {
       title: styleData['title'],
       description: styleData['description'],
       status: styleData['status'] ?? 'draft',
+      authenticity: styleData['authenticity']?.toString(),
       departmentId: extractId(styleData['department']),
       departmentName: extractName(styleData['department']),
       collectionId: extractId(styleData['collection']),

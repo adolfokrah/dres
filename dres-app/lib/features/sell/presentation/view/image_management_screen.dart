@@ -6,8 +6,9 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_info_banner.dart';
 import 'package:dres/core/utilities/image_picker_utils.dart';
-import 'package:dres/features/variations/presentation/view/photo_tips_screen.dart';
 import 'package:dres/features/sell/data/repositories/sell_repository.dart';
+import 'package:dres/features/sell/presentation/widgets/authenticity_photos_tip.dart';
+import 'package:dres/features/sell/presentation/widgets/photo_tips_link.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:reorderables/reorderables.dart';
@@ -17,6 +18,7 @@ class ImageManagementScreen extends StatefulWidget {
   final List<File> selectedImages;
   final Function(List<String>) onImagesChanged;
   final int maxImages;
+  final String? authenticity;
 
   const ImageManagementScreen({
     super.key,
@@ -24,6 +26,7 @@ class ImageManagementScreen extends StatefulWidget {
     required this.selectedImages,
     required this.onImagesChanged,
     this.maxImages = 10,
+    this.authenticity,
   });
 
   @override
@@ -44,10 +47,10 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
       'id': item['id'] as String,
     }).toList();
     _selectedImages = List.from(widget.selectedImages);
-    
+
     // Initialize the ordered list
     _initializeAllImages();
-    
+
     print('🖼️ Image Management Screen initialized');
     print('📷 Existing images received: ${_existingImages.length}');
     print('📷 Selected images received: ${_selectedImages.length}');
@@ -323,8 +326,12 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildItemPhotosHeader(),
-                  
+                  // Show authenticity tip for original items, otherwise show regular header
+                  if (widget.authenticity == 'original')
+                    const AuthenticityPhotosTip()
+                  else
+                    _buildItemPhotosHeader(),
+
                   const SizedBox(height: 20),
                   _buildInfoBanner(),
                   const SizedBox(height: 20),
@@ -560,49 +567,8 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
             ),
             
             const SizedBox(height: 16),
-            
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const PhotoTipsScreen(),
-                  ),
-                );
-              },
-              child: Row(
-                children: [
-                  Text(
-                    'Read our photo tips',
-                    style: AppTypography.bodyM.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.textPrimary,
-                        width: 1,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'i',
-                        style: AppTypography.bodyS.copyWith(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+
+            const PhotoTipsLink(),
           ],
         ),
       ),

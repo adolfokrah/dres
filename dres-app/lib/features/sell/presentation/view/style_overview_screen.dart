@@ -63,6 +63,7 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
       extra: {
         'variationName': variation.displayName,
         'categoryId': styleDetails?.categoryId,
+        'authenticity': styleDetails?.authenticity,
       },
     );
     _loadData();
@@ -191,6 +192,7 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
                 extra: {
                   'variationName': 'New Variation',
                   'categoryId': styleDetails?.categoryId,
+                  'authenticity': styleDetails?.authenticity,
                 },
               ).then((_) => _loadData());
             }
@@ -832,7 +834,7 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
                     imageUrl: variation.images.first,
                     width: 48,
                     height: 48,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
                     placeholder: (context, url) => Container(
                       width: 48,
                       height: 48,

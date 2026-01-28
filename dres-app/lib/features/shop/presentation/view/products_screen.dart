@@ -17,6 +17,7 @@ import 'package:dres/features/shop/presentation/widgets/products_empty_state.dar
 import 'package:dres/features/saved_searches/logic/saved_searches_bloc/saved_searches_bloc.dart';
 import 'package:dres/features/saved_searches/presentation/widgets/save_search_dialog.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
+import 'package:dres/core/services/storage_service.dart';
 import 'package:dres/l10n/app_localizations.dart';
 
 class ProductsScreen extends StatefulWidget {
@@ -51,11 +52,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
     super.initState();
     // Reset bloc state to clear any previous filter values
     context.read<ProductsBloc>().add(const ResetProducts());
+    // Use provided departmentId or fall back to user's saved preference
+    final departmentId = widget.departmentId ?? getIt<StorageService>().getUserDepartment();
     // Fetch products only once when screen is created
     context.read<ProductsBloc>().add(
       FetchProducts(
         query: widget.query,
-        departmentId: widget.departmentId,
+        departmentId: departmentId,
         categoryId: widget.categoryId,
         collectionId: widget.collectionId,
         styleId: widget.styleId,

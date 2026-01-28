@@ -38,12 +38,10 @@ Future<void> main() async {
   
   // Load environment variables
   await dotenv.load(fileName: ".env");
-  
   // Initialize Firebase with platform-specific options
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
   // Setup dependency injection
   await setupDependencies();
   

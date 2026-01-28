@@ -218,6 +218,7 @@ export const getStyleDetails: PayloadHandler = async (req) => {
         title: style.title,
         description: style.description,
         status: style.status,
+        authenticity: style.authenticity || null,
         isResell: style.isResell,
         department: department
           ? {

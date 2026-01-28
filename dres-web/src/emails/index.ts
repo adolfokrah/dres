@@ -1,10 +1,12 @@
 import { render } from '@react-email/components'
 import { WelcomeEmail } from './WelcomeEmail'
+import { OrderPlacedEmail } from './OrderPlacedEmail'
 import type { FilteredProduct } from './WelcomeEmail'
+import type { OrderPlacedEmailProps, OrderItem, ShippingDetails } from './OrderPlacedEmail'
 
-export { WelcomeEmail }
+export { WelcomeEmail, OrderPlacedEmail }
 export { EmailLayout } from './components/EmailLayout'
-export type { FilteredProduct }
+export type { FilteredProduct, OrderPlacedEmailProps, OrderItem, ShippingDetails }
 
 /**
  * Get the base URL for API calls
@@ -47,4 +49,11 @@ async function fetchOnSaleProducts(): Promise<FilteredProduct[]> {
 export async function renderWelcomeEmail() {
   const saleProducts = await fetchOnSaleProducts()
   return render(WelcomeEmail({ saleProducts }))
+}
+
+/**
+ * Render the order placed email to HTML string
+ */
+export function renderOrderPlacedEmail(props: OrderPlacedEmailProps) {
+  return render(OrderPlacedEmail(props))
 }

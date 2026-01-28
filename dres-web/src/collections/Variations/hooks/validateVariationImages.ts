@@ -22,6 +22,7 @@ interface StyleDoc {
   title?: string
   category?: string | { id: string; category?: string }
   seller?: string | { id: string }
+  authenticity?: 'original' | 'replica'
 }
 
 /**
@@ -96,7 +97,7 @@ async function performImageValidation(
     apiKey: process.env.OPENAI_API_KEY,
   })
 
-  payload.logger.info(`[ImageValidation] Validating ${images.length} images for variation ${doc.id}`)
+  payload.logger.info(`[ImageValidation] Validating ${images.length} images for variation ${doc.id} (authenticity check: pending)`)
 
   // Fetch full image documents if needed
   const imageIds = images.map((img) => (typeof img === 'string' ? img : img.id))
@@ -112,10 +113,11 @@ async function performImageValidation(
     .map((id) => (mediaDocs.docs as MediaDoc[]).find((doc) => doc.id === id))
     .filter((doc): doc is MediaDoc => doc !== undefined)
 
-  // Get category and seller from style
+  // Get category, seller, and authenticity from style
   let categoryName = 'Unknown'
   let sellerId: string | null = null
   let style: StyleDoc | null = null
+  let isOriginal = false
 
   if (doc.style) {
     const styleId = typeof doc.style === 'string' ? doc.style : doc.style.id
@@ -134,6 +136,13 @@ async function performImageValidation(
 
     if (style?.seller) {
       sellerId = typeof style.seller === 'string' ? style.seller : style.seller.id
+    }
+
+    // Check if item is marked as original (requires authenticity proof)
+    isOriginal = style?.authenticity === 'original'
+
+    if (isOriginal) {
+      payload.logger.info(`[ImageValidation] Item marked as ORIGINAL - will verify authenticity labels`)
     }
   }
 
@@ -165,6 +174,19 @@ async function performImageValidation(
     return
   }
 
+  // Build the prompt with authenticity requirements if needed
+  const authenticityRequirement = isOriginal
+    ? `
+
+⚠️ CRITICAL: This item is marked as ORIGINAL/AUTHENTIC. You MUST verify authenticity markers:
+6. At least one image MUST show the brand logo/label clearly
+7. At least one image MUST show the care label with washing instructions
+8. At least one image SHOULD show size tags or internal labels
+9. Labels must appear genuine and match the expected brand quality
+
+If authenticity markers are missing or unclear, the item MUST BE REJECTED with specific details about what's missing.`
+    : ''
+
   // Add the prompt
   imageContents.push({
     type: 'text',
@@ -173,13 +195,14 @@ async function performImageValidation(
 Analyze these ${imageContents.length - 1} product image(s) and determine if they meet our quality guidelines.
 
 Expected Product Category: "${categoryName}"
+Item Authenticity Claim: ${isOriginal ? '⚠️ ORIGINAL/AUTHENTIC (requires proof)' : 'Replica (no authenticity proof needed)'}
 
 Guidelines:
 1. Images must be real product photos (not screenshots, memes, AI-generated, or unrelated images)
 2. Images should show actual clothing/fashion items matching the category "${categoryName}"
 3. All images should appear to be of the same or similar product
 4. Image quality should be acceptable (not extremely blurry or dark)
-5. No explicit, offensive, or inappropriate content
+5. No explicit, offensive, or inappropriate content${authenticityRequirement}
 
 Respond ONLY with valid JSON (no markdown, no explanation):
 {
@@ -277,6 +300,11 @@ Respond ONLY with valid JSON (no markdown, no explanation):
         ? result.issues.join(', ')
         : 'Image quality issues detected'
 
+      // Create appropriate message based on whether authenticity is required
+      const notificationMessage = isOriginal
+        ? `Your product images were rejected: ${issuesSummary}. For authentic items, you must include photos showing brand labels, care tags, and other authenticity markers.`
+        : `Your product images were rejected: ${issuesSummary}. Please upload new images.`
+
       // Get first image for notification thumbnail
       const firstImageId = images.length > 0
         ? (typeof images[0] === 'string' ? images[0] : images[0].id)
@@ -290,7 +318,7 @@ Respond ONLY with valid JSON (no markdown, no explanation):
         data: {
           user: sellerId,
           type: 'system',
-          message: `Your product images were rejected: ${issuesSummary}. Please upload new images.`,
+          message: notificationMessage,
           image: firstImageId,
           path: `/sell/style/${styleId}/variation/${doc.id}`,
           metadata: {
@@ -299,6 +327,7 @@ Respond ONLY with valid JSON (no markdown, no explanation):
             validationStatus: status,
             validationScore: result.score,
             issues: result.issues,
+            isOriginal: isOriginal,
           },
         },
         context: {
@@ -307,7 +336,7 @@ Respond ONLY with valid JSON (no markdown, no explanation):
       })
 
       payload.logger.info(
-        `[ImageValidation] Notification sent to seller ${sellerId} for variation ${doc.id}`
+        `[ImageValidation] Notification sent to seller ${sellerId} for variation ${doc.id}${isOriginal ? ' (authenticity check failed)' : ''}`
       )
     }
   } catch (error) {

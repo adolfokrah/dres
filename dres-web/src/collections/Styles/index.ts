@@ -133,6 +133,17 @@ export const Styles: CollectionConfig = {
       },
     },
     {
+      name: 'authenticity',
+      type: 'select',
+      options: [
+        { label: 'Original', value: 'original' },
+        { label: 'Replica', value: 'replica' },
+      ],
+      admin: {
+        description: 'Authenticity of the item',
+      },
+    },
+    {
       name: 'department',
       type: 'relationship',
       relationTo: 'departments',

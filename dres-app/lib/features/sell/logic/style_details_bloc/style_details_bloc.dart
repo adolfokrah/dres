@@ -88,6 +88,7 @@ class StyleDetailsBloc extends Bloc<StyleDetailsEvent, StyleDetailsState> {
         collectionId: event.collectionId,
         categoryId: event.categoryId,
         brandId: event.brandId,
+        authenticity: event.authenticity,
       );
 
       await _sellRepository.updateStyleDetails(

@@ -215,6 +215,7 @@ class AppRoutes {
             selectedImages: (extra?['selectedImages'] as List<File>?) ?? [],
             onImagesChanged: extra?['onImagesChanged'] ?? (_, __) {},
             maxImages: extra?['maxImages'] ?? 10,
+            authenticity: extra?['authenticity'] as String?,
           );
         },
       ),
@@ -649,11 +650,13 @@ class AppRoutes {
                           final variationName =
                               extra?['variationName'] as String?;
                           final categoryId = extra?['categoryId'] as String?;
+                          final authenticity = extra?['authenticity'] as String?;
                           return VariationDetailScreen(
                             styleId: styleId,
                             variationId: variationId,
                             variationName: variationName,
                             categoryId: categoryId,
+                            authenticity: authenticity,
                           );
                         },
                         routes: [

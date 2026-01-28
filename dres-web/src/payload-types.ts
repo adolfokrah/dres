@@ -242,6 +242,8 @@ export interface Config {
       autoTransferToSellers: TaskAutoTransferToSellers;
       processSellerTransfer: TaskProcessSellerTransfer;
       abandonedCartReminder: TaskAbandonedCartReminder;
+      joinDresPush: TaskJoinDresPush;
+      onSalePromoPush: TaskOnSalePromoPush;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
@@ -412,6 +414,10 @@ export interface Style {
    * Whether this product is a resell from a returned item (e.g., from a thrift store)
    */
   isResell?: boolean | null;
+  /**
+   * Authenticity of the item
+   */
+  authenticity?: ('original' | 'replica') | null;
   /**
    * Select a department first to filter available collections
    */
@@ -2794,6 +2800,8 @@ export interface PayloadJob {
           | 'autoTransferToSellers'
           | 'processSellerTransfer'
           | 'abandonedCartReminder'
+          | 'joinDresPush'
+          | 'onSalePromoPush'
           | 'schedulePublish';
         taskID: string;
         input?:
@@ -2839,6 +2847,8 @@ export interface PayloadJob {
         | 'autoTransferToSellers'
         | 'processSellerTransfer'
         | 'abandonedCartReminder'
+        | 'joinDresPush'
+        | 'onSalePromoPush'
         | 'schedulePublish'
       )
     | null;
@@ -3220,6 +3230,7 @@ export interface StylesSelect<T extends boolean = true> {
   title?: T;
   description?: T;
   isResell?: T;
+  authenticity?: T;
   department?: T;
   collection?: T;
   category?: T;
@@ -4737,6 +4748,28 @@ export interface TaskAbandonedCartReminder {
   output: {
     cartsProcessed?: number | null;
     remindersSkipped?: number | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskJoinDresPush".
+ */
+export interface TaskJoinDresPush {
+  input?: unknown;
+  output: {
+    successCount?: number | null;
+    failureCount?: number | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskOnSalePromoPush".
+ */
+export interface TaskOnSalePromoPush {
+  input?: unknown;
+  output: {
+    successCount?: number | null;
+    failureCount?: number | null;
   };
 }
 /**

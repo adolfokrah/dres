@@ -46,6 +46,7 @@ class VariationDetailsModel {
   final String defaultSku;
   final List<ImageModel> images;
   final String? styleDescription;
+  final String? authenticity;
   final List<DetailModel> details;
   final VariationsTitleModel? variationsTitle;
   final String? styleId;
@@ -68,6 +69,7 @@ class VariationDetailsModel {
     required this.defaultSku,
     required this.images,
     this.styleDescription,
+    this.authenticity,
     required this.details,
     this.variationsTitle,
     this.styleId,
@@ -98,6 +100,7 @@ class VariationDetailsModel {
               .toList() ??
           [],
       styleDescription: json['styleDescription'] is String ? json['styleDescription'] : null,
+        authenticity: json['authenticity'] as String?,
       details: (json['details'] as List<dynamic>?)
               ?.map((d) => DetailModel.fromJson(d))
               .toList() ??
