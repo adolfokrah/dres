@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { confirmWithPhone } from './endpoints/confirmWithPhone'
 import { ussdConfirmDelivery } from './endpoints/ussdConfirmDelivery'
 
 export const DeliveryCodes: CollectionConfig = {
@@ -32,6 +33,11 @@ export const DeliveryCodes: CollectionConfig = {
       path: '/ussd',
       method: 'post',
       handler: ussdConfirmDelivery,
+    },
+    {
+      path: '/confirm',
+      method: 'post',
+      handler: confirmWithPhone,
     },
   ],
   fields: [

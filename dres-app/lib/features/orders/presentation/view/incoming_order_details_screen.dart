@@ -7,6 +7,7 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/widgets/app_button.dart';
+import 'package:dres/core/widgets/app_info_banner.dart';
 import 'package:dres/core/widgets/status_badge.dart';
 import 'package:dres/features/orders/logic/incoming_order_details_bloc/incoming_order_details_bloc.dart';
 import 'package:dres/features/orders/data/models/incoming_order_details_model.dart';
@@ -152,6 +153,16 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
               children: [
                 // Warning banner - only show when there are placed items
                 if (order.hasPlacedItems) _buildWarningBanner(),
+
+                // Info banner for out for delivery items
+                if (order.hasOutForDeliveryItems)
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: AppInfoBanner.info(
+                      text:
+                          'The courier must dial *920*106# upon delivery. The customer will provide a 4-digit delivery PIN to confirm receipt. Once confirmed, payment will be processed.\n\nAlternatively, visit: dfrip.com/delivery/confirm',
+                    ),
+                  ),
 
                 // Progress bar with status
                 _buildProgressBar(order),

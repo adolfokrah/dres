@@ -355,4 +355,10 @@ class IncomingOrderDetailsModel {
         item.shippingStatus == IncomingItemStatus.placed ||
         item.shippingStatus == IncomingItemStatus.newItem);
   }
+
+  /// Check if any items are out for delivery (awaiting delivery confirmation)
+  bool get hasOutForDeliveryItems {
+    return items.any(
+        (item) => item.shippingStatus == IncomingItemStatus.outForDelivery);
+  }
 }
