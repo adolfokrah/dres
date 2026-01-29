@@ -240,7 +240,6 @@ export interface Config {
       autoTransferSellerOrderPayment: TaskAutoTransferSellerOrderPayment;
       reviewNotifications: TaskReviewNotifications;
       savedSearchNotifications: TaskSavedSearchNotifications;
-      autoDeliverItems: TaskAutoDeliverItems;
       abandonedCartReminder: TaskAbandonedCartReminder;
       joinDresPush: TaskJoinDresPush;
       onSalePromoPush: TaskOnSalePromoPush;
@@ -2806,7 +2805,6 @@ export interface PayloadJob {
           | 'autoTransferSellerOrderPayment'
           | 'reviewNotifications'
           | 'savedSearchNotifications'
-          | 'autoDeliverItems'
           | 'abandonedCartReminder'
           | 'joinDresPush'
           | 'onSalePromoPush'
@@ -2853,7 +2851,6 @@ export interface PayloadJob {
         | 'autoTransferSellerOrderPayment'
         | 'reviewNotifications'
         | 'savedSearchNotifications'
-        | 'autoDeliverItems'
         | 'abandonedCartReminder'
         | 'joinDresPush'
         | 'onSalePromoPush'
@@ -4744,17 +4741,6 @@ export interface TaskSavedSearchNotifications {
   output: {
     searchesChecked?: number | null;
     notificationsSent?: number | null;
-  };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskAutoDeliverItems".
- */
-export interface TaskAutoDeliverItems {
-  input?: unknown;
-  output: {
-    ordersUpdated?: number | null;
-    itemsDelivered?: number | null;
   };
 }
 /**

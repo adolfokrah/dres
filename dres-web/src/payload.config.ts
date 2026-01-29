@@ -64,7 +64,6 @@ import { autoTransferBuyerRefundTask } from './jobs/tasks/autoTransferBuyerRefun
 import { autoTransferSellerOrderPaymentTask } from './jobs/tasks/autoTransferSellerOrderPayment'
 import { reviewNotificationsTask } from './jobs/tasks/reviewNotifications'
 import { savedSearchNotificationsTask } from './jobs/tasks/savedSearchNotifications'
-import { autoDeliverItemsTask } from './jobs/tasks/autoDeliverItems'
 import { autoReturnStaleDeliveriesTask } from './jobs/tasks/autoReturnStaleDeliveries'
 import { abandonedCartReminderTask } from './jobs/tasks/abandonedCartReminder'
 import { joinDresPushTask } from './jobs/tasks/joinDresPush'
@@ -295,7 +294,6 @@ export default buildConfig({
       autoTransferSellerOrderPaymentTask,
       reviewNotificationsTask,
       savedSearchNotificationsTask,
-      autoDeliverItemsTask,
       abandonedCartReminderTask,
       joinDresPushTask,
       onSalePromoPushTask,

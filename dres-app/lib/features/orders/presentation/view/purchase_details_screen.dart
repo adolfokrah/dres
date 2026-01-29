@@ -5,7 +5,6 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/di/injection.dart';
-import 'package:dres/core/widgets/app_info_banner.dart';
 import 'package:dres/features/orders/data/models/order_model.dart';
 import 'package:dres/features/orders/data/models/purchase_details_model.dart';
 import 'package:dres/features/orders/logic/order_details_bloc/order_details_bloc.dart';
@@ -126,16 +125,6 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
                     progressValue: _calculateOverallProgress(purchaseDetails),
                   ),
 
-                  // Testing alert for out_for_delivery items
-                  if (_hasOutForDeliveryItems(purchaseDetails))
-                    const Padding(
-                      padding: EdgeInsets.all(20),
-                      child: AppInfoBanner.warning(
-                        title: 'Testing Mode',
-                        text: 'Items out for delivery will be auto-delivered after 5 minutes for testing purposes.',
-                      ),
-                    ),
-
                   // Shipping address section
                   if (purchaseDetails.shippingAddress != null)
                     _ShippingSection(address: purchaseDetails.shippingAddress!),
@@ -174,18 +163,6 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
         },
       ),
     );
-  }
-
-  /// Check if any items are out for delivery
-  bool _hasOutForDeliveryItems(PurchaseDetailsModel purchaseDetails) {
-    for (final group in purchaseDetails.sellerGroups) {
-      for (final item in group.items) {
-        if (item.shippingStatus == ShippingStatus.outForDelivery) {
-          return true;
-        }
-      }
-    }
-    return false;
   }
 
   /// Calculate overall progress from all items in all seller groups
