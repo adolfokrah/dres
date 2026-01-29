@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { confirmDelivery } from './endpoints/confirmDelivery'
+import { ussdConfirmDelivery } from './endpoints/ussdConfirmDelivery'
 
 export const DeliveryCodes: CollectionConfig = {
   slug: 'delivery-codes',
@@ -29,9 +29,9 @@ export const DeliveryCodes: CollectionConfig = {
   },
   endpoints: [
     {
-      path: '/confirm',
+      path: '/ussd',
       method: 'post',
-      handler: confirmDelivery,
+      handler: ussdConfirmDelivery,
     },
   ],
   fields: [
@@ -74,6 +74,15 @@ export const DeliveryCodes: CollectionConfig = {
       },
     },
     {
+      name: 'phone',
+      type: 'text',
+      required: true,
+      index: true,
+      admin: {
+        description: 'Customer phone number from shipping details',
+      },
+    },
+    {
       name: 'items',
       type: 'array',
       required: true,
@@ -97,16 +106,6 @@ export const DeliveryCodes: CollectionConfig = {
           },
         },
       ],
-    },
-    {
-      name: 'expiresAt',
-      type: 'date',
-      admin: {
-        description: 'When this code expires (optional)',
-        date: {
-          pickerAppearance: 'dayAndTime',
-        },
-      },
     },
   ],
 }

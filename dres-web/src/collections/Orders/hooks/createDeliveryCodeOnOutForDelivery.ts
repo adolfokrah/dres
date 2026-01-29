@@ -50,8 +50,9 @@ export const createDeliveryCodeOnOutForDelivery: CollectionAfterChangeHook = asy
     // If no new out_for_delivery items, return early
     if (newOutForDeliveryBySeller.size === 0) return doc
 
-    // Get buyer ID
+    // Get buyer ID and phone from shipping details
     const buyerId = typeof doc.customer === 'object' ? doc.customer.id : doc.customer
+    const shippingPhone = (doc.shippingDetails as any)?.phone || ''
 
     // Create delivery codes for each seller with new out_for_delivery items
     for (const [sellerId, items] of newOutForDeliveryBySeller) {
@@ -106,6 +107,7 @@ export const createDeliveryCodeOnOutForDelivery: CollectionAfterChangeHook = asy
             order: doc.id,
             seller: sellerId,
             buyer: buyerId,
+            phone: shippingPhone,
             items: itemsData,
           } as any,
         })

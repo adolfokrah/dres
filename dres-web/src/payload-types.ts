@@ -2394,6 +2394,10 @@ export interface DeliveryCode {
    */
   buyer: string | User;
   /**
+   * Customer phone number from shipping details
+   */
+  phone: string;
+  /**
    * The specific order items covered by this code
    */
   items: {
@@ -2407,10 +2411,6 @@ export interface DeliveryCode {
     skuTitle?: string | null;
     id?: string | null;
   }[];
-  /**
-   * When this code expires (optional)
-   */
-  expiresAt?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -3677,6 +3677,7 @@ export interface DeliveryCodesSelect<T extends boolean = true> {
   order?: T;
   seller?: T;
   buyer?: T;
+  phone?: T;
   items?:
     | T
     | {
@@ -3684,7 +3685,6 @@ export interface DeliveryCodesSelect<T extends boolean = true> {
         skuTitle?: T;
         id?: T;
       };
-  expiresAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }
