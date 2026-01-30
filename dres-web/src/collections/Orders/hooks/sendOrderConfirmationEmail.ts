@@ -93,6 +93,7 @@ export const sendOrderConfirmationEmail: CollectionAfterChangeHook = async ({
     // Build email props
     const emailProps: OrderPlacedEmailProps = {
       customerName: customer.firstName || customer.email.split('@')[0] || 'Customer',
+      id: doc.id,
       orderId: doc.orderId,
       orderDate: doc.placedAt
         ? new Date(doc.placedAt).toLocaleDateString('en-US', {

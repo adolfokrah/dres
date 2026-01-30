@@ -52,7 +52,7 @@ export const getPurchaseDetails: PayloadHandler = async (req) => {
   }
 
   try {
-    // Fetch the order with depth for populated relations
+    // Fetch the order by document ID
     const order = await payload.findByID({
       collection: 'orders',
       id: orderId,

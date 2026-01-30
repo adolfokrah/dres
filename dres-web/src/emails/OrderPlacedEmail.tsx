@@ -38,7 +38,8 @@ export interface ShippingDetails {
 
 export interface OrderPlacedEmailProps {
   customerName: string
-  orderId: string
+  id: string // Document ID for linking
+  orderId: string // Human-readable order ID for display
   orderDate: string
   items: OrderItem[]
   shippingDetails: ShippingDetails
@@ -138,6 +139,7 @@ const OrderItemRow = ({
 // Default props for email preview
 const defaultProps: OrderPlacedEmailProps = {
   customerName: 'Sarah',
+  id: '123456789',
   orderId: 'ORD-2026-001234',
   orderDate: new Date().toISOString(),
   items: [
@@ -182,6 +184,7 @@ const defaultProps: OrderPlacedEmailProps = {
 
 export const OrderPlacedEmail = ({
   customerName = defaultProps.customerName,
+  id = defaultProps.id,
   orderId = defaultProps.orderId,
   orderDate = defaultProps.orderDate,
   items = defaultProps.items,
@@ -420,7 +423,7 @@ export const OrderPlacedEmail = ({
         {/* CTA Button */}
         <Section className="text-center">
           <Button
-            href={`${appDeepLinkUrl}/orders/${orderId}`}
+            href={`${appDeepLinkUrl}/orders/${id}`}
             style={{
               backgroundColor: '#000000',
               color: '#ffffff',
