@@ -47,7 +47,6 @@ class CheckoutItemTile extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: AppColors.secondary,
                   image: imageUrl != null
                       ? DecorationImage(
                           image: NetworkImage(imageUrl),

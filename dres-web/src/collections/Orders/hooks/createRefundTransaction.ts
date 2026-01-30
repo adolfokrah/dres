@@ -128,23 +128,44 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
       }
 
       const hasBuyerProtection = item.buyerProtection === true
-      const shippingFee = item.shippingFee || 0
       const transferFee = 1 // Paystack transfer fee is 1 cedi flat
       const isNotAvailable = item.shippingStatus === 'not_available'
+
+      // Get seller ID for this item
+      const itemSellerId = typeof item.seller === 'object' ? item.seller?.id : item.seller
+
+      // Check if ALL items from this seller have the same refund status
+      // Shipping fee is only included when:
+      // 1. Buyer has BP
+      // 2. ALL items from seller are returned OR ALL items from seller are not_available
+      const sellerItems = currentItems.filter(i => {
+        const sellerId = typeof i.seller === 'object' ? i.seller?.id : i.seller
+        return sellerId === itemSellerId
+      })
+      const allSellerItemsReturned = sellerItems.every(i => i.shippingStatus === 'returned')
+      const allSellerItemsNotAvailable = sellerItems.every(i => i.shippingStatus === 'not_available')
+
+      // Only include shipping fee if BP enabled AND (all returned OR all not_available)
+      const includeShipping = hasBuyerProtection && (allSellerItemsReturned || allSellerItemsNotAvailable)
+      const shippingFee = includeShipping ? (item.shippingFee || 0) : 0
 
       let refundAmount: number
       let refundNotes: string
 
       if (hasBuyerProtection) {
-        // WITH BUYER PROTECTION: Full item price + shipping (no fees deducted)
+        // WITH BUYER PROTECTION: Full item price + shipping (only if all seller items refunded)
         refundAmount = itemTotal + shippingFee
-        refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Full refund (BP): Item ${itemTotal} + Shipping ${shippingFee} = ${refundAmount}`
+        if (includeShipping && shippingFee > 0) {
+          refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Full refund (BP): Item ${itemTotal} + Shipping ${shippingFee} = ${refundAmount}`
+        } else {
+          refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Full refund (BP): Item ${itemTotal} = ${refundAmount}`
+        }
       } else if (isNotAvailable) {
-        // NOT AVAILABLE (seller never shipped, no BP): Item + shipping - transaction fee
+        // NOT AVAILABLE (seller never shipped, no BP): Item - transaction fee (no shipping since no BP)
         const feePercent = refundTransactionFeeRate * 100
-        const transactionFee = ((itemTotal + shippingFee) * refundTransactionFeeRate) + transferFee
-        refundAmount = Math.round((itemTotal + shippingFee - transactionFee) * 100) / 100
-        refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Not available: (Item ${itemTotal} + Shipping ${shippingFee}) - Fee (${feePercent}% + 1): ${transactionFee.toFixed(2)} = ${refundAmount}`
+        const transactionFee = (itemTotal * refundTransactionFeeRate) + transferFee
+        refundAmount = Math.round((itemTotal - transactionFee) * 100) / 100
+        refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Not available: Item ${itemTotal} - Fee (${feePercent}% + 1): ${transactionFee.toFixed(2)} = ${refundAmount}`
       } else {
         // NO BUYER PROTECTION (actual return): Item price - transaction fee % - transfer fee (no shipping refund)
         const feePercent = refundTransactionFeeRate * 100
@@ -154,19 +175,14 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
       }
 
       const refundType = hasBuyerProtection ? 'BP' : (isNotAvailable ? 'Not Available' : 'Return')
-      payload.logger.info(`[Refund] ${item.variationTitle}: ${refundType} - Refund: ${refundAmount}`)
+      payload.logger.info(`[Refund] ${item.variationTitle}: ${refundType} - Refund: ${refundAmount}, Shipping included: ${includeShipping}`)
 
       // Create refund transaction for customer
       // Calculate fees based on refund type
       let fees = 0
       if (!hasBuyerProtection) {
-        if (isNotAvailable) {
-          // Not available: fee on (item + shipping)
-          fees = ((itemTotal + shippingFee) * refundTransactionFeeRate) + transferFee
-        } else {
-          // Regular return: fee on item only
-          fees = (itemTotal * refundTransactionFeeRate) + transferFee
-        }
+        // Without BP: fee on item only (no shipping included)
+        fees = (itemTotal * refundTransactionFeeRate) + transferFee
       }
 
       await payload.create({

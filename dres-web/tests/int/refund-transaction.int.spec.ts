@@ -384,8 +384,9 @@ describe('Refund Transaction Creation Tests', () => {
 
       // Only one refund for the returned item
       expect(refunds).toHaveLength(1)
-      // First item refund with BP: 100 + 10 = 110
-      expect(refunds[0].amount).toBe(110)
+      // First item refund with BP but NOT all seller items refunded: item price only (no shipping)
+      // Shipping is only included when ALL items from the seller are refunded
+      expect(refunds[0].amount).toBe(100)
     })
 
   })

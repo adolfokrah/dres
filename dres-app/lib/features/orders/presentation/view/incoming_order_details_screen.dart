@@ -394,7 +394,52 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
   }
 
   void _onMarkNotAvailable(IncomingOrderItemModel item) {
-    _bloc.add(IncomingOrderItemMarkNotAvailable(itemId: item.id));
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.background,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.zero,
+        ),
+        title: Text(
+          'Mark as Not Available',
+          style: AppTypography.bodyL.copyWith(
+            color: AppColors.textPrimary,
+          ),
+        ),
+        content: Text(
+          'Are you sure this item is not available?\n\n'
+          'The buyer will be refunded and this may affect your seller rating.',
+          style: AppTypography.bodyM.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Cancel',
+              style: AppTypography.bodyM.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _bloc.add(IncomingOrderItemMarkNotAvailable(itemId: item.id));
+            },
+            child: Text(
+              'Yes, Not Available',
+              style: AppTypography.bodyM.copyWith(
+                color: Colors.red,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _onAcceptReturn(IncomingOrderItemModel item) {
