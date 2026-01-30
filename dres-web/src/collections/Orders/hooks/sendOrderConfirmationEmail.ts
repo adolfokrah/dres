@@ -119,7 +119,7 @@ export const sendOrderConfirmationEmail: CollectionAfterChangeHook = async ({
     }
 
     // Render and send email
-    const html = renderOrderPlacedEmail(emailProps)
+    const html = await renderOrderPlacedEmail(emailProps)
 
     await payload.sendEmail({
       to: customer.email,

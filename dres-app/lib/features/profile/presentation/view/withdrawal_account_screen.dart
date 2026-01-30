@@ -182,13 +182,13 @@ class _WithdrawalAccountScreenState extends State<WithdrawalAccountScreen> {
                                 ),
                               ),
 
-                              // Bank dropdown
+                              // Mobile Money Provider dropdown
                               Padding(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 20),
                                 child: AppDropdown<BankModel>(
-                                  label: 'Bank',
-                                  hintText: 'Select your bank',
+                                  label: 'Mobile Money Provider',
+                                  hintText: 'Select your provider',
                                   value: state.selectedBank,
                                   items: state.banks,
                                   itemLabel: (bank) => bank.name,
@@ -205,13 +205,13 @@ class _WithdrawalAccountScreenState extends State<WithdrawalAccountScreen> {
 
                               const SizedBox(height: 18),
 
-                              // Account number input
+                              // Mobile money number input
                               Padding(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 20),
                                 child: AppTextField(
-                                  label: 'Account Number',
-                                  hintText: 'Enter account number',
+                                  label: 'Mobile Money Number',
+                                  hintText: 'Enter your mobile money number',
                                   controller: _accountNumberController,
                                   keyboardType: TextInputType.number,
                                   onChanged: _onAccountNumberChanged,

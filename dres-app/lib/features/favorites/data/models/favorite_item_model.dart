@@ -27,6 +27,7 @@ class FavoriteItemModel extends VariationModel {
     super.isBoosted = false,
     super.showWeLoveBadge = false,
     super.sellerId,
+    super.totalStock,
   });
 
   factory FavoriteItemModel.fromJson(Map<String, dynamic> json) {
@@ -51,6 +52,7 @@ class FavoriteItemModel extends VariationModel {
       isBoosted: json['isBoosted'] as bool? ?? false,
       showWeLoveBadge: json['showWeLoveBadge'] as bool? ?? false,
       sellerId: json['sellerId'] as String?,
+      totalStock: json['totalStock'] as int?,
     );
   }
 }

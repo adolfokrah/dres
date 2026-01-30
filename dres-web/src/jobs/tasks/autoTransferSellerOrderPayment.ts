@@ -171,7 +171,7 @@ export const autoTransferSellerOrderPaymentTask: TaskConfig = {
           payload.logger.info(`[SellerOrderPayment] Creating transfer recipient for seller ${sellerId}`)
 
           const recipientResult = await createTransferRecipient({
-            type: 'nuban',
+            type: 'mobile_money',
             name: withdrawalAccount.accountName || seller.shopName || seller.firstName || 'Seller',
             accountNumber: withdrawalAccount.accountNumber,
             bankCode: withdrawalAccount.bankCode,

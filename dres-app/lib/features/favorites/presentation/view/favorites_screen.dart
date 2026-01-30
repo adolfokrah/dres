@@ -182,7 +182,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         padding: const EdgeInsets.all(0),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.48,
+          childAspectRatio: 0.56,
         ),
         itemCount: filteredItems.length + (state.hasMore ? 2 : 0),
         itemBuilder: (context, index) {
@@ -211,6 +211,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             isBoosted: item.isBoosted,
             showWeLoveBadge: item.showWeLoveBadge,
             sellerId: item.sellerId,
+            totalStock: item.totalStock,
             onFavoriteToggle: (id, isFavorited) {
               if (!isFavorited) {
                 // Remove from favorites

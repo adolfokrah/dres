@@ -73,9 +73,32 @@ export const getMyFavorites: PayloadHandler = async (req) => {
           limit: 100,
         })
 
-        // Add SKUs to variation
+        // Ensure boost tiers are properly populated
+        // Join fields don't always populate nested relationships correctly
+        let fullStyle = style
+        const boostData = style?.boost
+        if (boostData?.docs && Array.isArray(boostData.docs)) {
+          const populatedBoosts = await Promise.all(
+            boostData.docs.map(async (boost: any) => {
+              if (boost?.tier && typeof boost.tier === 'string') {
+                // Tier is just an ID, need to fetch full tier
+                const tierResult = await payload.findByID({
+                  collection: 'boost-tiers',
+                  id: boost.tier,
+                  depth: 0,
+                })
+                return { ...boost, tier: tierResult }
+              }
+              return boost
+            })
+          )
+          fullStyle = { ...style, boost: { docs: populatedBoosts } }
+        }
+
+        // Add SKUs to variation with properly populated style
         const variationWithSKUs = {
           ...variation,
+          style: fullStyle,
           skus: { docs: skusResult.docs },
         }
 

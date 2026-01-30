@@ -323,7 +323,7 @@ export const Users: CollectionConfig = {
               type: 'group',
               name: 'withdrawalAccount',
               admin: {
-                description: 'Bank account details for receiving payments from sold items',
+                description: 'Mobile money account details for receiving payments from sold items',
               },
               fields: [
                 {
@@ -340,7 +340,7 @@ export const Users: CollectionConfig = {
                       name: 'accountNumber',
                       type: 'text',
                       admin: {
-                        description: 'Account number',
+                        description: 'Mobile money number',
                         width: '50%',
                       },
                     },
@@ -348,7 +348,7 @@ export const Users: CollectionConfig = {
                       name: 'bank',
                       type: 'text',
                       admin: {
-                        description: 'Bank or payment provider (e.g., MTN Mobile Money)',
+                        description: 'Mobile money provider (e.g., MTN Mobile Money)',
                         width: '50%',
                       },
                     },
@@ -361,7 +361,7 @@ export const Users: CollectionConfig = {
                       name: 'bankCode',
                       type: 'text',
                       admin: {
-                        description: 'Bank code from Paystack (e.g., 058 for GTBank)',
+                        description: 'Provider code from Paystack',
                         width: '50%',
                       },
                     },

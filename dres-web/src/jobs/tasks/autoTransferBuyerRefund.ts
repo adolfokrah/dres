@@ -123,7 +123,7 @@ export const autoTransferBuyerRefundTask: TaskConfig = {
           payload.logger.info(`[BuyerRefund] Creating transfer recipient for user ${userId}`)
 
           const recipientResult = await createTransferRecipient({
-            type: 'nuban',
+            type: 'mobile_money',
             name: withdrawalAccount.accountName || user.firstName || 'Customer',
             accountNumber: withdrawalAccount.accountNumber,
             bankCode: withdrawalAccount.bankCode,

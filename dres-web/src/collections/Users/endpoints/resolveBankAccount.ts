@@ -3,8 +3,11 @@ import { getBanks, resolveAccountNumber, createTransferRecipient } from '../../.
 import { User } from '../../../payload-types'
 
 /**
- * Get list of banks for a country
+ * Get list of mobile money providers for a country
  * GET /api/users/banks?country=ghana&currency=GHS
+ *
+ * Note: Returns only mobile money providers (MTN, Vodafone, AirtelTigo)
+ * for withdrawal accounts.
  */
 export const getBanksEndpoint: Endpoint = {
   path: '/banks',
@@ -23,16 +26,18 @@ export const getBanksEndpoint: Endpoint = {
         )
       }
 
-      // Return simplified bank list
-      const banks = result.data?.map(bank => ({
-        id: bank.id,
-        name: bank.name,
-        code: bank.code,
-        type: bank.type,
-        currency: bank.currency,
-        country: bank.country,
-        supportsTransfer: bank.supports_transfer,
-      })) || []
+      // Filter to only return mobile money providers
+      const banks = result.data
+        ?.filter(bank => bank.type === 'mobile_money' && bank.supports_transfer)
+        .map(bank => ({
+          id: bank.id,
+          name: bank.name,
+          code: bank.code,
+          type: bank.type,
+          currency: bank.currency,
+          country: bank.country,
+          supportsTransfer: bank.supports_transfer,
+        })) || []
 
       return Response.json({
         success: true,
@@ -148,7 +153,7 @@ export const saveWithdrawalAccountEndpoint: Endpoint = {
 
       // Create transfer recipient in Paystack
       const recipientResult = await createTransferRecipient({
-        type: 'nuban', // Bank account type
+        type: 'mobile_money', // Mobile money account type
         name: accountName,
         accountNumber: accountNumber,
         bankCode: bankCode,

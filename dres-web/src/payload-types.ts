@@ -543,7 +543,7 @@ export interface User {
     totalDocs?: number;
   };
   /**
-   * Bank account details for receiving payments from sold items
+   * Mobile money account details for receiving payments from sold items
    */
   withdrawalAccount?: {
     /**
@@ -551,15 +551,15 @@ export interface User {
      */
     accountName?: string | null;
     /**
-     * Account number
+     * Mobile money number
      */
     accountNumber?: string | null;
     /**
-     * Bank or payment provider (e.g., MTN Mobile Money)
+     * Mobile money provider (e.g., MTN Mobile Money)
      */
     bank?: string | null;
     /**
-     * Bank code from Paystack (e.g., 058 for GTBank)
+     * Provider code from Paystack
      */
     bankCode?: string | null;
     /**

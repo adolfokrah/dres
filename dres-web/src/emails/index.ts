@@ -54,6 +54,6 @@ export async function renderWelcomeEmail() {
 /**
  * Render the order placed email to HTML string
  */
-export function renderOrderPlacedEmail(props: OrderPlacedEmailProps) {
-  return render(OrderPlacedEmail(props))
+export async function renderOrderPlacedEmail(props: OrderPlacedEmailProps) {
+  return await render(OrderPlacedEmail(props))
 }
