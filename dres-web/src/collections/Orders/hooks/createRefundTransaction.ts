@@ -135,9 +135,10 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
       const itemSellerId = typeof item.seller === 'object' ? item.seller?.id : item.seller
 
       // Check if ALL items from this seller have the same refund status
-      // Shipping fee is only included when:
-      // 1. Buyer has BP
-      // 2. ALL items from seller are returned OR ALL items from seller are not_available
+      // Shipping fee is included when:
+      // 1. BP + ALL items returned
+      // 2. BP + ALL items not_available
+      // 3. ALL items not_available (regardless of BP - seller's fault)
       const sellerItems = currentItems.filter(i => {
         const sellerId = typeof i.seller === 'object' ? i.seller?.id : i.seller
         return sellerId === itemSellerId
@@ -145,15 +146,17 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
       const allSellerItemsReturned = sellerItems.every(i => i.shippingStatus === 'returned')
       const allSellerItemsNotAvailable = sellerItems.every(i => i.shippingStatus === 'not_available')
 
-      // Only include shipping fee if BP enabled AND (all returned OR all not_available)
-      const includeShipping = hasBuyerProtection && (allSellerItemsReturned || allSellerItemsNotAvailable)
+      // Include shipping if:
+      // - All items not_available (seller's fault, regardless of BP)
+      // - OR BP enabled and all items returned
+      const includeShipping = allSellerItemsNotAvailable || (hasBuyerProtection && allSellerItemsReturned)
       const shippingFee = includeShipping ? (item.shippingFee || 0) : 0
 
       let refundAmount: number
       let refundNotes: string
 
       if (hasBuyerProtection) {
-        // WITH BUYER PROTECTION: Full item price + shipping (only if all seller items refunded)
+        // WITH BUYER PROTECTION: Full item price + shipping (only if eligible)
         refundAmount = itemTotal + shippingFee
         if (includeShipping && shippingFee > 0) {
           refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Full refund (BP): Item ${itemTotal} + Shipping ${shippingFee} = ${refundAmount}`
@@ -161,11 +164,16 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
           refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Full refund (BP): Item ${itemTotal} = ${refundAmount}`
         }
       } else if (isNotAvailable) {
-        // NOT AVAILABLE (seller never shipped, no BP): Item - transaction fee (no shipping since no BP)
+        // NOT AVAILABLE (seller never shipped, no BP): Item + shipping (if all not_available) - transaction fee
         const feePercent = refundTransactionFeeRate * 100
-        const transactionFee = (itemTotal * refundTransactionFeeRate) + transferFee
-        refundAmount = Math.round((itemTotal - transactionFee) * 100) / 100
-        refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Not available: Item ${itemTotal} - Fee (${feePercent}% + 1): ${transactionFee.toFixed(2)} = ${refundAmount}`
+        const baseAmount = itemTotal + shippingFee
+        const transactionFee = (baseAmount * refundTransactionFeeRate) + transferFee
+        refundAmount = Math.round((baseAmount - transactionFee) * 100) / 100
+        if (shippingFee > 0) {
+          refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Not available: (Item ${itemTotal} + Shipping ${shippingFee}) - Fee (${feePercent}% + 1): ${transactionFee.toFixed(2)} = ${refundAmount}`
+        } else {
+          refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Not available: Item ${itemTotal} - Fee (${feePercent}% + 1): ${transactionFee.toFixed(2)} = ${refundAmount}`
+        }
       } else {
         // NO BUYER PROTECTION (actual return): Item price - transaction fee % - transfer fee (no shipping refund)
         const feePercent = refundTransactionFeeRate * 100
@@ -174,15 +182,17 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
         refundNotes = `Refund for "${item.variationTitle}" (Qty: ${item.quantity}). Return: Item ${itemTotal} - Fee (${feePercent}% + 1): ${transactionFee.toFixed(2)} = ${refundAmount}`
       }
 
-      const refundType = hasBuyerProtection ? 'BP' : (isNotAvailable ? 'Not Available' : 'Return')
-      payload.logger.info(`[Refund] ${item.variationTitle}: ${refundType} - Refund: ${refundAmount}, Shipping included: ${includeShipping}`)
-
       // Create refund transaction for customer
       // Calculate fees based on refund type
       let fees = 0
       if (!hasBuyerProtection) {
-        // Without BP: fee on item only (no shipping included)
-        fees = (itemTotal * refundTransactionFeeRate) + transferFee
+        if (isNotAvailable) {
+          // Not available without BP: fee on (item + shipping)
+          fees = ((itemTotal + shippingFee) * refundTransactionFeeRate) + transferFee
+        } else {
+          // Regular return without BP: fee on item only
+          fees = (itemTotal * refundTransactionFeeRate) + transferFee
+        }
       }
 
       await payload.create({
@@ -235,6 +245,51 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
             },
           },
         })
+      }
+
+      // Check if all seller items are now refundable and update existing refund to add shipping
+      // This handles the case where items are refunded one at a time
+      if (hasBuyerProtection && includeShipping) {
+        // Find existing refunds for this seller's items that don't have shipping yet
+        const sellerItemIds = sellerItems.map((si, idx) => si.id || `${doc.id}-${idx}`)
+        const itemWithShipping = sellerItems.find(si => (si.shippingFee || 0) > 0)
+
+        if (itemWithShipping && itemWithShipping.id !== item.id) {
+          const itemWithShippingId = itemWithShipping.id || `${doc.id}-${currentItems.indexOf(itemWithShipping)}`
+
+          // Find the existing refund for the item with shipping
+          const existingShippingRefund = await payload.find({
+            collection: 'transactions',
+            where: {
+              and: [
+                { order: { equals: doc.id } },
+                { type: { equals: 'refund' } },
+                { itemId: { equals: itemWithShippingId } },
+              ],
+            },
+            limit: 1,
+          })
+
+          if (existingShippingRefund.docs.length > 0) {
+            const refundDoc = existingShippingRefund.docs[0]
+            const existingAmount = refundDoc.amount as number
+            const shippingToAdd = itemWithShipping.shippingFee || 0
+            const expectedAmountWithShipping = (itemWithShipping.price * (itemWithShipping.quantity || 1)) + shippingToAdd
+
+            // Only update if shipping hasn't been added yet
+            if (existingAmount < expectedAmountWithShipping) {
+              await payload.update({
+                collection: 'transactions',
+                id: refundDoc.id,
+                data: {
+                  amount: expectedAmountWithShipping,
+                  notes: `Refund for "${itemWithShipping.variationTitle}" (Qty: ${itemWithShipping.quantity}). Full refund (BP): Item ${itemWithShipping.price * (itemWithShipping.quantity || 1)} + Shipping ${shippingToAdd} = ${expectedAmountWithShipping}`,
+                },
+              })
+              payload.logger.info(`[Refund] Updated existing refund to include shipping: ${shippingToAdd}`)
+            }
+          }
+        }
       }
     }
 

@@ -317,7 +317,7 @@ describe('Refund Transaction Creation Tests', () => {
   })
 
   describe('Item Not Available', () => {
-    it('creates refund when item marked as not_available', async () => {
+    it('creates refund with BP when item marked as not_available', async () => {
       const customer = await createTestUser()
       const seller = await createTestUser({ shopName: 'Test Shop' })
 
@@ -345,10 +345,42 @@ describe('Refund Transaction Creation Tests', () => {
       expect(refunds[0].amount).toBe(90)
       expect(refunds[0].fees).toBe(0)
     })
+
+    it('includes shipping in refund when not_available WITHOUT BP (seller fault)', async () => {
+      const customer = await createTestUser()
+      const seller = await createTestUser({ shopName: 'Test Shop' })
+
+      const order = await createTestOrder(customer.id, [
+        {
+          seller: seller.id,
+          price: 100,
+          originalPrice: 80,
+          shippingFee: 15,
+          buyerProtection: false, // No BP
+          shippingStatus: 'placed',
+        },
+      ])
+
+      await createDepositTransaction(customer.id, order.id, 115)
+
+      // Mark as not available (seller's fault)
+      await updateOrderItemStatus(order.id, 0, 'not_available')
+
+      const refunds = await getRefundTransactions(order.id, customer.id)
+
+      expect(refunds).toHaveLength(1)
+      // Without BP but not_available: (item 100 + shipping 15) - fees
+      // Refund should include shipping because it's seller's fault
+      // Fee = (100 + 15) * 5% + 1 = 5.75 + 1 = 6.75
+      // Refund = 115 - 6.75 = 108.25
+      expect(refunds[0].amount).toBeGreaterThan(100) // Must include some shipping
+      expect(refunds[0].amount).toBeLessThan(115) // But fees are deducted
+      expect(refunds[0].fees).toBeGreaterThan(0)
+    })
   })
 
   describe('Multiple Items - Partial Return', () => {
-    it('creates refund only for returned items', async () => {
+    it('creates refund only for returned items (no shipping when partial)', async () => {
       const customer = await createTestUser()
       const seller = await createTestUser({ shopName: 'Test Shop' })
 
@@ -387,6 +419,139 @@ describe('Refund Transaction Creation Tests', () => {
       // First item refund with BP but NOT all seller items refunded: item price only (no shipping)
       // Shipping is only included when ALL items from the seller are refunded
       expect(refunds[0].amount).toBe(100)
+    })
+
+    it('includes shipping when ALL items from seller are returned with BP', async () => {
+      const customer = await createTestUser()
+      const seller = await createTestUser({ shopName: 'Test Shop' })
+
+      // Two items, same seller
+      const order = await createTestOrder(customer.id, [
+        {
+          seller: seller.id,
+          price: 100,
+          originalPrice: 80,
+          shippingFee: 15, // Shipping on first item
+          buyerProtection: true,
+          buyerProtectionFee: 8,
+          shippingStatus: 'placed',
+        },
+        {
+          seller: seller.id,
+          price: 50,
+          originalPrice: 40,
+          shippingFee: 0,
+          buyerProtection: true,
+          buyerProtectionFee: 4,
+          shippingStatus: 'placed',
+        },
+      ])
+
+      await createDepositTransaction(customer.id, order.id, 177)
+
+      // Return BOTH items
+      await updateOrderItemStatus(order.id, 0, 'returned')
+      await updateOrderItemStatus(order.id, 1, 'returned')
+
+      const refunds = await getRefundTransactions(order.id, customer.id)
+
+      expect(refunds).toHaveLength(2)
+
+      // Sort by amount to get predictable order
+      const sortedRefunds = [...refunds].sort((a, b) => (a.amount as number) - (b.amount as number))
+
+      // Second item: 50 (no shipping on this item)
+      expect(sortedRefunds[0].amount).toBe(50)
+      // First item: 100 + 15 shipping = 115 (shipping included because ALL items returned)
+      expect(sortedRefunds[1].amount).toBe(115)
+    })
+
+    it('includes shipping when ALL items from seller are not_available with BP', async () => {
+      const customer = await createTestUser()
+      const seller = await createTestUser({ shopName: 'Test Shop' })
+
+      // Two items, same seller
+      const order = await createTestOrder(customer.id, [
+        {
+          seller: seller.id,
+          price: 100,
+          originalPrice: 80,
+          shippingFee: 15,
+          buyerProtection: true,
+          buyerProtectionFee: 8,
+          shippingStatus: 'placed',
+        },
+        {
+          seller: seller.id,
+          price: 50,
+          originalPrice: 40,
+          shippingFee: 0,
+          buyerProtection: true,
+          buyerProtectionFee: 4,
+          shippingStatus: 'placed',
+        },
+      ])
+
+      await createDepositTransaction(customer.id, order.id, 177)
+
+      // Mark BOTH items as not available
+      await updateOrderItemStatus(order.id, 0, 'not_available')
+      await updateOrderItemStatus(order.id, 1, 'not_available')
+
+      const refunds = await getRefundTransactions(order.id, customer.id)
+
+      expect(refunds).toHaveLength(2)
+
+      const sortedRefunds = [...refunds].sort((a, b) => (a.amount as number) - (b.amount as number))
+
+      // Second item: 50 (no shipping on this item)
+      expect(sortedRefunds[0].amount).toBe(50)
+      // First item: 100 + 15 shipping = 115 (shipping included because ALL items not_available)
+      expect(sortedRefunds[1].amount).toBe(115)
+    })
+
+    it('does NOT include shipping when mix of returned and not_available with BP', async () => {
+      const customer = await createTestUser()
+      const seller = await createTestUser({ shopName: 'Test Shop' })
+
+      // Two items, same seller
+      const order = await createTestOrder(customer.id, [
+        {
+          seller: seller.id,
+          price: 100,
+          originalPrice: 80,
+          shippingFee: 15,
+          buyerProtection: true,
+          buyerProtectionFee: 8,
+          shippingStatus: 'placed',
+        },
+        {
+          seller: seller.id,
+          price: 50,
+          originalPrice: 40,
+          shippingFee: 0,
+          buyerProtection: true,
+          buyerProtectionFee: 4,
+          shippingStatus: 'placed',
+        },
+      ])
+
+      await createDepositTransaction(customer.id, order.id, 177)
+
+      // One returned, one not_available (mix)
+      await updateOrderItemStatus(order.id, 0, 'returned')
+      await updateOrderItemStatus(order.id, 1, 'not_available')
+
+      const refunds = await getRefundTransactions(order.id, customer.id)
+
+      expect(refunds).toHaveLength(2)
+
+      const sortedRefunds = [...refunds].sort((a, b) => (a.amount as number) - (b.amount as number))
+
+      // Second item: 50 (no shipping)
+      expect(sortedRefunds[0].amount).toBe(50)
+      // First item: 100 only (NO shipping because it's a MIX of returned and not_available)
+      expect(sortedRefunds[1].amount).toBe(100)
     })
 
   })
