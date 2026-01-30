@@ -207,7 +207,7 @@ describe('Seller Payout Calculation Tests', () => {
       // Platform fees = sellingPrice (100) - originalPrice (80) = 20
       expect(orderPayment?.fees).toBe(20)
       expect(orderPayment?.type).toBe('order_payment')
-      expect(orderPayment?.status).toBe('completed')
+      expect(orderPayment?.status).toBe('pending') // Becomes 'completed' after 6 hours via cron job
     })
 
     it('calculates platform fees as selling price minus original price', async () => {

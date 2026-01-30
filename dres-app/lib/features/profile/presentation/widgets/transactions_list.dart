@@ -564,7 +564,7 @@ class _TransactionCard extends StatelessWidget {
                 CurrencyUtils.format(transaction.amount, symbol: transaction.currencySymbol),
                 style: AppTypography.bodyM.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: transaction.amount < 0 ? Colors.red : AppColors.textPrimary,
                   decoration: isCancelled ? TextDecoration.lineThrough : null,
                 ),
               ),
