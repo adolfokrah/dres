@@ -3,14 +3,15 @@ import type { TaskConfig } from 'payload'
 /**
  * Complete Order Payments Task
  *
- * Marks pending order_payment transactions as completed after 6 hours.
+ * Marks pending order_payment transactions as completed after 5 minutes.
  * This delay ensures orders are finalized before funds become available for withdrawal.
  *
- * Schedule: Twice daily at 6 AM and 6 PM
+ * Schedule: Every 5 minutes (for testing)
+ * TODO: Change back to '0 6,18 * * *' (6 AM and 6 PM) and 6 hours delay for production
  *
  * Flow:
  * 1. Find all order_payment transactions with 'pending' status
- * 2. Filter to only those created more than 6 hours ago
+ * 2. Filter to only those created more than 5 minutes ago
  * 3. Update status to 'completed'
  */
 
@@ -24,7 +25,7 @@ export const completeOrderPaymentsTask: TaskConfig = {
   ],
   schedule: [
     {
-      cron: '0 6,18 * * *', // Run twice daily at 6 AM and 6 PM
+      cron: '*/8 * * * *', // Every 5 minutes (for testing)
       queue: 'default',
     },
   ],
@@ -41,12 +42,12 @@ export const completeOrderPaymentsTask: TaskConfig = {
 
     payload.logger.info('[CompleteOrderPayments] Starting complete order payments task')
 
-    // Calculate cutoff time (6 hours ago)
+    // Calculate cutoff time (5 minutes ago for testing)
     const cutoffTime = new Date()
-    cutoffTime.setHours(cutoffTime.getHours() - 6)
+    cutoffTime.setMinutes(cutoffTime.getMinutes() - 5)
 
     try {
-      // Find all pending order_payment transactions created more than 6 hours ago
+      // Find all pending order_payment transactions created more than 5 minutes ago
       const pendingTransactions = await payload.find({
         collection: 'transactions',
         where: {

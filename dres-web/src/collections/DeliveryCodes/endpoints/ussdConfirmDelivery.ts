@@ -84,6 +84,8 @@ export const ussdConfirmDelivery: PayloadHandler = async (req) => {
         collection: 'delivery-codes' as any,
         where: { phone: { contains: phone } },
         limit: 1,
+        depth: 0,
+        select: { id: true },
       })
 
       if (deliveryCodes.docs.length === 0) {
@@ -126,7 +128,8 @@ export const ussdConfirmDelivery: PayloadHandler = async (req) => {
           ],
         },
         limit: 1,
-        depth: 1,
+        depth: 0,
+        select: { id: true, order: true, seller: true, items: true, phone: true },
       })
 
       if (deliveryCodeResult.docs.length === 0) {
@@ -146,7 +149,8 @@ export const ussdConfirmDelivery: PayloadHandler = async (req) => {
       const order = await payload.findByID({
         collection: 'orders',
         id: orderId,
-        depth: 1,
+        depth: 0,
+        select: { orderId: true, items: true, status: true, shippingDetails: true },
       })
 
       if (!order) {
@@ -194,30 +198,31 @@ export const ussdConfirmDelivery: PayloadHandler = async (req) => {
         newStatus = 'in_progress'
       }
 
-      // Update order
-      await payload.update({
-        collection: 'orders',
-        id: orderId,
-        data: { items: updatedItems, status: newStatus },
-      })
-
-      // Delete delivery code
-      await payload.delete({
-        collection: 'delivery-codes' as any,
-        id: deliveryCode.id,
-      })
-
-      // Clean up session
-      sessions.delete(sessionID)
-
-      // Get customer info
+      // Get customer info before async operations
       const customerName = (order.shippingDetails as any)?.fullName || 'Customer'
       const customerPhone = deliveryCode.phone
+      const orderNumber = order.orderId
 
-      payload.logger.info(`USSD Delivery confirmed: Order ${order.orderId}, ${deliveredCount} items`)
+      // Clean up session immediately
+      sessions.delete(sessionID)
+
+      // Run update and delete in parallel
+      await Promise.all([
+        payload.update({
+          collection: 'orders',
+          id: orderId,
+          data: { items: updatedItems, status: newStatus },
+        }),
+        payload.delete({
+          collection: 'delivery-codes' as any,
+          id: deliveryCode.id,
+        }),
+      ])
+
+      payload.logger.info(`USSD Delivery confirmed: Order ${orderNumber}, ${deliveredCount} items`)
 
       return Response.json({
-        message: `Delivery Confirmed!\n\nOrder: ${order.orderId}\nCustomer: ${customerName}\nPhone: ${customerPhone}\n\n${deliveredCount} item(s) delivered.`,
+        message: `Delivery Confirmed!\n\nOrder: ${orderNumber}\nCustomer: ${customerName}\nPhone: ${customerPhone}\n\n${deliveredCount} item(s) delivered.`,
         ussdServiceOp: 17, // End session
       } as UssdResponse)
     }

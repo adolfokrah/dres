@@ -35,7 +35,7 @@ export default function DeliveryConfirmPage() {
         <div className="text-center text-sm text-gray-500 space-y-2">
           <p>The customer will provide their delivery PIN upon receiving their order.</p>
           <p className="text-xs">
-            Having issues? Try using USSD: <strong>*920*106#</strong>
+            Having issues? Try using USSD: <strong>*426*130#</strong>
           </p>
         </div>
       </div>

@@ -3,7 +3,7 @@ import type { TaskConfig } from 'payload'
 /**
  * Auto Return Stale Orders Task
  *
- * Automatically returns order items that have been in 'placed' status for more than 5 hours.
+ * Automatically returns order items that have been in 'placed' status for more than 24 hours.
  * When this happens:
  * 1. Item status is set to 'not_available' (triggers refund via existing hook)
  * 2. Seller receives a sanction for late shipment
@@ -35,12 +35,12 @@ export const autoReturnStaleOrdersTask: TaskConfig = {
     let itemsReturned = 0
     let sellersSanctioned = 0
 
-    // Calculate 5 hours ago (temporarily reduced from 5 hours for testing)
+    // Calculate 24 hours ago
     const staleThreshold = new Date()
-    staleThreshold.setHours(staleThreshold.getHours() - 5)
+    staleThreshold.setHours(staleThreshold.getHours() - 24)
 
     try {
-      // Find orders with items that are still 'placed' and were placed more than 5 hours ago
+      // Find orders with items that are still 'placed' and were placed more than 24 hours ago
       const orders = await payload.find({
         collection: 'orders',
         where: {
@@ -66,13 +66,13 @@ export const autoReturnStaleOrdersTask: TaskConfig = {
         const statusLogEntry = {
           status: 'not_available',
           timestamp: new Date().toISOString(),
-          note: 'Auto-returned: Seller did not ship within 5 hours',
+          note: 'Auto-returned: Seller did not ship within 24 hours',
         }
 
         const updatedItems = items.map((item: any, index: number) => {
-          // Check if this specific item is stale (placed and order is older than 5 hours)
+          // Check if this specific item is stale (placed and order is older than 24 hours)
           if (item.shippingStatus === 'placed') {
-            // Check if item has a status log with 'placed' timestamp older than 5 hours
+            // Check if item has a status log with 'placed' timestamp older than 24 hours
             const placedLog = item.statusLogs?.find((log: any) => log.status === 'placed')
             const itemPlacedAt = placedLog?.timestamp ? new Date(placedLog.timestamp) : new Date(order.placedAt || order.createdAt)
 
@@ -129,7 +129,7 @@ export const autoReturnStaleOrdersTask: TaskConfig = {
               data: {
                 user: customerId,
                 type: 'system',
-                message: `Some items in your order ${order.orderId} were not shipped by the seller within 5 hours. A refund has been initiated.`,
+                message: `Some items in your order ${order.orderId} were not shipped by the seller within 24 hours. A refund has been initiated.`,
                 path: `/purchases/${order.id}`,
                 metadata: {
                   orderId: order.id,
@@ -151,7 +151,7 @@ export const autoReturnStaleOrdersTask: TaskConfig = {
             data: {
               seller: sellerId,
               reason: 'late_shipment',
-              notes: `Order ${data.orderId}: ${itemCount} item(s) not shipped within 5 hours. Auto-refunded to buyer.`,
+              notes: `Order ${data.orderId}: ${itemCount} item(s) not shipped within 24 hours. Auto-refunded to buyer.`,
             },
           })
 
