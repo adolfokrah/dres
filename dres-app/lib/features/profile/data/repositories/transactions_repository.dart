@@ -39,8 +39,21 @@ class TransactionsRepository {
     final result = UserTransactionsResponse.fromJson(response.data);
     
     debugPrint('💰 TransactionsRepository: Parsed ${result.transactions.length} transactions');
-    debugPrint('💰 Total Earned: ${result.totalEarned}, Upcoming Payments: ${result.upcomingPayments}');
-    
+    debugPrint('💰 Total Earned: ${result.totalEarned}, Available Balance: ${result.availableBalance}');
+
     return result;
+  }
+
+  /// Request withdrawal of available balance
+  /// Returns the withdrawal response with transfer details
+  Future<WithdrawalResponse> requestWithdrawal() async {
+    final response = await _apiService.post(
+      '/users/request-withdrawal',
+      data: {},
+    );
+
+    debugPrint('💰 TransactionsRepository: Withdrawal response: ${response.data}');
+
+    return WithdrawalResponse.fromJson(response.data);
   }
 }

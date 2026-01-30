@@ -174,7 +174,7 @@ export const createRefundTransaction: CollectionAfterChangeHook = async ({
         data: {
           transactionId: generateTransactionId(),
           type: 'refund',
-          status: 'pending',
+          status: 'completed', // Immediately available in user's balance for manual withdrawal
           user: customerId,
           order: doc.id,
           itemId: itemId,

@@ -12,6 +12,7 @@ import { getUserStats } from './endpoints/getUserStats'
 import { updateEmail, resendVerification } from './endpoints/updateEmail'
 import { getBanksEndpoint, resolveAccountEndpoint, saveWithdrawalAccountEndpoint } from './endpoints/resolveBankAccount'
 import { getSellerEligibility } from './endpoints/sellerEligibility'
+import { requestWithdrawal } from './endpoints/requestWithdrawal'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -92,6 +93,11 @@ export const Users: CollectionConfig = {
     getBanksEndpoint,
     resolveAccountEndpoint,
     saveWithdrawalAccountEndpoint,
+    {
+      path: '/request-withdrawal',
+      method: 'post',
+      handler: requestWithdrawal,
+    },
   ],
   fields: [
     {

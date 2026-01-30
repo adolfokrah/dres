@@ -19,10 +19,10 @@ interface PaystackTransferData {
 }
 
 /**
- * Handle successful transfer - update transaction and notify seller
+ * Handle successful transfer - update transaction status
  *
- * This updates the existing transaction created by processSellerTransfer
- * from 'in_progress' to 'completed' and sends a notification to the seller
+ * This updates the existing transaction from 'in_progress' to 'completed'.
+ * Notification is handled by the transaction afterChange hook.
  */
 export async function handleTransferSuccess(
   payload: Payload,
@@ -72,22 +72,7 @@ export async function handleTransferSuccess(
 
   payload.logger.info(`🔔 handleTransferSuccess: Transfer ${reference} verified as successful`)
 
-  // Get transaction amount and currency
-  const amount = Math.abs(transaction.amount) // Transfers are negative amounts
-  const currencyId = typeof transaction.currency === 'object' && transaction.currency ? transaction.currency.id : transaction.currency
-
-  // Get currency symbol
-  let currencySymbol = '₵'
-  if (currencyId) {
-    const currency = await payload.findByID({
-      collection: 'currencies',
-      id: currencyId,
-      depth: 0,
-    })
-    currencySymbol = currency?.symbol || '₵'
-  }
-
-  // Update transaction status to completed
+  // Update transaction status to completed (notification handled by afterChange hook)
   await payload.update({
     collection: 'transactions',
     id: transaction.id,
@@ -98,26 +83,4 @@ export async function handleTransferSuccess(
   })
 
   payload.logger.info(`🔔 handleTransferSuccess: Transaction ${reference} marked as completed`)
-
-  // Get user ID
-  const userId = typeof transaction.user === 'object' && transaction.user ? transaction.user.id : transaction.user
-
-  if (!userId) {
-    payload.logger.error(`🔔 handleTransferSuccess: No user linked to transaction ${reference}`)
-    return
-  }
-
-  // Create notification for seller
-  await payload.create({
-    collection: 'notifications',
-    data: {
-      user: userId,
-      type: 'system',
-      message: `An amount of ${currencySymbol}${amount.toFixed(2)} has been transferred to your withdrawal account 💰`,
-      path: `/profile?tab=transactions`,
-      read: false,
-    },
-  })
-
-  payload.logger.info(`🔔 handleTransferSuccess: Notification sent to user ${userId}`)
 }

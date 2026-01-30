@@ -125,7 +125,10 @@ class TransactionModel {
 /// User transactions response with pagination and summaries
 class UserTransactionsResponse {
   final double totalEarned;
-  final double upcomingPayments;
+  final double availableBalance;
+  final double withdrawalFee;
+  final double minimumWithdrawalAmount;
+  final bool hasWithdrawalAccount;
   final String currencySymbol;
   final List<TransactionModel> transactions;
   final int totalDocs;
@@ -137,7 +140,10 @@ class UserTransactionsResponse {
 
   UserTransactionsResponse({
     required this.totalEarned,
-    required this.upcomingPayments,
+    required this.availableBalance,
+    required this.withdrawalFee,
+    required this.minimumWithdrawalAmount,
+    required this.hasWithdrawalAccount,
     required this.currencySymbol,
     required this.transactions,
     required this.totalDocs,
@@ -151,7 +157,10 @@ class UserTransactionsResponse {
   factory UserTransactionsResponse.fromJson(Map<String, dynamic> json) {
     return UserTransactionsResponse(
       totalEarned: (json['totalEarned'] ?? 0).toDouble(),
-      upcomingPayments: (json['upcomingPayments'] ?? 0).toDouble(),
+      availableBalance: (json['availableBalance'] ?? 0).toDouble(),
+      withdrawalFee: (json['withdrawalFee'] ?? 1).toDouble(),
+      minimumWithdrawalAmount: (json['minimumWithdrawalAmount'] ?? 5).toDouble(),
+      hasWithdrawalAccount: json['hasWithdrawalAccount'] ?? false,
       currencySymbol: json['currencySymbol'] ?? '₵',
       transactions: (json['transactions'] as List<dynamic>?)
               ?.map((e) => TransactionModel.fromJson(e))
@@ -163,6 +172,39 @@ class UserTransactionsResponse {
       limit: json['limit'] ?? 10,
       hasNextPage: json['hasNextPage'] ?? false,
       hasPrevPage: json['hasPrevPage'] ?? false,
+    );
+  }
+}
+
+/// Withdrawal response model
+class WithdrawalResponse {
+  final bool success;
+  final String message;
+  final String transactionId;
+  final double amount;
+  final double fee;
+  final double previousBalance;
+  final double newBalance;
+
+  WithdrawalResponse({
+    required this.success,
+    required this.message,
+    required this.transactionId,
+    required this.amount,
+    required this.fee,
+    required this.previousBalance,
+    required this.newBalance,
+  });
+
+  factory WithdrawalResponse.fromJson(Map<String, dynamic> json) {
+    return WithdrawalResponse(
+      success: json['success'] ?? false,
+      message: json['message'] ?? '',
+      transactionId: json['transactionId'] ?? '',
+      amount: (json['amount'] ?? 0).toDouble(),
+      fee: (json['fee'] ?? 0).toDouble(),
+      previousBalance: (json['previousBalance'] ?? 0).toDouble(),
+      newBalance: (json['newBalance'] ?? 0).toDouble(),
     );
   }
 }

@@ -236,13 +236,12 @@ export interface Config {
       autoReturnStaleOrders: TaskAutoReturnStaleOrders;
       autoReturnStaleDeliveries: TaskAutoReturnStaleDeliveries;
       draftReminder: TaskDraftReminder;
-      autoTransferBuyerRefund: TaskAutoTransferBuyerRefund;
-      autoTransferSellerOrderPayment: TaskAutoTransferSellerOrderPayment;
       reviewNotifications: TaskReviewNotifications;
       savedSearchNotifications: TaskSavedSearchNotifications;
       abandonedCartReminder: TaskAbandonedCartReminder;
       joinDresPush: TaskJoinDresPush;
       onSalePromoPush: TaskOnSalePromoPush;
+      completeOrderPayments: TaskCompleteOrderPayments;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
@@ -2801,13 +2800,12 @@ export interface PayloadJob {
           | 'autoReturnStaleOrders'
           | 'autoReturnStaleDeliveries'
           | 'draftReminder'
-          | 'autoTransferBuyerRefund'
-          | 'autoTransferSellerOrderPayment'
           | 'reviewNotifications'
           | 'savedSearchNotifications'
           | 'abandonedCartReminder'
           | 'joinDresPush'
           | 'onSalePromoPush'
+          | 'completeOrderPayments'
           | 'schedulePublish';
         taskID: string;
         input?:
@@ -2847,13 +2845,12 @@ export interface PayloadJob {
         | 'autoReturnStaleOrders'
         | 'autoReturnStaleDeliveries'
         | 'draftReminder'
-        | 'autoTransferBuyerRefund'
-        | 'autoTransferSellerOrderPayment'
         | 'reviewNotifications'
         | 'savedSearchNotifications'
         | 'abandonedCartReminder'
         | 'joinDresPush'
         | 'onSalePromoPush'
+        | 'completeOrderPayments'
         | 'schedulePublish'
       )
     | null;
@@ -4522,6 +4519,38 @@ export interface SiteSetting {
    * Enable or disable the rewards points system
    */
   pointsEnabled?: boolean | null;
+  /**
+   * Set withdrawal transfer fees per country. If a country is not listed, the default fee of 1 GHS will be used.
+   */
+  withdrawalFees?:
+    | {
+        /**
+         * Country to apply these fees to
+         */
+        country: string | Country;
+        /**
+         * Fixed fee for mobile money withdrawals (in local currency)
+         */
+        mobileMoneyFee: number;
+        /**
+         * Fixed fee for bank account withdrawals (in local currency)
+         */
+        bankTransferFee: number;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Default mobile money transfer fee when country is not configured (in GHS)
+   */
+  defaultMobileMoneyFee: number;
+  /**
+   * Default bank transfer fee when country is not configured (in GHS)
+   */
+  defaultBankTransferFee: number;
+  /**
+   * Minimum amount required to withdraw (in GHS). User balance must be at least this amount.
+   */
+  minimumWithdrawalAmount: number;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -4647,6 +4676,17 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   pointsRedemptionRate?: T;
   pointsMultiplier?: T;
   pointsEnabled?: T;
+  withdrawalFees?:
+    | T
+    | {
+        country?: T;
+        mobileMoneyFee?: T;
+        bankTransferFee?: T;
+        id?: T;
+      };
+  defaultMobileMoneyFee?: T;
+  defaultBankTransferFee?: T;
+  minimumWithdrawalAmount?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -4694,30 +4734,6 @@ export interface TaskDraftReminder {
   output: {
     sellersNotified?: number | null;
     sellersSkipped?: number | null;
-  };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskAutoTransferBuyerRefund".
- */
-export interface TaskAutoTransferBuyerRefund {
-  input?: unknown;
-  output: {
-    transactionsProcessed?: number | null;
-    transfersInitiated?: number | null;
-    skipped?: number | null;
-  };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskAutoTransferSellerOrderPayment".
- */
-export interface TaskAutoTransferSellerOrderPayment {
-  input?: unknown;
-  output: {
-    sellersProcessed?: number | null;
-    transfersInitiated?: number | null;
-    skipped?: number | null;
   };
 }
 /**
@@ -4774,6 +4790,16 @@ export interface TaskOnSalePromoPush {
   output: {
     successCount?: number | null;
     failureCount?: number | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskCompleteOrderPayments".
+ */
+export interface TaskCompleteOrderPayments {
+  input?: unknown;
+  output: {
+    transactionsCompleted?: number | null;
   };
 }
 /**

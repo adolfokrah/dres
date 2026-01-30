@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dres/core/services/api_service.dart';
 import 'package:dres/features/profile/data/repositories/transactions_repository.dart';
 import 'transactions_event.dart';
 import 'transactions_state.dart';
@@ -20,6 +21,7 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     on<TransactionsRefreshRequested>(_onRefreshRequested);
     on<TransactionsFilterChanged>(_onFilterChanged);
     on<TransactionsClearRequested>(_onClearRequested);
+    on<WithdrawalRequested>(_onWithdrawalRequested);
   }
 
   Future<void> _onFetchRequested(
@@ -49,7 +51,10 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
         status: TransactionsStatus.success,
         transactions: response.transactions,
         totalEarned: response.totalEarned,
-        upcomingPayments: response.upcomingPayments,
+        availableBalance: response.availableBalance,
+        withdrawalFee: response.withdrawalFee,
+        minimumWithdrawalAmount: response.minimumWithdrawalAmount,
+        hasWithdrawalAccount: response.hasWithdrawalAccount,
         currencySymbol: response.currencySymbol,
         hasMore: response.hasNextPage,
         currentPage: response.page,
@@ -114,5 +119,42 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
     Emitter<TransactionsState> emit,
   ) {
     emit(const TransactionsState());
+  }
+
+  Future<void> _onWithdrawalRequested(
+    WithdrawalRequested event,
+    Emitter<TransactionsState> emit,
+  ) async {
+    emit(state.copyWith(
+      withdrawalStatus: WithdrawalStatus.loading,
+      clearWithdrawalError: true,
+      clearWithdrawalMessage: true,
+    ));
+
+    try {
+      debugPrint('💰 Requesting withdrawal...');
+      final response = await _transactionsRepository.requestWithdrawal();
+      debugPrint('💰 Withdrawal successful: ${response.message}');
+
+      emit(state.copyWith(
+        withdrawalStatus: WithdrawalStatus.success,
+        withdrawalMessage: response.message,
+        availableBalance: response.newBalance,
+      ));
+
+      // Refresh transactions to show the new transfer
+      add(const TransactionsRefreshRequested());
+    } catch (e, stackTrace) {
+      debugPrint('💰 Error requesting withdrawal: $e');
+      debugPrint('💰 Stack trace: $stackTrace');
+
+      // Extract user-friendly error message from API response
+      final errorMessage = getErrorMessage(e);
+
+      emit(state.copyWith(
+        withdrawalStatus: WithdrawalStatus.error,
+        withdrawalError: errorMessage,
+      ));
+    }
   }
 }

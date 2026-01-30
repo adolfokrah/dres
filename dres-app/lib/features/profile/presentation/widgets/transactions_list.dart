@@ -57,10 +57,231 @@ class _TransactionsListState extends State<TransactionsList> {
     );
   }
 
+  void _showWithdrawalSheet(TransactionsState state) {
+    final balance = state.availableBalance;
+    final fee = state.withdrawalFee;
+    final withdrawAmount = balance - fee;
+    final symbol = state.currencySymbol;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
+      builder: (sheetContext) => BlocBuilder<TransactionsBloc, TransactionsState>(
+        bloc: _transactionsBloc,
+        builder: (context, currentState) {
+          final isCurrentlyWithdrawing = currentState.withdrawalStatus == WithdrawalStatus.loading;
+
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 24,
+              right: 24,
+              top: 24,
+              bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Handle bar
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    color: AppColors.secondary,
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Title
+                Text(
+                  'Withdraw Funds',
+                  style: AppTypography.titleL.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+
+                // Invoice-style breakdown
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  color: AppColors.secondary.withValues(alpha: 0.5),
+                  child: Column(
+                    children: [
+                      // Available Balance row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Available Balance',
+                            style: AppTypography.bodyM.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          Text(
+                            CurrencyUtils.format(balance, symbol: symbol),
+                            style: AppTypography.bodyM.copyWith(
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Transfer Fee row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Transfer Fee',
+                            style: AppTypography.bodyM.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          Text(
+                            '- ${CurrencyUtils.format(fee, symbol: symbol)}',
+                            style: AppTypography.bodyM.copyWith(
+                              color: AppColors.textHint,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Divider
+                      const Divider(height: 1),
+                      const SizedBox(height: 12),
+
+                      // You Will Receive row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'You Will Receive',
+                            style: AppTypography.bodyM.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            CurrencyUtils.format(withdrawAmount, symbol: symbol),
+                            style: AppTypography.bodyL.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Action buttons
+                Row(
+                  children: [
+                    // Cancel button
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: isCurrentlyWithdrawing
+                            ? null
+                            : () => Navigator.of(sheetContext).pop(),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: const BorderSide(color: AppColors.secondary),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.zero,
+                          ),
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: AppTypography.bodyM.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    // Withdraw button
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: isCurrentlyWithdrawing
+                            ? null
+                            : () {
+                                Navigator.of(sheetContext).pop();
+                                _transactionsBloc.add(const WithdrawalRequested());
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.zero,
+                          ),
+                        ),
+                        child: isCurrentlyWithdrawing
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                'Withdraw',
+                                style: AppTypography.bodyM.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TransactionsBloc, TransactionsState>(
+    return BlocConsumer<TransactionsBloc, TransactionsState>(
       bloc: _transactionsBloc,
+      listenWhen: (previous, current) {
+        // Only listen when withdrawal status changes from loading to success/error
+        return previous.withdrawalStatus != current.withdrawalStatus;
+      },
+      listener: (context, state) {
+        // Show feedback for withdrawal status changes
+        if (state.withdrawalStatus == WithdrawalStatus.success &&
+            state.withdrawalMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.withdrawalMessage!),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else if (state.withdrawalStatus == WithdrawalStatus.error &&
+            state.withdrawalError != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.withdrawalError!),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
       builder: (context, state) {
         return NotificationListener<ScrollNotification>(
           onNotification: (notification) {
@@ -94,6 +315,8 @@ class _TransactionsListState extends State<TransactionsList> {
   }
 
   Widget _buildSummaryHeader(TransactionsState state) {
+    final canWithdraw = state.availableBalance >= state.minimumWithdrawalAmount;
+
     return Container(
       decoration: const BoxDecoration(
         border: Border(
@@ -144,34 +367,52 @@ class _TransactionsListState extends State<TransactionsList> {
                 ),
               ),
             ),
-            // Upcoming Payments
+            // Available Balance - tap to withdraw
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            CurrencyUtils.formatCompact(state.upcomingPayments, symbol: state.currencySymbol),
-                            style: AppTypography.bodyL.copyWith(
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Up coming payments',
-                            style: AppTypography.bodyM.copyWith(
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ],
+              child: GestureDetector(
+                onTap: canWithdraw ? () => _showWithdrawalSheet(state) : null,
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  color: Colors.transparent,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        CurrencyUtils.formatCompact(state.availableBalance, symbol: state.currencySymbol),
+                        style: AppTypography.bodyL.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        'Available balance',
+                        style: AppTypography.bodyM.copyWith(
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      if (canWithdraw) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Tap to withdraw',
+                          style: AppTypography.bodyS.copyWith(
+                            color: AppColors.primary,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ] else if (state.availableBalance > 0) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Min. ${CurrencyUtils.format(state.minimumWithdrawalAmount, symbol: state.currencySymbol)} to withdraw',
+                          style: AppTypography.bodyS.copyWith(
+                            color: AppColors.textHint,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -344,7 +585,13 @@ class _TransactionCard extends StatelessWidget {
 
   String _getTransactionTitle() {
     if (transaction.type == TransactionType.transfer) {
-      return 'Transfer to account';
+      return 'Withdrawal';
+    }
+    if (transaction.type == TransactionType.refund) {
+      if (transaction.orderDisplayId.isNotEmpty) {
+        return 'Refund - Order #${transaction.orderDisplayId}';
+      }
+      return 'Refund';
     }
     if (transaction.orderDisplayId.isNotEmpty) {
       return 'Order #${transaction.orderDisplayId}';
@@ -356,6 +603,10 @@ class _TransactionCard extends StatelessWidget {
     // For transfers, show arrow up (money going out)
     if (transaction.type == TransactionType.transfer) {
       return PhosphorIcons.arrowUp();
+    }
+    // For refunds, show arrow down (money coming in)
+    if (transaction.type == TransactionType.refund) {
+      return PhosphorIcons.arrowDown();
     }
     switch (transaction.status) {
       case TransactionStatus.cancelled:

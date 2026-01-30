@@ -49,3 +49,8 @@ class TransactionsFilterChanged extends TransactionsEvent {
 class TransactionsClearRequested extends TransactionsEvent {
   const TransactionsClearRequested();
 }
+
+/// Request withdrawal of available balance
+class WithdrawalRequested extends TransactionsEvent {
+  const WithdrawalRequested();
+}

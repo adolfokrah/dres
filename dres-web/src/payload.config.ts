@@ -60,14 +60,13 @@ import { Users } from './collections/Users'
 // Scheduled Tasks
 import { autoReturnStaleOrdersTask } from './jobs/tasks/autoReturnStaleOrders'
 import { draftReminderTask } from './jobs/tasks/draftReminder'
-import { autoTransferBuyerRefundTask } from './jobs/tasks/autoTransferBuyerRefund'
-import { autoTransferSellerOrderPaymentTask } from './jobs/tasks/autoTransferSellerOrderPayment'
 import { reviewNotificationsTask } from './jobs/tasks/reviewNotifications'
 import { savedSearchNotificationsTask } from './jobs/tasks/savedSearchNotifications'
 import { autoReturnStaleDeliveriesTask } from './jobs/tasks/autoReturnStaleDeliveries'
 import { abandonedCartReminderTask } from './jobs/tasks/abandonedCartReminder'
 import { joinDresPushTask } from './jobs/tasks/joinDresPush'
 import { onSalePromoPushTask } from './jobs/tasks/onSalePromoPush'
+import { completeOrderPaymentsTask } from './jobs/tasks/completeOrderPayments'
 
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
@@ -290,13 +289,12 @@ export default buildConfig({
       autoReturnStaleOrdersTask,
       autoReturnStaleDeliveriesTask,
       draftReminderTask,
-      autoTransferBuyerRefundTask,
-      autoTransferSellerOrderPaymentTask,
       reviewNotificationsTask,
       savedSearchNotificationsTask,
       abandonedCartReminderTask,
       joinDresPushTask,
       onSalePromoPushTask,
+      completeOrderPaymentsTask,
     ],
     // Auto-run scheduled jobs - process all queues every minute
     autoRun: [

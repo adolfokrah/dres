@@ -1,5 +1,12 @@
 import type { PayloadHandler } from 'payload'
 
+// Mobile money provider bank codes (Paystack Ghana)
+const MOBILE_MONEY_BANK_CODES = ['MTN', 'VOD', 'ATL', 'GMP', 'ZEN']
+
+function isMobileMoneyProvider(bankCode: string): boolean {
+  return MOBILE_MONEY_BANK_CODES.includes(bankCode.toUpperCase())
+}
+
 interface TransactionItem {
   id: string
   transactionId: string
@@ -15,7 +22,10 @@ interface TransactionItem {
 
 interface UserTransactionsResponse {
   totalEarned: number // Total from order_payment transactions (converted to user's currency)
-  upcomingPayments: number // Total from completed + pending transactions (converted to user's currency)
+  availableBalance: number // Withdrawable balance: order_payments + refunds - transfers (converted to user's currency)
+  withdrawalFee: number // Transfer fee that will be deducted on withdrawal (in user's currency)
+  minimumWithdrawalAmount: number // Minimum balance required to withdraw (in user's currency)
+  hasWithdrawalAccount: boolean // Whether user has set up a withdrawal account
   currencySymbol: string // User's currency symbol for displaying totals
   transactions: TransactionItem[]
   totalDocs: number
@@ -69,28 +79,29 @@ export const getUserTransactions: PayloadHandler = async (req) => {
   }
 
   try {
-    // Build query - fetch only order_payment and transfer transactions
+    // Build query - fetch order_payment, transfer, and refund transactions
     const where: any = {
       user: { equals: user.id },
       or: [
         { type: { equals: 'order_payment' }, order: { exists: true } }, // Order payments linked to an order
-        { type: { equals: 'transfer' } }, // Transfer transactions (no order linked)
+        { type: { equals: 'transfer' } }, // Transfer transactions (withdrawals)
+        { type: { equals: 'refund' } }, // Refund transactions (buyer refunds)
       ],
     }
 
-    // Apply type filter if provided (only allow order_payment or transfer)
+    // Apply type filter if provided
     if (typeFilter && typeFilter !== 'all') {
       if (typeFilter === 'order_payment') {
-        // Override the or clause with specific order_payment filter
         delete where.or
         where.type = { equals: 'order_payment' }
         where.order = { exists: true }
       } else if (typeFilter === 'transfer') {
-        // Override the or clause with specific transfer filter
         delete where.or
         where.type = { equals: 'transfer' }
+      } else if (typeFilter === 'refund') {
+        delete where.or
+        where.type = { equals: 'refund' }
       }
-      // Ignore any other type filters since we only show order_payment and transfer
     }
 
     // Apply status filter if provided
@@ -144,29 +155,76 @@ export const getUserTransactions: PayloadHandler = async (req) => {
       return sum + (txn.amount || 0)
     }, 0)
 
-    // Calculate upcoming payments: order_payments (completed + pending) minus completed transfers
-    // This represents what the seller is owed but hasn't been transferred yet
-    const upcomingTxns = await payload.find({
+    // Calculate available balance:
+    // Sum all completed and in_progress transactions for the user (amounts are already +/-)
+    // Note: pending order_payments are not included until they're completed by the cron job
+    const balanceTxns = await payload.find({
       collection: 'transactions',
       where: {
         user: { equals: user.id },
-        status: { in: ['completed', 'pending'] },
-        or: [
-          { type: { equals: 'order_payment' }, order: { exists: true } }, // Order payments
-          { type: { equals: 'transfer' } }, // Transfers (negative amounts)
-        ],
+        status: { in: ['completed', 'in_progress'] },
       },
-      limit: 0, // Get all for aggregation
+      limit: 0,
     })
 
-    // Sum all amounts - order_payments are positive, transfers are negative
-    const upcomingPaymentsInGHS = upcomingTxns.docs.reduce((sum: number, txn: any) => {
+    // Sum all amounts - some are positive, some are negative
+    const availableBalanceInGHS = balanceTxns.docs.reduce((sum: number, txn: any) => {
       return sum + (txn.amount || 0)
     }, 0)
 
+    // Check if user has a withdrawal account set up
+    const withdrawalAccount = user.withdrawalAccount as {
+      bankCode?: string
+      accountNumber?: string
+    } | undefined
+    const hasWithdrawalAccount = !!(withdrawalAccount?.accountNumber && withdrawalAccount?.bankCode)
+
+    // Get site settings for fees and minimum withdrawal
+    const siteSettings = await payload.findGlobal({ slug: 'site-settings' })
+    const minimumWithdrawalAmountInGHS = (siteSettings.minimumWithdrawalAmount as number) ?? 5
+
+    // Calculate withdrawal fee based on user's country and payment method
+    let withdrawalFeeInGHS = 1 // Default fee
+
+    if (hasWithdrawalAccount) {
+      try {
+        const isMobileMoney = isMobileMoneyProvider(withdrawalAccount.bankCode || '')
+        const userCountryId = typeof user.country === 'object' ? user.country?.id : user.country
+
+        // Start with default fee
+        withdrawalFeeInGHS = isMobileMoney
+          ? (siteSettings.defaultMobileMoneyFee ?? 1)
+          : (siteSettings.defaultBankTransferFee ?? 5)
+
+        // Look up country-specific fee
+        const withdrawalFees = (siteSettings.withdrawalFees || []) as Array<{
+          country: string | { id: string }
+          mobileMoneyFee: number
+          bankTransferFee: number
+        }>
+
+        if (userCountryId) {
+          const countryFee = withdrawalFees.find(fee => {
+            const feeCountryId = typeof fee.country === 'object' ? fee.country?.id : fee.country
+            return feeCountryId === userCountryId
+          })
+
+          if (countryFee) {
+            withdrawalFeeInGHS = isMobileMoney ? countryFee.mobileMoneyFee : countryFee.bankTransferFee
+          }
+        }
+      } catch {
+        // Use default fee if site settings lookup fails
+        withdrawalFeeInGHS = 1
+      }
+    }
+
     const response: UserTransactionsResponse = {
       totalEarned: Math.round(convertToUserCurrency(totalEarnedInGHS) * 100) / 100,
-      upcomingPayments: Math.round(convertToUserCurrency(upcomingPaymentsInGHS) * 100) / 100,
+      availableBalance: Math.round(convertToUserCurrency(availableBalanceInGHS) * 100) / 100,
+      withdrawalFee: Math.round(convertToUserCurrency(withdrawalFeeInGHS) * 100) / 100,
+      minimumWithdrawalAmount: Math.round(convertToUserCurrency(minimumWithdrawalAmountInGHS) * 100) / 100,
+      hasWithdrawalAccount,
       currencySymbol: userCurrencySymbol,
       transactions,
       totalDocs: transactionsResult.totalDocs ?? transactions.length,

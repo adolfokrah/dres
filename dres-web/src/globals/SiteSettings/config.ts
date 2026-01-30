@@ -122,6 +122,97 @@ export const SiteSettings: GlobalConfig = {
           },
         },
       ],
-    }
+    },
+    {
+      type: 'collapsible',
+      label: 'Withdrawal Fees',
+      admin: {
+        initCollapsed: false,
+        description: 'Configure transfer fees for withdrawals per country and payment method',
+      },
+      fields: [
+        {
+          name: 'withdrawalFees',
+          label: 'Country Withdrawal Fees',
+          type: 'array',
+          admin: {
+            description: 'Set withdrawal transfer fees per country. If a country is not listed, the default fee of 1 GHS will be used.',
+          },
+          fields: [
+            {
+              name: 'country',
+              type: 'relationship',
+              relationTo: 'countries',
+              required: true,
+              admin: {
+                description: 'Country to apply these fees to',
+              },
+            },
+            {
+              type: 'row',
+              fields: [
+                {
+                  name: 'mobileMoneyFee',
+                  label: 'Mobile Money Transfer Fee',
+                  type: 'number',
+                  required: true,
+                  defaultValue: 1,
+                  min: 0,
+                  admin: {
+                    description: 'Fixed fee for mobile money withdrawals (in local currency)',
+                    width: '50%',
+                  },
+                },
+                {
+                  name: 'bankTransferFee',
+                  label: 'Bank Transfer Fee',
+                  type: 'number',
+                  required: true,
+                  defaultValue: 5,
+                  min: 0,
+                  admin: {
+                    description: 'Fixed fee for bank account withdrawals (in local currency)',
+                    width: '50%',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
+          name: 'defaultMobileMoneyFee',
+          label: 'Default Mobile Money Fee',
+          type: 'number',
+          required: true,
+          defaultValue: 1,
+          min: 0,
+          admin: {
+            description: 'Default mobile money transfer fee when country is not configured (in GHS)',
+          },
+        },
+        {
+          name: 'defaultBankTransferFee',
+          label: 'Default Bank Transfer Fee',
+          type: 'number',
+          required: true,
+          defaultValue: 5,
+          min: 0,
+          admin: {
+            description: 'Default bank transfer fee when country is not configured (in GHS)',
+          },
+        },
+        {
+          name: 'minimumWithdrawalAmount',
+          label: 'Minimum Withdrawal Amount',
+          type: 'number',
+          required: true,
+          defaultValue: 5,
+          min: 1,
+          admin: {
+            description: 'Minimum amount required to withdraw (in GHS). User balance must be at least this amount.',
+          },
+        },
+      ],
+    },
   ],
 }

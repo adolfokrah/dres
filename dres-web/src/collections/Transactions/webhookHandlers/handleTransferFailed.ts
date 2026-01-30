@@ -19,10 +19,10 @@ interface PaystackTransferData {
 }
 
 /**
- * Handle failed or reversed transfer - update transaction and notify user
+ * Handle failed or reversed transfer - update transaction status
  *
- * This updates the existing transaction created by autoTransferToSellers or processRefundTransactions
- * from 'in_progress' to 'cancelled' and notifies the user
+ * This updates the existing transaction from 'in_progress' to 'cancelled'.
+ * Notification is handled by the transaction afterChange hook.
  */
 export async function handleTransferFailed(
   payload: Payload,
@@ -65,7 +65,7 @@ export async function handleTransferFailed(
 
   payload.logger.info(`🔔 handleTransferFailed: Transfer ${reference} verified as ${verifiedStatus}`)
 
-  // Update transaction status to cancelled
+  // Update transaction status to cancelled (notification handled by afterChange hook)
   await payload.update({
     collection: 'transactions',
     id: transaction.id,
@@ -76,26 +76,4 @@ export async function handleTransferFailed(
   })
 
   payload.logger.info(`🔔 handleTransferFailed: Transaction ${reference} marked as cancelled`)
-
-  // Get user ID
-  const userId = typeof transaction.user === 'object' && transaction.user ? transaction.user.id : transaction.user
-
-  if (!userId) {
-    payload.logger.error(`🔔 handleTransferFailed: No user linked to transaction ${reference}`)
-    return
-  }
-
-  // Notify user about failed transfer
-  await payload.create({
-    collection: 'notifications',
-    data: {
-      user: userId,
-      type: 'system',
-      message: `Your withdrawal transfer failed. Please contact support or update your withdrawal account details.`,
-      path: `/profile?tab=transactions`,
-      read: false,
-    },
-  })
-
-  payload.logger.info(`🔔 handleTransferFailed: Notification sent to user ${userId}`)
 }
