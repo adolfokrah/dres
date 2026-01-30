@@ -153,12 +153,14 @@ export const requestWithdrawal: PayloadHandler = async (req) => {
       },
     ])
 
-    const balance = balanceResult[0]?.balance || 0
+    // Round to 2 decimal places to avoid floating point precision issues
+    const balance = Math.round((balanceResult[0]?.balance || 0) * 100) / 100
 
-    payload.logger.info(`[Withdrawal] User ${userId} available balance: ${balance}`)
+    payload.logger.info(`[Withdrawal] User ${userId} available balance: ${balance}, minimumWithdrawalAmount: ${minimumWithdrawalAmount}, check: ${balance} < ${minimumWithdrawalAmount} = ${balance < minimumWithdrawalAmount}`)
 
     // 5. Validate balance meets minimum withdrawal amount
-    if (balance < minimumWithdrawalAmount) {
+    // Use <= with small epsilon to handle floating point precision issues
+    if (balance < minimumWithdrawalAmount - 0.01) {
       return Response.json(
         { error: `Insufficient balance. Minimum withdrawal is ₵${minimumWithdrawalAmount}.`, balance },
         { status: 400 }

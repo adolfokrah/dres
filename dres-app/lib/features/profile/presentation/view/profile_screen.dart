@@ -344,46 +344,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showLogoutDialog(BuildContext context, AppLocalizations l10n) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-          backgroundColor: AppColors.surface,
-          title: Text(
-            l10n.logout,
-            style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
-          ),
-          content: Text(
-            l10n.logoutConfirmation,
-            style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-              child: Text(
-                l10n.cancel,
-                style: AppTypography.bodyM.copyWith(
-                  color: AppColors.textSecondary,
+        return BlocConsumer<AuthBloc, AuthState>(
+          listener: (context, state) {
+            // Close dialog and navigate when logout completes
+            if (state.status == AuthStatus.unauthenticated) {
+              Navigator.of(dialogContext).pop();
+            }
+          },
+          builder: (context, state) {
+            final isLoggingOut = state.status == AuthStatus.loading;
+
+            return PopScope(
+              canPop: !isLoggingOut,
+              child: AlertDialog(
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+                backgroundColor: AppColors.surface,
+                title: Text(
+                  l10n.logout,
+                  style: AppTypography.titleLM.copyWith(color: AppColors.textPrimary),
                 ),
+                content: isLoggingOut
+                    ? Row(
+                        children: [
+                          const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            'Logging out...',
+                            style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+                          ),
+                        ],
+                      )
+                    : Text(
+                        l10n.logoutConfirmation,
+                        style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
+                      ),
+                actions: isLoggingOut
+                    ? null
+                    : [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop();
+                          },
+                          child: Text(
+                            l10n.cancel,
+                            style: AppTypography.bodyM.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            // Clear cart on logout
+                            context.read<CartBloc>().add(const CartCleared());
+                            context.read<AuthBloc>().add(const AuthLogoutRequested());
+                          },
+                          child: Text(
+                            l10n.logout,
+                            style: AppTypography.bodyM.copyWith(
+                              color: AppColors.error,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
               ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                // Clear cart on logout
-                context.read<CartBloc>().add(const CartCleared());
-                context.read<AuthBloc>().add(const AuthLogoutRequested());
-              },
-              child: Text(
-                l10n.logout,
-                style: AppTypography.bodyM.copyWith(
-                  color: AppColors.error,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
+            );
+          },
         );
       },
     );

@@ -66,45 +66,60 @@ class _TransactionsListState extends State<TransactionsList> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.zero,
       ),
-      builder: (sheetContext) => BlocBuilder<TransactionsBloc, TransactionsState>(
+      builder: (sheetContext) => BlocConsumer<TransactionsBloc, TransactionsState>(
         bloc: _transactionsBloc,
+        listenWhen: (previous, current) =>
+            previous.withdrawalStatus != current.withdrawalStatus,
+        listener: (context, currentState) {
+          // Close sheet when withdrawal completes (success or error)
+          if (currentState.withdrawalStatus == WithdrawalStatus.success ||
+              currentState.withdrawalStatus == WithdrawalStatus.error) {
+            Navigator.of(sheetContext).pop();
+          }
+        },
         builder: (context, currentState) {
           final isCurrentlyWithdrawing = currentState.withdrawalStatus == WithdrawalStatus.loading;
 
-          return Padding(
-            padding: EdgeInsets.only(
-              left: 24,
-              right: 24,
-              top: 24,
-              bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+          return PopScope(
+            canPop: !isCurrentlyWithdrawing,
+            child: Stack(
               children: [
-                // Handle bar
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    color: AppColors.secondary,
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 24,
+                    right: 24,
+                    top: 24,
+                    bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
                   ),
-                ),
-                const SizedBox(height: 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Handle bar
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
 
-                // Title
-                Text(
-                  'Withdraw Funds',
-                  style: AppTypography.titleL.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+                      // Title
+                      Text(
+                        'Withdraw Funds',
+                        style: AppTypography.titleL.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                 const SizedBox(height: 24),
 
                 // Invoice-style breakdown
@@ -215,7 +230,6 @@ class _TransactionsListState extends State<TransactionsList> {
                         onPressed: isCurrentlyWithdrawing
                             ? null
                             : () {
-                                Navigator.of(sheetContext).pop();
                                 _transactionsBloc.add(const WithdrawalRequested());
                               },
                         style: ElevatedButton.styleFrom(
@@ -244,11 +258,36 @@ class _TransactionsListState extends State<TransactionsList> {
                               ),
                       ),
                     ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          );
+            // Loading overlay
+            if (isCurrentlyWithdrawing)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.white.withValues(alpha: 0.8),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const CircularProgressIndicator(),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Processing withdrawal...',
+                          style: AppTypography.bodyM.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
         },
       ),
     );
