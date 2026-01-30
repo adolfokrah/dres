@@ -48,7 +48,7 @@ describe('handleTransferSuccess', () => {
     })
   })
 
-  it('should update transaction to completed and send notification', async () => {
+  it('should update transaction to completed', async () => {
     const mockTransaction = {
       id: 'trans-123',
       transactionId: 'TXN-TRANSFER-123',
@@ -58,16 +58,9 @@ describe('handleTransferSuccess', () => {
       user: 'user-123',
     }
 
-    const mockCurrency = {
-      id: 'curr-123',
-      symbol: '₵',
-    }
-
     vi.mocked(mockPayload.find).mockResolvedValueOnce({
       docs: [mockTransaction],
     } as any)
-
-    vi.mocked(mockPayload.findByID).mockResolvedValueOnce(mockCurrency as any)
 
     await handleTransferSuccess(mockPayload, mockTransferData)
 
@@ -80,13 +73,6 @@ describe('handleTransferSuccess', () => {
       limit: 1,
     })
 
-    // Verify currency was fetched
-    expect(mockPayload.findByID).toHaveBeenCalledWith({
-      collection: 'currencies',
-      id: 'curr-123',
-      depth: 0,
-    })
-
     // Verify transaction was updated to completed
     expect(mockPayload.update).toHaveBeenCalledWith({
       collection: 'transactions',
@@ -97,17 +83,8 @@ describe('handleTransferSuccess', () => {
       },
     })
 
-    // Verify notification was created
-    expect(mockPayload.create).toHaveBeenCalledWith({
-      collection: 'notifications',
-      data: {
-        user: 'user-123',
-        type: 'system',
-        message: 'An amount of ₵100.00 has been transferred to your withdrawal account 💰',
-        path: '/profile?tab=transactions',
-        read: false,
-      },
-    })
+    // Notification is handled by the afterChange hook, not the webhook handler
+    expect(mockPayload.create).not.toHaveBeenCalled()
   })
 
   it('should handle transaction with user object instead of string', async () => {
@@ -124,22 +101,15 @@ describe('handleTransferSuccess', () => {
       docs: [mockTransaction],
     } as any)
 
-    vi.mocked(mockPayload.findByID).mockResolvedValueOnce({
-      id: 'curr-123',
-      symbol: '$',
-    } as any)
-
     await handleTransferSuccess(mockPayload, mockTransferData)
 
-    // Verify notification was created with correct user ID
-    expect(mockPayload.create).toHaveBeenCalledWith({
-      collection: 'notifications',
+    // Verify transaction was updated
+    expect(mockPayload.update).toHaveBeenCalledWith({
+      collection: 'transactions',
+      id: 'trans-123',
       data: {
-        user: 'user-456',
-        type: 'system',
-        message: 'An amount of $50.00 has been transferred to your withdrawal account 💰',
-        path: '/profile?tab=transactions',
-        read: false,
+        status: 'completed',
+        notes: 'Transfer completed via Paystack. Transfer code: TRF_abc123',
       },
     })
   })
@@ -181,44 +151,13 @@ describe('handleTransferSuccess', () => {
     expect(mockPayload.create).not.toHaveBeenCalled()
   })
 
-  it('should skip notification if no user linked', async () => {
+  it('should skip if verification fails', async () => {
     const mockTransaction = {
       id: 'trans-123',
       transactionId: 'TXN-TRANSFER-123',
       status: 'in_progress',
       amount: -100.0,
       currency: 'curr-123',
-      user: null, // No user
-    }
-
-    vi.mocked(mockPayload.find).mockResolvedValueOnce({
-      docs: [mockTransaction],
-    } as any)
-
-    vi.mocked(mockPayload.findByID).mockResolvedValueOnce({
-      id: 'curr-123',
-      symbol: '₵',
-    } as any)
-
-    await handleTransferSuccess(mockPayload, mockTransferData)
-
-    // Transaction should still be updated
-    expect(mockPayload.update).toHaveBeenCalled()
-
-    // But no notification should be created
-    expect(mockPayload.logger.error).toHaveBeenCalledWith(
-      '🔔 handleTransferSuccess: No user linked to transaction TXN-TRANSFER-123'
-    )
-    expect(mockPayload.create).not.toHaveBeenCalled()
-  })
-
-  it('should use default currency symbol if currency not found', async () => {
-    const mockTransaction = {
-      id: 'trans-123',
-      transactionId: 'TXN-TRANSFER-123',
-      status: 'in_progress',
-      amount: -75.5,
-      currency: null, // No currency
       user: 'user-123',
     }
 
@@ -226,27 +165,25 @@ describe('handleTransferSuccess', () => {
       docs: [mockTransaction],
     } as any)
 
+    vi.mocked(paystackUtils.verifyTransfer).mockResolvedValueOnce({
+      success: false,
+      error: 'Verification failed',
+    })
+
     await handleTransferSuccess(mockPayload, mockTransferData)
 
-    // Verify notification uses default ₵ symbol
-    expect(mockPayload.create).toHaveBeenCalledWith({
-      collection: 'notifications',
-      data: {
-        user: 'user-123',
-        type: 'system',
-        message: 'An amount of ₵75.50 has been transferred to your withdrawal account 💰',
-        path: '/profile?tab=transactions',
-        read: false,
-      },
-    })
+    expect(mockPayload.logger.error).toHaveBeenCalledWith(
+      '🔔 handleTransferSuccess: Failed to verify transfer TXN-TRANSFER-123: Verification failed'
+    )
+    expect(mockPayload.update).not.toHaveBeenCalled()
   })
 
-  it('should handle absolute value of negative amounts correctly', async () => {
+  it('should skip if verified status is not success', async () => {
     const mockTransaction = {
       id: 'trans-123',
       transactionId: 'TXN-TRANSFER-123',
       status: 'in_progress',
-      amount: -250.75, // Large negative amount
+      amount: -100.0,
       currency: 'curr-123',
       user: 'user-123',
     }
@@ -255,23 +192,16 @@ describe('handleTransferSuccess', () => {
       docs: [mockTransaction],
     } as any)
 
-    vi.mocked(mockPayload.findByID).mockResolvedValueOnce({
-      id: 'curr-123',
-      symbol: '₦',
-    } as any)
+    vi.mocked(paystackUtils.verifyTransfer).mockResolvedValueOnce({
+      success: true,
+      data: { status: 'pending' }, // Not success
+    })
 
     await handleTransferSuccess(mockPayload, mockTransferData)
 
-    // Verify notification shows positive amount
-    expect(mockPayload.create).toHaveBeenCalledWith({
-      collection: 'notifications',
-      data: {
-        user: 'user-123',
-        type: 'system',
-        message: 'An amount of ₦250.75 has been transferred to your withdrawal account 💰',
-        path: '/profile?tab=transactions',
-        read: false,
-      },
-    })
+    expect(mockPayload.logger.warn).toHaveBeenCalledWith(
+      "🔔 handleTransferSuccess: Transfer TXN-TRANSFER-123 verified status is 'pending', not 'success'. Skipping."
+    )
+    expect(mockPayload.update).not.toHaveBeenCalled()
   })
 })

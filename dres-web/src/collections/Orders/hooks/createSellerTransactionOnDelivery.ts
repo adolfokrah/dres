@@ -206,7 +206,7 @@ export const createSellerTransactionOnDelivery: CollectionAfterChangeHook = asyn
           data: {
             transactionId: generateTransactionId(),
             type: 'order_payment',
-            status: 'completed',
+            status: 'pending', // Becomes 'completed' after 6 hours via cron job
             user: sellerId,
             order: doc.id,
             itemId: itemIds.join(','), // Store all item IDs

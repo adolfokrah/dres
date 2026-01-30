@@ -47,7 +47,7 @@ describe('handleTransferFailed', () => {
     })
   })
 
-  it('should update transaction to cancelled and send notification', async () => {
+  it('should update transaction to cancelled', async () => {
     const mockTransaction = {
       id: 'trans-456',
       transactionId: 'TXN-TRANSFER-456',
@@ -81,18 +81,8 @@ describe('handleTransferFailed', () => {
       },
     })
 
-    // Verify notification was created
-    expect(mockPayload.create).toHaveBeenCalledWith({
-      collection: 'notifications',
-      data: {
-        user: 'user-456',
-        type: 'system',
-        message:
-          'Your withdrawal transfer failed. Please contact support or update your withdrawal account details.',
-        path: '/profile?tab=transactions',
-        read: false,
-      },
-    })
+    // Notification is handled by the afterChange hook, not the webhook handler
+    expect(mockPayload.create).not.toHaveBeenCalled()
   })
 
   it('should handle transaction with user object', async () => {
@@ -110,16 +100,13 @@ describe('handleTransferFailed', () => {
 
     await handleTransferFailed(mockPayload, mockTransferData)
 
-    // Verify notification was created with correct user ID
-    expect(mockPayload.create).toHaveBeenCalledWith({
-      collection: 'notifications',
+    // Verify transaction was updated
+    expect(mockPayload.update).toHaveBeenCalledWith({
+      collection: 'transactions',
+      id: 'trans-456',
       data: {
-        user: 'user-789',
-        type: 'system',
-        message:
-          'Your withdrawal transfer failed. Please contact support or update your withdrawal account details.',
-        path: '/profile?tab=transactions',
-        read: false,
+        status: 'cancelled',
+        notes: 'Transfer failed or reversed. Reason: Insufficient balance, Status: failed',
       },
     })
   })
@@ -135,31 +122,6 @@ describe('handleTransferFailed', () => {
       '🔔 handleTransferFailed: Transaction not found for reference TXN-TRANSFER-456'
     )
     expect(mockPayload.update).not.toHaveBeenCalled()
-    expect(mockPayload.create).not.toHaveBeenCalled()
-  })
-
-  it('should skip notification if no user linked', async () => {
-    const mockTransaction = {
-      id: 'trans-456',
-      transactionId: 'TXN-TRANSFER-456',
-      status: 'in_progress',
-      amount: -100.0,
-      user: null,
-    }
-
-    vi.mocked(mockPayload.find).mockResolvedValueOnce({
-      docs: [mockTransaction],
-    } as any)
-
-    await handleTransferFailed(mockPayload, mockTransferData)
-
-    // Transaction should still be updated
-    expect(mockPayload.update).toHaveBeenCalled()
-
-    // But no notification should be created
-    expect(mockPayload.logger.error).toHaveBeenCalledWith(
-      '🔔 handleTransferFailed: No user linked to transaction TXN-TRANSFER-456'
-    )
     expect(mockPayload.create).not.toHaveBeenCalled()
   })
 
@@ -236,5 +198,31 @@ describe('handleTransferFailed', () => {
         notes: 'Transfer failed or reversed. Reason: Manual reversal, Status: reversed',
       },
     })
+  })
+
+  it('should skip if verification fails', async () => {
+    const mockTransaction = {
+      id: 'trans-456',
+      transactionId: 'TXN-TRANSFER-456',
+      status: 'in_progress',
+      amount: -100.0,
+      user: 'user-456',
+    }
+
+    vi.mocked(mockPayload.find).mockResolvedValueOnce({
+      docs: [mockTransaction],
+    } as any)
+
+    vi.mocked(paystackUtils.verifyTransfer).mockResolvedValueOnce({
+      success: false,
+      error: 'Verification failed',
+    })
+
+    await handleTransferFailed(mockPayload, mockTransferData)
+
+    expect(mockPayload.logger.error).toHaveBeenCalledWith(
+      '🔔 handleTransferFailed: Failed to verify transfer TXN-TRANSFER-456: Verification failed'
+    )
+    expect(mockPayload.update).not.toHaveBeenCalled()
   })
 })

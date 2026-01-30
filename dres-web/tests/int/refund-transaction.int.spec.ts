@@ -245,7 +245,8 @@ describe('Refund Transaction Creation Tests', () => {
       expect(refunds[0].amount).toBe(110)
       // No fees charged when BP enabled
       expect(refunds[0].fees).toBe(0)
-      expect(refunds[0].status).toBe('pending')
+      // Refunds are immediately available (completed) for manual withdrawal
+      expect(refunds[0].status).toBe('completed')
       expect(refunds[0].type).toBe('refund')
     })
 
@@ -283,7 +284,8 @@ describe('Refund Transaction Creation Tests', () => {
       expect(refunds[0].amount).toBeGreaterThan(90) // Should be reasonable
       // Fees should be non-zero when no BP
       expect(refunds[0].fees).toBeGreaterThan(0)
-      expect(refunds[0].status).toBe('pending')
+      // Refunds are immediately available (completed) for manual withdrawal
+      expect(refunds[0].status).toBe('completed')
     })
 
     it('does NOT include shipping in refund when no BP', async () => {
