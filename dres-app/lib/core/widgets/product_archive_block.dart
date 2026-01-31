@@ -170,7 +170,7 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
         ),
         const SizedBox(height: 14),
                 SizedBox(
-                  height: 310,
+                  height: 330,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),

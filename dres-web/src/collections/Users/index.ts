@@ -30,7 +30,7 @@ export const Users: CollectionConfig = {
   },
   auth: {
     tokenExpiration: 31536000, // 1 year in seconds
-    verify: true, // Require email verification
+    verify: false, // Don't Require email verification
     maxLoginAttempts: 5, // Automatically lock a user out after X amount of failed logins
     lockTime: 600 * 1000, // Time period to allow the max login attempts
     // More options are available
