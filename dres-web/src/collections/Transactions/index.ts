@@ -9,6 +9,7 @@ import { cancelTransaction } from './endpoints/cancelTransaction'
 import { setTransactionIdAndCurrency } from './hooks/setTransactionCurrency'
 import { updateOrderCommissionOnComplete } from './hooks/updateOrderCommissionOnComplete'
 import { createTransferNotification } from './hooks/createTransferNotification'
+import { createOrderPaymentNotification } from './hooks/createOrderPaymentNotification'
 
 export const Transactions: CollectionConfig = {
   slug: 'transactions',
@@ -69,7 +70,7 @@ export const Transactions: CollectionConfig = {
   },
   hooks: {
     beforeChange: [setTransactionIdAndCurrency],
-    afterChange: [updateOrderCommissionOnComplete, createTransferNotification],
+    afterChange: [updateOrderCommissionOnComplete, createTransferNotification, createOrderPaymentNotification],
   },
   fields: [
     {
