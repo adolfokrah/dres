@@ -5,6 +5,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/di/injection.dart';
+import 'package:dres/core/services/rate_app_service.dart';
 import 'package:dres/features/orders/data/models/order_model.dart';
 import 'package:dres/features/orders/data/models/purchase_details_model.dart';
 import 'package:dres/features/orders/logic/order_details_bloc/order_details_bloc.dart';
@@ -67,8 +68,17 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
           child: Container(height: 1, color: AppColors.secondary),
         ),
       ),
-      body: BlocBuilder<OrderDetailsBloc, OrderDetailsState>(
+      body: BlocConsumer<OrderDetailsBloc, OrderDetailsState>(
         bloc: _orderDetailsBloc,
+        listenWhen: (previous, current) =>
+            previous.status != current.status &&
+            current.status == OrderDetailsStatus.success,
+        listener: (context, state) {
+          // Trigger rate app review when viewing placed/paid orders
+          if (state.purchaseDetails != null) {
+            _checkForPlacedOrderAndRequestReview(state.purchaseDetails!);
+          }
+        },
         builder: (context, state) {
           if (state.status == OrderDetailsStatus.loading) {
             return const Center(child: CircularProgressIndicator());
@@ -172,7 +182,7 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
     if (purchaseDetails.order.status == OrderStatus.completed) {
       return 4;
     }
-    
+
     int maxProgress = 0;
     for (final group in purchaseDetails.sellerGroups) {
       for (final item in group.items) {
@@ -183,6 +193,16 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
       }
     }
     return maxProgress;
+  }
+
+  /// Check if order is placed/paid and trigger rate app
+  void _checkForPlacedOrderAndRequestReview(PurchaseDetailsModel purchaseDetails) {
+    // Trigger for placed orders (buyer just completed purchase)
+    final status = purchaseDetails.order.status;
+    if (status == OrderStatus.placed || status == OrderStatus.inProgress) {
+      // Trigger rate app - the service handles throttling
+      getIt<RateAppService>().requestReview();
+    }
   }
 }
 

@@ -6,6 +6,7 @@ import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/widgets/status_badge.dart';
+import 'package:dres/core/services/rate_app_service.dart';
 import 'package:dres/features/profile/logic/transactions_bloc/transactions_bloc.dart';
 import 'package:dres/features/profile/data/models/transaction_model.dart';
 
@@ -311,6 +312,8 @@ class _TransactionsListState extends State<TransactionsList> {
               backgroundColor: Colors.green,
             ),
           );
+          // Request app review after successful withdrawal (happy moment)
+          getIt<RateAppService>().requestReview();
         } else if (state.withdrawalStatus == WithdrawalStatus.error &&
             state.withdrawalError != null) {
           ScaffoldMessenger.of(context).showSnackBar(

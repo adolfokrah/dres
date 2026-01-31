@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
 import 'package:dres/core/di/injection.dart';
+import 'package:dres/core/constants/storage_keys.dart';
 import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_info_banner.dart';
 import 'package:dres/core/widgets/status_badge.dart';
+import 'package:dres/core/services/rate_app_service.dart';
 import 'package:dres/features/orders/logic/incoming_order_details_bloc/incoming_order_details_bloc.dart';
 import 'package:dres/features/orders/data/models/incoming_order_details_model.dart';
 import 'package:dres/features/profile/presentation/widgets/incoming_order_item_tile.dart';
@@ -36,13 +39,32 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
     _bloc.add(IncomingOrderDetailsFetchRequested(orderId: widget.orderId));
   }
 
+  /// Check and trigger rate app for first sale milestone
+  Future<void> _checkFirstSaleAndRequestReview() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hasShown = prefs.getBool(StorageKeys.hasShownFirstSaleDialog) ?? false;
+
+    if (!hasShown) {
+      await prefs.setBool(StorageKeys.hasShownFirstSaleDialog, true);
+      // Trigger rate app review for first sale milestone
+      getIt<RateAppService>().requestReview();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: _buildAppBar(),
-      body: BlocBuilder<IncomingOrderDetailsBloc, IncomingOrderDetailsState>(
+      body: BlocConsumer<IncomingOrderDetailsBloc, IncomingOrderDetailsState>(
         bloc: _bloc,
+        listenWhen: (previous, current) =>
+            previous.status != current.status &&
+            current.status == IncomingOrderDetailsBlocStatus.success,
+        listener: (context, state) {
+          // Trigger rate app review for first sale milestone
+          _checkFirstSaleAndRequestReview();
+        },
         builder: (context, state) {
           if (state.status == IncomingOrderDetailsBlocStatus.loading) {
             return const Center(child: CircularProgressIndicator());

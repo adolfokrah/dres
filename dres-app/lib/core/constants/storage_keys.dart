@@ -19,4 +19,11 @@ class StorageKeys {
 
   // Hints and tips (don't show again)
   static const String hidePublishInfoTip = 'hide_publish_info_tip';
+
+  // Rate app
+  static const String rateAppLastShown = 'rate_app_last_shown';
+  static const String rateAppCompleted = 'rate_app_completed';
+
+  // Seller milestones (for rate app triggers)
+  static const String hasShownFirstSaleDialog = 'has_shown_first_sale_dialog';
 }

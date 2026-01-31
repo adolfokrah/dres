@@ -64,6 +64,7 @@ import 'package:dres/features/profile/data/repositories/shipping_rates_repositor
 import 'package:dres/features/profile/logic/shipping_rates_bloc/shipping_rates_bloc.dart';
 import 'package:dres/features/search/data/repositories/search_repository.dart';
 import 'package:dres/core/services/push_notification_service.dart';
+import 'package:dres/core/services/rate_app_service.dart';
 
 final getIt = GetIt.instance;
 
@@ -84,6 +85,11 @@ Future<void> setupDependencies() async {
   getIt.registerLazySingleton<PushNotificationService>(() => PushNotificationService(
     apiService: getIt<ApiService>(),
   ));
+
+  // Rate App Service
+  final rateAppService = RateAppService();
+  await rateAppService.init();
+  getIt.registerSingleton<RateAppService>(rateAppService);
 
   // Site Settings Repository & Service
   getIt.registerLazySingleton<SiteSettingsRepository>(() => SiteSettingsRepository(
