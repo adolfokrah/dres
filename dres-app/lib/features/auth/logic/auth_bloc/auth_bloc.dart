@@ -65,15 +65,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         password: event.password,
       );
 
-      final response = await _authRepository.register(request);
+      await _authRepository.register(request);
 
-      // Register FCM token for push notifications
-      await _registerFCMToken();
+      // Logout the user so they need to login after registration
+      await _authRepository.logout();
 
-      // User is now authenticated (no email verification required)
+      // Emit registration success - user needs to login
       emit(state.copyWith(
-        status: AuthStatus.authenticated,
-        user: response.user,
+        status: AuthStatus.registrationSuccess,
       ));
     } catch (e) {
       emit(state.copyWith(
