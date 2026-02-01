@@ -69,13 +69,12 @@ export const updateEmail: PayloadHandler = async (req) => {
       )
     }
 
-    // Update user's email and set verified to false
+    // Update user's email
     const updatedUser = await payload.update({
       collection: 'users',
       id: user.id,
       data: {
         email: newEmail,
-        _verified: false,
       },
     })
 
@@ -110,11 +109,10 @@ export const updateEmail: PayloadHandler = async (req) => {
 
     return Response.json({
       success: true,
-      message: 'Email updated successfully. Please check your inbox for a verification link.',
+      message: 'Email updated successfully.',
       user: {
         id: updatedUser.id,
         email: updatedUser.email,
-        _verified: updatedUser._verified,
       },
     })
   } catch (error: unknown) {
@@ -132,6 +130,7 @@ export const updateEmail: PayloadHandler = async (req) => {
 /**
  * POST /api/users/resend-verification
  * Resend verification email to current user
+ * Note: Email verification is currently disabled in the Users collection
  */
 export const resendVerification: PayloadHandler = async (req) => {
   const { payload, user } = req
@@ -144,47 +143,22 @@ export const resendVerification: PayloadHandler = async (req) => {
   }
 
   try {
-    // Check if user is already verified
-    if (user._verified) {
-      return Response.json(
-        { error: 'Email is already verified' },
-        { status: 400 }
-      )
-    }
-
-    // Generate new verification token by updating with same email
-    // This triggers Payload's verification flow
-    const updatedUser = await payload.update({
-      collection: 'users',
-      id: user.id,
-      data: {
-        _verified: false,
-      },
-    })
-
-    // Send verification email
+    // Send confirmation email
     try {
       await payload.sendEmail({
         to: user.email,
-        subject: 'Verify your email address - DRES',
+        subject: 'Email Confirmation - DRES',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #333;">Verify Your Email Address</h2>
+            <h2 style="color: #333;">Email Confirmed</h2>
             <p>Hi ${user.firstName || 'there'},</p>
-            <p>Please click the link below to verify your email address:</p>
-            <p style="margin: 30px 0;">
-              <a href="${process.env.NEXT_PUBLIC_SERVER_URL}/verify?token=${(updatedUser as any)._verificationToken}&collection=users" 
-                 style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 0;">
-                Verify Email
-              </a>
-            </p>
-            <p>If you didn't request this, you can safely ignore this email.</p>
+            <p>Your email address has been confirmed.</p>
             <p>Best regards,<br/>The DRES Team</p>
           </div>
         `,
       })
 
-      payload.logger.info(`📧 Verification email resent to ${user.email} for user ${user.id}`)
+      payload.logger.info(`📧 Confirmation email sent to ${user.email} for user ${user.id}`)
     } catch (emailError) {
       payload.logger.error(`Failed to send verification email: ${emailError}`)
       return Response.json(

@@ -133,7 +133,6 @@ export const firebaseOAuth: PayloadHandler = async (req) => {
           password: newPassword,
           firstName: userFirstName,
           lastName: userLastName,
-          _verified: true, // Auto-verify OAuth users
           oauthProvider: provider as 'apple' | 'google',
           oauthId: verifiedUid || null,
           role: 'user',
