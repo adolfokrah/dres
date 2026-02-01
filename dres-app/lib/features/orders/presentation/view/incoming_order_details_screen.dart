@@ -182,7 +182,7 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
                     padding: EdgeInsets.all(16),
                     child: AppInfoBanner.info(
                       text:
-                          'The courier must dial *920*106# upon delivery. The customer will provide a 4-digit delivery PIN to confirm receipt. Once confirmed, payment will be processed.\n\nAlternatively, visit: dres.app/delivery/confirm',
+                          'The courier must dial *426*130# upon delivery. The customer will provide a 4-digit delivery PIN to confirm receipt. Once confirmed, payment will be processed.\n\nAlternatively, visit: dres.app/delivery/confirm',
                     ),
                   ),
 

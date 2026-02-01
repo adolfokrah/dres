@@ -1,11 +1,15 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "com.hoganam.dres",
       "sha256_cert_fingerprints": [
-        "88:4F:54:7A:EA:64:E3:A9:0F:CD:7A:36:BC:30:1F:B4:95:D8:4B:A6:8C:77:A1:01:BF:95:0B:32:DD:F5:E5:8B"
+        "88:4F:54:7A:EA:64:E3:A9:0F:CD:7A:36:BC:30:1F:B4:95:D8:4B:A6:8C:77:A1:01:BF:95:0B:32:DD:F5:E5:8B",
+        "55:A2:10:ED:8E:E9:6C:59:C1:73:D4:B1:B5:17:22:56:62:B6:66:18:D4:4E:88:B6:07:B6:75:03:D9:31:5D:B0"
       ]
     }
   }
