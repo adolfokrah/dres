@@ -145,6 +145,7 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
                       sellerGroup: sellerGroup,
                       orderId: widget.orderId,
                       currencySymbol: purchaseDetails.currencySymbol,
+                      deliveryPhone: purchaseDetails.shippingAddress?.phone,
                       onReturnItemTap: (item) async {
                         final result = await context.push<bool>(
                           '/orders/${widget.orderId}/return/${item.id}',

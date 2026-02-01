@@ -3,13 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/utilities/currency_utils.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/constants/storage_keys.dart';
 import 'package:dres/core/widgets/app_button.dart';
-import 'package:dres/core/widgets/app_info_banner.dart';
 import 'package:dres/core/widgets/status_badge.dart';
 import 'package:dres/core/services/rate_app_service.dart';
 import 'package:dres/features/orders/logic/incoming_order_details_bloc/incoming_order_details_bloc.dart';
@@ -178,13 +178,7 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
 
                 // Info banner for out for delivery items
                 if (order.hasOutForDeliveryItems)
-                  const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: AppInfoBanner.info(
-                      text:
-                          'The courier must dial *426*130# upon delivery. The customer will provide a 4-digit delivery PIN to confirm receipt. Once confirmed, payment will be processed.\n\nAlternatively, visit: dres.app/delivery/confirm',
-                    ),
-                  ),
+                  _buildCourierInstructionsBanner(order),
 
                 // Progress bar with status
                 _buildProgressBar(order),
@@ -231,6 +225,84 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildCourierInstructionsBanner(IncomingOrderDetailsModel order) {
+    const instructions =
+        'The courier must dial *426*130# upon delivery. The customer will provide a 4-digit delivery PIN to confirm receipt. Once confirmed, payment will be processed.\n\nAlternatively, visit: dres.app/delivery/confirm';
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.info.withValues(alpha: 0.1),
+          border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                PhosphorIcon(
+                  PhosphorIcons.info(PhosphorIconsStyle.fill),
+                  color: AppColors.info,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    instructions,
+                    style: AppTypography.bodyM.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () => _shareInstructions(order),
+                icon: PhosphorIcon(
+                  PhosphorIcons.shareFat(),
+                  size: 18,
+                  color: AppColors.info,
+                ),
+                label: Text(
+                  'Share with Courier',
+                  style: AppTypography.bodyS.copyWith(
+                    color: AppColors.info,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _shareInstructions(IncomingOrderDetailsModel order) {
+    final shareText = '''
+Delivery Instructions for Order #${order.orderId}
+
+1. Dial *426*130# upon delivery
+2. The customer will provide a 4-digit delivery PIN
+3. Enter the PIN to confirm delivery
+4. Payment will be processed automatically
+
+Alternative: Visit dres.app/delivery/confirm
+
+Customer: ${order.shipping?.customerName ?? 'N/A'}
+Location: ${order.shipping?.location ?? 'N/A'}
+${order.shipping?.phone != null ? 'Phone: ${order.shipping!.phone}' : ''}
+''';
+
+    SharePlus.instance.share(ShareParams(text: shareText.trim()));
   }
 
   Widget _buildProgressBar(IncomingOrderDetailsModel order) {

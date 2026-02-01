@@ -220,7 +220,7 @@ export const getPurchaseDetails: PayloadHandler = async (req) => {
         createdAt: order.createdAt,
         updatedAt: order.updatedAt,
       },
-      shippingAddress: (order as any).shippingAddress || null,
+      shippingAddress: (order as any).shippingDetails || null,
       sellerGroups,
       summary,
       currencySymbol,
