@@ -106,7 +106,7 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
 
           return Stack(
             children: [
-              _buildBody(order),
+              _buildBody(order, isRefreshing: state.isRefreshing),
               // Loading overlay when updating
               if (state.isUpdating)
                 Container(
@@ -164,46 +164,59 @@ class _IncomingOrderDetailsScreenState extends State<IncomingOrderDetailsScreen>
     );
   }
 
-  Widget _buildBody(IncomingOrderDetailsModel order) {
+  Widget _buildBody(IncomingOrderDetailsModel order, {bool isRefreshing = false}) {
     return Column(
       children: [
+        // Loading bar during refresh
+        if (isRefreshing)
+          const LinearProgressIndicator(
+            backgroundColor: AppColors.secondary,
+            color: AppColors.textPrimary,
+          ),
+
         // Scrollable content
         Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Warning banner - only show when there are placed items
-                if (order.hasPlacedItems) _buildWarningBanner(),
+          child: RefreshIndicator(
+            onRefresh: () async {
+              _bloc.add(const IncomingOrderDetailsRefreshRequested());
+            },
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Warning banner - only show when there are placed items
+                  if (order.hasPlacedItems) _buildWarningBanner(),
 
-                // Info banner for out for delivery items
-                if (order.hasOutForDeliveryItems)
-                  _buildCourierInstructionsBanner(order),
+                  // Info banner for out for delivery items
+                  if (order.hasOutForDeliveryItems)
+                    _buildCourierInstructionsBanner(order),
 
-                // Progress bar with status
-                _buildProgressBar(order),
+                  // Progress bar with status
+                  _buildProgressBar(order),
 
-                // Shipping info
-                _buildShippingInfo(order),
+                  // Shipping info
+                  _buildShippingInfo(order),
 
-                // Items list
-                ...order.items.map((item) => IncomingOrderItemTile(
-                      item: item,
-                      currencySymbol: order.currencySymbol,
-                      onNotAvailableTap: item.canMarkNotAvailable
-                          ? () => _onMarkNotAvailable(item)
-                          : null,
-                      onAcceptReturnTap: item.hasReturnInProgress
-                          ? () => _onAcceptReturn(item)
-                          : null,
-                      onRejectReturnTap: item.hasReturnInProgress
-                          ? () => _onRejectReturn(item)
-                          : null,
-                    )),
+                  // Items list
+                  ...order.items.map((item) => IncomingOrderItemTile(
+                        item: item,
+                        currencySymbol: order.currencySymbol,
+                        onNotAvailableTap: item.canMarkNotAvailable
+                            ? () => _onMarkNotAvailable(item)
+                            : null,
+                        onAcceptReturnTap: item.hasReturnInProgress
+                            ? () => _onAcceptReturn(item)
+                            : null,
+                        onRejectReturnTap: item.hasReturnInProgress
+                            ? () => _onRejectReturn(item)
+                            : null,
+                      )),
 
-                // Order summary
-                _buildOrderSummary(order),
-              ],
+                  // Order summary
+                  _buildOrderSummary(order),
+                ],
+              ),
             ),
           ),
         ),

@@ -129,15 +129,18 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Loading bar during refresh
+                  if (state.isRefreshing)
+                    const LinearProgressIndicator(
+                      backgroundColor: AppColors.secondary,
+                      color: AppColors.textPrimary,
+                    ),
+
                   // Progress bar
                   OrderProgressBar(
                     status: purchaseDetails.order.status,
                     progressValue: _calculateOverallProgress(purchaseDetails),
                   ),
-
-                  // Shipping address section
-                  if (purchaseDetails.shippingAddress != null)
-                    _ShippingSection(address: purchaseDetails.shippingAddress!),
 
                   // Seller cards with items
                   ...purchaseDetails.sellerGroups.map((sellerGroup) {
@@ -204,43 +207,5 @@ class _PurchaseDetailsScreenState extends State<PurchaseDetailsScreen> {
       // Trigger rate app - the service handles throttling
       getIt<RateAppService>().requestReview();
     }
-  }
-}
-
-class _ShippingSection extends StatelessWidget {
-  final dynamic address;
-
-  const _ShippingSection({required this.address});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.secondary, width: 1),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Shipping',
-            style: AppTypography.bodyL.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 11),
-          Text(
-            address.displayAddress,
-            style: AppTypography.bodyM.copyWith(
-              color: AppColors.textPrimary,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

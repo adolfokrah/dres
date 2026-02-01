@@ -18,6 +18,7 @@ class IncomingOrderDetailsBloc extends Bloc<IncomingOrderDetailsEvent, IncomingO
   })  : _repository = incomingOrdersRepository,
         super(const IncomingOrderDetailsState()) {
     on<IncomingOrderDetailsFetchRequested>(_onFetchRequested);
+    on<IncomingOrderDetailsRefreshRequested>(_onRefreshRequested);
     on<IncomingOrderItemMarkNotAvailable>(_onMarkNotAvailable);
     on<IncomingOrderMarkAllOutForDelivery>(_onMarkAllOutForDelivery);
     on<IncomingOrderAcceptReturn>(_onAcceptReturn);
@@ -49,6 +50,30 @@ class IncomingOrderDetailsBloc extends Bloc<IncomingOrderDetailsEvent, IncomingO
         status: IncomingOrderDetailsBlocStatus.error,
         error: e.toString(),
       ));
+    }
+  }
+
+  Future<void> _onRefreshRequested(
+    IncomingOrderDetailsRefreshRequested event,
+    Emitter<IncomingOrderDetailsState> emit,
+  ) async {
+    if (_currentOrderId == null) return;
+
+    emit(state.copyWith(isRefreshing: true));
+
+    try {
+      final order = await _repository.getIncomingOrderDetails(
+        orderId: _currentOrderId!,
+      );
+
+      emit(state.copyWith(
+        status: IncomingOrderDetailsBlocStatus.success,
+        order: order,
+        isRefreshing: false,
+      ));
+    } catch (e) {
+      debugPrint('📦 Error refreshing incoming order details: $e');
+      emit(state.copyWith(error: e.toString(), isRefreshing: false));
     }
   }
 

@@ -11,7 +11,8 @@ interface ValidationError {
  * Requirements:
  * 1. Style has all required fields filled (title, department, collection, category, brand)
  * 2. Style has at least one complete variation (with images and at least one attribute)
- * 3. Each variation has at least one complete SKU (with price and at least one SKU option)
+ * 3. No variation has rejected images (must be approved or pending)
+ * 4. Each variation has at least one complete SKU (with price and at least one SKU option)
  */
 export const validatePublish: CollectionBeforeChangeHook = async ({
   data,
@@ -73,7 +74,18 @@ export const validatePublish: CollectionBeforeChangeHook = async ({
     )
   }
 
-  // 3. Validate each variation has required fields and at least one complete SKU
+  // 3. Check if any variation has rejected images
+  const variationsWithRejectedImages = variations.docs.filter(
+    (v) => v.imageValidationStatus === 'rejected'
+  )
+  if (variationsWithRejectedImages.length > 0) {
+    throw new APIError(
+      'Cannot publish: Some variations have rejected images. Please upload new images for those variations.',
+      400
+    )
+  }
+
+  // 4. Validate each variation has required fields and at least one complete SKU
   let hasCompleteVariation = false
 
   for (const variation of variations.docs) {
@@ -83,6 +95,12 @@ export const validatePublish: CollectionBeforeChangeHook = async ({
     const images = variation.images as unknown[]
     if (!images || images.length === 0) {
       variationErrors.push('missing images')
+    }
+
+    // Check image validation status (should be approved or pending, not rejected)
+    const imageValidationStatus = variation.imageValidationStatus as string | undefined
+    if (imageValidationStatus === 'rejected') {
+      variationErrors.push('images were rejected')
     }
 
     // Check variation has at least one attribute (variant)

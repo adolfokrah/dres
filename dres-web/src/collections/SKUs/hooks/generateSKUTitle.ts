@@ -1,9 +1,9 @@
 import type { CollectionBeforeChangeHook } from 'payload'
 
 /**
- * Generates SKU title from variation options + sku options + price with currency
+ * Generates SKU title from variation options + sku options
  * Also auto-populates the currency field from seller's country
- * Example: "Red / Leather / M / GHS 99.99"
+ * Example: "Red / Leather / M"
  */
 export const generateSKUTitle: CollectionBeforeChangeHook = async ({ data, req }) => {
   const titleParts: string[] = []
@@ -75,12 +75,6 @@ export const generateSKUTitle: CollectionBeforeChangeHook = async ({ data, req }
         }
       }
     }
-  }
-
-  // Add price with currency
-  if (data?.price !== undefined) {
-    const priceStr = currencySymbol ? `${currencySymbol} ${data.price}` : `${data.price}`
-    titleParts.push(priceStr)
   }
 
   data.title = titleParts.length > 0 ? titleParts.join(' / ') : data.sku || 'SKU'

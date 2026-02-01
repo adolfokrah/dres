@@ -51,6 +51,8 @@ class OrderDetailsBloc extends Bloc<OrderDetailsEvent, OrderDetailsState> {
   ) async {
     if (state.currentOrderId == null) return;
 
+    emit(state.copyWith(isRefreshing: true));
+
     try {
       final purchaseDetails = await _ordersRepository.getPurchaseDetails(
         state.currentOrderId!,
@@ -60,11 +62,12 @@ class OrderDetailsBloc extends Bloc<OrderDetailsEvent, OrderDetailsState> {
         state.copyWith(
           status: OrderDetailsStatus.success,
           purchaseDetails: purchaseDetails,
+          isRefreshing: false,
         ),
       );
     } catch (e) {
       // Keep existing data on refresh error
-      emit(state.copyWith(error: e.toString()));
+      emit(state.copyWith(error: e.toString(), isRefreshing: false));
     }
   }
 }

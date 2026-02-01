@@ -75,6 +75,12 @@ export const validateVariationActive: CollectionBeforeChangeHook = async ({
   if (!images || !Array.isArray(images) || images.length === 0) {
     errors.push('At least one image is required to activate a variation')
   }
+
+  // Check image validation status - cannot activate if images were rejected
+  const imageValidationStatus = variationData.imageValidationStatus ?? originalDoc?.imageValidationStatus
+  if (imageValidationStatus === 'rejected') {
+    errors.push('Cannot activate variation: images were rejected. Please upload new images.')
+  }
   
   // Check for style - use new data or fall back to original
   const style = variationData.style ?? originalDoc?.style

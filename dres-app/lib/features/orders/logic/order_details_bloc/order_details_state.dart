@@ -8,12 +8,14 @@ class OrderDetailsState extends Equatable {
   final PurchaseDetailsModel? purchaseDetails;
   final String? error;
   final String? currentOrderId;
+  final bool isRefreshing;
 
   const OrderDetailsState({
     this.status = OrderDetailsStatus.initial,
     this.purchaseDetails,
     this.error,
     this.currentOrderId,
+    this.isRefreshing = false,
   });
 
   OrderDetailsState copyWith({
@@ -21,16 +23,18 @@ class OrderDetailsState extends Equatable {
     PurchaseDetailsModel? purchaseDetails,
     String? error,
     String? currentOrderId,
+    bool? isRefreshing,
   }) {
     return OrderDetailsState(
       status: status ?? this.status,
       purchaseDetails: purchaseDetails ?? this.purchaseDetails,
       error: error,
       currentOrderId: currentOrderId ?? this.currentOrderId,
+      isRefreshing: isRefreshing ?? this.isRefreshing,
     );
   }
 
   @override
   List<Object?> get props =>
-      [status, purchaseDetails, error, currentOrderId];
+      [status, purchaseDetails, error, currentOrderId, isRefreshing];
 }

@@ -17,6 +17,11 @@ class IncomingOrderDetailsFetchRequested extends IncomingOrderDetailsEvent {
   List<Object?> get props => [orderId];
 }
 
+/// Refresh incoming order details (pull-to-refresh)
+class IncomingOrderDetailsRefreshRequested extends IncomingOrderDetailsEvent {
+  const IncomingOrderDetailsRefreshRequested();
+}
+
 /// Mark item as not available
 class IncomingOrderItemMarkNotAvailable extends IncomingOrderDetailsEvent {
   final String itemId;

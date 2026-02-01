@@ -188,21 +188,27 @@ class OrderItemModel {
   /// Total for this item (price * quantity)
   double get itemTotal => price * quantity;
 
-  /// Get the SKU option value (middle part of "Pink / 44 / ₵ 233")
+  /// Get the SKU option value (e.g., "M" from "Red / M")
+  /// Handles both old format "Red / M / ₵ 99" and new format "Red / M"
   String? get skuOptionValue {
     if (skuTitle == null || skuTitle!.isEmpty) return null;
-    
+
     final parts = skuTitle!.split(' / ');
-    if (parts.length >= 2) {
-      // Return the middle part(s) - everything except first (color) and last (price)
-      if (parts.length == 3) {
-        return parts[1]; // e.g., "44" from "Pink / 44 / ₵ 233"
-      } else if (parts.length > 3) {
-        // Multiple option values, join all except first and last
-        return parts.sublist(1, parts.length - 1).join(' / ');
-      }
+    if (parts.length < 2) return null;
+
+    // Check if last part looks like a price (contains currency symbol or is numeric)
+    final lastPart = parts.last.trim();
+    final looksLikePrice = RegExp(r'^[₵$€£¥₦]?\s*[\d.,]+$').hasMatch(lastPart) ||
+        lastPart.contains('GHS') ||
+        lastPart.contains('USD');
+
+    if (looksLikePrice && parts.length >= 3) {
+      // Old format: skip first (color) and last (price)
+      return parts.sublist(1, parts.length - 1).join(' / ');
+    } else {
+      // New format: return everything after first part
+      return parts.sublist(1).join(' / ');
     }
-    return null;
   }
 
   /// Get the timestamp when item was delivered (if delivered)
@@ -497,7 +503,7 @@ class OrderShippingAddress {
   factory OrderShippingAddress.fromJson(Map<String, dynamic> json) {
     String? cityName;
     String? regionName;
-    
+
     if (json['city'] != null) {
       if (json['city'] is Map) {
         cityName = json['city']['name'];
@@ -510,6 +516,15 @@ class OrderShippingAddress {
         }
       } else if (json['city'] is String) {
         cityName = json['city'];
+      }
+    }
+
+    // Also check for region at the top level (for denormalized shippingDetails)
+    if (regionName == null && json['region'] != null) {
+      if (json['region'] is Map) {
+        regionName = json['region']['name'];
+      } else if (json['region'] is String) {
+        regionName = json['region'];
       }
     }
 
@@ -536,8 +551,9 @@ class OrderShippingAddress {
     final parts = <String>[];
     parts.add(fullName);
     parts.add(phone);
-    if (city != null) parts.add(city!);
-    if (address != null) parts.add(address!);
+    if (address != null && address!.isNotEmpty) parts.add(address!);
+    final location = cityRegion;
+    if (location.isNotEmpty) parts.add(location);
     return parts.join('\n');
   }
 }

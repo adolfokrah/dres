@@ -21,6 +21,7 @@ interface StyleDoc {
   id: string
   title?: string
   category?: string | { id: string; category?: string }
+  brand?: string | { id: string; name?: string }
   seller?: string | { id: string }
   authenticity?: 'original' | 'replica'
 }
@@ -113,11 +114,13 @@ async function performImageValidation(
     .map((id) => (mediaDocs.docs as MediaDoc[]).find((doc) => doc.id === id))
     .filter((doc): doc is MediaDoc => doc !== undefined)
 
-  // Get category, seller, and authenticity from style
+  // Get category, seller, brand, and authenticity from style
   let categoryName = 'Unknown'
+  let brandName: string | null = null
   let sellerId: string | null = null
   let style: StyleDoc | null = null
   let isOriginal = false
+  let isOtherBrand = false
 
   if (doc.style) {
     const styleId = typeof doc.style === 'string' ? doc.style : doc.style.id
@@ -134,6 +137,17 @@ async function performImageValidation(
           : style.category.category || 'Unknown'
     }
 
+    // Get brand name from style
+    if (style?.brand) {
+      brandName =
+        typeof style.brand === 'string'
+          ? style.brand
+          : style.brand.name || null
+
+      // Check if brand is "Other" (case insensitive)
+      isOtherBrand = brandName?.toLowerCase() === 'other'
+    }
+
     if (style?.seller) {
       sellerId = typeof style.seller === 'string' ? style.seller : style.seller.id
     }
@@ -142,7 +156,7 @@ async function performImageValidation(
     isOriginal = style?.authenticity === 'original'
 
     if (isOriginal) {
-      payload.logger.info(`[ImageValidation] Item marked as ORIGINAL - will verify authenticity labels`)
+      payload.logger.info(`[ImageValidation] Item marked as ORIGINAL - brand: ${brandName || 'Not set'}, isOtherBrand: ${isOtherBrand}`)
     }
   }
 
@@ -174,18 +188,38 @@ async function performImageValidation(
     return
   }
 
-  // Build the prompt with authenticity requirements if needed
-  const authenticityRequirement = isOriginal
-    ? `
+  // Build the prompt with authenticity requirements based on:
+  // - Original + specific brand: verify brand label matches the selected brand
+  // - Original + "Other" brand: just verify some brand tag exists
+  // - Replica: no tag verification
+  let authenticityRequirement = ''
+
+  if (isOriginal) {
+    if (isOtherBrand || !brandName) {
+      // Original + "Other" brand (or no brand): just check for any brand tag
+      authenticityRequirement = `
 
 ⚠️ CRITICAL: This item is marked as ORIGINAL/AUTHENTIC. You MUST verify authenticity markers:
-6. At least one image MUST show the brand logo/label clearly
+6. At least one image MUST show a brand logo/label clearly (any brand is acceptable)
 7. At least one image MUST show the care label with washing instructions
 8. At least one image SHOULD show size tags or internal labels
-9. Labels must appear genuine and match the expected brand quality
+9. Labels must appear genuine
 
-If authenticity markers are missing or unclear, the item MUST BE REJECTED with specific details about what's missing.`
-    : ''
+If authenticity markers (brand tag, care label) are missing or unclear, the item MUST BE REJECTED with specific details about what's missing.`
+    } else {
+      // Original + specific brand: verify brand label matches the selected brand
+      authenticityRequirement = `
+
+⚠️ CRITICAL: This item is marked as ORIGINAL/AUTHENTIC "${brandName}". You MUST verify authenticity markers:
+6. At least one image MUST show the "${brandName}" brand logo/label clearly
+7. The brand tag visible in images MUST match "${brandName}" - if a different brand is shown, REJECT the item
+8. At least one image MUST show the care label with washing instructions
+9. At least one image SHOULD show size tags or internal labels
+10. Labels must appear genuine and match the expected quality for "${brandName}"
+
+If the brand tag doesn't match "${brandName}", or if authenticity markers are missing or unclear, the item MUST BE REJECTED with specific details about what's wrong.`
+    }
+  }
 
   // Add the prompt
   imageContents.push({
@@ -195,6 +229,7 @@ If authenticity markers are missing or unclear, the item MUST BE REJECTED with s
 Analyze these ${imageContents.length - 1} product image(s) and determine if they meet our quality guidelines.
 
 Expected Product Category: "${categoryName}"
+${brandName ? `Selected Brand: "${brandName}"${isOtherBrand ? ' (generic/other brand)' : ''}` : ''}
 Item Authenticity Claim: ${isOriginal ? '⚠️ ORIGINAL/AUTHENTIC (requires proof)' : 'Replica (no authenticity proof needed)'}
 
 Guidelines:
@@ -300,10 +335,17 @@ Respond ONLY with valid JSON (no markdown, no explanation):
         ? result.issues.join(', ')
         : 'Image quality issues detected'
 
-      // Create appropriate message based on whether authenticity is required
-      const notificationMessage = isOriginal
-        ? `Your product images were rejected: ${issuesSummary}. For authentic items, you must include photos showing brand labels, care tags, and other authenticity markers.`
-        : `Your product images were rejected: ${issuesSummary}. Please upload new images.`
+      // Create appropriate message based on authenticity and brand
+      let notificationMessage: string
+      if (isOriginal) {
+        if (isOtherBrand || !brandName) {
+          notificationMessage = `Your product images were rejected: ${issuesSummary}. For authentic items, you must include photos showing brand labels, care tags, and other authenticity markers.`
+        } else {
+          notificationMessage = `Your product images were rejected: ${issuesSummary}. For authentic "${brandName}" items, you must include photos showing the "${brandName}" brand label, care tags, and other authenticity markers. The brand tag must match the selected brand.`
+        }
+      } else {
+        notificationMessage = `Your product images were rejected: ${issuesSummary}. Please upload new images.`
+      }
 
       // Get first image for notification thumbnail
       const firstImageId = images.length > 0
@@ -328,6 +370,8 @@ Respond ONLY with valid JSON (no markdown, no explanation):
             validationScore: result.score,
             issues: result.issues,
             isOriginal: isOriginal,
+            brandName: brandName,
+            isOtherBrand: isOtherBrand,
           },
         },
         context: {

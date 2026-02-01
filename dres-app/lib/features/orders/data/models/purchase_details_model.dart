@@ -177,18 +177,26 @@ class PurchaseItemModel {
   /// Get display image URL
   String? get imageUrl => variationImage;
 
-  /// Get the SKU option value
+  /// Get the SKU option value (e.g., "M" from "Red / M")
+  /// Handles both old format "Red / M / ₵ 99" and new format "Red / M"
   String? get skuOptionValue {
     if (skuTitle == null || skuTitle!.isEmpty) return null;
     final parts = skuTitle!.split(' / ');
-    if (parts.length >= 2) {
-      if (parts.length == 3) {
-        return parts[1];
-      } else if (parts.length > 3) {
-        return parts.sublist(1, parts.length - 1).join(' / ');
-      }
+    if (parts.length < 2) return null;
+
+    // Check if last part looks like a price (contains currency symbol or is numeric)
+    final lastPart = parts.last.trim();
+    final looksLikePrice = RegExp(r'^[₵$€£¥₦]?\s*[\d.,]+$').hasMatch(lastPart) ||
+        lastPart.contains('GHS') ||
+        lastPart.contains('USD');
+
+    if (looksLikePrice && parts.length >= 3) {
+      // Old format: skip first (color) and last (price)
+      return parts.sublist(1, parts.length - 1).join(' / ');
+    } else {
+      // New format: return everything after first part
+      return parts.sublist(1).join(' / ');
     }
-    return null;
   }
 }
 
