@@ -319,7 +319,7 @@ Respond ONLY with valid JSON (no markdown, no explanation):
 
     payload.logger.info(`[ImageValidation] Variation ${doc.id} updated. New status: ${updatedVariation.status}, imageValidationStatus: ${updatedVariation.imageValidationStatus}`)
 
-    // If approved, trigger background removal for the first image
+    // If approved, trigger background removal and check for auto-activation
     if (status === 'approved' && images.length > 0) {
       const firstImageId = typeof images[0] === 'string' ? images[0] : images[0].id
       payload.logger.info(`[ImageValidation] Images approved, triggering background removal for ${firstImageId}`)
@@ -328,6 +328,12 @@ Respond ONLY with valid JSON (no markdown, no explanation):
       processBackgroundRemoval(payload, firstImageId).catch((error) => {
         payload.logger.error(`[ImageValidation] Background removal failed: ${error}`)
       })
+
+      // Check if variation can be auto-activated now that images are approved
+      // Only if status is still draft and we have at least 3 images
+      if (updatedVariation.status === 'draft' && images.length >= 3) {
+        await tryAutoActivateVariation(payload, doc.id, images, doc.variants)
+      }
     }
 
     // If rejected, notify the seller
@@ -391,5 +397,70 @@ Respond ONLY with valid JSON (no markdown, no explanation):
     }
   } catch (error) {
     payload.logger.error(`[ImageValidation] OpenAI API error: ${error}`)
+  }
+}
+
+/**
+ * Try to auto-activate a variation after images are approved
+ * Checks all requirements: variants and SKUs
+ */
+async function tryAutoActivateVariation(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: any,
+  variationId: string,
+  images: (string | MediaDoc)[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  variants: any[] | undefined
+) {
+  try {
+    // Check variants (need at least 1 complete variant)
+    const completeVariants = (variants || []).filter(
+      (v: { variant?: unknown; value?: unknown }) => v.variant && v.value
+    )
+    if (completeVariants.length < 1) {
+      payload.logger.info(`[ImageValidation] Cannot auto-activate ${variationId}: no complete variants`)
+      return
+    }
+
+    // Check SKUs (need at least 1 active with valid price)
+    const skus = await payload.find({
+      collection: 'skus',
+      where: {
+        variation: { equals: variationId },
+        isActive: { not_equals: false },
+        status: { not_equals: 'archived' },
+      },
+      limit: 10,
+      depth: 0,
+    })
+
+    const validSkus = skus.docs.filter((sku: { price?: number; sellingPrice?: number; stock?: number | null; status?: string }) => {
+      const hasPrice = (sku.price && sku.price > 0) || (sku.sellingPrice && sku.sellingPrice > 0)
+      const hasStock = sku.stock === null || sku.stock === undefined || sku.stock > 0
+      const isActive = sku.status !== 'archived'
+      return hasPrice && hasStock && isActive
+    })
+
+    if (validSkus.length < 1) {
+      payload.logger.info(`[ImageValidation] Cannot auto-activate ${variationId}: no valid SKUs`)
+      return
+    }
+
+    // All conditions met - activate!
+    payload.logger.info(`[ImageValidation] Auto-activating variation ${variationId} - all requirements met after image approval`)
+
+    await payload.update({
+      collection: 'variations',
+      id: variationId,
+      data: { status: 'active' },
+      context: {
+        skipHooks: true,
+        skipImageValidation: true,
+      },
+    })
+
+    payload.logger.info(`[ImageValidation] Variation ${variationId} activated successfully`)
+  } catch (error) {
+    payload.logger.error(`[ImageValidation] Auto-activation failed for ${variationId}: ${error}`)
   }
 }

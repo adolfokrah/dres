@@ -15,8 +15,8 @@ class ImagePickerUtils {
   /// Minimum image dimension required (width or height)
   static const int minImageDimension = 500;
 
-  /// Supported image formats for upload
-  static const List<String> supportedFormats = ['png', 'jpeg', 'jpg'];
+  /// Supported image formats for upload (HEIC/HEIF are converted to JPEG during compression)
+  static const List<String> supportedFormats = ['png', 'jpeg', 'jpg', 'heic', 'heif'];
 
   /// Validate image format
   /// Returns null if valid, or error message if invalid
@@ -24,7 +24,7 @@ class ImagePickerUtils {
     final extension = path.extension(filePath).toLowerCase().replaceAll('.', '');
 
     if (!supportedFormats.contains(extension)) {
-      return 'Unsupported image format (.$extension). Please use PNG or JPEG images.';
+      return 'Unsupported image format (.$extension). Please use PNG, JPEG, or HEIC images.';
     }
 
     return null; // Valid
@@ -62,11 +62,10 @@ class ImagePickerUtils {
       final originalSize = await file.length();
       print('📂 Original file size: ${(originalSize / 1024 / 1024).toStringAsFixed(2)} MB');
       
-      // Create compressed file path
+      // Create compressed file path - always use .jpg since we compress to JPEG format
       final dir = path.dirname(file.path);
       final name = path.basenameWithoutExtension(file.path);
-      final ext = path.extension(file.path);
-      final compressedPath = '$dir/${name}_compressed$ext';
+      final compressedPath = '$dir/${name}_compressed.jpg';
       
       // Compress the image
       final compressedFile = await FlutterImageCompress.compressAndGetFile(
