@@ -190,13 +190,23 @@ async function performImageValidation(
 
   // Build the prompt with authenticity requirements based on:
   // - Original + specific brand: verify brand label matches the selected brand
-  // - Original + "Other" brand: just verify some brand tag exists
+  // - Original + "Other" brand: no brand tag check (user doesn't have a specific brand)
   // - Replica: no tag verification
   let authenticityRequirement = ''
 
   if (isOriginal) {
-    if (isOtherBrand || !brandName) {
-      // Original + "Other" brand (or no brand): just check for any brand tag
+    if (isOtherBrand) {
+      // Original + "Other" brand: no brand tag verification needed
+      authenticityRequirement = `
+
+⚠️ CRITICAL: This item is marked as ORIGINAL/AUTHENTIC. You MUST verify basic authenticity markers:
+6. At least one image MUST show the care label with washing instructions
+7. At least one image SHOULD show size tags or internal labels
+8. Labels must appear genuine
+
+If authenticity markers (care label) are missing or unclear, the item MUST BE REJECTED with specific details about what's missing.`
+    } else if (!brandName) {
+      // Original but no brand selected: check for any brand tag
       authenticityRequirement = `
 
 ⚠️ CRITICAL: This item is marked as ORIGINAL/AUTHENTIC. You MUST verify authenticity markers:
@@ -338,9 +348,14 @@ Respond ONLY with valid JSON (no markdown, no explanation):
       // Create appropriate message based on authenticity and brand
       let notificationMessage: string
       if (isOriginal) {
-        if (isOtherBrand || !brandName) {
+        if (isOtherBrand) {
+          // Other brand: no brand tag requirement
+          notificationMessage = `Your product images were rejected: ${issuesSummary}. For authentic items, you must include photos showing care tags and other authenticity markers.`
+        } else if (!brandName) {
+          // No brand selected: require brand tag
           notificationMessage = `Your product images were rejected: ${issuesSummary}. For authentic items, you must include photos showing brand labels, care tags, and other authenticity markers.`
         } else {
+          // Specific brand: require matching brand tag
           notificationMessage = `Your product images were rejected: ${issuesSummary}. For authentic "${brandName}" items, you must include photos showing the "${brandName}" brand label, care tags, and other authenticity markers. The brand tag must match the selected brand.`
         }
       } else {
