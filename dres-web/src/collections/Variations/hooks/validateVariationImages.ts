@@ -201,24 +201,30 @@ async function performImageValidation(
 
 Note: This item is marked as ORIGINAL/AUTHENTIC with a generic brand. No brand tag verification is required.`
     } else if (!brandName) {
-      // Original but no brand selected: check for any brand tag
+      // Original but no brand selected: check for any brand identification
       authenticityRequirement = `
 
 ⚠️ CRITICAL: This item is marked as ORIGINAL/AUTHENTIC. You MUST verify:
-6. At least one image MUST show a brand logo/label clearly (any brand is acceptable)
-7. Labels must appear genuine
+6. At least one image MUST show brand identification - this can be:
+   - A brand tag/label on the product
+   - A brand logo visible on the product itself (e.g., Nike swoosh, Adidas stripes, Gucci pattern)
+   - Brand name printed/embroidered on the product
+7. Brand identification must appear genuine
 
-If no brand tag is visible, the item MUST BE REJECTED.`
+If no brand identification (tag, logo, or name on product) is visible, the item MUST BE REJECTED.`
     } else {
-      // Original + specific brand: verify brand label matches the selected brand
+      // Original + specific brand: verify brand identification matches the selected brand
       authenticityRequirement = `
 
 ⚠️ CRITICAL: This item is marked as ORIGINAL/AUTHENTIC "${brandName}". You MUST verify:
-6. At least one image MUST show the "${brandName}" brand logo/label clearly
-7. The brand tag visible in images MUST match "${brandName}" - if a different brand is shown, REJECT the item
-8. Labels must appear genuine
+6. At least one image MUST show "${brandName}" brand identification - this can be:
+   - A "${brandName}" brand tag/label on the product
+   - The "${brandName}" logo visible on the product itself (e.g., swoosh for Nike, stripes for Adidas)
+   - "${brandName}" name printed/embroidered on the product
+7. The brand identification MUST match "${brandName}" - if a different brand is shown, REJECT the item
+8. Brand identification must appear genuine
 
-If the brand tag doesn't match "${brandName}" or is missing, the item MUST BE REJECTED.`
+If the brand identification doesn't match "${brandName}" or is missing entirely, the item MUST BE REJECTED.`
     }
   }
 
