@@ -196,38 +196,29 @@ async function performImageValidation(
 
   if (isOriginal) {
     if (isOtherBrand) {
-      // Original + "Other" brand: no brand tag verification needed
+      // Original + "Other" brand: no brand tag verification needed, no special requirements
       authenticityRequirement = `
 
-⚠️ CRITICAL: This item is marked as ORIGINAL/AUTHENTIC. You MUST verify basic authenticity markers:
-6. At least one image MUST show the care label with washing instructions
-7. At least one image SHOULD show size tags or internal labels
-8. Labels must appear genuine
-
-If authenticity markers (care label) are missing or unclear, the item MUST BE REJECTED with specific details about what's missing.`
+Note: This item is marked as ORIGINAL/AUTHENTIC with a generic brand. No brand tag verification is required.`
     } else if (!brandName) {
       // Original but no brand selected: check for any brand tag
       authenticityRequirement = `
 
-⚠️ CRITICAL: This item is marked as ORIGINAL/AUTHENTIC. You MUST verify authenticity markers:
+⚠️ CRITICAL: This item is marked as ORIGINAL/AUTHENTIC. You MUST verify:
 6. At least one image MUST show a brand logo/label clearly (any brand is acceptable)
-7. At least one image MUST show the care label with washing instructions
-8. At least one image SHOULD show size tags or internal labels
-9. Labels must appear genuine
+7. Labels must appear genuine
 
-If authenticity markers (brand tag, care label) are missing or unclear, the item MUST BE REJECTED with specific details about what's missing.`
+If no brand tag is visible, the item MUST BE REJECTED.`
     } else {
       // Original + specific brand: verify brand label matches the selected brand
       authenticityRequirement = `
 
-⚠️ CRITICAL: This item is marked as ORIGINAL/AUTHENTIC "${brandName}". You MUST verify authenticity markers:
+⚠️ CRITICAL: This item is marked as ORIGINAL/AUTHENTIC "${brandName}". You MUST verify:
 6. At least one image MUST show the "${brandName}" brand logo/label clearly
 7. The brand tag visible in images MUST match "${brandName}" - if a different brand is shown, REJECT the item
-8. At least one image MUST show the care label with washing instructions
-9. At least one image SHOULD show size tags or internal labels
-10. Labels must appear genuine and match the expected quality for "${brandName}"
+8. Labels must appear genuine
 
-If the brand tag doesn't match "${brandName}", or if authenticity markers are missing or unclear, the item MUST BE REJECTED with specific details about what's wrong.`
+If the brand tag doesn't match "${brandName}" or is missing, the item MUST BE REJECTED.`
     }
   }
 
@@ -350,13 +341,13 @@ Respond ONLY with valid JSON (no markdown, no explanation):
       if (isOriginal) {
         if (isOtherBrand) {
           // Other brand: no brand tag requirement
-          notificationMessage = `Your product images were rejected: ${issuesSummary}. For authentic items, you must include photos showing care tags and other authenticity markers.`
+          notificationMessage = `Your product images were rejected: ${issuesSummary}. Please upload new images.`
         } else if (!brandName) {
           // No brand selected: require brand tag
-          notificationMessage = `Your product images were rejected: ${issuesSummary}. For authentic items, you must include photos showing brand labels, care tags, and other authenticity markers.`
+          notificationMessage = `Your product images were rejected: ${issuesSummary}. For authentic items, please include a photo showing the brand label.`
         } else {
           // Specific brand: require matching brand tag
-          notificationMessage = `Your product images were rejected: ${issuesSummary}. For authentic "${brandName}" items, you must include photos showing the "${brandName}" brand label, care tags, and other authenticity markers. The brand tag must match the selected brand.`
+          notificationMessage = `Your product images were rejected: ${issuesSummary}. For authentic "${brandName}" items, please include a photo showing the "${brandName}" brand label.`
         }
       } else {
         notificationMessage = `Your product images were rejected: ${issuesSummary}. Please upload new images.`
