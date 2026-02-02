@@ -56,7 +56,68 @@ export const validatePublish: CollectionBeforeChangeHook = async ({
     )
   }
 
-  // 2. Fetch variations for this style
+  // 2. Fetch all non-archived variations for this style
+  const allVariations = await req.payload.find({
+    collection: 'variations',
+    where: {
+      style: { equals: styleId },
+      status: { not_equals: 'archived' },
+    },
+    depth: 1,
+    limit: 100,
+  })
+
+  if (allVariations.docs.length === 0) {
+    throw new APIError(
+      'Cannot publish: Style must have at least one variation',
+      400
+    )
+  }
+
+  // 2b. Auto-activate eligible draft variations before publishing
+  for (const variation of allVariations.docs) {
+    if (variation.status !== 'draft') continue
+
+    // Check if variation meets activation requirements
+    const images = variation.images as unknown[]
+    const hasEnoughImages = images && images.length >= 3
+    const imagesApproved = variation.imageValidationStatus === 'approved'
+    const variants = variation.variants as { variant?: unknown; value?: unknown }[]
+    const hasCompleteVariant = variants && variants.some(v => v.variant && v.value)
+
+    if (!hasEnoughImages || !imagesApproved || !hasCompleteVariant) continue
+
+    // Check for valid SKUs
+    const skus = await req.payload.find({
+      collection: 'skus',
+      where: {
+        variation: { equals: variation.id },
+        status: { not_equals: 'archived' },
+        isActive: { not_equals: false },
+      },
+      depth: 0,
+      limit: 10,
+    })
+
+    const hasValidSku = skus.docs.some((sku) => {
+      const hasPrice = (sku.price && sku.price > 0) || (sku.sellingPrice && sku.sellingPrice > 0)
+      const hasStock = sku.stock === null || sku.stock === undefined || sku.stock >= 0
+      return hasPrice && hasStock
+    })
+
+    if (!hasValidSku) continue
+
+    // All requirements met - activate the variation
+    req.payload.logger.info(`[ValidatePublish] Auto-activating variation ${variation.id} during style publish`)
+    await req.payload.update({
+      collection: 'variations',
+      id: variation.id,
+      data: { status: 'active' },
+      context: { skipHooks: true, skipImageValidation: true },
+    })
+  }
+
+  // 3. Re-fetch to get updated active variations
   const variations = await req.payload.find({
     collection: 'variations',
     where: {
@@ -69,12 +130,12 @@ export const validatePublish: CollectionBeforeChangeHook = async ({
 
   if (variations.docs.length === 0) {
     throw new APIError(
-      'Cannot publish: Style must have at least one active variation',
+      'Cannot publish: Style must have at least one active variation. Make sure variations have images (approved), attributes, and SKUs with prices.',
       400
     )
   }
 
-  // 3. Check if any variation has rejected images
+  // 4. Check if any variation has rejected images
   const variationsWithRejectedImages = variations.docs.filter(
     (v) => v.imageValidationStatus === 'rejected'
   )
@@ -85,7 +146,7 @@ export const validatePublish: CollectionBeforeChangeHook = async ({
     )
   }
 
-  // 4. Validate each variation has required fields and at least one complete SKU
+  // 5. Validate each variation has required fields and at least one complete SKU
   let hasCompleteVariation = false
 
   for (const variation of variations.docs) {

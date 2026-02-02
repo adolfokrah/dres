@@ -278,7 +278,7 @@ class SkuModel {
   final List<SkuOptionModel> skuOptions;
   final double price;
   final double? compareAtPrice;
-  final int stock;
+  final int? stock; // null = unlimited stock, 0 = out of stock, >0 = has stock
   final String? sku;
   final String status; // 'active' or 'archived'
   final bool isActive;
@@ -289,7 +289,7 @@ class SkuModel {
     this.skuOptions = const [],
     required this.price,
     this.compareAtPrice,
-    required this.stock,
+    this.stock,
     this.sku,
     this.status = 'active',
     this.isActive = true,
@@ -357,7 +357,7 @@ class SkuModel {
       compareAtPrice: json['compareAtPrice'] != null
           ? (json['compareAtPrice']).toDouble()
           : null,
-      stock: json['stock'] ?? 0,
+      stock: json['stock'], // null = unlimited stock, 0 = out of stock
       sku: json['sku'],
       status: json['status'] ?? 'active',
       isActive: json['isActive'] ?? true,

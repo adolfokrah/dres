@@ -367,14 +367,14 @@ class StyleVariationSku {
   final List<StyleSkuOption> options;
   final double sellingPrice;
   final double? compareAtPrice;
-  final int stock;
+  final int? stock; // null = unlimited, 0 = out of stock, >0 = has stock
 
   StyleVariationSku({
     required this.id,
     this.options = const [],
     required this.sellingPrice,
     this.compareAtPrice,
-    required this.stock,
+    this.stock,
   });
 
   factory StyleVariationSku.fromJson(Map<String, dynamic> json) {
@@ -387,7 +387,7 @@ class StyleVariationSku {
           .toList(),
       sellingPrice: (json['sellingPrice'] ?? json['price'] ?? 0).toDouble(),
       compareAtPrice: json['compareAtPrice']?.toDouble(),
-      stock: json['stock'] ?? 0,
+      stock: json['stock'], // null = unlimited
     );
   }
 }

@@ -99,7 +99,7 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
         _priceController.text = price.toStringAsFixed(2);
       }
       final stock = localSku['stock'] as int?;
-      if (stock != null && stock > 0) {
+      if (stock != null) {
         _stockController.text = stock.toString();
       }
       _localSkuPopulated = true;
@@ -199,10 +199,11 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
         } else {
           _comparePriceController.clear();
         }
-        if (sku.stock > 0) {
+        // Show stock value (including 0 for out of stock), clear for null (unlimited)
+        if (sku.stock != null) {
           _stockController.text = sku.stock.toString();
         } else {
-          _stockController.clear();
+          _stockController.clear(); // Leave empty for unlimited stock
         }
       });
       _updateSellingPrice();
