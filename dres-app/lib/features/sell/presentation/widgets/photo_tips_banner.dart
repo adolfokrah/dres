@@ -4,10 +4,9 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/features/sell/presentation/widgets/photo_tips_link.dart';
 
-/// Banner that shows required photo types for authentic items
-/// Similar to the screenshot provided by the user
-class AuthenticityPhotosTip extends StatelessWidget {
-  const AuthenticityPhotosTip({super.key});
+/// Banner that shows photo tips with tag examples
+class PhotoTipsBanner extends StatelessWidget {
+  const PhotoTipsBanner({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,14 +26,14 @@ class AuthenticityPhotosTip extends StatelessWidget {
           Row(
             children: [
               PhosphorIcon(
-                PhosphorIcons.shieldCheck(PhosphorIconsStyle.fill),
+                PhosphorIcons.camera(PhosphorIconsStyle.fill),
                 size: 20,
                 color: AppColors.primary,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Make sure you\'ve added these photos:',
+                  'Include photos of tags & labels',
                   style: AppTypography.bodyM.copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -55,7 +54,7 @@ class AuthenticityPhotosTip extends StatelessWidget {
 
           // Description text
           Text(
-            'You need to upload these photos to prove that your item is authentic, or your listing might be hidden or removed.',
+            'Clear photos of brand tags and labels help buyers trust your listing and make it easier to sell.',
             style: AppTypography.bodyS.copyWith(
               color: AppColors.textSecondary,
               height: 1.4,

@@ -7,8 +7,7 @@ import 'package:dres/core/widgets/app_button.dart';
 import 'package:dres/core/widgets/app_info_banner.dart';
 import 'package:dres/core/utilities/image_picker_utils.dart';
 import 'package:dres/features/sell/data/repositories/sell_repository.dart';
-import 'package:dres/features/sell/presentation/widgets/authenticity_photos_tip.dart';
-import 'package:dres/features/sell/presentation/widgets/photo_tips_link.dart';
+import 'package:dres/features/sell/presentation/widgets/photo_tips_banner.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:flutter_overlay_loader/flutter_overlay_loader.dart';
 import 'package:reorderables/reorderables.dart';
@@ -326,11 +325,8 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  // Show authenticity tip for original items, otherwise show regular header
-                  if (widget.authenticity == 'original')
-                    const AuthenticityPhotosTip()
-                  else
-                    _buildItemPhotosHeader(),
+                  // Always show photo tips banner with tag examples
+                  const PhotoTipsBanner(),
 
                   const SizedBox(height: 20),
                   _buildInfoBanner(),
@@ -534,43 +530,6 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
       child: AppInfoBanner(
         title: 'Drag and drop to reorder photos.',
         text: 'The first photo will be your main image that buyers see first.',
-      ),
-    );
-  }
-  Widget _buildItemPhotosHeader() {
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: AppColors.secondary, width: 10),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Item Photos',
-              style: AppTypography.titleL.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            
-            const SizedBox(height: 8),
-            
-            Text(
-              'Clear, detailed photos will help your items sell faster.',
-              style: AppTypography.bodyM.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-            
-            const SizedBox(height: 16),
-
-            const PhotoTipsLink(),
-          ],
-        ),
       ),
     );
   }
