@@ -130,14 +130,16 @@ export const validateVariationActive: CollectionBeforeChangeHook = async ({
         errors.push('At least one SKU must have a valid price and be active')
       }
       
-      // Check if any active SKU has stock info
+      // Check if any active SKU has stock (allow 0 for items that don't track stock)
       const activeSkusWithStock = skus.docs.filter((sku) => {
         const isActive = sku.isActive !== false && sku.status !== 'archived'
-        return isActive && (sku.stock === null || sku.stock === undefined || sku.stock > 0)
+        // Allow stock to be null, undefined, or >= 0 (only reject negative stock)
+        const hasStock = sku.stock === null || sku.stock === undefined || sku.stock >= 0
+        return isActive && hasStock
       })
-      
+
       if (activeSkusWithStock.length === 0) {
-        errors.push('At least one SKU must be active and in stock')
+        errors.push('At least one SKU must be active')
       }
     }
   } else if (operation === 'create') {

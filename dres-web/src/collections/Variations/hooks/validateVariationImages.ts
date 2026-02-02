@@ -258,11 +258,11 @@ Respond ONLY with valid JSON (no markdown, no explanation):
       }
     }
 
-    // Use score-based approval: score > 50 = approved
-    const isApproved = result.score > 50
+    // Use score-based approval: score >= 40 = approved
+    const isApproved = result.score >= 40
 
     payload.logger.info(
-      `[ImageValidation] Result for ${doc.id}: score=${result.score}, isApproved=${isApproved} (threshold: >50), detected=${result.detectedType}`
+      `[ImageValidation] Result for ${doc.id}: score=${result.score}, isApproved=${isApproved} (threshold: >=40), detected=${result.detectedType}`
     )
 
     // Determine validation status based on score (only 3 states: pending, approved, rejected)
@@ -416,10 +416,11 @@ async function tryAutoActivateVariation(
       depth: 0,
     })
 
-    const validSkus = skus.docs.filter((sku: { price?: number; sellingPrice?: number; stock?: number | null; status?: string }) => {
+    const validSkus = skus.docs.filter((sku: { price?: number; sellingPrice?: number; stock?: number | null; status?: string; isActive?: boolean }) => {
       const hasPrice = (sku.price && sku.price > 0) || (sku.sellingPrice && sku.sellingPrice > 0)
-      const hasStock = sku.stock === null || sku.stock === undefined || sku.stock > 0
-      const isActive = sku.status !== 'archived'
+      // Allow stock to be null, undefined, or >= 0 (only reject negative stock)
+      const hasStock = sku.stock === null || sku.stock === undefined || sku.stock >= 0
+      const isActive = sku.isActive !== false && sku.status !== 'archived'
       return hasPrice && hasStock && isActive
     })
 
