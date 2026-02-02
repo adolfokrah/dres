@@ -188,69 +188,42 @@ async function performImageValidation(
     return
   }
 
-  // Build the prompt with authenticity requirements based on:
-  // - Original + specific brand: verify brand label matches the selected brand
-  // - Original + "Other" brand: no brand tag check (user doesn't have a specific brand)
-  // - Replica: no tag verification
-  let authenticityRequirement = ''
-
-  if (isOriginal) {
-    if (isOtherBrand) {
-      // Original + "Other" brand: no brand tag verification needed, no special requirements
-      authenticityRequirement = `
-
-Note: This item is marked as ORIGINAL/AUTHENTIC with a generic brand. No brand tag verification is required.`
-    } else if (!brandName) {
-      // Original but no brand selected: check for any brand identification
-      authenticityRequirement = `
-
-⚠️ CRITICAL: This item is marked as ORIGINAL/AUTHENTIC. You MUST verify:
-6. At least one image MUST show brand identification - this can be:
-   - A brand tag/label on the product
-   - A brand logo visible on the product itself (e.g., Nike swoosh, Adidas stripes, Gucci pattern)
-   - Brand name printed/embroidered on the product
-7. Brand identification must appear genuine
-
-If no brand identification (tag, logo, or name on product) is visible, the item MUST BE REJECTED.`
-    } else {
-      // Original + specific brand: verify brand identification matches the selected brand
-      authenticityRequirement = `
-
-⚠️ CRITICAL: This item is marked as ORIGINAL/AUTHENTIC "${brandName}". You MUST verify:
-6. At least one image MUST show "${brandName}" brand identification - this can be:
-   - A "${brandName}" brand tag/label on the product
-   - The "${brandName}" logo visible on the product itself (e.g., swoosh for Nike, stripes for Adidas)
-   - "${brandName}" name printed/embroidered on the product
-7. The brand identification MUST match "${brandName}" - if a different brand is shown, REJECT the item
-8. Brand identification must appear genuine
-
-If the brand identification doesn't match "${brandName}" or is missing entirely, the item MUST BE REJECTED.`
-    }
+  // Build simple brand note for original items
+  let brandNote = ''
+  if (isOriginal && brandName && !isOtherBrand) {
+    brandNote = `\n6. For this "${brandName}" item, check if brand identification is visible (tag, logo, or name on product)`
+  } else if (isOriginal && !isOtherBrand && !brandName) {
+    brandNote = `\n6. For this authentic item, check if any brand identification is visible (tag, logo, or name on product)`
   }
 
-  // Add the prompt
+  // Add the prompt - simple scoring, no strict rejection rules
   imageContents.push({
     type: 'text',
     text: `You are a product image validator for a fashion marketplace called DRES.
 
-Analyze these ${imageContents.length - 1} product image(s) and determine if they meet our quality guidelines.
+Analyze these ${imageContents.length - 1} product image(s) and score them based on quality.
 
 Expected Product Category: "${categoryName}"
 ${brandName ? `Selected Brand: "${brandName}"${isOtherBrand ? ' (generic/other brand)' : ''}` : ''}
-Item Authenticity Claim: ${isOriginal ? '⚠️ ORIGINAL/AUTHENTIC (requires proof)' : 'Replica (no authenticity proof needed)'}
 
-Guidelines:
+Scoring Guidelines (give higher scores for better quality):
 1. Images must be real product photos (not screenshots, memes, AI-generated, or unrelated images)
 2. Images should show actual clothing/fashion items matching the category "${categoryName}"
-3. All images should appear to be of the same or similar product
-4. Image quality should be acceptable (not extremely blurry or dark)
-5. No explicit, offensive, or inappropriate content${authenticityRequirement}
+3. Images should appear to be of the same product
+4. Image quality should be acceptable (clear, well-lit)
+5. No explicit, offensive, or inappropriate content${brandNote}
+
+Score Guide:
+- 80-100: Excellent quality, clear images, meets all guidelines
+- 60-79: Good quality, minor issues but acceptable
+- 40-59: Fair quality, some issues but product is identifiable
+- 0-39: Poor quality, major issues, not suitable for marketplace
 
 Respond ONLY with valid JSON (no markdown, no explanation):
 {
   "approved": true/false,
   "score": 0-100,
-  "issues": ["list of specific issues found, empty if approved"],
+  "issues": ["list of specific issues found, empty if none"],
   "detectedType": "what type of item you see in the images"
 }`,
   })
@@ -285,12 +258,15 @@ Respond ONLY with valid JSON (no markdown, no explanation):
       }
     }
 
+    // Use score-based approval: score > 50 = approved
+    const isApproved = result.score > 50
+
     payload.logger.info(
-      `[ImageValidation] Result for ${doc.id}: approved=${result.approved}, score=${result.score}, detected=${result.detectedType}`
+      `[ImageValidation] Result for ${doc.id}: score=${result.score}, isApproved=${isApproved} (threshold: >50), detected=${result.detectedType}`
     )
 
-    // Determine validation status (only 3 states: pending, approved, rejected)
-    const status: 'pending' | 'approved' | 'rejected' = result.approved ? 'approved' : 'rejected'
+    // Determine validation status based on score (only 3 states: pending, approved, rejected)
+    const status: 'pending' | 'approved' | 'rejected' = isApproved ? 'approved' : 'rejected'
 
     // Build update data
     const updateData: Record<string, unknown> = {
