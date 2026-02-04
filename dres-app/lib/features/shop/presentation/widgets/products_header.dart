@@ -27,24 +27,26 @@ class ProductsHeader extends StatelessWidget {
         children: [
           // Title and item count
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title.toUpperCase(),
-                  style: AppTypography.bodyL.copyWith(
-                    fontWeight: FontWeight.w700,
+            child: ClipRect(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title.toUpperCase(),
+                    style: AppTypography.bodyL.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  itemCount > 999 ? '999+ items' : '$itemCount items',
-                  style: AppTypography.bodyM,
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  Text(
+                    itemCount > 999 ? '999+ items' : '$itemCount items',
+                    style: AppTypography.bodyM,
+                  ),
+                ],
+              ),
             ),
           ),
 

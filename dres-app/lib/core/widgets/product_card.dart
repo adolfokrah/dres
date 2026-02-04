@@ -137,104 +137,101 @@ class _ProductCardState extends State<ProductCard> {
                 padding: const EdgeInsets.all(10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                      // Low stock indicator
-                  if (LowStockIndicator.isLowStock(widget.totalStock))
-                    LowStockIndicator(stock: widget.totalStock!),
-                  // WE LOVE tag - only shown for Standard/Premium tiers
-                  if (widget.showWeLoveBadge) 
-                    BadgeWidget(
-                      text: l10n.weLove,
-                      backgroundColor: AppColors.primary,
-                      borderColor: AppColors.primary,
-                      textColor: AppColors.textOnPrimary,
-                    ),
-                    if(!widget.showWeLoveBadge)
-                    const SizedBox(height: 15),
-
+                    // Low stock indicator
+                    if (LowStockIndicator.isLowStock(widget.totalStock))
+                      LowStockIndicator(stock: widget.totalStock!),
+                    // WE LOVE tag - only shown for Standard/Premium tiers
+                    if (widget.showWeLoveBadge)
+                      BadgeWidget(
+                        text: l10n.weLove,
+                        backgroundColor: AppColors.primary,
+                        borderColor: AppColors.primary,
+                        textColor: AppColors.textOnPrimary,
+                      ),
+                    if (!widget.showWeLoveBadge && !LowStockIndicator.isLowStock(widget.totalStock))
+                      const SizedBox(height: 12),
                     const SizedBox(height: 4),
-                  // Brand with favorite icon
-                  if (widget.brand != null) ...[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            widget.brand!.toUpperCase(),
-                            style: AppTypography.bodyM.copyWith(
-                              fontWeight: FontWeight.w600,
+                    // Brand with favorite icon
+                    if (widget.brand != null) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              widget.brand!.toUpperCase(),
+                              style: AppTypography.bodyM.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
+                          // Hide favorite button if user is the seller
+                          if (!_isOwnItem)
+                            FavoriteButton(
+                              variationId: widget.id,
+                              size: 22,
+                              onChanged: (isFavorited) {
+                                widget.onFavoriteToggle?.call(widget.id, isFavorited);
+                              },
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                    ],
+                    // Category
+                    if (widget.category != null) ...[
+                      Text(
+                        widget.category!,
+                        style: AppTypography.bodyM.copyWith(
+                          color: AppColors.primary.withValues(alpha: 0.7),
+                          fontWeight: FontWeight.w500
                         ),
-                        // Hide favorite button if user is the seller
-                        if (!_isOwnItem)
-                          FavoriteButton(
-                            variationId: widget.id,
-                            size: 22,
-                            onChanged: (isFavorited) {
-                              widget.onFavoriteToggle?.call(widget.id, isFavorited);
-                            },
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                  ],
-                  // Category
-                  if (widget.category != null) ...[
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    // Title
                     Text(
-                      widget.category!,
+                      widget.title,
                       style: AppTypography.bodyM.copyWith(
-                        color: AppColors.primary.withValues(alpha: 0.7),
-                        fontWeight: FontWeight.w500
+                         fontWeight: FontWeight.w500,
+                         color: AppColors.textPrimary.withValues(alpha: 0.7),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
-                  ],
-                  // Title
-                  Text(
-                    widget.title,
-                    style: AppTypography.bodyM.copyWith(
-                       fontWeight: FontWeight.w500,
-                       color: AppColors.textPrimary.withValues(alpha: 0.7),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const Spacer(),
-                  // Price
-                  if (widget.compareAtPrice != null &&
-                      widget.compareAtPrice! > widget.price) ...[
-                    Text(
-                      '${widget.currencySymbol} ${widget.compareAtPrice!.toStringAsFixed(2)}',
-                      style: AppTypography.bodyL.copyWith(
-                        color: AppColors.textHint,
-                        decoration: TextDecoration.lineThrough,
-                         fontWeight: FontWeight.w500
+                    const SizedBox(height: 8),
+                    // Compare at price (strikethrough)
+                    if (widget.compareAtPrice != null &&
+                        widget.compareAtPrice! > widget.price)
+                      Text(
+                        '${widget.currencySymbol} ${widget.compareAtPrice!.toStringAsFixed(2)}',
+                        style: AppTypography.bodyM.copyWith(
+                          color: AppColors.textHint,
+                          decoration: TextDecoration.lineThrough,
+                          fontWeight: FontWeight.w500
+                        ),
                       ),
+                    // Actual price
+                    Text(
+                      '${widget.currencySymbol} ${widget.price.toStringAsFixed(2)}',
+                      style: AppTypography.bodyL.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: widget.compareAtPrice != null &&
+                                widget.compareAtPrice! > widget.price
+                            ? Colors.red
+                            : AppColors.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
                   ],
-                  // Actual price
-                  Text(
-                    '${widget.currencySymbol} ${widget.price.toStringAsFixed(2)}',
-                    style: AppTypography.bodyL.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: widget.compareAtPrice != null &&
-                              widget.compareAtPrice! > widget.price
-                          ? Colors.red
-                          : AppColors.textPrimary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                ),
               ),
-            ),
             ),
           ],
         ),
