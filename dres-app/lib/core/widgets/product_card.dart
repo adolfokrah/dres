@@ -86,11 +86,14 @@ class _ProductCardState extends State<ProductCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image Container
-            Stack(
+            AspectRatio(
+              aspectRatio: 3 / 4,
+              child: Stack(
               children: [
                 Container(
                   color: Colors.white,
                   width: double.infinity,
+                  height: double.infinity,
                   child: widget.thumbnail != null
                       ? Image.network(
                            MediaUtils.resolveUrl(widget.thumbnail) ?? '',
@@ -143,6 +146,7 @@ class _ProductCardState extends State<ProductCard> {
                     ),
                   ),
               ],
+            ),
             ),
             // Content Container
             Expanded(
