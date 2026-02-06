@@ -1,4 +1,5 @@
 import type { PayloadHandler } from 'payload'
+import { calculateUserBalance } from '../../../utilities/calculateUserBalance'
 
 // Mobile money provider bank codes (Paystack Ghana)
 const MOBILE_MONEY_BANK_CODES = ['MTN', 'VOD', 'ATL', 'GMP', 'ZEN']
@@ -155,24 +156,8 @@ export const getUserTransactions: PayloadHandler = async (req) => {
       return sum + (txn.amount || 0)
     }, 0)
 
-    // Calculate available balance:
-    // Sum all completed and in_progress transactions for the user (amounts are already +/-)
-    // Note: pending order_payments are not included until they're completed by the cron job
-    // Excludes boost_payment since those are paid separately via Paystack, not from earnings
-    const balanceTxns = await payload.find({
-      collection: 'transactions',
-      where: {
-        user: { equals: user.id },
-        status: { in: ['completed', 'in_progress'] },
-        type: { in: ['order_payment', 'transfer', 'refund', 'return_charge', 'deposit'] },
-      },
-      limit: 0,
-    })
-
-    // Sum all amounts - some are positive, some are negative
-    const availableBalanceInGHS = balanceTxns.docs.reduce((sum: number, txn: any) => {
-      return sum + (txn.amount || 0)
-    }, 0)
+    // Calculate available balance
+    const availableBalanceInGHS = await calculateUserBalance(payload, user.id)
 
     // Check if user has a withdrawal account set up
     const withdrawalAccount = user.withdrawalAccount as {

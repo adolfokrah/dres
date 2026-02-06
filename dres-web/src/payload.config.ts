@@ -80,7 +80,6 @@ import { search } from './endpoints/search'
 import { getTopSellers } from './endpoints/topSellers'
 import { getStyleInfo } from './endpoints/styleInfo'
 import { seedEndpoint } from './endpoints/seed/endpoint'
-import { triggerAutoTransfer } from './endpoints/triggerAutoTransfer'
 import { testWelcomeEmail } from './endpoints/testWelcomeEmail'
 import { sendPush } from './endpoints/sendPush'
 
@@ -236,12 +235,7 @@ export default buildConfig({
       method: 'post',
       handler: seedEndpoint,
     },
-    {
-      path: '/trigger-auto-transfer',
-      method: 'post',
-      handler: triggerAutoTransfer,
-    },
-    {
+{
       path: '/test-welcome-email',
       method: 'get',
       handler: testWelcomeEmail,

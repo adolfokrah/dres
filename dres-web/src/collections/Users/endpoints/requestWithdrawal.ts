@@ -1,7 +1,7 @@
 import type { PayloadHandler } from 'payload'
-import { ObjectId } from 'mongodb'
 import { createTransferRecipient, initiateBulkTransfer, toSmallestUnit } from '../../../utilities/paystack'
 import { generateTransactionId } from '../../../utilities/generateTransactionId'
+import { calculateUserBalance } from '../../../utilities/calculateUserBalance'
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY || ''
 const isTestMode = PAYSTACK_SECRET_KEY.startsWith('sk_test_')
@@ -131,30 +131,8 @@ export const requestWithdrawal: PayloadHandler = async (req) => {
       payload.logger.info(`[Withdrawal] Created recipient code ${recipientCode} for user ${userId}`)
     }
 
-    // 3. Calculate available balance using aggregation
-    const db = payload.db
-    const transactionsCollection = db.collections['transactions']
-
-    // Sum all completed and in_progress transactions for the user
-    // Note: pending order_payments are not included until they're completed by the cron job
-    // Amounts are already stored as +/- values
-    const balanceResult = await transactionsCollection.aggregate([
-      {
-        $match: {
-          user: new ObjectId(userId),
-          status: { $in: ['completed', 'in_progress'] },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          balance: { $sum: '$amount' },
-        },
-      },
-    ])
-
-    // Round to 2 decimal places to avoid floating point precision issues
-    const balance = Math.round((balanceResult[0]?.balance || 0) * 100) / 100
+    // 3. Calculate available balance
+    const balance = await calculateUserBalance(payload, userId)
 
     payload.logger.info(`[Withdrawal] User ${userId} available balance: ${balance}, minimumWithdrawalAmount: ${minimumWithdrawalAmount}, check: ${balance} < ${minimumWithdrawalAmount} = ${balance < minimumWithdrawalAmount}`)
 
