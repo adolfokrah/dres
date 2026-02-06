@@ -87,31 +87,29 @@ class _ImageManagementScreenState extends State<ImageManagementScreen> {
   int get _totalImages => _allImages.length;
 
   void _onReorder(int oldIndex, int newIndex) {
-    setState(() {      
+    setState(() {
       // Validate indices
       if (oldIndex < 0 || oldIndex >= _allImages.length) {
         return;
       }
-      
-      if (newIndex > _allImages.length) {
-        newIndex = _allImages.length;
+
+      if (newIndex < 0 || newIndex > _allImages.length) {
+        return;
       }
-      
+
       // If moving to the same position, do nothing
       if (oldIndex == newIndex) {
         return;
       }
-      
+
       // Remove item from old position
       final item = _allImages.removeAt(oldIndex);
-      
-      // Adjust newIndex if we removed an item from before the insertion point
-      final adjustedNewIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
-      
-      // Insert at new position (ensure it's within bounds)
-      final finalIndex = adjustedNewIndex.clamp(0, _allImages.length);
+
+      // The reorderables package provides the target index directly
+      // No adjustment needed - just clamp to valid range after removal
+      final finalIndex = newIndex.clamp(0, _allImages.length);
       _allImages.insert(finalIndex, item);
-      
+
       print('📋 Reordered: moved item from $oldIndex to $finalIndex');
     });
   }
