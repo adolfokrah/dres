@@ -70,7 +70,6 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
     } else if (widget.queryType == QueryType.newArrivals) {
       endpoint = newArrivals;
     } else if (widget.queryType == QueryType.featured || widget.queryType == QueryType.weLove) {
-      // Both featured and weLove use the same endpoint (which filters by showWeLoveBadge)
       endpoint = featuredVariations;
     } else if (widget.queryType == QueryType.recentlyViewed) {
       endpoint = recentlyViewedVariations;
@@ -79,7 +78,7 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
     } else {
       return [];
     }
-    
+
     final queryParams = <String, dynamic>{
       'limit': widget.limit,
       'department': departmentId,
@@ -89,12 +88,12 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
     if (widget.queryType == QueryType.onSale) {
       queryParams['filterType'] = 'on-sale';
     }
-    
+
     final response = await apiService.dio.get(
       endpoint,
       queryParameters: queryParams,
     );
-    
+
     // Update currency from API response
     if (response.data['currency'] != null) {
       CurrencyUtils.updateFromResponse(
