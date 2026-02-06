@@ -145,6 +145,13 @@ class _ProductCardState extends State<ProductCard> {
                       ),
                     ),
                   ),
+                // Low stock indicator - positioned at bottom right of image
+                if (LowStockIndicator.isLowStock(widget.totalStock))
+                  Positioned(
+                    right: 0,
+                    bottom: 4,
+                    child: LowStockIndicator(stock: widget.totalStock!),
+                  ),
               ],
             ),
             ),
@@ -157,9 +164,6 @@ class _ProductCardState extends State<ProductCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Low stock indicator
-                    if (LowStockIndicator.isLowStock(widget.totalStock))
-                      LowStockIndicator(stock: widget.totalStock!),
                     // Brand
                     if (widget.brand != null) ...[
                       Text(

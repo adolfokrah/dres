@@ -47,7 +47,15 @@ function transformAggregationResult(doc: any): any {
   const skus = doc.skuData || []
 
   // Get first image thumbnail from looked-up imageData
-  const firstImage = doc.imageData?.[0]
+  // Note: We need to get the FIRST image from the original images array order
+  // The $lookup with $in doesn't preserve order, so we need to reorder
+  let firstImage = null
+  if (doc.normalizedImageIds?.length > 0 && doc.imageData?.length > 0) {
+    const firstImageId = doc.normalizedImageIds[0]?.toString()
+    firstImage = doc.imageData.find((img: any) => img._id?.toString() === firstImageId) || doc.imageData[0]
+  } else {
+    firstImage = doc.imageData?.[0]
+  }
   // Try thumbnail size first, then fall back to main image
   const thumbnail = getMediaUrl(firstImage, 'thumbnail') || getMediaUrl(firstImage)
 
