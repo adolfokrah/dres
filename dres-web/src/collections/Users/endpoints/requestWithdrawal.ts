@@ -96,25 +96,31 @@ export const requestWithdrawal: PayloadHandler = async (req) => {
     // 3. Ensure user has a recipient code (create if missing)
     let recipientCode = withdrawalAccount.recipientCode
     if (!recipientCode) {
-      payload.logger.info(`[Withdrawal] Creating transfer recipient for user ${userId}`)
+      if (isTestMode) {
+        // In test mode, use a fake recipient code to avoid hitting Paystack
+        recipientCode = `test_recipient_${userId}`
+        payload.logger.info(`[Withdrawal] TEST MODE - Using fake recipient code ${recipientCode} for user ${userId}`)
+      } else {
+        payload.logger.info(`[Withdrawal] Creating transfer recipient for user ${userId}`)
 
-      const recipientResult = await createTransferRecipient({
-        type: 'mobile_money',
-        name: withdrawalAccount.accountName || user.firstName || 'Customer',
-        accountNumber: withdrawalAccount.accountNumber,
-        bankCode: withdrawalAccount.bankCode,
-        currency: 'GHS',
-      })
+        const recipientResult = await createTransferRecipient({
+          type: 'mobile_money',
+          name: withdrawalAccount.accountName || user.firstName || 'Customer',
+          accountNumber: withdrawalAccount.accountNumber,
+          bankCode: withdrawalAccount.bankCode,
+          currency: 'GHS',
+        })
 
-      if (!recipientResult.success || !recipientResult.data?.recipient_code) {
-        payload.logger.error(`[Withdrawal] Failed to create recipient: ${recipientResult.error}`)
-        return Response.json(
-          { error: 'Failed to set up transfer recipient. Please check your withdrawal account details.' },
-          { status: 400 }
-        )
+        if (!recipientResult.success || !recipientResult.data?.recipient_code) {
+          payload.logger.error(`[Withdrawal] Failed to create recipient: ${recipientResult.error}`)
+          return Response.json(
+            { error: 'Failed to set up transfer recipient. Please check your withdrawal account details.' },
+            { status: 400 }
+          )
+        }
+
+        recipientCode = recipientResult.data.recipient_code
       }
-
-      recipientCode = recipientResult.data.recipient_code
 
       // Save recipient code to user
       await payload.update({
@@ -128,7 +134,7 @@ export const requestWithdrawal: PayloadHandler = async (req) => {
         },
       })
 
-      payload.logger.info(`[Withdrawal] Created recipient code ${recipientCode} for user ${userId}`)
+      payload.logger.info(`[Withdrawal] Saved recipient code ${recipientCode} for user ${userId}`)
     }
 
     // 3. Calculate available balance
@@ -147,6 +153,13 @@ export const requestWithdrawal: PayloadHandler = async (req) => {
 
     // 6. Calculate transfer amount (balance minus fee)
     const transferAmount = Math.round((balance - transferFee) * 100) / 100
+
+    if (transferAmount <= 0) {
+      return Response.json(
+        { error: `Your balance (₵${balance.toFixed(2)}) is not enough to cover the withdrawal fee (₵${transferFee.toFixed(2)}).`, balance },
+        { status: 400 }
+      )
+    }
 
     // 7. Check for existing in-progress transfer to prevent double-withdrawal
     const existingTransfer = await payload.find({
