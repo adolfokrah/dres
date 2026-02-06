@@ -5,7 +5,7 @@ import { filteredVariations } from './filtered'
  * GET /api/variations/trending
  *
  * Delegates to the filtered endpoint with filterType=trending.
- * Transforms the response to return 'docs' instead of 'variations' for backward compat.
+ * Kept for backward compatibility with older app versions.
  */
 export const trendingVariations: PayloadHandler = async (req) => {
   ;(req.query as Record<string, unknown>).filterType = 'trending'

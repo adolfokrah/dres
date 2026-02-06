@@ -31,79 +31,35 @@ export default async function ProductArchiveBlockComponent({
   try {
     const departmentId = department || '694eee871a36e6d75fbb15af' // Default to Men
 
-    if (queryType === 'trending') {
-      const params = new URLSearchParams({
-        limit: (limit || 8).toString(),
-        department: departmentId,
-      })
-      
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/variations/trending?${params}`,
-        {
-          next: { revalidate: 600 } // Cache for 10 minutes
-        }
-      )
-      
-      if (response.ok) {
-        const data = await response.json()
-        products = data.docs || []
-      }
-    } else if (queryType === 'new-arrivals') {
-      const params = new URLSearchParams({
-        limit: (limit || 8).toString(),
-        department: departmentId,
-      })
-      
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/variations/new-arrivals?${params}`,
-        {
-          next: { revalidate: 600 } // Cache for 10 minutes
-        }
-      )
-      
-      if (response.ok) {
-        const data = await response.json()
-        products = data.docs || []
-      }
-    } else if (queryType === 'featured') {
-      const params = new URLSearchParams({
-        limit: (limit || 8).toString(),
-        department: departmentId,
-      })
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/variations/featured?${params}`,
-        {
-          next: { revalidate: 600 } // Cache for 10 minutes
-        }
-      )
-
-      if (response.ok) {
-        const data = await response.json()
-        products = data.docs || []
-      }
-    } else if (queryType === 'on-sale') {
-      const params = new URLSearchParams({
-        limit: (limit || 8).toString(),
-        department: departmentId,
-        filterType: 'on-sale',
-      })
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/variations/filtered?${params}`,
-        {
-          next: { revalidate: 600 } // Cache for 10 minutes
-        }
-      )
-
-      if (response.ok) {
-        const data = await response.json()
-        // Filtered endpoint returns 'variations' instead of 'docs'
-        products = data.variations || []
-      }
+    // All query types go through the filtered endpoint
+    const filterTypeMap: Record<string, string | undefined> = {
+      'trending': 'trending',
+      'featured': 'featured',
+      'we-love': 'we-love',
+      'on-sale': 'on-sale',
     }
-    // Add other query types here as they're implemented
-    // else if (queryType === 'recently-viewed') { ... }
+
+    const params = new URLSearchParams({
+      limit: (limit || 8).toString(),
+      department: departmentId,
+    })
+
+    const filterType = filterTypeMap[queryType]
+    if (filterType) {
+      params.set('filterType', filterType)
+    }
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SERVER_URL}/api/variations/filtered?${params}`,
+      {
+        next: { revalidate: 600 } // Cache for 10 minutes
+      }
+    )
+
+    if (response.ok) {
+      const data = await response.json()
+      products = data.variations || []
+    }
     
   } catch (error) {
     console.error('Error fetching products:', error)

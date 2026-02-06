@@ -64,29 +64,26 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
     final departmentId = widget.department ?? 'men';
     final apiService = getIt<ApiService>();
 
-    String endpoint;
-    if (widget.queryType == QueryType.trending) {
-      endpoint = trendingVariations;
-    } else if (widget.queryType == QueryType.newArrivals) {
-      endpoint = newArrivals;
-    } else if (widget.queryType == QueryType.featured || widget.queryType == QueryType.weLove) {
-      endpoint = featuredVariations;
-    } else if (widget.queryType == QueryType.recentlyViewed) {
-      endpoint = recentlyViewedVariations;
-    } else if (widget.queryType == QueryType.onSale) {
-      endpoint = filteredVariations;
-    } else {
-      return [];
-    }
+    // All query types go through filtered endpoint (except recentlyViewed)
+    final endpoint = widget.queryType == QueryType.recentlyViewed
+        ? recentlyViewedVariations
+        : filteredVariations;
 
     final queryParams = <String, dynamic>{
       'limit': widget.limit,
       'department': departmentId,
     };
 
-    // Add filterType for on-sale query
-    if (widget.queryType == QueryType.onSale) {
-      queryParams['filterType'] = 'on-sale';
+    // Map query type to filterType param
+    final filterType = switch (widget.queryType) {
+      QueryType.trending => 'trending',
+      QueryType.featured => 'featured',
+      QueryType.weLove => 'we-love',
+      QueryType.onSale => 'on-sale',
+      _ => null, // newArrivals uses default sort, recentlyViewed has its own endpoint
+    };
+    if (filterType != null) {
+      queryParams['filterType'] = filterType;
     }
 
     final response = await apiService.dio.get(
@@ -101,8 +98,8 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
       );
     }
 
-    // The filtered endpoint returns 'variations', other endpoints return 'docs'
-    final dataKey = widget.queryType == QueryType.onSale ? 'variations' : 'docs';
+    // Filtered returns 'variations', recentlyViewed returns 'docs'
+    final dataKey = widget.queryType == QueryType.recentlyViewed ? 'docs' : 'variations';
     var products = (response.data[dataKey] as List)
         .map((p) => ProductCardData.fromJson(p))
         .toList();

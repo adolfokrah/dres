@@ -17,9 +17,6 @@ const String pageBySlug = '$pages?where[slug][equals]=';
 const String pageById = '$pages/';
 
 // Variations
-const String trendingVariations = '/variations/trending';
-const String newArrivals = '/variations/new-arrivals';
-const String featuredVariations = '/variations/featured';
 const String recentlyViewedVariations = '/variations/recently-viewed';
 const String filteredVariations = '/variations/filtered';
 const String variationBySlug = '/variations/'; // Usage: variationBySlug + slug + '/details'

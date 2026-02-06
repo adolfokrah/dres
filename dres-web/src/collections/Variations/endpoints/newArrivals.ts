@@ -4,8 +4,8 @@ import { filteredVariations } from './filtered'
 /**
  * GET /api/variations/new-arrivals
  *
- * Delegates to the filtered endpoint with no filterType (default sort is createdAt desc).
- * Transforms the response to return 'docs' instead of 'variations' for backward compat.
+ * Delegates to the filtered endpoint (default sort is createdAt desc).
+ * Kept for backward compatibility with older app versions.
  */
 export const newArrivals: PayloadHandler = async (req) => {
   const response = await filteredVariations(req)
