@@ -49,7 +49,7 @@ class PurchaseItemTile extends StatelessWidget {
                 image: imageUrl != null
                     ? DecorationImage(
                         image: NetworkImage(imageUrl),
-                        fit: BoxFit.contain,
+                        fit: BoxFit.cover,
                       )
                     : null,
               ),

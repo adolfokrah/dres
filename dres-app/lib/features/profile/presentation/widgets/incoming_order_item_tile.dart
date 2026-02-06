@@ -56,7 +56,7 @@ class _IncomingOrderItemTileState extends State<IncomingOrderItemTile> {
                   image: widget.item.resolvedImageUrl != null
                       ? DecorationImage(
                           image: NetworkImage(widget.item.resolvedImageUrl!),
-                          fit: BoxFit.contain,
+                          fit: BoxFit.cover,
                         )
                       : null,
                 ),

@@ -838,7 +838,7 @@ class _StyleOverviewScreenState extends State<StyleOverviewScreen> {
                     imageUrl: variation.images.first,
                     width: 48,
                     height: 48,
-                    fit: BoxFit.contain,
+                    fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
                       width: 48,
                       height: 48,

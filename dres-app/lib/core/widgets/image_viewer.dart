@@ -40,7 +40,7 @@ class ImageViewer extends StatelessWidget {
           maxScale: 4.0,
           child: Image.network(
             imageUrl,
-            fit: BoxFit.contain,
+            fit: BoxFit.cover,
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) return child;
               return Center(

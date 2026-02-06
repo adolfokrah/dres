@@ -454,7 +454,7 @@ class _ProductTile extends StatelessWidget {
                       imageUrl: product.thumbnail!,
                       width: 60,
                       height: 60,
-                      fit: BoxFit.contain,
+                      fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
                         width: 60,
                         height: 60,

@@ -79,7 +79,7 @@ class PhotoTipsBanner extends StatelessWidget {
       child: ClipRect(
         child: Image.asset(
           imagePath,
-          fit: BoxFit.contain,
+          fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
             print('❌ Failed to load image: $imagePath');
             print('Error: $error');

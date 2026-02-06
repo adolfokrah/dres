@@ -154,7 +154,7 @@ class _ProductImage extends StatelessWidget {
       imageUrl!,
       width: 43,
       height: 43,
-      fit: BoxFit.contain,
+      fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) {
         return Container(
           width: 43,

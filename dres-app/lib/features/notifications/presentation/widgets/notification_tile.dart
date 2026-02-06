@@ -37,7 +37,7 @@ class NotificationTile extends StatelessWidget {
                       imageUrl: notification.imageUrl!,
                       width: 60,
                       height: 60,
-                      fit: BoxFit.contain,
+                      fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
                         width: 60,
                         height: 60,
@@ -50,7 +50,7 @@ class NotificationTile extends StatelessWidget {
                         padding: const EdgeInsets.all(12),
                         child: Image.asset(
                           'assets/images/logo.png',
-                          fit: BoxFit.contain,
+                          fit: BoxFit.cover,
                         ),
                       ),
                     )
@@ -61,7 +61,7 @@ class NotificationTile extends StatelessWidget {
                       padding: const EdgeInsets.all(12),
                       child: Image.asset(
                         'assets/images/logo.png',
-                        fit: BoxFit.contain,
+                        fit: BoxFit.cover,
                       ),
                     ),
             ),
