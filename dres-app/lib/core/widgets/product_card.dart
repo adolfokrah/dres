@@ -81,104 +81,90 @@ class _ProductCardState extends State<ProductCard> {
         context.push('/products/${widget.id}$skuParam');
       },
       child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border(
-            left: widget.showLeftBorder 
-                ? BorderSide(color: AppColors.primary.withValues(alpha: 0.4), width: 1)
-                : BorderSide.none,
-            right:  BorderSide(color: AppColors.primary.withValues(alpha: 0.4), width: 1),
-            top: widget.showTopBorder
-                ? BorderSide(color: AppColors.primary.withValues(alpha: 0.4), width: 1)
-                : BorderSide.none,
-            bottom:  BorderSide(color: AppColors.primary.withValues(alpha: 0.4), width: 1),
-          ),
-        ),
+        color: AppColors.background,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image Container
-            AspectRatio(
-              aspectRatio: 1.1,
-              child: Stack(
-                children: [
-                  Container(
-                    color: Colors.white,
-                    padding: EdgeInsets.all(5),
-                    child: widget.thumbnail != null
-                        ? Center(
-                          child: Image.network(
-                               MediaUtils.resolveUrl(widget.thumbnail) ?? '',
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Center(
-                                  child: Text(
-                                    'No Image',
-                                    style: AppTypography.bodyS.copyWith(color: AppColors.textHint),
-                                  ),
-                                );
-                              },
-                            ),
+            Stack(
+              children: [
+                Container(
+                  color: Colors.white,
+                  width: double.infinity,
+                  child: widget.thumbnail != null
+                      ? Image.network(
+                           MediaUtils.resolveUrl(widget.thumbnail) ?? '',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Center(
+                              child: Text(
+                                'No Image',
+                                style: AppTypography.bodyS.copyWith(color: AppColors.textHint),
+                              ),
+                            );
+                          },
                         )
-                        : Center(
-                            child: Text(
-                              'No Image',
-                              style: AppTypography.bodyS.copyWith(color: AppColors.textHint),
-                            ),
+                      : Center(
+                          child: Text(
+                            'No Image',
+                            style: AppTypography.bodyS.copyWith(color: AppColors.textHint),
                           ),
+                        ),
+                ),
+                // WE LOVE tag - positioned at bottom left of image
+                if (widget.showWeLoveBadge)
+                  Positioned(
+                    left: 0,
+                    bottom: 4,
+                    child: BadgeWidget(
+                      text: l10n.weLove,
+                      backgroundColor: AppColors.primary,
+                      borderColor: AppColors.primary,
+                      textColor: AppColors.textOnPrimary,
+                    ),
                   ),
-                
-                ],
-              ),
+                // Favorite button - positioned at top right of image
+                if (!_isOwnItem)
+                  Positioned(
+                    right: 0,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                      ),
+                      child: FavoriteButton(
+                        variationId: widget.id,
+                        size: 18,
+                        onChanged: (isFavorited) {
+                          widget.onFavoriteToggle?.call(widget.id, isFavorited);
+                        },
+                      ),
+                    ),
+                  ),
+              ],
             ),
             // Content Container
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+              child: ClipRect(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                   children: [
                     // Low stock indicator
                     if (LowStockIndicator.isLowStock(widget.totalStock))
                       LowStockIndicator(stock: widget.totalStock!),
-                    // WE LOVE tag - only shown for Standard/Premium tiers
-                    if (widget.showWeLoveBadge)
-                      BadgeWidget(
-                        text: l10n.weLove,
-                        backgroundColor: AppColors.primary,
-                        borderColor: AppColors.primary,
-                        textColor: AppColors.textOnPrimary,
-                      ),
-                    if (!widget.showWeLoveBadge && !LowStockIndicator.isLowStock(widget.totalStock))
-                      const SizedBox(height: 12),
-                    const SizedBox(height: 4),
-                    // Brand with favorite icon
+                    // Brand
                     if (widget.brand != null) ...[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              widget.brand!.toUpperCase(),
-                              style: AppTypography.bodyM.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          // Hide favorite button if user is the seller
-                          if (!_isOwnItem)
-                            FavoriteButton(
-                              variationId: widget.id,
-                              size: 22,
-                              onChanged: (isFavorited) {
-                                widget.onFavoriteToggle?.call(widget.id, isFavorited);
-                              },
-                            ),
-                        ],
+                      Text(
+                        widget.brand!.toUpperCase(),
+                        style: AppTypography.bodyM.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
                     ],
@@ -204,35 +190,43 @@ class _ProductCardState extends State<ProductCard> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
-                    // Compare at price (strikethrough)
-                    if (widget.compareAtPrice != null &&
-                        widget.compareAtPrice! > widget.price)
-                      Text(
-                        '${widget.currencySymbol} ${widget.compareAtPrice!.toStringAsFixed(2)}',
-                        style: AppTypography.bodyM.copyWith(
-                          color: AppColors.textHint,
-                          decoration: TextDecoration.lineThrough,
-                          fontWeight: FontWeight.w500
+                    const SizedBox(height: 4),
+                    // Price row
+                    Row(
+                      children: [
+                        // Actual price
+                        Text(
+                          '${widget.currencySymbol} ${widget.price.toStringAsFixed(2)}',
+                          style: AppTypography.bodyM.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: widget.compareAtPrice != null &&
+                                    widget.compareAtPrice! > widget.price
+                                ? Colors.red
+                                : AppColors.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    // Actual price
-                    Text(
-                      '${widget.currencySymbol} ${widget.price.toStringAsFixed(2)}',
-                      style: AppTypography.bodyL.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: widget.compareAtPrice != null &&
-                                widget.compareAtPrice! > widget.price
-                            ? Colors.red
-                            : AppColors.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                        // Compare at price (strikethrough)
+                        if (widget.compareAtPrice != null &&
+                            widget.compareAtPrice! > widget.price) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            '${widget.currencySymbol} ${widget.compareAtPrice!.toStringAsFixed(2)}',
+                            style: AppTypography.bodyS.copyWith(
+                              color: AppColors.textHint,
+                              decoration: TextDecoration.lineThrough,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
+          ),
           ],
         ),
       ),

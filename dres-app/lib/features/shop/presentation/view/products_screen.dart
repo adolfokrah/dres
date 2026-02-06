@@ -284,7 +284,6 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
             crossAxisCount: 2,
             childAspectRatio: 0.55,
             crossAxisSpacing: 10,
-            mainAxisSpacing: 20,
           ),
           itemCount: 6,
           itemBuilder: (context, index) {
@@ -325,9 +324,11 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
         await Future.delayed(const Duration(milliseconds: 500));
       },
       child: GridView.builder(
+        padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.72,
+          childAspectRatio: 0.51,
+          crossAxisSpacing: 10,
         ),
         itemCount:
             state.products.length +

@@ -1,7 +1,6 @@
 import type { CollectionAfterChangeHook } from 'payload'
 import OpenAI from 'openai'
 import { getServerSideURL } from '../../../utilities/getURL'
-import { processBackgroundRemoval } from './processProductMainImage'
 
 interface ImageValidationResult {
   approved: boolean
@@ -301,16 +300,8 @@ Respond ONLY with valid JSON (no markdown, no explanation):
 
     payload.logger.info(`[ImageValidation] Variation ${doc.id} updated. New status: ${updatedVariation.status}, imageValidationStatus: ${updatedVariation.imageValidationStatus}`)
 
-    // If approved, trigger background removal and check for auto-activation
+    // If approved, check for auto-activation
     if (status === 'approved' && images.length > 0) {
-      const firstImageId = typeof images[0] === 'string' ? images[0] : images[0].id
-      payload.logger.info(`[ImageValidation] Images approved, triggering background removal for ${firstImageId}`)
-
-      // Run background removal async
-      processBackgroundRemoval(payload, firstImageId).catch((error) => {
-        payload.logger.error(`[ImageValidation] Background removal failed: ${error}`)
-      })
-
       // Check if variation can be auto-activated now that images are approved
       // Only if status is still draft and we have at least 3 images
       if (updatedVariation.status === 'draft' && images.length >= 3) {

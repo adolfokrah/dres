@@ -377,6 +377,28 @@ export const filteredVariations: PayloadHandler = async (req) => {
       }
     })
 
+    // Reorder imageData to match the original images array order
+    // (MongoDB $lookup with $in doesn't preserve order)
+    pipeline.push({
+      $addFields: {
+        imageData: {
+          $map: {
+            input: '$normalizedImageIds',
+            as: 'imgId',
+            in: {
+              $first: {
+                $filter: {
+                  input: '$imageData',
+                  as: 'img',
+                  cond: { $eq: ['$$img._id', '$$imgId'] }
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+
     // ============================================
     // STAGE 5: Lookup SKUs (after filtering to reduce data)
     // ============================================

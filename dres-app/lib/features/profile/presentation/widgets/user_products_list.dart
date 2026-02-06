@@ -302,12 +302,14 @@ class _UserProductsListState extends State<UserProductsList> {
   }
 
   Widget _buildGridView(UserProductsState state) {
-    return SliverGrid(
+    return SliverPadding(
+      padding: const EdgeInsets.all(16),
+      sliver: SliverGrid(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          mainAxisSpacing: 0,
-          crossAxisSpacing: 0,
           childAspectRatio: 0.65,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 4,
         ),
         delegate: SliverChildBuilderDelegate(
           (context, index) {
@@ -329,6 +331,7 @@ class _UserProductsListState extends State<UserProductsList> {
           },
           childCount: state.products.length + (state.hasMore ? 1 : 0),
         ),
+      ),
     );
   }
 
@@ -569,111 +572,87 @@ class _ProductGridTile extends StatelessWidget {
       onTap: onTap,
       onLongPress: onLongPress,
       child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border(
-            left: showLeftBorder
-                ? BorderSide(color: AppColors.primary.withValues(alpha: 0.4), width: 0.5)
-                : BorderSide.none,
-            right: BorderSide(color: AppColors.primary.withValues(alpha: 0.4), width: 0.5),
-            top: showTopBorder
-                ? BorderSide(color: AppColors.primary.withValues(alpha: 0.4), width: 0.5)
-                : BorderSide.none,
-            bottom: BorderSide(color: AppColors.primary.withValues(alpha: 0.4), width: 0.5),
-          ),
-        ),
+        color: AppColors.surface,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
+            // Image - takes available space
             Expanded(
               flex: 3,
-              child: product.thumbnail != null
-                  ? CachedNetworkImage(
-                      imageUrl: product.thumbnail!,
-                      width: double.infinity,
-                      fit: BoxFit.contain,
-                      placeholder: (context, url) => Container(
-                        color: AppColors.secondary,
-                        child: const Center(
+              child: Container(
+                width: double.infinity,
+                color: AppColors.secondary,
+                child: product.thumbnail != null
+                    ? CachedNetworkImage(
+                        imageUrl: product.thumbnail!,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => const Center(
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: AppColors.secondary,
+                        errorWidget: (context, url, error) => Icon(
+                          PhosphorIcons.image(),
+                          color: AppColors.textHint,
+                          size: 32,
+                        ),
+                      )
+                    : Center(
                         child: Icon(
                           PhosphorIcons.image(),
                           color: AppColors.textHint,
                           size: 32,
                         ),
                       ),
-                    )
-                  : Container(
-                      color: AppColors.secondary,
-                      child: Center(
-                        child: Icon(
-                          PhosphorIcons.image(),
-                          color: AppColors.textHint,
-                          size: 32,
-                        ),
-                      ),
-                    ),
+              ),
             ),
-            
+
             // Product info
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Title
+                  Text(
+                    product.title.isNotEmpty ? product.title : 'Untitled',
+                    style: AppTypography.bodyM.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  // Brand
+                  if (product.brandName != null)
                     Text(
-                      product.title.isNotEmpty ? product.title : 'Untitled',
-                      style: AppTypography.bodyM.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                      product.brandName!,
+                      style: AppTypography.bodyS.copyWith(
+                        color: AppColors.textSecondary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
-                    
-                    // Brand
-                    if (product.brandName != null) ...[
-                      Text(
-                        product.brandName!,
-                        style: AppTypography.bodyS.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                    ],
 
-                    // Variations count
+                  // Variations count
+                  Text(
+                    '${product.variationCount} variation${product.variationCount != 1 ? 's' : ''}',
+                    style: AppTypography.bodyS.copyWith(
+                      color: AppColors.textHint,
+                    ),
+                  ),
+
+                  // Price
+                  if (product.lowestPrice != null)
                     Text(
-                      '${product.variationCount} variation${product.variationCount != 1 ? 's' : ''}',
-                      style: AppTypography.bodyS.copyWith(
-                        color: AppColors.textHint,
+                      CurrencyUtils.format(product.lowestPrice!),
+                      style: AppTypography.bodyM.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
                       ),
                     ),
-                    
-                    const Spacer(),
-                    
-                    // Price
-                    if (product.lowestPrice != null)
-                      Text(
-                        CurrencyUtils.format(product.lowestPrice!),
-                        style: AppTypography.bodyM.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                  ],
-                ),
+                ],
               ),
             ),
           ],

@@ -53,7 +53,7 @@ class AppTypography {
   /// Body M - 14/Auto
   static const TextStyle bodyM = TextStyle(
     fontFamily: fontFamilySans,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: FontWeight.w400,
     height: 1.4,
   );

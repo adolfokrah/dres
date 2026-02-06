@@ -179,10 +179,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       },
       child: GridView.builder(
         controller: _scrollController,
-        padding: const EdgeInsets.all(0),
+        padding: const EdgeInsets.all(16),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          childAspectRatio: 0.56,
+          childAspectRatio: 0.51,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 0,
         ),
         itemCount: filteredItems.length + (state.hasMore ? 2 : 0),
         itemBuilder: (context, index) {

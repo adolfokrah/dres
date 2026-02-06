@@ -40,7 +40,7 @@ class FeaturedGrid extends StatelessWidget {
 
         // Horizontal scroll
         SizedBox(
-          height: 220, // Portrait image (150 * 4/3) + label + padding
+          height: 200, // Portrait image (150 * 4/3) + label + padding
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),

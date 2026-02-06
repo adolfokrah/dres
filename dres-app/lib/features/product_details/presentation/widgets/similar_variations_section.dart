@@ -76,15 +76,16 @@ class _SimilarVariationsSectionState extends State<SimilarVariationsSection> {
             
             // Horizontal scrollable list
             SizedBox(
-              height: 400, // Increased height to prevent overflow
-              child: ListView.builder(
+              height: 310,
+              child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 itemCount: variations.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 12),
                 itemBuilder: (context, index) {
                   final variation = variations[index];
                   return SizedBox(
-                    width: 200, // Adjust card width as needed
+                    width: 140,
                     child: ProductCard(
                       id: variation.id,
                       thumbnail: variation.thumbnail,

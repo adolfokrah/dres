@@ -170,15 +170,16 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
         ),
         const SizedBox(height: 14),
                 SizedBox(
-                  height: 330,
-                  child: ListView.builder(
+                  height: 300,
+                  child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     itemCount: products.length,
+                    separatorBuilder: (context, index) => const SizedBox(width: 12),
                     itemBuilder: (context, index) {
                       final product = products[index];
                       return SizedBox(
-                        width: 160,
+                        width: 140,
                         child: ProductCard(
                           id: product.id,
                           thumbnail: product.thumbnail,
@@ -215,7 +216,6 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
               if (products.isNotEmpty) {
                 return Column(
                   children: [
-                    const SizedBox(height: 24),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: AppButton.outlined(
