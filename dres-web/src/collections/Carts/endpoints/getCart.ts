@@ -293,9 +293,13 @@ export const getCart: PayloadHandler = async (req) => {
       // Calculate price
       const price = sku?.sellingPrice || sku?.price || 0
       const itemTotal = price * quantity
+
+      // Always count items regardless of validity (for display purposes)
+      itemCount += quantity
+
+      // Only add to subtotal if item is valid (for checkout)
       if (valid) {
         subtotal += itemTotal
-        itemCount += quantity
       }
 
       // Get first image thumbnail
