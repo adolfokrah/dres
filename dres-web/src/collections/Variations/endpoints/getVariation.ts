@@ -383,8 +383,16 @@ export const getVariation: PayloadHandler = async (req) => {
       }).filter((d: any) => d.name && d.value)
     }
 
+    // Reorder imageData to match the original images array order
+    // ($lookup does not preserve order of the localField array)
+    const originalImageIds = (variation.images || []).map((id: any) => id.toString())
+    const imageDataMap = new Map((variation.imageData || []).map((img: any) => [img._id.toString(), img]))
+    const orderedImageData = originalImageIds
+      .map((id: string) => imageDataMap.get(id))
+      .filter(Boolean)
+
     // Transform images - construct URLs from filename (more reliable than stored url)
-    const images = (variation.imageData || []).map((img: any) => ({
+    const images = orderedImageData.map((img: any) => ({
       id: img._id.toString(),
       url: getMediaUrl(img),
       alt: img.alt || variation.title,
@@ -395,7 +403,7 @@ export const getVariation: PayloadHandler = async (req) => {
     }))
 
     // Get first image thumbnail
-    const firstImage = variation.imageData?.[0]
+    const firstImage = orderedImageData[0]
     const thumbnail = getMediaUrl(firstImage, 'thumbnail') || getMediaUrl(firstImage)
 
     // Transform SKUs - fetch with proper depth to get populated options
@@ -499,7 +507,10 @@ export const getVariation: PayloadHandler = async (req) => {
 
     // Transform related variations
     const relatedVariations = (variation.relatedVariationsData || []).map((rel: any) => {
-      const relFirstImage = rel.imageData?.[0]
+      // Reorder related variation images to match original order
+      const relImageIds = (rel.images || []).map((id: any) => id.toString())
+      const relImageMap = new Map((rel.imageData || []).map((img: any) => [img._id.toString(), img]))
+      const relFirstImage = relImageMap.get(relImageIds[0]) || rel.imageData?.[0]
       const relThumbnail = getMediaUrl(relFirstImage, 'thumbnail') || getMediaUrl(relFirstImage)
       const relDetails = resolveVariantDetails(rel).map((d: any) => ({
         attribute: d.name,
