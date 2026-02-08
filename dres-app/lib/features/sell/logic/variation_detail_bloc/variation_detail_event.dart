@@ -39,6 +39,8 @@ class LocalSkuData {
   final double price;
   final double? compareAtPrice;
   final int? stock;
+  final bool flashSaleEnabled;
+  final DateTime? flashSaleEndDate;
 
   const LocalSkuData({
     this.skuId,
@@ -47,6 +49,8 @@ class LocalSkuData {
     required this.price,
     this.compareAtPrice,
     this.stock,
+    this.flashSaleEnabled = false,
+    this.flashSaleEndDate,
   });
 }
 

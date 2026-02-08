@@ -29,6 +29,8 @@ class LocalSku {
   final double price;
   final double? compareAtPrice;
   final int? stock; // null = unlimited
+  final bool flashSaleEnabled;
+  final DateTime? flashSaleEndDate;
 
   LocalSku({
     required this.localId,
@@ -39,12 +41,16 @@ class LocalSku {
     this.price = 0,
     this.compareAtPrice,
     this.stock,
+    this.flashSaleEnabled = false,
+    this.flashSaleEndDate,
   });
 
   LocalSku copyWith({
     double? price,
     double? compareAtPrice,
     int? stock,
+    bool? flashSaleEnabled,
+    DateTime? flashSaleEndDate,
   }) {
     return LocalSku(
       localId: localId,
@@ -55,6 +61,8 @@ class LocalSku {
       price: price ?? this.price,
       compareAtPrice: compareAtPrice ?? this.compareAtPrice,
       stock: stock ?? this.stock,
+      flashSaleEnabled: flashSaleEnabled ?? this.flashSaleEnabled,
+      flashSaleEndDate: flashSaleEndDate ?? this.flashSaleEndDate,
     );
   }
 
@@ -194,6 +202,10 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
         optionName: result['optionName'] as String,
         price: result['price'] as double,
         stock: result['stock'] as int?,
+        flashSaleEnabled: result['flashSaleEnabled'] as bool? ?? false,
+        flashSaleEndDate: result['flashSaleEndDate'] != null
+            ? DateTime.tryParse(result['flashSaleEndDate'] as String)
+            : null,
       );
 
       setState(() {
@@ -216,6 +228,8 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
           'optionName': sku.optionName,
           'price': sku.price,
           'stock': sku.stock,
+          'flashSaleEnabled': sku.flashSaleEnabled,
+          'flashSaleEndDate': sku.flashSaleEndDate?.toIso8601String(),
         },
         'usedOptionIds': _localSkus
             .where((s) => s.localId != sku.localId)
@@ -241,6 +255,10 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
               optionName: result['optionName'] as String,
               price: result['price'] as double,
               stock: result['stock'] as int?,
+              flashSaleEnabled: result['flashSaleEnabled'] as bool? ?? false,
+              flashSaleEndDate: result['flashSaleEndDate'] != null
+                  ? DateTime.tryParse(result['flashSaleEndDate'] as String)
+                  : null,
             );
           }
         });
@@ -276,6 +294,10 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
         price: result['price'] as double,
         compareAtPrice: result['compareAtPrice'] as double?,
         stock: result['stock'] as int?,
+        flashSaleEnabled: result['flashSaleEnabled'] as bool? ?? false,
+        flashSaleEndDate: result['flashSaleEndDate'] != null
+            ? DateTime.tryParse(result['flashSaleEndDate'] as String)
+            : null,
       );
 
       setState(() {
@@ -309,6 +331,8 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
               price: sku.price,
               compareAtPrice: sku.compareAtPrice,
               stock: sku.stock,
+              flashSaleEnabled: sku.flashSaleEnabled,
+              flashSaleEndDate: sku.flashSaleEndDate,
             ))
         .toList();
 

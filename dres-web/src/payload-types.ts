@@ -1304,6 +1304,14 @@ export interface Skus {
    */
   isActive?: boolean | null;
   /**
+   * Enable flash sale countdown for this SKU
+   */
+  flashSaleEnabled?: boolean | null;
+  /**
+   * When the flash sale ends
+   */
+  flashSaleEndDate?: string | null;
+  /**
    * Barcode/UPC for this SKU
    */
   barcode?: string | null;
@@ -3214,6 +3222,8 @@ export interface SkusSelect<T extends boolean = true> {
   compareAtPrice?: T;
   stock?: T;
   isActive?: T;
+  flashSaleEnabled?: T;
+  flashSaleEndDate?: T;
   barcode?: T;
   weight?: T;
   status?: T;

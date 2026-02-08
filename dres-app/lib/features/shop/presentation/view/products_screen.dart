@@ -357,6 +357,7 @@ class _ProductsScreenViewState extends State<_ProductsScreenView> {
             showTopBorder: index < 2,
             sellerId: product.sellerId,
             totalStock: product.totalStock,
+            flashSaleEndDate: product.flashSaleEndDate,
             onFavoriteToggle: (id, isFavorited) {
               // TODO: Toggle favorite
             },

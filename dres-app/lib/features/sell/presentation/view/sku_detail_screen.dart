@@ -64,6 +64,10 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
   bool _isArchiving = false;
   bool _localSkuPopulated = false;
 
+  // Flash sale
+  bool _flashSaleEnabled = false;
+  DateTime? _flashSaleEndDate;
+
   double get _commissionRate => _siteSettingsService.commissionRate;
   double get _commissionDecimal => _siteSettingsService.commissionDecimal;
 
@@ -82,6 +86,7 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
     );
 
     _priceController.addListener(_updateSellingPrice);
+    _comparePriceController.addListener(_onComparePriceChanged);
     
     // If editing a local SKU, populate the data
     if (widget.isNewSku && widget.editingLocalSku != null) {
@@ -102,6 +107,11 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
       if (stock != null) {
         _stockController.text = stock.toString();
       }
+      _flashSaleEnabled = localSku['flashSaleEnabled'] as bool? ?? false;
+      final flashSaleEndDateStr = localSku['flashSaleEndDate'] as String?;
+      _flashSaleEndDate = flashSaleEndDateStr != null
+          ? DateTime.tryParse(flashSaleEndDateStr)
+          : null;
       _localSkuPopulated = true;
     });
     _updateSellingPrice();
@@ -132,6 +142,8 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
       _sellingPrice = 0.0;
       _isUpdating = false;
       _isArchiving = false;
+      _flashSaleEnabled = false;
+      _flashSaleEndDate = null;
     });
     _priceController.clear();
     _comparePriceController.clear();
@@ -141,10 +153,25 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
   @override
   void dispose() {
     _priceController.removeListener(_updateSellingPrice);
+    _comparePriceController.removeListener(_onComparePriceChanged);
     _priceController.dispose();
     _comparePriceController.dispose();
     _stockController.dispose();
     super.dispose();
+  }
+
+  void _onComparePriceChanged() {
+    // Rebuild to show/hide flash sale section based on compare price
+    final comparePrice = double.tryParse(_comparePriceController.text);
+    final hasComparePrice = comparePrice != null && comparePrice > 0;
+    if (!hasComparePrice && _flashSaleEnabled) {
+      setState(() {
+        _flashSaleEnabled = false;
+        _flashSaleEndDate = null;
+      });
+    } else {
+      setState(() {});
+    }
   }
 
   void _updateSellingPrice() {
@@ -205,6 +232,8 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
         } else {
           _stockController.clear(); // Leave empty for unlimited stock
         }
+        _flashSaleEnabled = sku.flashSaleEnabled;
+        _flashSaleEndDate = sku.flashSaleEndDate;
       });
       _updateSellingPrice();
     }
@@ -245,6 +274,27 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
 
     final stock = int.tryParse(_stockController.text);
 
+    // Validate flash sale
+    if (_flashSaleEnabled && _flashSaleEndDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please set a flash sale end date'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
+    if (_flashSaleEnabled && _flashSaleEndDate != null && _flashSaleEndDate!.isBefore(DateTime.now())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Flash sale end date must be in the future'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     // Always return data to parent screen (no API call)
     // Backend will handle upsert (update if exists, create if not) when user taps "Save & Continue"
     context.pop({
@@ -255,6 +305,8 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
       'price': price,
       'compareAtPrice': comparePrice,
       'stock': stock,
+      'flashSaleEnabled': _flashSaleEnabled,
+      'flashSaleEndDate': _flashSaleEndDate?.toIso8601String(),
     });
   }
 
@@ -613,6 +665,154 @@ class _SkuDetailScreenState extends State<SkuDetailScreen> {
                                 ),
 
                                 const SizedBox(height: 20),
+
+                                // Flash Sale section (only when compare price is set)
+                                Builder(
+                                  builder: (context) {
+                                    final comparePrice = double.tryParse(_comparePriceController.text);
+                                    final hasComparePrice = comparePrice != null && comparePrice > 0;
+                                    if (!hasComparePrice) return const SizedBox.shrink();
+
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          // Toggle
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'Flash Sale',
+                                                style: AppTypography.bodyM.copyWith(
+                                                  color: AppColors.textPrimary,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              Switch(
+                                                value: _flashSaleEnabled,
+                                                onChanged: (value) {
+                                                  setState(() {
+                                                    _flashSaleEnabled = value;
+                                                    if (!value) {
+                                                      _flashSaleEndDate = null;
+                                                    }
+                                                  });
+                                                },
+                                                activeTrackColor: AppColors.primary,
+                                              ),
+                                            ],
+                                          ),
+                                          Text(
+                                            'Add a countdown timer to create urgency for the discounted price',
+                                            style: AppTypography.bodyS.copyWith(
+                                              color: AppColors.textSecondary,
+                                            ),
+                                          ),
+                                          // Date picker (only when enabled)
+                                          if (_flashSaleEnabled) ...[
+                                            const SizedBox(height: 12),
+                                            GestureDetector(
+                                              onTap: () async {
+                                                final now = DateTime.now();
+                                                final date = await showDatePicker(
+                                                  context: context,
+                                                  initialDate: _flashSaleEndDate ?? now.add(const Duration(days: 1)),
+                                                  firstDate: now,
+                                                  lastDate: now.add(const Duration(days: 365)),
+                                                  builder: (context, child) {
+                                                    return Theme(
+                                                      data: Theme.of(context).copyWith(
+                                                        datePickerTheme: DatePickerThemeData(
+                                                          shape: const RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.zero,
+                                                          ),
+                                                          surfaceTintColor: Colors.transparent,
+                                                        ),
+                                                        dialogTheme: const DialogThemeData(
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.zero,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      child: child!,
+                                                    );
+                                                  },
+                                                );
+                                                if (date == null) return;
+                                                if (!context.mounted) return;
+                                                final time = await showTimePicker(
+                                                  context: context,
+                                                  initialTime: _flashSaleEndDate != null
+                                                      ? TimeOfDay.fromDateTime(_flashSaleEndDate!)
+                                                      : const TimeOfDay(hour: 23, minute: 59),
+                                                  builder: (context, child) {
+                                                    return Theme(
+                                                      data: Theme.of(context).copyWith(
+                                                        timePickerTheme: TimePickerThemeData(
+                                                          shape: const RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.zero,
+                                                          ),
+                                                        ),
+                                                        dialogTheme: const DialogThemeData(
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius: BorderRadius.zero,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      child: child!,
+                                                    );
+                                                  },
+                                                );
+                                                if (time == null) return;
+                                                setState(() {
+                                                  _flashSaleEndDate = DateTime(
+                                                    date.year,
+                                                    date.month,
+                                                    date.day,
+                                                    time.hour,
+                                                    time.minute,
+                                                  );
+                                                });
+                                              },
+                                              child: Container(
+                                                width: double.infinity,
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                  vertical: 16,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(color: AppColors.border),
+                                                ),
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      _flashSaleEndDate != null
+                                                          ? '${_flashSaleEndDate!.day}/${_flashSaleEndDate!.month}/${_flashSaleEndDate!.year} ${_flashSaleEndDate!.hour.toString().padLeft(2, '0')}:${_flashSaleEndDate!.minute.toString().padLeft(2, '0')}'
+                                                          : 'Select end date & time',
+                                                      style: AppTypography.bodyM.copyWith(
+                                                        color: _flashSaleEndDate != null
+                                                            ? AppColors.textPrimary
+                                                            : AppColors.textHint,
+                                                      ),
+                                                    ),
+                                                    Icon(
+                                                      Icons.calendar_today_outlined,
+                                                      size: 18,
+                                                      color: AppColors.textSecondary,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                          const SizedBox(height: 20),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
                               ],
                             ),
                           ),

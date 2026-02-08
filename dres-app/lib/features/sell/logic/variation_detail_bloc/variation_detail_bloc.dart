@@ -125,6 +125,8 @@ class VariationDetailBloc
             price: localSku.price,
             compareAtPrice: localSku.compareAtPrice,
             stock: localSku.stock,
+            flashSaleEnabled: localSku.flashSaleEnabled,
+            flashSaleEndDate: localSku.flashSaleEndDate,
           );
         } else {
           // Create new SKU
@@ -135,6 +137,8 @@ class VariationDetailBloc
             price: localSku.price,
             compareAtPrice: localSku.compareAtPrice,
             stock: localSku.stock,
+            flashSaleEnabled: localSku.flashSaleEnabled,
+            flashSaleEndDate: localSku.flashSaleEndDate,
           );
         }
       }

@@ -13,6 +13,7 @@ class VariationModel {
   final bool showWeLoveBadge;
   final String? sellerId;
   final int? totalStock;
+  final DateTime? flashSaleEndDate;
 
   VariationModel({
     required this.id,
@@ -29,6 +30,7 @@ class VariationModel {
     this.showWeLoveBadge = false,
     this.sellerId,
     this.totalStock,
+    this.flashSaleEndDate,
   });
 
   factory VariationModel.fromJson(Map<String, dynamic> json) {
@@ -47,6 +49,9 @@ class VariationModel {
       showWeLoveBadge: json['showWeLoveBadge'] as bool? ?? false,
       sellerId: json['sellerId'] as String?,
       totalStock: json['totalStock'] as int?,
+      flashSaleEndDate: json['flashSaleEndDate'] != null
+          ? DateTime.tryParse(json['flashSaleEndDate'])
+          : null,
     );
   }
 

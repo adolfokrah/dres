@@ -15,6 +15,7 @@ interface TransformedVariation {
   brand: string | null
   sellingPrice: number
   compareAtPrice?: number
+  flashSaleEndDate?: string | null
   currency: {
     code: string
     symbol: string
@@ -138,6 +139,11 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
     ? selectedSku.compareAtPrice
     : undefined
 
+  // Flash sale: only include if enabled and end date is in the future
+  const flashSaleEndDate = selectedSku?.flashSaleEnabled && selectedSku?.flashSaleEndDate && new Date(selectedSku.flashSaleEndDate) > new Date()
+    ? selectedSku.flashSaleEndDate
+    : null
+
   // Get stock from the selected/default SKU
   const totalStock = selectedSku && typeof selectedSku === 'object' && typeof selectedSku.stock === 'number'
     ? selectedSku.stock
@@ -254,6 +260,7 @@ export function transformVariation(variation: any, includeRelated: boolean = fal
     brand,
     sellingPrice,
     compareAtPrice,
+    flashSaleEndDate,
     currency,
     variants,
     isBoosted: boostInfo.isBoosted,

@@ -248,6 +248,8 @@ class SellRepository {
     required double price,
     double? compareAtPrice,
     int? stock,
+    bool flashSaleEnabled = false,
+    DateTime? flashSaleEndDate,
   }) async {
     final data = <String, dynamic>{
       'variation': variationId,
@@ -262,6 +264,10 @@ class SellRepository {
     }
     if (compareAtPrice != null) {
       data['compareAtPrice'] = compareAtPrice;
+    }
+    data['flashSaleEnabled'] = flashSaleEnabled;
+    if (flashSaleEndDate != null) {
+      data['flashSaleEndDate'] = flashSaleEndDate.toIso8601String();
     }
     await _apiService.post('/skus', data: data);
   }
@@ -279,6 +285,8 @@ class SellRepository {
     required double price,
     double? compareAtPrice,
     int? stock,
+    bool flashSaleEnabled = false,
+    DateTime? flashSaleEndDate,
   }) async {
     final data = <String, dynamic>{
       'skuOptions': [
@@ -290,6 +298,12 @@ class SellRepository {
     };
     if (compareAtPrice != null) {
       data['compareAtPrice'] = compareAtPrice;
+    }
+    data['flashSaleEnabled'] = flashSaleEnabled;
+    if (flashSaleEnabled && flashSaleEndDate != null) {
+      data['flashSaleEndDate'] = flashSaleEndDate.toIso8601String();
+    } else if (!flashSaleEnabled) {
+      data['flashSaleEndDate'] = null;
     }
     await _apiService.patch('/skus/$skuId', data: data);
   }

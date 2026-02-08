@@ -282,6 +282,8 @@ class SkuModel {
   final String? sku;
   final String status; // 'active' or 'archived'
   final bool isActive;
+  final bool flashSaleEnabled;
+  final DateTime? flashSaleEndDate;
 
   SkuModel({
     required this.id,
@@ -293,6 +295,8 @@ class SkuModel {
     this.sku,
     this.status = 'active',
     this.isActive = true,
+    this.flashSaleEnabled = false,
+    this.flashSaleEndDate,
   });
 
   /// Check if SKU is active (not archived and isActive is true)
@@ -361,6 +365,10 @@ class SkuModel {
       sku: json['sku'],
       status: json['status'] ?? 'active',
       isActive: json['isActive'] ?? true,
+      flashSaleEnabled: json['flashSaleEnabled'] ?? false,
+      flashSaleEndDate: json['flashSaleEndDate'] != null
+          ? DateTime.tryParse(json['flashSaleEndDate'])
+          : null,
     );
   }
 }

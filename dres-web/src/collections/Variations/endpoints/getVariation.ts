@@ -439,6 +439,10 @@ export const getVariation: PayloadHandler = async (req) => {
           }
         }
         
+        const flashSaleEndDate = sku.flashSaleEnabled && sku.flashSaleEndDate && new Date(sku.flashSaleEndDate) > new Date()
+          ? sku.flashSaleEndDate
+          : null
+
         return {
           id: sku.id.toString(),
           options: resolvedOptions,
@@ -446,18 +450,26 @@ export const getVariation: PayloadHandler = async (req) => {
           compareAtPrice: sku.compareAtPrice || null,
           stock: sku.stock ?? null, // null = unlimited stock
           currency,
+          flashSaleEndDate,
         }
       })
     } else {
       // Fallback to aggregation data if no SKU IDs found
-      skus = (variation.skuData || []).map((sku: any) => ({
-        id: sku._id.toString(),
-        options: resolveSkuOptions(sku),
-        sellingPrice: sku.sellingPrice || 0,
-        compareAtPrice: sku.compareAtPrice || null,
-        stock: sku.stock ?? null, // null = unlimited stock
-        currency,
-      }))
+      skus = (variation.skuData || []).map((sku: any) => {
+        const flashSaleEndDate = sku.flashSaleEnabled && sku.flashSaleEndDate && new Date(sku.flashSaleEndDate) > new Date()
+          ? sku.flashSaleEndDate
+          : null
+
+        return {
+          id: sku._id.toString(),
+          options: resolveSkuOptions(sku),
+          sellingPrice: sku.sellingPrice || 0,
+          compareAtPrice: sku.compareAtPrice || null,
+          stock: sku.stock ?? null, // null = unlimited stock
+          currency,
+          flashSaleEndDate,
+        }
+      })
     }
 
     // Build details array
@@ -692,6 +704,7 @@ export const getVariation: PayloadHandler = async (req) => {
         sellerId: sellerId || null,
         sellingPrice: bestSku?.sellingPrice || 0,
         compareAtPrice: bestSku?.compareAtPrice || undefined,
+        flashSaleEndDate: bestSku?.flashSaleEndDate || null,
         currency: { code: countryInfo.currencyCode, symbol: countryInfo.currencySymbol },
         category: style.categoryData?.[0]?.category || style.categoryData?.[0]?.name || null,
         brand: style.brandData?.[0]?.name || null,

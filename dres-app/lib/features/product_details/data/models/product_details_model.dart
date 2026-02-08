@@ -51,6 +51,7 @@ class VariationDetailsModel {
   final VariationsTitleModel? variationsTitle;
   final String? styleId;
   final String? sellerId;
+  final DateTime? flashSaleEndDate;
 
   VariationDetailsModel({
     required this.id,
@@ -74,6 +75,7 @@ class VariationDetailsModel {
     this.variationsTitle,
     this.styleId,
     this.sellerId,
+    this.flashSaleEndDate,
   });
 
   factory VariationDetailsModel.fromJson(Map<String, dynamic> json) {
@@ -110,6 +112,9 @@ class VariationDetailsModel {
           : null,
       styleId: json['styleId'],
       sellerId: json['sellerId'],
+      flashSaleEndDate: json['flashSaleEndDate'] != null
+          ? DateTime.tryParse(json['flashSaleEndDate'])
+          : null,
     );
   }
 }
@@ -121,6 +126,7 @@ class SkuModel {
   final double? compareAtPrice;
   final int? stock;
   final String? currency;
+  final DateTime? flashSaleEndDate;
 
   SkuModel({
     required this.id,
@@ -129,7 +135,11 @@ class SkuModel {
     this.compareAtPrice,
     this.stock,
     this.currency,
+    this.flashSaleEndDate,
   });
+
+  bool get hasActiveFlashSale =>
+      flashSaleEndDate != null && flashSaleEndDate!.isAfter(DateTime.now());
 
   factory SkuModel.fromJson(Map<String, dynamic> json) {
     return SkuModel(
@@ -142,6 +152,9 @@ class SkuModel {
       compareAtPrice: json['compareAtPrice']?.toDouble(),
       stock: json['stock'],
       currency: json['currency'] is Map ? json['currency']['symbol'] : json['currency'],
+      flashSaleEndDate: json['flashSaleEndDate'] != null
+          ? DateTime.tryParse(json['flashSaleEndDate'])
+          : null,
     );
   }
 }

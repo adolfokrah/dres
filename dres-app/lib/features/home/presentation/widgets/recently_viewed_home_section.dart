@@ -117,6 +117,7 @@ class _RecentlyViewedHomeSectionState extends State<RecentlyViewedHomeSection> {
                         isBoosted: variation.isBoosted,
                         showWeLoveBadge: variation.showWeLoveBadge,
                         sellerId: variation.sellerId,
+                        flashSaleEndDate: variation.flashSaleEndDate,
                       ),
                     );
                   },

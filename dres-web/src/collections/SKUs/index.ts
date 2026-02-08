@@ -235,6 +235,35 @@ export const SKUs: CollectionConfig = {
       },
     },
     {
+      type: 'row',
+      fields: [
+        {
+          name: 'flashSaleEnabled',
+          type: 'checkbox',
+          defaultValue: false,
+          admin: {
+            description: 'Enable flash sale countdown for this SKU',
+            width: '25%',
+            condition: (data) => {
+              return Boolean(data?.compareAtPrice && data.compareAtPrice > 0)
+            },
+          },
+        },
+        {
+          name: 'flashSaleEndDate',
+          type: 'date',
+          admin: {
+            description: 'When the flash sale ends',
+            date: { pickerAppearance: 'dayAndTime' },
+            width: '75%',
+            condition: (data) => {
+              return Boolean(data?.flashSaleEnabled)
+            },
+          },
+        },
+      ],
+    },
+    {
       name: 'barcode',
       type: 'text',
       admin: {

@@ -104,6 +104,7 @@ class _SimilarVariationsSectionState extends State<SimilarVariationsSection> {
                       showWeLoveBadge: variation.showWeLoveBadge,
                       sellerId: variation.sellerId,
                       totalStock: variation.totalStock,
+                      flashSaleEndDate: variation.flashSaleEndDate,
                     ),
                   );
                 },

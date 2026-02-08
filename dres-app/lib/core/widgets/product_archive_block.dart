@@ -194,6 +194,7 @@ class _ProductArchiveBlockState extends State<ProductArchiveBlock> {
                           showWeLoveBadge: product.showWeLoveBadge,
                           sellerId: product.sellerId,
                           totalStock: product.totalStock,
+                          flashSaleEndDate: product.flashSaleEndDate,
                         ),
                       );
                     },
@@ -266,6 +267,7 @@ class ProductCardData {
   final bool showWeLoveBadge;
   final String? sellerId;
   final int? totalStock;
+  final DateTime? flashSaleEndDate;
 
   ProductCardData({
     required this.id,
@@ -282,6 +284,7 @@ class ProductCardData {
     this.showWeLoveBadge = false,
     this.sellerId,
     this.totalStock,
+    this.flashSaleEndDate,
   });
 
   factory ProductCardData.fromJson(Map<String, dynamic> json) {
@@ -289,7 +292,7 @@ class ProductCardData {
     final currencyData = json['currency'];
     final currencyCode = currencyData?['code'] ?? CurrencyUtils.currentCode;
     final currencySymbol = currencyData?['symbol'] ?? CurrencyUtils.currentSymbol;
-    
+
     return ProductCardData(
       id: json['id'],
       thumbnail: json['thumbnail'],
@@ -307,6 +310,9 @@ class ProductCardData {
       showWeLoveBadge: json['showWeLoveBadge'] ?? false,
       sellerId: json['sellerId'],
       totalStock: json['totalStock'] as int?,
+      flashSaleEndDate: json['flashSaleEndDate'] != null
+          ? DateTime.tryParse(json['flashSaleEndDate'])
+          : null,
     );
   }
 }

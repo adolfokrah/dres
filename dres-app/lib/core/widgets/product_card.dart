@@ -7,6 +7,7 @@ import 'package:dres/l10n/app_localizations.dart';
 import 'package:dres/core/widgets/badge_widget.dart';
 import 'package:dres/core/widgets/favorite_button.dart';
 import 'package:dres/core/widgets/low_stock_indicator.dart';
+import 'package:dres/core/widgets/flash_sale_countdown.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 
@@ -33,6 +34,8 @@ class ProductCard extends StatefulWidget {
   final String? sellerId;
   /// Total stock quantity across all SKUs
   final int? totalStock;
+  /// Flash sale end date (if active)
+  final DateTime? flashSaleEndDate;
 
   const ProductCard({
     super.key,
@@ -55,6 +58,7 @@ class ProductCard extends StatefulWidget {
     this.showWeLoveBadge = false,
     this.sellerId,
     this.totalStock,
+    this.flashSaleEndDate,
   });
 
   @override
@@ -114,6 +118,23 @@ class _ProductCardState extends State<ProductCard> {
                           ),
                         ),
                 ),
+                // Flash Sale tag - positioned at top left of image
+                if (FlashSaleCountdown.isActive(widget.flashSaleEndDate))
+                  Positioned(
+                    left: 0,
+                    top: 4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      color: Colors.red,
+                      child: Text(
+                        'Flash Sale',
+                        style: AppTypography.bodyXS.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
                 // WE LOVE tag - positioned at bottom left of image
                 if (widget.showWeLoveBadge)
                   Positioned(
@@ -230,6 +251,17 @@ class _ProductCardState extends State<ProductCard> {
                         ],
                       ],
                     ),
+                    // Flash sale countdown
+                    if (FlashSaleCountdown.isActive(widget.flashSaleEndDate)) ...[
+                      const SizedBox(height: 4),
+                      FlashSaleCountdown(
+                        endDate: widget.flashSaleEndDate!,
+                        compact: true,
+                        discountPercentage: widget.compareAtPrice != null && widget.compareAtPrice! > widget.price
+                            ? ((widget.compareAtPrice! - widget.price) / widget.compareAtPrice! * 100).round()
+                            : null,
+                      ),
+                    ],
                   ],
                 ),
               ),

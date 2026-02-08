@@ -83,6 +83,11 @@ function transformAggregationResult(doc: any): any {
   // Use pre-computed selected SKU from aggregation
   const selectedSku = doc.selectedSku || skus[0]
 
+  // Flash sale: only include if enabled and end date is in the future
+  const flashSaleEndDate = selectedSku?.flashSaleEnabled && selectedSku?.flashSaleEndDate && new Date(selectedSku.flashSaleEndDate) > new Date()
+    ? selectedSku.flashSaleEndDate
+    : null
+
   return {
     id: doc._id.toString(),
     thumbnail,
@@ -93,6 +98,7 @@ function transformAggregationResult(doc: any): any {
     brand,
     sellingPrice: selectedSku?.sellingPrice || 0,
     compareAtPrice: selectedSku?.compareAtPrice || undefined,
+    flashSaleEndDate,
     currency: selectedSku?.currencyData?.[0] ? {
       code: selectedSku.currencyData[0].code || '',
       symbol: selectedSku.currencyData[0].symbol || ''

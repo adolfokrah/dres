@@ -2,6 +2,7 @@ import 'package:dres/core/widgets/unified_header.dart';
 import 'package:dres/core/widgets/badge_widget.dart';
 import 'package:dres/core/widgets/accordion.dart';
 import 'package:dres/core/widgets/low_stock_indicator.dart';
+import 'package:dres/core/widgets/flash_sale_countdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dres/core/di/injection.dart';
@@ -274,6 +275,28 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                 skus: variation.skus,
                                 selectedSkuId:
                                     state.selectedSkuId ?? variation.defaultSku,
+                              ),
+                              // Flash sale countdown (based on selected SKU)
+                              Builder(
+                                builder: (context) {
+                                  if (variation.skus.isEmpty) return const SizedBox.shrink();
+                                  final selectedSkuId = state.selectedSkuId ?? variation.defaultSku;
+                                  final selectedSku = variation.skus.firstWhere(
+                                    (sku) => sku.id == selectedSkuId,
+                                    orElse: () => variation.skus.first,
+                                  );
+                                  if (!selectedSku.hasActiveFlashSale) return const SizedBox.shrink();
+                                  final discountPct = selectedSku.compareAtPrice != null && selectedSku.compareAtPrice! > selectedSku.price
+                                      ? ((selectedSku.compareAtPrice! - selectedSku.price) / selectedSku.compareAtPrice! * 100).round()
+                                      : null;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 10),
+                                    child: FlashSaleCountdown(
+                                      endDate: selectedSku.flashSaleEndDate!,
+                                      discountPercentage: discountPct,
+                                    ),
+                                  );
+                                },
                               ),
                               const SizedBox(height: 10),
 
