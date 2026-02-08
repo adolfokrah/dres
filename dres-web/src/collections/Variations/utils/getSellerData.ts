@@ -55,7 +55,7 @@ export async function getSellerData(payload: Payload, sellerId: string | null) {
     name: (seller as any).shopName || fullName,
     username: (seller as any).username || null,
     profileImage: typeof (seller as any).photo === 'object' ? (seller as any).photo?.url || null : null,
-    verified: true,
+    trustedSeller: (seller as any).trustedSeller || false,
     vacationMode: (seller as any).vacationMode || false,
     usuallyShipsIn: '24 hours',
     salesHistory: {

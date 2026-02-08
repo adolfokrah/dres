@@ -3,7 +3,7 @@ class SellerModel {
   final String name;
   final String? username;
   final String? profileImage;
-  final bool verified;
+  final bool trustedSeller;
   final bool vacationMode;
   final String usuallyShipsIn;
   final SalesHistoryModel salesHistory;
@@ -14,7 +14,7 @@ class SellerModel {
     required this.name,
     this.username,
     this.profileImage,
-    required this.verified,
+    required this.trustedSeller,
     required this.vacationMode,
     required this.usuallyShipsIn,
     required this.salesHistory,
@@ -27,7 +27,7 @@ class SellerModel {
       name: json['name'] ?? '',
       username: json['username'],
       profileImage: json['profileImage'],
-      verified: json['verified'] ?? false,
+      trustedSeller: json['trustedSeller'] ?? false,
       vacationMode: json['vacationMode'] ?? false,
       usuallyShipsIn: json['usuallyShipsIn'] ?? '',
       salesHistory: SalesHistoryModel.fromJson(json['salesHistory'] ?? {}),

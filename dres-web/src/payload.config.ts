@@ -67,6 +67,8 @@ import { abandonedCartReminderTask } from './jobs/tasks/abandonedCartReminder'
 import { joinDresPushTask } from './jobs/tasks/joinDresPush'
 import { onSalePromoPushTask } from './jobs/tasks/onSalePromoPush'
 import { completeOrderPaymentsTask } from './jobs/tasks/completeOrderPayments'
+import { expireFlashSalesTask } from './jobs/tasks/expireFlashSales'
+import { grantTrustedSellerTask } from './jobs/tasks/grantTrustedSeller'
 
 import { Footer } from './Footer/config'
 import { Header } from './Header/config'
@@ -289,6 +291,8 @@ export default buildConfig({
       joinDresPushTask,
       onSalePromoPushTask,
       completeOrderPaymentsTask,
+      expireFlashSalesTask,
+      grantTrustedSellerTask,
     ],
     // Auto-run scheduled jobs - process all queues every minute
     autoRun: [

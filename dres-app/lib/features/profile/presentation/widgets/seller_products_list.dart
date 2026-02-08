@@ -5,6 +5,7 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/di/injection.dart';
 import 'package:dres/core/widgets/product_card.dart';
+import 'package:dres/core/utilities/currency_utils.dart';
 import 'package:dres/features/profile/logic/seller_products_bloc/seller_products_bloc.dart';
 
 /// Widget to display a seller's products (variations) for visitors
@@ -153,11 +154,12 @@ class _SellerProductsListState extends State<SellerProductsList> {
             // Products grid
             if (state.products.isNotEmpty)
               SliverPadding(
-                padding: const EdgeInsets.only(top: 20),
+                padding: const EdgeInsets.all(16),
                 sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 0.5,
+                    childAspectRatio: 0.51,
+                    crossAxisSpacing: 10,
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -171,21 +173,26 @@ class _SellerProductsListState extends State<SellerProductsList> {
                       }
 
                       final product = state.products[index];
-                      final isLeftColumn = index % 2 == 0;
-                      final isTopRow = index < 2;
-                      
+
                       return ProductCard(
                         id: product.id,
                         thumbnail: product.thumbnail,
-                        brand: product.brandName,
+                        brand: product.brand,
+                        category: product.category,
                         title: product.title.isNotEmpty ? product.title : 'Untitled',
-                        price: product.lowestPrice ?? 0,
-                        currencyCode: 'GHS',
-                        currencySymbol: 'GH₵',
-                        slug: product.id, // Use ID as slug since we navigate by ID
+                        price: product.price,
+                        compareAtPrice: product.compareAtPrice,
+                        currencyCode: CurrencyUtils.currentCode,
+                        currencySymbol: CurrencyUtils.currentSymbol,
+                        slug: product.slug,
+                        defaultSku: product.defaultSku,
                         sellerId: widget.sellerId,
-                        showLeftBorder: isLeftColumn,
-                        showTopBorder: isTopRow,
+                        isBoosted: product.isBoosted,
+                        showWeLoveBadge: product.showWeLoveBadge,
+                        totalStock: product.totalStock,
+                        flashSaleEndDate: product.flashSaleEndDate,
+                        showLeftBorder: index % 2 == 0,
+                        showTopBorder: index < 2,
                       );
                     },
                     childCount: state.products.length + (state.hasMore ? 1 : 0),

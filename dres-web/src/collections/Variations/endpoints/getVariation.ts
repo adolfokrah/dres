@@ -634,7 +634,7 @@ export const getVariation: PayloadHandler = async (req) => {
       name: sellerDoc.shopName || [sellerDoc.firstName, sellerDoc.lastName].filter(Boolean).join(' ') || 'User',
       username: sellerDoc.username || null,
       profileImage: sellerDoc.photoData?.[0]?.url || null,
-      verified: true,
+      trustedSeller: sellerDoc.trustedSeller || false,
       vacationMode: sellerDoc.vacationMode || false,
       usuallyShipsIn: '24 hours',
       salesHistory: {

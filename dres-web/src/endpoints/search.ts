@@ -208,6 +208,7 @@ export const search: PayloadHandler = async (req) => {
       name: user.name || user.shopName || user.username || '',
       username: user.username || null,
       shopName: user.shopName || null,
+      trustedSeller: user.trustedSeller || false,
       avatar:
         user.photo && typeof user.photo === 'object' ? { url: user.photo.url } : null,
     }))

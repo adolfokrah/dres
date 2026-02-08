@@ -4,39 +4,59 @@ import 'package:dres/core/utilities/media_utils.dart';
 class SellerProductModel {
   final String id;
   final String title;
-  final String? brandName;
+  final String? brand;
+  final String? category;
   final String? thumbnail;
-  final double? lowestPrice;
+  final double price;
+  final double? compareAtPrice;
   final int totalStock;
-  final String? colorName;
+  final String slug;
   final String? styleId;
-  final DateTime createdAt;
+  final String? sellerId;
+  final String? defaultSku;
+  final bool isBoosted;
+  final bool showWeLoveBadge;
+  final DateTime? flashSaleEndDate;
 
   SellerProductModel({
     required this.id,
     required this.title,
-    this.brandName,
+    this.brand,
+    this.category,
     this.thumbnail,
-    this.lowestPrice,
+    required this.price,
+    this.compareAtPrice,
     required this.totalStock,
-    this.colorName,
+    required this.slug,
     this.styleId,
-    required this.createdAt,
+    this.sellerId,
+    this.defaultSku,
+    this.isBoosted = false,
+    this.showWeLoveBadge = false,
+    this.flashSaleEndDate,
   });
 
   factory SellerProductModel.fromJson(Map<String, dynamic> json) {
     return SellerProductModel(
       id: json['id'] ?? '',
       title: json['title'] ?? '',
-      brandName: json['brandName'],
+      brand: json['brand'],
+      category: json['category'],
       thumbnail: json['thumbnail'] != null
           ? MediaUtils.resolveUrl(json['thumbnail'])
           : null,
-      lowestPrice: json['lowestPrice']?.toDouble(),
+      price: (json['sellingPrice'] ?? 0).toDouble(),
+      compareAtPrice: json['compareAtPrice']?.toDouble(),
       totalStock: json['totalStock'] ?? 0,
-      colorName: json['colorName'],
+      slug: json['slug'] ?? json['id'] ?? '',
       styleId: json['styleId'],
-      createdAt: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+      sellerId: json['sellerId'],
+      defaultSku: json['defaultSku'],
+      isBoosted: json['isBoosted'] ?? false,
+      showWeLoveBadge: json['showWeLoveBadge'] ?? false,
+      flashSaleEndDate: json['flashSaleEndDate'] != null
+          ? DateTime.tryParse(json['flashSaleEndDate'])
+          : null,
     );
   }
 }

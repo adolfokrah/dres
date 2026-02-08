@@ -50,6 +50,7 @@ export const getTopSellers: PayloadHandler = async (req) => {
             name: seller.name || seller.shopName || seller.username || '',
             username: seller.username || null,
             shopName: seller.shopName || null,
+            trustedSeller: seller.trustedSeller || false,
             avatar: seller.photo && typeof seller.photo === 'object'
               ? { url: seller.photo.url }
               : null,

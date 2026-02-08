@@ -54,6 +54,7 @@ class SellersSearchResults extends StatelessWidget {
           name: seller.shopName ?? seller.name,
           username: seller.username,
           avatarUrl: seller.avatarUrl,
+          trustedSeller: seller.trustedSeller,
         );
       },
     );

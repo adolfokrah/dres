@@ -13,6 +13,7 @@ class UserListItem extends StatelessWidget {
   final String? username;
   final String? avatarUrl;
   final String? badge;
+  final bool trustedSeller;
   final VoidCallback? onTap;
 
   const UserListItem({
@@ -22,6 +23,7 @@ class UserListItem extends StatelessWidget {
     this.username,
     this.avatarUrl,
     this.badge,
+    this.trustedSeller = false,
     this.onTap,
   });
 
@@ -54,12 +56,27 @@ class UserListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Shop name or name as primary
-                  Text(
-                    name,
-                    style: AppTypography.bodyM.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          name,
+                          style: AppTypography.bodyM.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (trustedSeller) ...[
+                        const SizedBox(width: 4),
+                        Icon(
+                          PhosphorIcons.sealCheck(PhosphorIconsStyle.fill),
+                          size: 14,
+                          color: const Color(0xFF1DA1F2),
+                        ),
+                      ],
+                    ],
                   ),
                   // Username as secondary (if different from name)
                   if (username != null && username != name) ...[

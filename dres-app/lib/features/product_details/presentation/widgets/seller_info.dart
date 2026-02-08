@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/l10n/app_localizations.dart';
@@ -106,9 +107,24 @@ class _SellerInfoState extends State<SellerInfo> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                seller.name,
-                                style: AppTypography.bodyL,
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      seller.name,
+                                      style: AppTypography.bodyL,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (seller.trustedSeller) ...[
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      PhosphorIcons.sealCheck(PhosphorIconsStyle.fill),
+                                      size: 16,
+                                      color: const Color(0xFF1DA1F2),
+                                    ),
+                                  ],
+                                ],
                               ),
                               if (seller.username != null && seller.username!.isNotEmpty)
                                 Text(

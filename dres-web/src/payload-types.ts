@@ -242,6 +242,8 @@ export interface Config {
       joinDresPush: TaskJoinDresPush;
       onSalePromoPush: TaskOnSalePromoPush;
       completeOrderPayments: TaskCompleteOrderPayments;
+      expireFlashSales: TaskExpireFlashSales;
+      grantTrustedSeller: TaskGrantTrustedSeller;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
@@ -613,6 +615,10 @@ export interface User {
     | null;
   role: 'admin' | 'user';
   accountStatus: 'active' | 'banned' | 'to-be-archived' | 'archived';
+  /**
+   * Trusted seller badge
+   */
+  trustedSeller?: boolean | null;
   /**
    * When enabled, your products will be hidden from buyers
    */
@@ -2812,6 +2818,8 @@ export interface PayloadJob {
           | 'joinDresPush'
           | 'onSalePromoPush'
           | 'completeOrderPayments'
+          | 'expireFlashSales'
+          | 'grantTrustedSeller'
           | 'schedulePublish';
         taskID: string;
         input?:
@@ -2857,6 +2865,8 @@ export interface PayloadJob {
         | 'joinDresPush'
         | 'onSalePromoPush'
         | 'completeOrderPayments'
+        | 'expireFlashSales'
+        | 'grantTrustedSeller'
         | 'schedulePublish'
       )
     | null;
@@ -4070,6 +4080,7 @@ export interface UsersSelect<T extends boolean = true> {
       };
   role?: T;
   accountStatus?: T;
+  trustedSeller?: T;
   vacationMode?: T;
   oauthProvider?: T;
   oauthId?: T;
@@ -4806,6 +4817,27 @@ export interface TaskCompleteOrderPayments {
   input?: unknown;
   output: {
     transactionsCompleted?: number | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskExpireFlashSales".
+ */
+export interface TaskExpireFlashSales {
+  input?: unknown;
+  output: {
+    skusExpired?: number | null;
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskGrantTrustedSeller".
+ */
+export interface TaskGrantTrustedSeller {
+  input?: unknown;
+  output: {
+    sellersGranted?: number | null;
+    sellersChecked?: number | null;
   };
 }
 /**

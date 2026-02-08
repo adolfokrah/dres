@@ -554,6 +554,15 @@ export const Users: CollectionConfig = {
       },
     },
     {
+      name: 'trustedSeller',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: {
+        position: 'sidebar',
+        description: 'Trusted seller badge',
+      },
+    },
+    {
       name: 'vacationMode',
       type: 'checkbox',
       defaultValue: false,

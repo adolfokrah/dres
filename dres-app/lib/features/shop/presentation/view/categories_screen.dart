@@ -111,6 +111,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       username: seller.username,
                       avatarUrl: seller.avatarUrl,
                       badge: 'TOP SELLER',
+                      trustedSeller: seller.trustedSeller,
                     )),
                   ],
                   // Loading indicator for top sellers

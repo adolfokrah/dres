@@ -65,6 +65,7 @@ class SellerSearchResult {
   final String? username;
   final String? shopName;
   final String? avatarUrl;
+  final bool trustedSeller;
 
   SellerSearchResult({
     required this.id,
@@ -72,6 +73,7 @@ class SellerSearchResult {
     this.username,
     this.shopName,
     this.avatarUrl,
+    this.trustedSeller = false,
   });
 
   factory SellerSearchResult.fromJson(Map<String, dynamic> json) {
@@ -87,6 +89,7 @@ class SellerSearchResult {
       username: json['username'] as String?,
       shopName: json['shopName'] as String?,
       avatarUrl: avatarUrl,
+      trustedSeller: json['trustedSeller'] as bool? ?? false,
     );
   }
 }

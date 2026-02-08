@@ -1,4 +1,5 @@
 import type { PayloadHandler } from 'payload'
+import { transformVariation } from '../utils/transformVariation'
 
 /**
  * GET /api/variations/seller/:sellerId
@@ -18,8 +19,6 @@ export const getSellerVariations: PayloadHandler = async (req) => {
   const limit = parseInt(url.searchParams.get('limit') || '20')
 
   try {
-    console.log('🛍️ getSellerVariations: sellerId =', sellerId)
-    
     // Get user's country for currency info
     let userCountry: { currencyCode: string; currencySymbol: string } | null = null
     if (user?.country) {
@@ -42,7 +41,6 @@ export const getSellerVariations: PayloadHandler = async (req) => {
     }
 
     // First, find all PUBLISHED styles belonging to this seller
-    // Query seller and status separately to debug
     const stylesResult = await payload.find({
       collection: 'styles',
       where: {
@@ -53,12 +51,9 @@ export const getSellerVariations: PayloadHandler = async (req) => {
       depth: 0,
     })
 
-    console.log('🛍️ Found styles:', stylesResult.totalDocs, stylesResult.docs.map((s: any) => ({ id: s.id, seller: s.seller, status: s.status })))
-
     const styleIds = stylesResult.docs.map((style: any) => style.id)
 
     if (styleIds.length === 0) {
-      console.log('🛍️ No styles found, returning empty')
       return Response.json({
         docs: [],
         totalDocs: 0,
@@ -70,8 +65,7 @@ export const getSellerVariations: PayloadHandler = async (req) => {
       })
     }
 
-    // Fetch published variations for these styles
-    // Note: variations use 'active' status, not 'published'
+    // Fetch active variations for these styles with depth for transformVariation
     const variationsResult = await payload.find({
       collection: 'variations',
       where: {
@@ -86,58 +80,10 @@ export const getSellerVariations: PayloadHandler = async (req) => {
       sort: '-createdAt',
     })
 
-    // Transform variations for the response
-    const products = variationsResult.docs.map((variation: any) => {
-      // Get first image as thumbnail
-      let thumbnail: string | null = null
-      if (variation.images && variation.images.length > 0) {
-        const firstImage = variation.images[0]
-        if (typeof firstImage === 'object' && firstImage?.url) {
-          thumbnail = firstImage.url
-        }
-      }
-
-      // Get brand name from style
-      let brandName: string | null = null
-      if (variation.style && typeof variation.style === 'object') {
-        if (variation.style.brand && typeof variation.style.brand === 'object') {
-          brandName = variation.style.brand.name || null
-        }
-      }
-
-      // Get the lowest price from SKUs
-      let lowestPrice: number | null = null
-      let totalStock = 0
-      const skus = variation.skus?.docs || variation.skus || []
-      for (const sku of skus) {
-        if (typeof sku === 'string') continue
-        
-        const price = sku.sellingPrice || sku.price
-        if (price && (lowestPrice === null || price < lowestPrice)) {
-          lowestPrice = price
-        }
-        
-        if (sku.stock !== undefined && sku.stock !== null) {
-          totalStock += sku.stock
-        }
-      }
-
-      return {
-        id: variation.id,
-        title: variation.title || '',
-        brandName,
-        thumbnail,
-        lowestPrice,
-        totalStock,
-        colorName: variation.colorName || null,
-        styleId: typeof variation.style === 'object' ? variation.style.id : variation.style,
-        createdAt: variation.createdAt,
-        currency: {
-          code: userCountry.currencyCode,
-          symbol: userCountry.currencySymbol,
-        },
-      }
-    })
+    // Use shared transformVariation utility for consistent output
+    const products = variationsResult.docs
+      .map((variation: any) => transformVariation(variation, false))
+      .filter((v: any) => v !== null)
 
     return Response.json({
       docs: products,

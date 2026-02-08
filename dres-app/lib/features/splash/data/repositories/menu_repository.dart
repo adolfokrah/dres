@@ -8,6 +8,7 @@ class TopSeller {
   final String? username;
   final String? shopName;
   final String? avatarUrl;
+  final bool trustedSeller;
 
   TopSeller({
     required this.id,
@@ -15,6 +16,7 @@ class TopSeller {
     this.username,
     this.shopName,
     this.avatarUrl,
+    this.trustedSeller = false,
   });
 
   factory TopSeller.fromJson(Map<String, dynamic> json) {
@@ -24,6 +26,7 @@ class TopSeller {
       username: json['username'] as String?,
       shopName: json['shopName'] as String?,
       avatarUrl: json['avatar'] != null ? json['avatar']['url'] as String? : null,
+      trustedSeller: json['trustedSeller'] as bool? ?? false,
     );
   }
 }
