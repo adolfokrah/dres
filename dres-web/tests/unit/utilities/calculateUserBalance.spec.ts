@@ -68,13 +68,14 @@ describe('calculateUserBalance', () => {
     expect(balance).toBe(80)
   })
 
-  it('includes deposit transactions in balance', async () => {
-    const payload = createMockPayload([
-      createTxn('deposit', 'completed', 50),
-    ])
+  it('does NOT include deposit transactions in balance', async () => {
+    const payload = createMockPayload([])
+    await calculateUserBalance(payload, 'user-1')
 
-    const balance = await calculateUserBalance(payload, 'user-1')
-    expect(balance).toBe(50)
+    const callArgs = (payload.find as any).mock.calls[0][0]
+    const typeFilter = callArgs.where.type.in
+
+    expect(typeFilter).not.toContain('deposit')
   })
 
   it('handles mixed transaction types correctly', async () => {
@@ -84,12 +85,11 @@ describe('calculateUserBalance', () => {
       createTxn('transfer', 'completed', -300),
       createTxn('refund', 'completed', 50),
       createTxn('return_charge', 'completed', -25),
-      createTxn('deposit', 'completed', 100),
     ])
 
     const balance = await calculateUserBalance(payload, 'user-1')
-    // 500 + 200 - 300 + 50 - 25 + 100 = 525
-    expect(balance).toBe(525)
+    // 500 + 200 - 300 + 50 - 25 = 425
+    expect(balance).toBe(425)
   })
 
   it('rounds to 2 decimal places', async () => {
@@ -111,7 +111,7 @@ describe('calculateUserBalance', () => {
       where: {
         user: { equals: 'user-123' },
         status: { in: ['completed', 'in_progress'] },
-        type: { in: ['order_payment', 'transfer', 'refund', 'return_charge', 'deposit'] },
+        type: { in: ['order_payment', 'transfer', 'refund', 'return_charge'] },
       },
       limit: 0,
     })
@@ -130,7 +130,7 @@ describe('calculateUserBalance', () => {
     const typeFilter = callArgs.where.type.in
 
     expect(typeFilter).not.toContain('boost_payment')
-    expect(typeFilter).toEqual(['order_payment', 'transfer', 'refund', 'return_charge', 'deposit'])
+    expect(typeFilter).toEqual(['order_payment', 'transfer', 'refund', 'return_charge'])
   })
 
   it('does NOT include pending transactions', async () => {

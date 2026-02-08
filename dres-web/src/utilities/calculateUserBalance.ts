@@ -4,8 +4,8 @@ import type { BasePayload } from 'payload'
  * Calculate a user's available balance in GHS.
  *
  * Sums all completed and in_progress transactions for the user.
- * Excludes boost_payment (paid separately via Paystack) and pending order_payments
- * (not available until completed by cron job).
+ * Excludes boost_payment (paid separately via Paystack), deposit (customer order payments),
+ * and pending order_payments (not available until completed by cron job).
  *
  * Amounts are stored as +/- values so the sum gives the net balance.
  */
@@ -18,7 +18,7 @@ export async function calculateUserBalance(
     where: {
       user: { equals: userId },
       status: { in: ['completed', 'in_progress'] },
-      type: { in: ['order_payment', 'transfer', 'refund', 'return_charge', 'deposit'] },
+      type: { in: ['order_payment', 'transfer', 'refund', 'return_charge'] },
     },
     limit: 0,
   })
