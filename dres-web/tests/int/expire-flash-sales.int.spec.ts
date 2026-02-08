@@ -31,7 +31,7 @@ async function createTestUser() {
       password: 'testpassword123',
       firstName: 'FlashTest',
       lastName: 'User',
-      role: 'user',
+      role: 'admin',
       username: `flashtest${uniqueId.replace(/-/g, '')}`,
     },
   })
@@ -42,15 +42,18 @@ async function createTestUser() {
 /**
  * Helper to create a style + variation (minimal, just enough to satisfy SKU requirements)
  */
-async function createStyleAndVariation(sellerId: string) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function createStyleAndVariation(seller: any) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const style = await (payload.create as any)({
     collection: 'styles',
     data: {
       title: `Flash Sale Test Style ${Date.now()}`,
-      seller: sellerId,
+      seller: seller.id,
       status: 'draft',
     },
+    user: seller,
+    overrideAccess: false,
   })
   createdDocs.styles.push(style.id)
 
@@ -156,7 +159,7 @@ describe('Expire Flash Sales Integration Tests', () => {
   describe('Query expired flash sales', () => {
     it('finds SKUs with expired flash sale end dates', async () => {
       const user = await createTestUser()
-      const { variation } = await createStyleAndVariation(user.id)
+      const { variation } = await createStyleAndVariation(user)
 
       // Create a SKU with an expired flash sale (1 hour ago)
       const oneHourAgo = new Date()
@@ -188,7 +191,7 @@ describe('Expire Flash Sales Integration Tests', () => {
 
     it('does not find SKUs with future flash sale end dates', async () => {
       const user = await createTestUser()
-      const { variation } = await createStyleAndVariation(user.id)
+      const { variation } = await createStyleAndVariation(user)
 
       // Create a SKU with a future flash sale (1 day from now)
       const tomorrow = new Date()
@@ -220,7 +223,7 @@ describe('Expire Flash Sales Integration Tests', () => {
 
     it('does not find SKUs where flashSaleEnabled is false', async () => {
       const user = await createTestUser()
-      const { variation } = await createStyleAndVariation(user.id)
+      const { variation } = await createStyleAndVariation(user)
 
       // Create a SKU with flash sale disabled but with a past date
       const oneHourAgo = new Date()
@@ -253,7 +256,7 @@ describe('Expire Flash Sales Integration Tests', () => {
   describe('Expire flash sale updates', () => {
     it('restores price to compareAtPrice and clears flash sale fields', async () => {
       const user = await createTestUser()
-      const { variation } = await createStyleAndVariation(user.id)
+      const { variation } = await createStyleAndVariation(user)
 
       const oneHourAgo = new Date()
       oneHourAgo.setHours(oneHourAgo.getHours() - 1)
@@ -294,7 +297,7 @@ describe('Expire Flash Sales Integration Tests', () => {
 
     it('handles SKU without compareAtPrice gracefully', async () => {
       const user = await createTestUser()
-      const { variation } = await createStyleAndVariation(user.id)
+      const { variation } = await createStyleAndVariation(user)
 
       const oneHourAgo = new Date()
       oneHourAgo.setHours(oneHourAgo.getHours() - 1)
@@ -334,7 +337,7 @@ describe('Expire Flash Sales Integration Tests', () => {
 
     it('sellingPrice is recalculated after price restoration', async () => {
       const user = await createTestUser()
-      const { variation } = await createStyleAndVariation(user.id)
+      const { variation } = await createStyleAndVariation(user)
 
       const oneHourAgo = new Date()
       oneHourAgo.setHours(oneHourAgo.getHours() - 1)
@@ -376,7 +379,7 @@ describe('Expire Flash Sales Integration Tests', () => {
   describe('Multiple SKUs batch processing', () => {
     it('expires multiple SKUs in one batch', async () => {
       const user = await createTestUser()
-      const { variation } = await createStyleAndVariation(user.id)
+      const { variation } = await createStyleAndVariation(user)
 
       const twoHoursAgo = new Date()
       twoHoursAgo.setHours(twoHoursAgo.getHours() - 2)
@@ -390,7 +393,7 @@ describe('Expire Flash Sales Integration Tests', () => {
       })
 
       // Need a second variation for additional SKUs (unique SKU options constraint)
-      const { variation: variation2 } = await createStyleAndVariation(user.id)
+      const { variation: variation2 } = await createStyleAndVariation(user)
       const sku2 = await createTestSku(variation2.id, {
         price: 80,
         compareAtPrice: 150,
@@ -398,7 +401,7 @@ describe('Expire Flash Sales Integration Tests', () => {
         flashSaleEndDate: twoHoursAgo.toISOString(),
       })
 
-      const { variation: variation3 } = await createStyleAndVariation(user.id)
+      const { variation: variation3 } = await createStyleAndVariation(user)
       const sku3 = await createTestSku(variation3.id, {
         price: 25,
         compareAtPrice: 40,
@@ -464,7 +467,7 @@ describe('Expire Flash Sales Integration Tests', () => {
       tomorrow.setDate(tomorrow.getDate() + 1)
 
       // Expired SKU
-      const { variation: v1 } = await createStyleAndVariation(user.id)
+      const { variation: v1 } = await createStyleAndVariation(user)
       const expiredSku = await createTestSku(v1.id, {
         price: 50,
         compareAtPrice: 100,
@@ -473,7 +476,7 @@ describe('Expire Flash Sales Integration Tests', () => {
       })
 
       // Active flash sale SKU (should not be touched)
-      const { variation: v2 } = await createStyleAndVariation(user.id)
+      const { variation: v2 } = await createStyleAndVariation(user)
       const activeSku = await createTestSku(v2.id, {
         price: 70,
         compareAtPrice: 120,
@@ -549,7 +552,7 @@ describe('Expire Flash Sales Integration Tests', () => {
 
     it('handles flash sale that just expired (edge of time boundary)', async () => {
       const user = await createTestUser()
-      const { variation } = await createStyleAndVariation(user.id)
+      const { variation } = await createStyleAndVariation(user)
 
       // Create a SKU with flash sale ending 1 second ago
       const justExpired = new Date()
