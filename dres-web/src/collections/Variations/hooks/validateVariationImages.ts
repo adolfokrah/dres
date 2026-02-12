@@ -210,13 +210,14 @@ Scoring Guidelines (give higher scores for better quality):
 2. Images should show actual clothing/fashion items matching the category "${categoryName}"
 3. Images should appear to be of the same product
 4. Image quality should be acceptable (clear, well-lit)
-5. No explicit, offensive, or inappropriate content${brandNote}
+5. No explicit, offensive, or inappropriate content
+6. **CRITICAL: All images MUST show items of the SAME COLOR**. If images show different colored items (e.g., one image shows a red shirt and another shows a blue shirt), this is a major issue that should significantly lower the score${brandNote}
 
 Score Guide:
-- 80-100: Excellent quality, clear images, meets all guidelines
-- 60-79: Good quality, minor issues but acceptable
+- 80-100: Excellent quality, clear images, meets all guidelines, same color across all images
+- 60-79: Good quality, minor issues but acceptable, consistent color
 - 40-59: Fair quality, some issues but product is identifiable
-- 0-39: Poor quality, major issues, not suitable for marketplace
+- 0-39: Poor quality, major issues (including different colors across images), not suitable for marketplace
 
 Respond ONLY with valid JSON (no markdown, no explanation):
 {
