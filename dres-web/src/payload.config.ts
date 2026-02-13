@@ -84,6 +84,10 @@ import { getStyleInfo } from './endpoints/styleInfo'
 import { seedEndpoint } from './endpoints/seed/endpoint'
 import { testWelcomeEmail } from './endpoints/testWelcomeEmail'
 import { sendPush } from './endpoints/sendPush'
+import { fixMixedColorVariations } from './endpoints/fixMixedColorVariations'
+import { createProductWithAI } from './endpoints/createProductWithAI'
+import { getSizeOptions } from './endpoints/getSizeOptions'
+import { generateImageDescription } from './endpoints/generateImageDescription'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -251,6 +255,21 @@ export default buildConfig({
       path: '/send-push',
       method: 'post',
       handler: sendPush,
+    },
+    {
+      path: '/fix-mixed-color-variations',
+      method: 'post',
+      handler: fixMixedColorVariations,
+    },
+    {
+      path: '/create-product-with-ai',
+      method: 'post',
+      handler: createProductWithAI,
+    },
+    {
+      path: '/generate-description',
+      method: 'post',
+      handler: generateImageDescription,
     },
   ],
   globals: [Header, Footer, SiteSettings],

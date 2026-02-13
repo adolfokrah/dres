@@ -220,6 +220,20 @@ export const Variations: CollectionConfig = {
       },
     },
     {
+      name: 'condition',
+      type: 'select',
+      options: [
+        { label: 'New', value: 'new' },
+        { label: 'Used - Like New', value: 'used_like_new' },
+        { label: 'Used - Good', value: 'used_good' },
+        { label: 'Used - Fair', value: 'used_fair' },
+      ],
+      defaultValue: 'new',
+      admin: {
+        description: 'Condition of the item',
+      },
+    },
+    {
       name: 'skus',
       type: 'join',
       collection: 'skus',

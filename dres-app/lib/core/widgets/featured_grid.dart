@@ -103,7 +103,7 @@ class _GridItem extends StatelessWidget {
                       imageUrl!,
                       height: 200,
                       width: width,
-                      fit: BoxFit.cover,
+                      fit: BoxFit.contain,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
                         return const SizedBox.shrink();

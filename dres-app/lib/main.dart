@@ -23,7 +23,6 @@ import 'package:dres/features/shop/logic/brands_bloc/brands_bloc.dart';
 import 'package:dres/features/product_details/logic/product_details_bloc/product_details_bloc.dart';
 import 'package:dres/features/auth/logic/auth_bloc/auth_bloc.dart';
 import 'package:dres/features/cart/logic/cart_bloc/cart_bloc.dart';
-import 'package:dres/features/cart/logic/cart_bloc/cart_event.dart';
 import 'package:dres/features/favorites/logic/favorites_bloc/favorites_bloc.dart';
 import 'package:dres/features/notifications/logic/notifications_bloc/notifications_bloc.dart';
 import 'package:dres/features/profile/logic/user_products_bloc/user_products_bloc.dart';
@@ -274,8 +273,8 @@ class _MainAppState extends State<MainApp> {
               // Initialize FollowsBloc with user's follower/following counts
               if (state.user != null) {
                 getIt<FollowsBloc>().add(MyFollowCountsInitRequested(
-                  followersCount: state.user!.followersCount ?? 0,
-                  followingCount: state.user!.followingCount ?? 0,
+                  followersCount: state.user!.followersCount ,
+                  followingCount: state.user!.followingCount,
                 ));
               }
             }

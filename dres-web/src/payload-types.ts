@@ -357,6 +357,10 @@ export interface Variation {
    */
   images?: (string | Media)[] | null;
   /**
+   * Condition of the item
+   */
+  condition?: ('new' | 'used_like_new' | 'used_good' | 'used_fair') | null;
+  /**
    * SKUs for this variation (inventory & pricing)
    */
   skus?: {
@@ -3275,6 +3279,7 @@ export interface VariationsSelect<T extends boolean = true> {
         id?: T;
       };
   images?: T;
+  condition?: T;
   skus?: T;
   slug?: T;
   stats?: T;

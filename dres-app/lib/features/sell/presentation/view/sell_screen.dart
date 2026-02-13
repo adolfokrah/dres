@@ -10,6 +10,7 @@ import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
 import 'package:dres/features/sell/logic/style_details_bloc/style_details_bloc.dart';
 import 'package:dres/features/sell/logic/seller_eligibility_bloc/seller_eligibility_bloc.dart';
 import 'package:dres/features/sell/presentation/widgets/draft_style_item.dart';
+import 'package:dres/features/sell/presentation/widgets/listing_method_bottom_sheet.dart';
 
 class SellScreen extends StatefulWidget {
   const SellScreen({super.key});
@@ -282,23 +283,23 @@ class _SellScreenState extends State<SellScreen> {
   void _onStartSellingPressed(BuildContext context) async {
     // Check eligibility before creating a new style
     final eligibilityState = _eligibilityBloc.state;
-    
+
     // If eligibility is not loaded yet, fetch it first
     if (eligibilityState.status != SellerEligibilityStatus.loaded) {
       setState(() => _isCheckingEligibility = true);
-      
+
       try {
         _eligibilityBloc.add(const SellerEligibilityFetchRequested());
-        
+
         // Wait for the bloc to update
         await _eligibilityBloc.stream.firstWhere(
           (state) => state.status == SellerEligibilityStatus.loaded ||
                      state.status == SellerEligibilityStatus.error,
         ).timeout(const Duration(seconds: 5));
-        
+
         final newState = _eligibilityBloc.state;
         setState(() => _isCheckingEligibility = false);
-        
+
         if (newState.status == SellerEligibilityStatus.error) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -310,7 +311,7 @@ class _SellScreenState extends State<SellScreen> {
           }
           return;
         }
-        
+
         if (!newState.canSell) {
           if (mounted) {
             context.push('/sell/onboarding');
@@ -334,9 +335,28 @@ class _SellScreenState extends State<SellScreen> {
       context.push('/sell/onboarding');
       return;
     }
-    
-    // User can sell - create a new style
-    context.read<StyleDetailsBloc>().add(const StyleDetailsCreateRequested());
+
+    // User can sell - show listing method bottom sheet
+    if (!mounted) return;
+
+    final method = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => const ListingMethodBottomSheet(),
+    );
+
+    if (!mounted || method == null) return;
+
+    // Handle the selected method
+    if (method == 'manual') {
+      // Manual creation - create a new draft style
+      context.read<StyleDetailsBloc>().add(const StyleDetailsCreateRequested());
+    } else if (method == 'ai') {
+      // AI creation - navigate to AI creation screen
+      // TODO: Create AI listing creation screen
+      context.push('/sell/ai-create');
+    }
   }
 
   Future<bool?> _showArchiveConfirmation(BuildContext dialogContext, String title) {

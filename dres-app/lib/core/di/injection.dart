@@ -49,6 +49,7 @@ import 'package:dres/features/sell/logic/style_details_bloc/style_details_bloc.d
 import 'package:dres/features/sell/logic/variations_bloc/variations_bloc.dart';
 import 'package:dres/features/sell/logic/variation_detail_bloc/variation_detail_bloc.dart';
 import 'package:dres/features/sell/logic/seller_eligibility_bloc/seller_eligibility_bloc.dart';
+import 'package:dres/features/sell/logic/ai_listing_bloc/ai_listing_bloc.dart';
 import 'package:dres/features/payment/data/repositories/payment_repository.dart';
 import 'package:dres/features/notifications/data/repositories/notifications_repository.dart';
 import 'package:dres/features/notifications/logic/notifications_bloc/notifications_bloc.dart';
@@ -323,6 +324,11 @@ Future<void> setupDependencies() async {
   // Variation Detail Bloc - Singleton for variation detail editing
   getIt.registerLazySingleton<VariationDetailBloc>(() => VariationDetailBloc(
     sellRepository: getIt<SellRepository>(),
+  ));
+
+  // AI Listing Bloc - Factory for each listing creation session
+  getIt.registerFactory<AIListingBloc>(() => AIListingBloc(
+    repository: getIt<SellRepository>(),
   ));
 
   // Notifications Repository
@@ -694,6 +700,11 @@ Future<void> _setupDependenciesWithExistingStorage(StorageService storageService
   // Variation Detail Bloc - Factory
   getIt.registerFactory<VariationDetailBloc>(() => VariationDetailBloc(
     sellRepository: getIt<SellRepository>(),
+  ));
+
+  // AI Listing Bloc - Factory for each listing creation session
+  getIt.registerFactory<AIListingBloc>(() => AIListingBloc(
+    repository: getIt<SellRepository>(),
   ));
 
   // Notifications Bloc - Singleton

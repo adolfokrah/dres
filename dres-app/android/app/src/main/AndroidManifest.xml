@@ -12,7 +12,10 @@
     
     <!-- Camera permission for taking photos -->
     <uses-permission android:name="android.permission.CAMERA" />
-    
+
+    <!-- Microphone permission for voice input -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <application
         android:label="dres"
         android:name="${applicationName}"

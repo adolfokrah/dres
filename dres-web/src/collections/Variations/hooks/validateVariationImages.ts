@@ -1,6 +1,5 @@
 import type { CollectionAfterChangeHook } from 'payload'
 import OpenAI from 'openai'
-import { getServerSideURL } from '../../../utilities/getURL'
 
 interface ImageValidationResult {
   approved: boolean
@@ -62,12 +61,12 @@ export const validateVariationImages: CollectionAfterChangeHook = async ({
 
   // Only validate if:
   // 1. Images changed
-  // 2. There are at least 3 images (minimum required for activation)
+  // 2. There is at least 1 image (changed from 3 to allow single image variations)
   // 3. Status is 'pending' or not set (don't re-validate approved/rejected)
   const validationStatus = doc.imageValidationStatus as string | undefined
   const shouldValidate =
     imagesChanged &&
-    currentImageIds.length >= 3 &&
+    currentImageIds.length >= 1 &&
     (!validationStatus || validationStatus === 'pending')
 
   if (!shouldValidate) {
@@ -161,7 +160,8 @@ async function performImageValidation(
 
   // Build image contents using URLs (works with S3/cloud storage)
   const imageContents: OpenAI.Chat.Completions.ChatCompletionContentPart[] = []
-  const serverUrl = getServerSideURL()
+  // Use public URL for OpenAI to access images (ngrok in dev, production URL in prod)
+  const serverUrl = process.env.OPENAI_PUBLIC_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
 
   for (const mediaDoc of sortedMediaDocs) {
     if (mediaDoc.url) {
@@ -208,16 +208,27 @@ ${brandName ? `Selected Brand: "${brandName}"${isOtherBrand ? ' (generic/other b
 Scoring Guidelines (give higher scores for better quality):
 1. Images must be real product photos (not screenshots, memes, AI-generated, or unrelated images)
 2. Images should show actual clothing/fashion items matching the category "${categoryName}"
-3. Images should appear to be of the same product
+3. **CRITICAL: All images MUST show the EXACT SAME product design**
+   - ✓ GOOD: Same product from different angles (front, side, back) - DIFFERENT ANGLES = OK
+   - ✓ GOOD: Same product in different lighting or backgrounds - LIGHTING VARIATIONS = OK
+   - ✓ GOOD: Same product worn vs laid flat - DIFFERENT PRESENTATION = OK
+   - ✗ BAD: Two completely different product designs (DIFFERENT PRODUCTS = REJECT)
+   - **BRAND CHECK**: Only check brands IF they are visible in the images
+     - If brand logos/tags are visible: Must be the SAME brand
+     - If NO brand is visible: Skip brand check, just verify same product design
+     - Example: Nike logo + Adidas logo = REJECT (different brands visible)
+     - Example: Generic item from different angles = OK (no brand visible)
+   - **IMPORTANT**: Do NOT reject just because of different angles, lighting, or backgrounds
+   - **IMPORTANT**: Only reject if clearly different product designs or (if brands visible) different brands
 4. Image quality should be acceptable (clear, well-lit)
 5. No explicit, offensive, or inappropriate content
-6. **CRITICAL: All images MUST show items of the SAME COLOR**. If images show different colored items (e.g., one image shows a red shirt and another shows a blue shirt), this is a major issue that should significantly lower the score${brandNote}
+6. **CRITICAL: All images MUST show items of the SAME COLOR**. If images show different colored items (e.g., one image shows a red shirt and another shows a blue shirt), this is a CRITICAL FAILURE and the score MUST be below 50${brandNote}
 
 Score Guide:
 - 80-100: Excellent quality, clear images, meets all guidelines, same color across all images
 - 60-79: Good quality, minor issues but acceptable, consistent color
-- 40-59: Fair quality, some issues but product is identifiable
-- 0-39: Poor quality, major issues (including different colors across images), not suitable for marketplace
+- 51-59: Acceptable quality, product is identifiable, consistent color
+- 0-50: REJECTED - Major issues including different colors across images, not suitable for marketplace
 
 Respond ONLY with valid JSON (no markdown, no explanation):
 {
@@ -230,8 +241,8 @@ Respond ONLY with valid JSON (no markdown, no explanation):
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      max_tokens: 500,
+      model: 'gpt-5-nano',
+      max_completion_tokens: 500,
       messages: [
         {
           role: 'user',
@@ -242,14 +253,24 @@ Respond ONLY with valid JSON (no markdown, no explanation):
 
     const content = response.choices[0]?.message?.content || '{}'
 
+    payload.logger.info(`[ImageValidation] Raw OpenAI response: ${content}`)
+
     // Parse the JSON response
     let result: ImageValidationResult
     try {
       // Remove any markdown formatting if present
       const jsonStr = content.replace(/```json\n?|\n?```/g, '').trim()
-      result = JSON.parse(jsonStr)
-    } catch {
-      payload.logger.error(`[ImageValidation] Failed to parse response: ${content}`)
+      const parsed = JSON.parse(jsonStr)
+
+      // Ensure all required fields exist with defaults
+      result = {
+        approved: parsed.approved ?? true,
+        score: typeof parsed.score === 'number' ? parsed.score : 50,
+        issues: Array.isArray(parsed.issues) ? parsed.issues : [],
+        detectedType: parsed.detectedType || 'Unknown',
+      }
+    } catch (error) {
+      payload.logger.error(`[ImageValidation] Failed to parse response: ${content}. Error: ${error}`)
       result = {
         approved: true, // Default to approved if parsing fails
         score: 50,
@@ -258,24 +279,33 @@ Respond ONLY with valid JSON (no markdown, no explanation):
       }
     }
 
-    // Use score-based approval: score >= 40 = approved
-    const isApproved = result.score >= 40
+    // Use score-based approval: score >= 49 = approved
+    const isApproved = result.score >= 49
 
     payload.logger.info(
-      `[ImageValidation] Result for ${doc.id}: score=${result.score}, isApproved=${isApproved} (threshold: >=40), detected=${result.detectedType}`
+      `[ImageValidation] Result for ${doc.id}: score=${result.score}, isApproved=${isApproved} (threshold: >=49), detected=${result.detectedType}`
     )
 
     // Determine validation status based on score (only 3 states: pending, approved, rejected)
     const status: 'pending' | 'approved' | 'rejected' = isApproved ? 'approved' : 'rejected'
 
+    // Build validation notes based on status and issues
+    let validationNotes: string
+    if (status === 'approved') {
+      validationNotes = result.issues.length > 0
+        ? `Detected: ${result.detectedType}. Minor issues: ${result.issues.join(', ')}. Images approved.`
+        : `Detected: ${result.detectedType}. Images approved.`
+    } else {
+      validationNotes = result.issues.length > 0
+        ? `Detected: ${result.detectedType}. Issues: ${result.issues.join(', ')}`
+        : `Detected: ${result.detectedType}. Images rejected - quality score too low (${result.score}/100).`
+    }
+
     // Build update data
     const updateData: Record<string, unknown> = {
       imageValidationStatus: status,
       imageValidationScore: result.score,
-      imageValidationNotes:
-        result.issues.length > 0
-          ? `Detected: ${result.detectedType}. Issues: ${result.issues.join(', ')}`
-          : `Detected: ${result.detectedType}. Images approved.`,
+      imageValidationNotes: validationNotes,
     }
 
     // If rejected, set variation status to draft
@@ -304,8 +334,8 @@ Respond ONLY with valid JSON (no markdown, no explanation):
     // If approved, check for auto-activation
     if (status === 'approved' && images.length > 0) {
       // Check if variation can be auto-activated now that images are approved
-      // Only if status is still draft and we have at least 3 images
-      if (updatedVariation.status === 'draft' && images.length >= 3) {
+      // Only if status is still draft and we have at least 1 image (changed from 3)
+      if (updatedVariation.status === 'draft' && images.length >= 1) {
         await tryAutoActivateVariation(payload, doc.id, images, doc.variants)
       }
     }

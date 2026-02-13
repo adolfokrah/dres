@@ -12,9 +12,11 @@ import 'package:dres/features/sell/presentation/view/select_department_screen.da
 import 'package:dres/features/sell/presentation/view/select_collection_screen.dart';
 import 'package:dres/features/sell/presentation/view/select_category_screen.dart';
 import 'package:dres/features/sell/presentation/view/select_brand_screen.dart';
+import 'package:dres/features/sell/presentation/view/select_sizes_screen.dart';
 import 'package:dres/features/sell/presentation/view/boost_style_screen.dart';
 import 'package:dres/features/sell/presentation/view/style_stats_screen.dart';
 import 'package:dres/features/sell/presentation/view/seller_onboarding_screen.dart';
+import 'package:dres/features/sell/presentation/view/ai_listing_create_screen.dart';
 import 'package:dres/features/favorites/presentation/view/favorites_screen.dart';
 import 'package:dres/features/profile/profile.dart';
 import 'package:dres/features/shop/presentation/view/shop_screen.dart';
@@ -599,6 +601,23 @@ class AppRoutes {
                     path: 'onboarding',
                     name: 'seller-onboarding',
                     builder: (context, state) => const SellerOnboardingScreen(),
+                  ),
+                  // AI Listing Creation
+                  GoRoute(
+                    path: 'ai-create',
+                    name: 'ai-listing-create',
+                    builder: (context, state) => const AIListingCreateScreen(),
+                  ),
+                  // Size Selection
+                  GoRoute(
+                    path: 'select-sizes',
+                    name: 'select-sizes',
+                    builder: (context, state) {
+                      final initialSelectedSizes = state.extra as List<String>?;
+                      return SelectSizesScreen(
+                        initialSelectedSizes: initialSelectedSizes ?? [],
+                      );
+                    },
                   ),
                   // Style Overview (hub for managing a listing)
                   GoRoute(

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dres/core/services/api_service.dart';
+import 'package:dres/features/sell/data/models/ai_product_creation_model.dart';
 import 'package:dres/features/sell/data/models/attribute_model.dart';
 import 'package:dres/features/sell/data/models/draft_styles_response.dart';
 import 'package:dres/features/sell/data/models/style_models.dart';
@@ -9,6 +10,7 @@ import 'package:dres/features/sell/data/models/variation_model.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path/path.dart' as path;
 
+export 'package:dres/features/sell/data/models/ai_product_creation_model.dart';
 export 'package:dres/features/sell/data/models/attribute_model.dart';
 export 'package:dres/features/sell/data/models/draft_style_model.dart';
 export 'package:dres/features/sell/data/models/draft_styles_response.dart';
@@ -368,5 +370,51 @@ class SellRepository {
       '/variations/$variationId',
       data: {'images': reorderedImages},
     );
+  }
+
+  // ==================== AI PRODUCT CREATION ====================
+
+  /// Generate product description from images using AI
+  Future<String> generateDescription({
+    required List<String> imageIds,
+  }) async {
+    final response = await _apiService.post(
+      '/generate-description',
+      data: {
+        'images': imageIds,
+      },
+    );
+
+    return response.data['description'] as String? ?? '';
+  }
+
+  /// Create a product using AI analysis
+  /// Uploads images, sends to AI endpoint, and creates Style → Variations → SKUs
+  /// User selects collection and category, AI detects colors/material/brand
+  Future<AIProductCreationResponse> createProductWithAI({
+    required List<String> imageIds,
+    required List<String> sizes,
+    required double basePrice,
+    required String department,
+    required String collection,
+    required String category,
+    int? stock,
+    String? authenticity,
+  }) async {
+    final response = await _apiService.post(
+      '/create-product-with-ai',
+      data: {
+        'images': imageIds,
+        'sizes': sizes,
+        'basePrice': basePrice,
+        'department': department,
+        'collection': collection,
+        'category': category,
+        if (stock != null) 'stock': stock,
+        if (authenticity != null) 'authenticity': authenticity,
+      },
+    );
+
+    return AIProductCreationResponse.fromJson(response.data);
   }
 }
