@@ -241,7 +241,7 @@ Respond ONLY with valid JSON (no markdown, no explanation):
 
   try {
     const response = await openai.chat.completions.create({
-      model: 'gpt-5-nano',
+      model: 'gpt-4o-mini',
       max_completion_tokens: 500,
       messages: [
         {
