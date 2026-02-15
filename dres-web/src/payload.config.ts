@@ -88,6 +88,8 @@ import { fixMixedColorVariations } from './endpoints/fixMixedColorVariations'
 import { createProductWithAI } from './endpoints/createProductWithAI'
 import { getSizeOptions } from './endpoints/getSizeOptions'
 import { generateImageDescription } from './endpoints/generateImageDescription'
+import { sendAnonymousNotification } from './endpoints/sendAnonymousNotification'
+import { sendRegisteredNotification } from './endpoints/sendRegisteredNotification'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -270,6 +272,16 @@ export default buildConfig({
       path: '/generate-description',
       method: 'post',
       handler: generateImageDescription,
+    },
+    {
+      path: '/notifications/send-anonymous',
+      method: 'post',
+      handler: sendAnonymousNotification,
+    },
+    {
+      path: '/notifications/send-registered',
+      method: 'post',
+      handler: sendRegisteredNotification,
     },
   ],
   globals: [Header, Footer, SiteSettings],
