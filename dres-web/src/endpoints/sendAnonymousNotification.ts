@@ -10,7 +10,7 @@ export const sendAnonymousNotification: PayloadHandler = async (req) => {
   const { payload, user } = req
 
   // Check if user is admin
-  if (!user || (typeof user !== 'string' && user.roles && !user.roles.includes('admin'))) {
+  if (!user || (typeof user !== 'string' && user.role !== 'admin')) {
     return Response.json(
       { error: 'Unauthorized. Admin access required.' },
       { status: 403 }
@@ -30,7 +30,7 @@ export const sendAnonymousNotification: PayloadHandler = async (req) => {
 
     // Get all anonymous device tokens (where user is null)
     const deviceTokens = await payload.find({
-      collection: 'device-tokens',
+      collection: 'fcm-tokens',
       where: {
         user: { equals: null },
         isActive: { equals: true },

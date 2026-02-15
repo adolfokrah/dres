@@ -10,7 +10,7 @@ export const sendRegisteredNotification: PayloadHandler = async (req) => {
   const { payload, user } = req
 
   // Check if user is admin
-  if (!user || (typeof user !== 'string' && user.roles && !user.roles.includes('admin'))) {
+  if (!user || (typeof user !== 'string' && user.role !== 'admin')) {
     return Response.json(
       { error: 'Unauthorized. Admin access required.' },
       { status: 403 }
@@ -30,7 +30,7 @@ export const sendRegisteredNotification: PayloadHandler = async (req) => {
 
     // Get all registered device tokens (where user is not null)
     const deviceTokens = await payload.find({
-      collection: 'device-tokens',
+      collection: 'fcm-tokens',
       where: {
         user: { exists: true },
         isActive: { equals: true },
