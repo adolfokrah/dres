@@ -1,5 +1,5 @@
 import type { PayloadHandler } from 'payload'
-import admin from 'firebase-admin'
+import { getMessaging } from '../utilities/firebaseAdmin'
 
 /**
  * Send push notification to all anonymous (non-registered) users
@@ -50,15 +50,8 @@ export const sendAnonymousNotification: PayloadHandler = async (req) => {
       })
     }
 
-    // Initialize Firebase Admin if not already initialized
-    if (!admin.apps.length) {
-      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}')
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      })
-    }
-
-    // Send multicast message
+    // Send multicast message using the centralized Firebase utility
+    const messaging = getMessaging()
     const message = {
       notification: {
         title,
@@ -68,7 +61,7 @@ export const sendAnonymousNotification: PayloadHandler = async (req) => {
       tokens,
     }
 
-    const response = await admin.messaging().sendEachForMulticast(message)
+    const response = await messaging.sendEachForMulticast(message)
 
     payload.logger.info(
       `[SendAnonymousNotification] Sent to ${response.successCount}/${tokens.length} anonymous users`
