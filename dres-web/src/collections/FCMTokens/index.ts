@@ -109,5 +109,53 @@ export const FCMTokens: CollectionConfig = {
         return data
       },
     ],
+    afterChange: [
+      async ({ doc, operation, req }) => {
+        // Skip if this is an internal deactivation update
+        if (req.context?.skipDeduplication) {
+          return
+        }
+
+        // Only run on create or when token changes
+        if (operation !== 'create' && !req.context?.tokenChanged) {
+          return
+        }
+
+        // Deactivate old tokens for the same device to prevent duplicates
+        if (doc.deviceId) {
+          try {
+            // Find all other active tokens for this deviceId
+            const oldTokens = await req.payload.find({
+              collection: 'fcm-tokens',
+              where: {
+                and: [
+                  { deviceId: { equals: doc.deviceId } },
+                  { id: { not_equals: doc.id } },
+                  { isActive: { equals: true } },
+                ],
+              },
+            })
+
+            // Deactivate each old token
+            for (const oldToken of oldTokens.docs) {
+              await req.payload.update({
+                collection: 'fcm-tokens',
+                id: oldToken.id,
+                data: { isActive: false },
+                context: { skipDeduplication: true }, // Prevent infinite loop
+              })
+            }
+
+            if (oldTokens.docs.length > 0) {
+              req.payload.logger.info(
+                `Deactivated ${oldTokens.docs.length} old token(s) for device ${doc.deviceId}`,
+              )
+            }
+          } catch (error) {
+            req.payload.logger.error(`Error deactivating old tokens: ${error}`)
+          }
+        }
+      },
+    ],
   },
 }
