@@ -1,14 +1,16 @@
 import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
-import { 
-  getMyNotifications, 
-  getUnreadCount, 
-  markAsRead, 
-  markAllAsRead 
+import {
+  getMyNotifications,
+  getUnreadCount,
+  markAsRead,
+  markAllAsRead
 } from './endpoints/notificationEndpoints'
 import { sendReviewRequestsHandler } from './endpoints/sendReviewRequests'
 import { sendPushNotificationHook } from './hooks/sendPushNotificationHook'
+import { sendAnonymousNotification } from '../../endpoints/sendAnonymousNotification'
+import { sendRegisteredNotification } from '../../endpoints/sendRegisteredNotification'
 
 export const Notifications: CollectionConfig = {
   slug: 'notifications',
@@ -87,6 +89,16 @@ export const Notifications: CollectionConfig = {
       path: '/send-review-requests',
       method: 'post',
       handler: sendReviewRequestsHandler,
+    },
+    {
+      path: '/send-anonymous',
+      method: 'post',
+      handler: sendAnonymousNotification,
+    },
+    {
+      path: '/send-registered',
+      method: 'post',
+      handler: sendRegisteredNotification,
     },
   ],
   fields: [
