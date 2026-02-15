@@ -161,10 +161,6 @@ export default function SendNotificationPage() {
       <Button
         onClick={handleSend}
         disabled={loading || !title || !body}
-        style={{
-          opacity: loading || !title || !body ? 0.6 : 1,
-          cursor: loading || !title || !body ? 'not-allowed' : 'pointer',
-        }}
       >
         {loading ? 'Sending...' : 'Send Notification'}
       </Button>

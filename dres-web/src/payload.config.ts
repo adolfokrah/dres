@@ -109,6 +109,12 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
     user: Users.slug,
+    routes: [
+      {
+        path: '/send-notification',
+        Component: '@/components/admin/SendNotification',
+      },
+    ],
     livePreview: {
       breakpoints: [
         {
