@@ -116,7 +116,7 @@ export const getCategoryAttributes: Endpoint = {
             filteredAttributes.unshift({
               id: colorAttr.id,
               name: colorAttr.name,
-              level: colorAttr.level as string,
+              level: colorAttr.level as 'variation' | 'sku',
               options: colorOptions.docs.map((opt) => ({
                 id: opt.id,
                 name: opt.name,
