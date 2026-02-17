@@ -330,6 +330,25 @@ class SellRepository {
     return GetCategoryAttributesResponse(attributes: attributes);
   }
 
+  /// Create a new attribute option (e.g., a new color)
+  Future<AttributeOptionModel> createAttributeOption({
+    required String attributeId,
+    required String name,
+  }) async {
+    final slug = name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+    final response = await _apiService.post(
+      '/attributeOptions',
+      data: {
+        'attribute': attributeId,
+        'name': name,
+        'slug': slug,
+      },
+    );
+    return AttributeOptionModel.fromJson(
+      response.data['doc'] as Map<String, dynamic>,
+    );
+  }
+
   // ==================== ARCHIVE ====================
 
   /// Archive a variation (soft delete)

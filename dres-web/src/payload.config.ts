@@ -89,6 +89,7 @@ import { createProductWithAI } from './endpoints/createProductWithAI'
 import { getSizeOptions } from './endpoints/getSizeOptions'
 import { generateImageDescription } from './endpoints/generateImageDescription'
 import { verifyWebhook, handleWhatsAppMessage } from './endpoints/whatsapp/webhook'
+import { deduplicateAttributeOptions } from './endpoints/deduplicateAttributeOptions'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -281,6 +282,11 @@ export default buildConfig({
       path: '/whatsapp/webhook',
       method: 'post',
       handler: handleWhatsAppMessage,
+    },
+    {
+      path: '/deduplicate-attribute-options',
+      method: 'post',
+      handler: deduplicateAttributeOptions,
     },
   ],
   globals: [Header, Footer, SiteSettings],

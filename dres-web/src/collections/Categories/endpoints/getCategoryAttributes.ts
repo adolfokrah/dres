@@ -88,6 +88,45 @@ export const getCategoryAttributes: Endpoint = {
       // Only return attributes that have at least one valid option for this category
       const filteredAttributes = attributesWithOptions.filter((attr) => attr.options.length > 0)
 
+      // Always include the Color attribute (even if not assigned to this category)
+      const hasColor = filteredAttributes.some(
+        (attr) => attr.name.toLowerCase() === 'color',
+      )
+
+      if (!hasColor) {
+        const colorResult = await req.payload.find({
+          collection: 'attributes',
+          where: { name: { equals: 'Color' } },
+          limit: 1,
+        })
+
+        if (colorResult.docs.length > 0) {
+          const colorAttr = colorResult.docs[0]
+
+          // Fetch all color options (unfiltered by category)
+          const colorOptions = await req.payload.find({
+            collection: 'attributeOptions',
+            where: { attribute: { equals: colorAttr.id } },
+            limit: 0,
+            sort: 'name',
+            depth: 0,
+          })
+
+          if (colorOptions.docs.length > 0) {
+            filteredAttributes.unshift({
+              id: colorAttr.id,
+              name: colorAttr.name,
+              level: colorAttr.level as string,
+              options: colorOptions.docs.map((opt) => ({
+                id: opt.id,
+                name: opt.name,
+                slug: opt.slug as string,
+              })),
+            })
+          }
+        }
+      }
+
       return Response.json({ attributes: filteredAttributes })
     } catch (error) {
       console.error('Error fetching category attributes:', error)

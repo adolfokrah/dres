@@ -3,6 +3,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/features/sell/data/models/attribute_model.dart';
+import 'package:dres/features/sell/presentation/widgets/attribute_option_picker_screen.dart';
 
 export 'package:dres/features/sell/data/models/attribute_model.dart';
 
@@ -351,21 +352,17 @@ class _AttributeCard extends StatelessWidget {
   }
 
   void _showAttributeValuePicker(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.background,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
-      builder: (context) => _AttributePickerSheet(
-        title: 'Select Value',
-        items: availableOptions.map((o) => (id: o.id, name: o.name)).toList(),
-        selectedId: attribute.valueId,
-        onSelected: (id, name) {
-          final option = availableOptions.firstWhere((o) => o.id == id);
-          onValueSelected(option);
-          Navigator.pop(context);
-        },
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AttributeOptionPickerScreen(
+          attributeId: attribute.attributeId,
+          attributeName: attribute.attributeName,
+          options: availableOptions,
+          selectedId: attribute.valueId,
+          onSelected: (id, name) {
+            onValueSelected(AttributeOptionModel(id: id, name: name, slug: ''));
+          },
+        ),
       ),
     );
   }
@@ -608,20 +605,23 @@ class _SkuAttributeCardState extends State<SkuAttributeCard> {
   }
 
   void _showOptionPicker() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.background,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.zero,
-      ),
-      builder: (context) => AttributePickerSheet(
-        title: 'Select Value',
-        items: _availableOptions.map((o) => (id: o.id, name: o.name)).toList(),
-        selectedId: widget.selectedOptionId,
-        onSelected: (id, name) {
-          widget.onOptionSelected(id, name);
-          Navigator.pop(context);
-        },
+    if (widget.selectedAttributeId == null) return;
+    final attr = widget.availableAttributes.firstWhere(
+      (a) => a.id == widget.selectedAttributeId,
+      orElse: () =>
+          const AttributeModel(id: '', name: '', level: '', options: []),
+    );
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AttributeOptionPickerScreen(
+          attributeId: attr.id,
+          attributeName: attr.name,
+          options: _availableOptions,
+          selectedId: widget.selectedOptionId,
+          onSelected: (id, name) {
+            widget.onOptionSelected(id, name);
+          },
+        ),
       ),
     );
   }

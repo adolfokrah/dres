@@ -17,6 +17,7 @@ import 'package:dres/features/sell/logic/variations_bloc/variations_bloc.dart';
 import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
 import 'package:dres/features/sell/presentation/widgets/item_photos_section.dart';
 import 'package:dres/features/sell/presentation/widgets/attributes_section.dart';
+import 'package:dres/features/sell/presentation/widgets/color_section.dart';
 import 'package:dres/features/profile/logic/user_products_bloc/user_products_bloc.dart';
 
 /// Local SKU model for storing unsaved/edited SKUs
@@ -96,7 +97,11 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
   // Selected images (local files)
   List<File> _selectedImages = [];
 
-  // Selected attributes
+  // Selected color (required, separate from other attributes)
+  String? _selectedColorId;
+  String? _selectedColorName;
+
+  // Selected attributes (excluding color)
   List<SelectedAttribute> _selectedAttributes = [];
 
   // Local SKUs (not yet saved to backend)
@@ -121,18 +126,18 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
   List<String>? _reorderedImageIds;
 
   /// Check if the variation form is valid (can be saved)
-  /// Requires: 3+ images, 1+ attribute selected, at least 1 SKU with price
+  /// Requires: color selected, 3+ images, at least 1 SKU with price
   bool _isFormValid(List<String> existingImages) {
     final totalImages = existingImages.length + _selectedImages.length;
     final hasEnoughImages = totalImages >= 3;
-    final hasAttribute = _selectedAttributes.any((a) => a.isComplete);
-    
+    final hasColor = _selectedColorId != null && _selectedColorId!.isNotEmpty;
+
     // Check if we have at least one SKU (local or saved) with price > 0
     final savedSkus = _variationDetailBloc.state.skus;
-    final hasSkuWithPrice = _localSkus.any((s) => s.price > 0) || 
+    final hasSkuWithPrice = _localSkus.any((s) => s.price > 0) ||
                            savedSkus.any((s) => s.price > 0);
 
-    return hasEnoughImages && hasAttribute && hasSkuWithPrice;
+    return hasEnoughImages && hasColor && hasSkuWithPrice;
   }
 
   @override
@@ -309,14 +314,35 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
     }
   }
 
+  /// Build the full variants list including color + other attributes
+  List<VariantOption> _buildAllVariants() {
+    final variants = <VariantOption>[];
+
+    // Add color as first variant if selected
+    if (_selectedColorId != null && _selectedColorId!.isNotEmpty) {
+      final colorAttr = _variationDetailBloc.state.variationAttributes
+          .where((a) => a.name.toLowerCase() == 'color')
+          .firstOrNull;
+      if (colorAttr != null) {
+        variants.add(VariantOption(
+          attributeId: colorAttr.id,
+          valueId: _selectedColorId!,
+        ));
+      }
+    }
+
+    // Add other selected attributes
+    variants.addAll(
+      _selectedAttributes
+          .where((a) => a.isComplete)
+          .map((a) => VariantOption(attributeId: a.attributeId, valueId: a.valueId!)),
+    );
+
+    return variants;
+  }
+
   void _onDone() {
-    // Build variants list from selected attributes that are complete
-    final variants = _selectedAttributes
-        .where((a) => a.isComplete)
-        .map(
-          (a) => VariantOption(attributeId: a.attributeId, valueId: a.valueId!),
-        )
-        .toList();
+    final variants = _buildAllVariants();
 
     // Use the ObjectIds we stored from image management screen
     final finalImageIds = _reorderedImageIds ?? _variationDetailBloc.state.variation?.imageIds ?? [];
@@ -352,14 +378,9 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
   /// Save images immediately after upload to prevent data loss
   void _saveImagesImmediately(List<String> imageIds) {
     print('💾 Saving images immediately to variation');
-    
+
     // Get current variants (if any) to preserve them
-    final currentVariants = _selectedAttributes
-        .where((a) => a.isComplete)
-        .map(
-          (a) => VariantOption(attributeId: a.attributeId, valueId: a.valueId!),
-        )
-        .toList();
+    final currentVariants = _buildAllVariants();
 
     // Mark this as a background image save (no navigation)
     _savingImagesOnly = true;
@@ -439,22 +460,36 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
 
             // Log loaded data for debugging
 
-            final loadedAttributes = state.variation!.variants
-                .map(
-                  (v) => SelectedAttribute(
-                    attributeId: v.attributeId,
-                    attributeName: v.attributeName,
-                    valueId: v.valueId,
-                    valueName: v.valueName,
-                  ),
-                )
+            // Separate Color from other attributes
+            final allVariants = state.variation!.variants;
+            final colorVariant = allVariants
+                .where((v) => v.attributeName.toLowerCase() == 'color')
+                .toList();
+            final otherVariants = allVariants
+                .where((v) => v.attributeName.toLowerCase() != 'color')
                 .toList();
 
-            if (loadedAttributes.isNotEmpty) {
-              setState(() {
-                _selectedAttributes = loadedAttributes;
-              });
-            }
+            setState(() {
+              // Populate color
+              if (colorVariant.isNotEmpty) {
+                _selectedColorId = colorVariant.first.valueId;
+                _selectedColorName = colorVariant.first.valueName;
+              }
+
+              // Populate other attributes
+              if (otherVariants.isNotEmpty) {
+                _selectedAttributes = otherVariants
+                    .map(
+                      (v) => SelectedAttribute(
+                        attributeId: v.attributeId,
+                        attributeName: v.attributeName,
+                        valueId: v.valueId,
+                        valueName: v.valueName,
+                      ),
+                    )
+                    .toList();
+              }
+            });
           }
 
           if (state.status == VariationDetailStatus.failure) {
@@ -633,18 +668,35 @@ class _VariationDetailScreenState extends State<VariationDetailScreen> {
                                 // Photos section
                                 _buildPhotosSection(variation),
 
-                                // Attributes section
+                                // Color section (required, always first)
+                                ColorSection(
+                                  colorAttribute: state.variationAttributes
+                                      .where((a) => a.name.toLowerCase() == 'color')
+                                      .firstOrNull,
+                                  selectedColorId: _selectedColorId,
+                                  selectedColorName: _selectedColorName,
+                                  onColorSelected: (colorId, colorName) {
+                                    setState(() {
+                                      _selectedColorId = colorId;
+                                      _selectedColorName = colorName;
+                                    });
+                                  },
+                                ),
+
+                                // Attributes section (other attributes, excluding Color)
                                 AttributesSection(
-                                  availableAttributes:
-                                      state.variationAttributes,
+                                  availableAttributes: state.variationAttributes
+                                      .where((a) => a.name.toLowerCase() != 'color')
+                                      .toList(),
                                   selectedAttributes: _selectedAttributes,
                                   onAttributesChanged: (attributes) {
                                     setState(() {
                                       _selectedAttributes = attributes;
                                     });
                                   },
-                                  onAddAttribute:
-                                      state.variationAttributes.isNotEmpty
+                                  onAddAttribute: state.variationAttributes
+                                      .where((a) => a.name.toLowerCase() != 'color')
+                                      .isNotEmpty
                                       ? _onAddAttribute
                                       : null,
                                 ),

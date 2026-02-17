@@ -2,9 +2,13 @@ import type { CollectionConfig } from 'payload'
 
 import { anyone } from '../../access/anyone'
 import { authenticated } from '../../access/authenticated'
+import { preventDuplicateOption } from './hooks/preventDuplicateOption'
 
 export const AttributeOptions: CollectionConfig = {
   slug: 'attributeOptions',
+  hooks: {
+    beforeChange: [preventDuplicateOption],
+  },
   admin: {
     useAsTitle: 'name',
     group: 'Catalog',

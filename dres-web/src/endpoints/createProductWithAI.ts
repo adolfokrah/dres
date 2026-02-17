@@ -1038,49 +1038,68 @@ async function findOrCreateColorOption(
     }
 
     const colorAttributeId = colorAttribute.docs[0].id
+    const trimmedName = colorName.trim()
 
+    // Case-insensitive search using `contains` then exact JS comparison
     const existing = await payload.find({
       collection: 'attributeOptions',
       where: {
         and: [
           { attribute: { equals: colorAttributeId } },
-          { name: { contains: colorName } },
+          { name: { contains: trimmedName } },
         ],
       },
-      limit: 10,
+      limit: 20,
     })
 
     const existingOption = existing.docs.find(
-      (opt: any) => opt.name?.toLowerCase() === colorName.toLowerCase()
+      (opt: any) => opt.name?.trim().toLowerCase() === trimmedName.toLowerCase()
     )
 
     if (existingOption) {
       return existingOption.id
     }
 
-    const properName = colorName
+    const properName = trimmedName
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ')
 
-    const slug = colorName
+    const slug = trimmedName
       .toLowerCase()
-      .trim()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
 
-    const newOption = await payload.create({
-      collection: 'attributeOptions',
-      data: {
-        name: properName,
-        slug: slug,
-        attribute: colorAttributeId,
-      },
-      req,
-    })
-
-    return newOption.id
+    try {
+      const newOption = await payload.create({
+        collection: 'attributeOptions',
+        data: {
+          name: properName,
+          slug: slug,
+          attribute: colorAttributeId,
+        },
+        req,
+      })
+      return newOption.id
+    } catch (createError) {
+      // Hook may have rejected as duplicate — find and return the existing one
+      payload.logger.warn(`[CreateProductAI] Color option create failed (likely duplicate), finding existing: ${createError}`)
+      const retry = await payload.find({
+        collection: 'attributeOptions',
+        where: {
+          and: [
+            { attribute: { equals: colorAttributeId } },
+            { name: { contains: trimmedName } },
+          ],
+        },
+        limit: 20,
+      })
+      const match = retry.docs.find(
+        (opt: any) => opt.name?.trim().toLowerCase() === trimmedName.toLowerCase()
+      )
+      return match?.id ?? null
+    }
   } catch (error) {
     payload.logger.error(`[CreateProductAI] Error creating color option: ${error}`)
     return null
@@ -1107,35 +1126,59 @@ async function findOrCreateSizeOption(
     }
 
     const sizeAttributeId = sizeAttribute.docs[0].id
+    const trimmedName = sizeName.trim()
 
+    // Case-insensitive search using `contains` then exact JS comparison
     const existing = await payload.find({
       collection: 'attributeOptions',
       where: {
         and: [
           { attribute: { equals: sizeAttributeId } },
-          { name: { equals: sizeName } },
+          { name: { contains: trimmedName } },
         ],
       },
-      limit: 1,
+      limit: 20,
     })
 
-    if (existing.docs.length > 0) {
-      return existing.docs[0].id
+    const existingOption = existing.docs.find(
+      (opt: any) => opt.name?.trim().toLowerCase() === trimmedName.toLowerCase()
+    )
+
+    if (existingOption) {
+      return existingOption.id
     }
 
-    const slug = sizeName.toLowerCase().replace(/\s+/g, '-')
+    const slug = trimmedName.toLowerCase().replace(/\s+/g, '-')
 
-    const newOption = await payload.create({
-      collection: 'attributeOptions',
-      data: {
-        name: sizeName.toUpperCase(),
-        slug: slug,
-        attribute: sizeAttributeId,
-      },
-      req,
-    })
-
-    return newOption.id
+    try {
+      const newOption = await payload.create({
+        collection: 'attributeOptions',
+        data: {
+          name: trimmedName.toUpperCase(),
+          slug: slug,
+          attribute: sizeAttributeId,
+        },
+        req,
+      })
+      return newOption.id
+    } catch (createError) {
+      // Hook may have rejected as duplicate — find and return the existing one
+      payload.logger.warn(`[CreateProductAI] Size option create failed (likely duplicate), finding existing: ${createError}`)
+      const retry = await payload.find({
+        collection: 'attributeOptions',
+        where: {
+          and: [
+            { attribute: { equals: sizeAttributeId } },
+            { name: { contains: trimmedName } },
+          ],
+        },
+        limit: 20,
+      })
+      const match = retry.docs.find(
+        (opt: any) => opt.name?.trim().toLowerCase() === trimmedName.toLowerCase()
+      )
+      return match?.id ?? null
+    }
   } catch (error) {
     payload.logger.error(`[CreateProductAI] Error creating size option: ${error}`)
     return null
@@ -1294,23 +1337,23 @@ ONLY reject (score < 50) if you see:
 
 **IMPORTANT - Issues Array**:
 - If approved (score >= 40): Leave "issues" empty [] OR list minor concerns
-- If rejected (score < 40): Provide SPECIFIC, DETAILED issues that explain WHY
-- Be specific: Instead of "different products", say "Image 1 shows Nike Air Max, Image 2 shows Adidas Ultraboost"
-- Be clear: Instead of "quality issues", say "Images are blurry and product details not visible"
-- Be actionable: Tell users what's wrong so they can fix it
+- If rejected (score < 40): Each issue MUST include both the problem AND a suggested fix
+- Format each issue as: "Problem description. Fix: suggestion to resolve it"
+- Be specific about what's wrong and give a clear, actionable fix the user can follow
 
 Respond ONLY with valid JSON (no markdown, no explanation):
 {
   "approved": true/false,
   "score": 0-100,
-  "issues": ["specific, detailed issue 1", "specific, detailed issue 2"]
+  "issues": ["Problem description. Fix: actionable suggestion"]
 }
 
-Examples of good issues:
-- "Image 1 shows a red t-shirt while Image 2 shows a blue jacket - different products"
-- "Images show both Nike and Adidas brand logos - mixed brands detected"
-- "Images show a shirt mixed with shoes - different product categories"
-- "Images are too blurry to identify the product clearly"`,
+Examples of good issues with fixes:
+- "Image 1 shows a t-shirt while Image 2 shows a jacket — these are different product types. Fix: Upload images of the same product only. Create separate listings for each product type."
+- "Images show both Nike and Adidas brand logos — mixed brands detected. Fix: Only upload images from the same brand in one listing."
+- "Images show a shirt mixed with shoes — different product categories. Fix: List shirts and shoes as separate products."
+- "Images are too blurry to identify the product clearly. Fix: Retake photos in good lighting and make sure the product is in focus."
+- "Images appear to be screenshots, not product photos. Fix: Take real photos of your product using your phone camera."`,
   })
 
   try {

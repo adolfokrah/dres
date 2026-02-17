@@ -100,6 +100,31 @@ export const validateVariationActive: CollectionBeforeChangeHook = async ({
     if (incompleteVariants.length > 0) {
       errors.push('All variant attributes must have both an attribute and value selected')
     }
+
+    // Validate that Color attribute is present (compulsory)
+    const variantAttributeIds = variants
+      .map((v) => {
+        if (!v.variant) return null
+        return typeof v.variant === 'object' ? v.variant.id : v.variant
+      })
+      .filter(Boolean) as string[]
+
+    if (variantAttributeIds.length > 0) {
+      const colorAttribute = await req.payload.find({
+        collection: 'attributes',
+        where: { name: { equals: 'Color' } },
+        limit: 1,
+        depth: 0,
+      })
+
+      if (colorAttribute.docs.length > 0) {
+        const colorId = colorAttribute.docs[0].id
+        const hasColor = variantAttributeIds.includes(String(colorId))
+        if (!hasColor) {
+          errors.push('Color is a required attribute. Please select a color for this variation.')
+        }
+      }
+    }
   }
   
   // Check for SKUs with valid price and stock
