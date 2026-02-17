@@ -794,7 +794,25 @@ class AppRoutes {
                     name: 'user-profile',
                     builder: (context, state) {
                       final userId = state.uri.queryParameters['userId'];
-                      return UserProfileScreen(userId: userId);
+                      final tabParam = state.uri.queryParameters['tab'];
+                      int initialTab = 2; // Default to Purchases
+                      if (tabParam == 'products') {
+                        initialTab = 0;
+                      } else if (tabParam == 'incoming') {
+                        initialTab = 1;
+                      } else if (tabParam == 'purchases') {
+                        initialTab = 2;
+                      } else if (tabParam == 'transactions') {
+                        initialTab = 3;
+                      } else if (tabParam == 'community') {
+                        initialTab = 4;
+                      } else if (tabParam == 'reviews') {
+                        initialTab = 5;
+                      }
+                      return UserProfileScreen(
+                        userId: userId,
+                        initialTab: initialTab,
+                      );
                     },
                   ),
                   // Personal Info (nested under profile tab)

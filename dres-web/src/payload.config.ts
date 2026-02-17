@@ -88,6 +88,7 @@ import { fixMixedColorVariations } from './endpoints/fixMixedColorVariations'
 import { createProductWithAI } from './endpoints/createProductWithAI'
 import { getSizeOptions } from './endpoints/getSizeOptions'
 import { generateImageDescription } from './endpoints/generateImageDescription'
+import { verifyWebhook, handleWhatsAppMessage } from './endpoints/whatsapp/webhook'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -270,6 +271,16 @@ export default buildConfig({
       path: '/generate-description',
       method: 'post',
       handler: generateImageDescription,
+    },
+    {
+      path: '/whatsapp/webhook',
+      method: 'get',
+      handler: verifyWebhook,
+    },
+    {
+      path: '/whatsapp/webhook',
+      method: 'post',
+      handler: handleWhatsAppMessage,
     },
   ],
   globals: [Header, Footer, SiteSettings],

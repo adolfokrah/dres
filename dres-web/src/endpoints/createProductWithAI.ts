@@ -1240,26 +1240,32 @@ Analyze these ${imageContents.length - 1} product image(s) and score them based 
 Scoring Guidelines (give higher scores for better quality):
 1. Images must be real product photos (not screenshots, memes, AI-generated, or unrelated images)
 2. Images should show actual clothing/fashion items from the categories above
-3. **CRITICAL: All images MUST show the EXACT SAME product/design**
+3. **CRITICAL: All images MUST show the SAME type of product**
    - ✓ GOOD: Same product from front, side, back, top views (DIFFERENT ANGLES = OK)
    - ✓ GOOD: Same product in different lighting conditions (LIGHTING VARIATIONS = OK)
    - ✓ GOOD: Same product worn vs laid flat (DIFFERENT PRESENTATION = OK)
    - ✓ GOOD: Same dress design in multiple colors (COLOR VARIATIONS = OK)
-   - ✗ BAD: Two completely different shoe designs (DIFFERENT PRODUCTS = REJECT)
-   - ✗ BAD: Two completely different dress designs (DIFFERENT DESIGNS = REJECT)
+   - ✓ GOOD: Same fabric/pattern in different colorways (e.g., striped fabric in yellow/blue AND striped fabric in navy/pink = SAME DESIGN, different colors = OK)
+   - ✓ GOOD: Same style garment in different prints or colorways (e.g., floral dress in red tones + floral dress in blue tones = OK)
+   - ✓ GOOD: Same product design where ONLY the color differs (shape, cut, pattern structure are the same = OK)
+   - ✗ BAD: Two completely different product types (e.g., a T-Shirt + a Hoodie = REJECT)
+   - ✗ BAD: Mixed product categories (e.g., shirt + shoes, bag + dress = REJECT)
+   - **COLOR VARIATIONS ARE EXPECTED**: Sellers on DRES list products with multiple color variations. If images show the same product design/style/cut but in different colors, patterns, or colorways, this is NORMAL and SHOULD BE ACCEPTED. The key question is: "Is this the same product just in a different color?" If yes, ACCEPT.
    - **BRAND CHECK**: Only check brands IF they are visible in the images
      - If brand logos/tags are visible: All images must show the SAME brand
-     - If NO brand is visible: Skip brand check, just verify it's the same product design
+     - If NO brand is visible: Skip brand check, just verify it's the same product type
      - Example: Nike Air Max + Adidas Ultraboost = REJECT (different brands visible)
      - Example: Generic white t-shirt from different angles = OK (no brand visible)
    - **IMPORTANT**: Do NOT reject images just because they show different angles, lighting, or backgrounds
-   - **IMPORTANT**: Only reject if you see clearly different product designs or (if brands are visible) different brands
+   - **IMPORTANT**: Do NOT reject images because they show different colors or colorways of the same design
+   - **IMPORTANT**: Only reject if you see clearly different product TYPES (e.g., shirt vs pants) or (if brands are visible) different brands
 4. Image quality should be acceptable (clear, well-lit)
 5. No explicit, offensive, or inappropriate content
-6. **Color consistency**: All images should show the same color UNLESS they are color variations
+6. **Color variations are WELCOME**: Images showing the same product in different colors is the expected use case
    - Multiple angles of same colored item = OK
    - Same product in red + blue colors = OK
-   - One red shirt + one blue different shirt = REJECT
+   - Same fabric pattern in different colorways (yellow/blue stripes + navy/pink stripes) = OK
+   - One red shirt + one blue COMPLETELY DIFFERENT shirt (different cut, style, design) = REJECT
 7. Images must not show completely different product categories (e.g., shirt + shoes, bag + dress)
 8. Recognize both Western and African/traditional fashion items as valid products
 
@@ -1275,12 +1281,14 @@ Score Guide:
 - Different backgrounds or settings
 - Product shown worn vs unworn
 - Product shown from multiple sides
+- Same product/design in different colors or colorways (this is the EXPECTED use case for variations)
 
 ONLY reject (score < 50) if you see:
 - Different brands WHEN brands are visible (Nike + Adidas logos/tags visible)
-- Completely different product designs (different shoe models, different dress styles)
+- Completely different product TYPES (e.g., shirt + pants, shoes + bag)
 - Mixed product categories (shirt + shoes together)
 - Non-product images (screenshots, memes, etc.)
+- Do NOT reject for different colors/colorways of the same product design
 
 **NOTE**: If no brand is visible in any image, do NOT reject based on brand - focus only on whether it's the same product design.
 

@@ -69,30 +69,6 @@ export const SiteSettings: GlobalConfig = {
       },
     },
     {
-      name: 'transferFeeRate',
-      label: 'Transfer Fee Rate (%)',
-      type: 'number',
-      required: true,
-      defaultValue: 1,
-      min: 0,
-      max: 100,
-      admin: {
-        description: 'Fee charged when transferring funds to another user (e.g., 1 for 1%)',
-      },
-    },
-    {
-      name: 'collectionFeeRate',
-      label: 'Collection Fee Rate (%)',
-      type: 'number',
-      required: true,
-      defaultValue: 2,
-      min: 0,
-      max: 100,
-      admin: {
-        description: 'Fee charged when collecting payments (e.g., 2 for 2%)',
-      },
-    },
-    {
       type: 'collapsible',
       label: 'Rewards & Points',
       admin: {
