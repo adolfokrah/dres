@@ -114,7 +114,10 @@ class _SelectBrandScreenState extends State<SelectBrandScreen> {
 
                   if (filteredBrands.isEmpty) {
                     if (_searchQuery.isNotEmpty) {
-                      return _buildCreateBrandOption();
+                      return Align(
+                        alignment: Alignment.topLeft,
+                        child: _buildCreateBrandOption(),
+                      );
                     }
                     return Center(
                       child: Text(
@@ -224,72 +227,50 @@ class _SelectBrandScreenState extends State<SelectBrandScreen> {
 
   Widget _buildCreateBrandOption() {
     final trimmedName = _searchQuery.trim();
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          Text(
-            'No brands found',
-            style: AppTypography.bodyL.copyWith(
-              color: AppColors.textSecondary,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _isCreating ? null : () => _createBrand(trimmedName),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 16,
+        ),
+        decoration: const BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: AppColors.secondary,
+              width: 1,
             ),
           ),
-          const SizedBox(height: 16),
-          InkWell(
-            onTap: _isCreating ? null : () => _createBrand(trimmedName),
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.3),
+        ),
+        child: Row(
+          children: [
+            PhosphorIcon(
+              PhosphorIcons.plus(),
+              color: AppColors.textPrimary,
+              size: 18,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Add "$trimmedName"',
+                style: AppTypography.bodyM.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              child: Row(
-                children: [
-                  PhosphorIcon(
-                    PhosphorIconsRegular.plus,
-                    color: AppColors.primary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _isCreating
-                        ? Row(
-                            children: [
-                              SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Creating "$trimmedName"...',
-                                style: AppTypography.bodyL.copyWith(
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ],
-                          )
-                        : Text(
-                            'Add "$trimmedName"',
-                            style: AppTypography.bodyL.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                  ),
-                ],
-              ),
             ),
-          ),
-        ],
+            if (_isCreating)
+              const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
