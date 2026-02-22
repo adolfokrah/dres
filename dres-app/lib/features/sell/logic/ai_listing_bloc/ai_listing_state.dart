@@ -17,11 +17,11 @@ class AIListingState extends Equatable {
   final List<String>? uploadedImageIds;
   final String description;
   final List<String> sizes;
-  final double? price;
+  final List<double> prices;
   final String? department;
   final String? collection;
   final String? category;
-  final int? stock;
+  final List<int?> stocks;
   final String? authenticity;
   final String? createdStyleId;
   final String? errorMessage;
@@ -33,11 +33,11 @@ class AIListingState extends Equatable {
     this.uploadedImageIds,
     this.description = '',
     this.sizes = const [],
-    this.price,
+    this.prices = const [],
     this.department,
     this.collection,
     this.category,
-    this.stock,
+    this.stocks = const [],
     this.authenticity,
     this.createdStyleId,
     this.errorMessage,
@@ -47,8 +47,8 @@ class AIListingState extends Equatable {
   bool get isValid {
     return images.isNotEmpty &&
         sizes.isNotEmpty &&
-        price != null &&
-        price! > 0 &&
+        prices.isNotEmpty &&
+        prices.every((p) => p > 0) &&
         department != null &&
         department!.isNotEmpty &&
         collection != null &&
@@ -63,11 +63,11 @@ class AIListingState extends Equatable {
     List<String>? uploadedImageIds,
     String? description,
     List<String>? sizes,
-    double? price,
+    List<double>? prices,
     String? department,
     String? collection,
     String? category,
-    int? stock,
+    List<int?>? stocks,
     String? authenticity,
     String? createdStyleId,
     String? errorMessage,
@@ -79,11 +79,11 @@ class AIListingState extends Equatable {
       uploadedImageIds: uploadedImageIds ?? this.uploadedImageIds,
       description: description ?? this.description,
       sizes: sizes ?? this.sizes,
-      price: price ?? this.price,
+      prices: prices ?? this.prices,
       department: department ?? this.department,
       collection: collection ?? this.collection,
       category: category ?? this.category,
-      stock: stock ?? this.stock,
+      stocks: stocks ?? this.stocks,
       authenticity: authenticity ?? this.authenticity,
       createdStyleId: createdStyleId ?? this.createdStyleId,
       errorMessage: errorMessage ?? this.errorMessage,
@@ -98,11 +98,11 @@ class AIListingState extends Equatable {
         uploadedImageIds,
         description,
         sizes,
-        price,
+        prices,
         department,
         collection,
         category,
-        stock,
+        stocks,
         authenticity,
         createdStyleId,
         errorMessage,

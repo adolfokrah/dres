@@ -62,29 +62,48 @@ class _AIListingCreateScreenState extends State<AIListingCreateScreen> {
     }
   }
 
-  void _onSubmit(BuildContext context) {
-    // Parse sizes from comma-separated input
+  List<String> _parseSizes() {
     final sizesText = _sizesController.text.trim();
-    final sizes = sizesText.isEmpty
-        ? <String>[]
-        : sizesText
-            .split(',')
-            .map((s) => s.trim())
-            .where((s) => s.isNotEmpty)
-            .toList();
+    if (sizesText.isEmpty) return [];
+    return sizesText.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+  }
+
+  List<double> _parsePrices() {
+    final text = _priceController.text.trim();
+    if (text.isEmpty) return [];
+    return text
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .map((s) => double.tryParse(s))
+        .whereType<double>()
+        .toList();
+  }
+
+  List<int?> _parseStocks() {
+    final text = _stockController.text.trim();
+    if (text.isEmpty) return [];
+    return text
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .map((s) => int.tryParse(s))
+        .toList();
+  }
+
+  void _onSubmit(BuildContext context) {
+    final sizes = _parseSizes();
+    final prices = _parsePrices();
+    final stocks = _parseStocks();
 
     // Get bloc reference
     final bloc = BlocProvider.of<AIListingBloc>(context);
 
     // Update all fields in bloc
     bloc.add(AIListingSizesUpdated(sizes: sizes));
-    bloc.add(AIListingPriceUpdated(price: double.tryParse(_priceController.text) ?? 0));
+    bloc.add(AIListingPriceUpdated(prices: prices));
     bloc.add(AIListingDepartmentUpdated(department: _selectedCategory?.departmentId ?? ''));
-
-    final stockValue = _stockController.text.isNotEmpty
-        ? int.tryParse(_stockController.text)
-        : null;
-    bloc.add(AIListingStockUpdated(stock: stockValue));
+    bloc.add(AIListingStockUpdated(stocks: stocks));
     bloc.add(AIListingAuthenticityUpdated(authenticity: _selectedAuthenticity));
 
     // Submit
@@ -258,16 +277,20 @@ class _AIListingCreateScreenState extends State<AIListingCreateScreen> {
           const SizedBox(height: 12),
           TextField(
             controller: _priceController,
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.text,
             style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
             decoration: InputDecoration(
-              hintText: '0.00',
+              hintText: 'e.g., 120 or 120, 240, 50',
               hintStyle: AppTypography.bodyM.copyWith(
                 color: AppColors.textHint,
               ),
               prefixText: '₵ ',
               prefixStyle: AppTypography.bodyM.copyWith(
                 color: AppColors.textPrimary,
+              ),
+              helperText: 'Single price for all sizes, or comma-separated per size',
+              helperStyle: AppTypography.bodyS.copyWith(
+                color: AppColors.textSecondary,
               ),
               filled: true,
               fillColor: AppColors.surface,
@@ -282,12 +305,16 @@ class _AIListingCreateScreenState extends State<AIListingCreateScreen> {
           const SizedBox(height: 12),
           TextField(
             controller: _stockController,
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.text,
             style: AppTypography.bodyM.copyWith(color: AppColors.textPrimary),
             decoration: InputDecoration(
-              hintText: 'Leave empty for unlimited',
+              hintText: 'e.g., 10 or 5, 10, 15',
               hintStyle: AppTypography.bodyM.copyWith(
                 color: AppColors.textHint,
+              ),
+              helperText: 'Leave empty for unlimited, or comma-separated per size',
+              helperStyle: AppTypography.bodyS.copyWith(
+                color: AppColors.textSecondary,
               ),
               filled: true,
               fillColor: AppColors.surface,
@@ -615,12 +642,27 @@ class _AIListingCreateScreenState extends State<AIListingCreateScreen> {
   }
 
   bool _canSubmit(AIListingState state) {
-    return state.images.isNotEmpty &&
-        _sizesController.text.trim().isNotEmpty &&
-        _priceController.text.isNotEmpty &&
-        double.tryParse(_priceController.text) != null &&
-        double.parse(_priceController.text) > 0 &&
-        _selectedCategory != null &&
-        _selectedAuthenticity != null;
+    if (state.images.isEmpty ||
+        _sizesController.text.trim().isEmpty ||
+        _priceController.text.trim().isEmpty ||
+        _selectedCategory == null ||
+        _selectedAuthenticity == null) {
+      return false;
+    }
+
+    final sizes = _parseSizes();
+    final prices = _parsePrices();
+    final stocks = _parseStocks();
+
+    // Prices: must have values, all > 0, count must be 1 or match sizes
+    if (prices.isEmpty || prices.any((p) => p <= 0)) return false;
+    if (prices.length != 1 && prices.length != sizes.length) return false;
+
+    // Stocks: if provided, count must be 1 or match sizes
+    if (stocks.isNotEmpty && stocks.length != 1 && stocks.length != sizes.length) {
+      return false;
+    }
+
+    return true;
   }
 }

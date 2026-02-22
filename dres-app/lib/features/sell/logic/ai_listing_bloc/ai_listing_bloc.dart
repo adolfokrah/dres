@@ -72,7 +72,7 @@ class AIListingBloc extends Bloc<AIListingEvent, AIListingState> {
     Emitter<AIListingState> emit,
   ) {
     emit(state.copyWith(
-      price: event.price,
+      prices: event.prices,
       status: AIListingStatus.editing,
     ));
   }
@@ -112,7 +112,7 @@ class AIListingBloc extends Bloc<AIListingEvent, AIListingState> {
     Emitter<AIListingState> emit,
   ) {
     emit(state.copyWith(
-      stock: event.stock,
+      stocks: event.stocks,
       status: AIListingStatus.editing,
     ));
   }
@@ -165,11 +165,11 @@ class AIListingBloc extends Bloc<AIListingEvent, AIListingState> {
       final response = await _repository.createProductWithAI(
         imageIds: uploadedImageIds,
         sizes: state.sizes,
-        basePrice: state.price!,
+        prices: state.prices,
         department: state.department!,
         collection: state.collection!,
         category: state.category!,
-        stock: state.stock,
+        stocks: state.stocks,
         authenticity: state.authenticity,
       );
 

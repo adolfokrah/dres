@@ -48,14 +48,14 @@ class AIListingSizesUpdated extends AIListingEvent {
   List<Object?> get props => [sizes];
 }
 
-/// Update base price
+/// Update prices (one per size, or single price for all sizes)
 class AIListingPriceUpdated extends AIListingEvent {
-  final double price;
+  final List<double> prices;
 
-  const AIListingPriceUpdated({required this.price});
+  const AIListingPriceUpdated({required this.prices});
 
   @override
-  List<Object?> get props => [price];
+  List<Object?> get props => [prices];
 }
 
 /// Update department
@@ -88,14 +88,14 @@ class AIListingCategoryUpdated extends AIListingEvent {
   List<Object?> get props => [category];
 }
 
-/// Update stock (optional)
+/// Update stocks (one per size, or single stock for all sizes; empty = unlimited)
 class AIListingStockUpdated extends AIListingEvent {
-  final int? stock;
+  final List<int?> stocks;
 
-  const AIListingStockUpdated({required this.stock});
+  const AIListingStockUpdated({required this.stocks});
 
   @override
-  List<Object?> get props => [stock];
+  List<Object?> get props => [stocks];
 }
 
 /// Update authenticity

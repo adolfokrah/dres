@@ -413,11 +413,11 @@ class SellRepository {
   Future<AIProductCreationResponse> createProductWithAI({
     required List<String> imageIds,
     required List<String> sizes,
-    required double basePrice,
+    required List<double> prices,
     required String department,
     required String collection,
     required String category,
-    int? stock,
+    List<int?> stocks = const [],
     String? authenticity,
   }) async {
     final response = await _apiService.post(
@@ -425,11 +425,11 @@ class SellRepository {
       data: {
         'images': imageIds,
         'sizes': sizes,
-        'basePrice': basePrice,
+        'prices': prices,
         'department': department,
         'collection': collection,
         'category': category,
-        if (stock != null) 'stock': stock,
+        if (stocks.isNotEmpty) 'stocks': stocks,
         if (authenticity != null) 'authenticity': authenticity,
       },
     );

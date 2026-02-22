@@ -63,6 +63,30 @@ class PhotoTipsBanner extends StatelessWidget {
 
           const SizedBox(height: 12),
 
+          // Color warning
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              PhosphorIcon(
+                PhosphorIcons.warning(PhosphorIconsStyle.fill),
+                size: 16,
+                color: AppColors.warning,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Upload photos of the same product color only. Do not mix different colors here — create a separate variation for each color.',
+                  style: AppTypography.bodyS.copyWith(
+                    color: AppColors.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
           // Photo tips link
           const PhotoTipsLink(),
         ],
