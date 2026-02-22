@@ -349,6 +349,20 @@ class SellRepository {
     );
   }
 
+  /// Create a new brand
+  Future<Map<String, String>> createBrand({required String name}) async {
+    final slug = name.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '-');
+    final response = await _apiService.post(
+      '/brands',
+      data: {
+        'name': name,
+        'slug': slug,
+      },
+    );
+    final doc = response.data['doc'] as Map<String, dynamic>;
+    return {'id': doc['id'] as String, 'name': doc['name'] as String};
+  }
+
   // ==================== ARCHIVE ====================
 
   /// Archive a variation (soft delete)
@@ -418,6 +432,7 @@ class SellRepository {
     required String collection,
     required String category,
     List<int?> stocks = const [],
+    String? brand,
     String? authenticity,
   }) async {
     final response = await _apiService.post(
@@ -430,6 +445,7 @@ class SellRepository {
         'collection': collection,
         'category': category,
         if (stocks.isNotEmpty) 'stocks': stocks,
+        if (brand != null) 'brand': brand,
         if (authenticity != null) 'authenticity': authenticity,
       },
     );

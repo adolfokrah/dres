@@ -12,6 +12,7 @@ interface ProductCreationInput {
   category: string // Can be category ID or category name
   stock?: number // Legacy: single stock for all sizes
   stocks?: (number | null)[] // New: per-size stocks (or single-element for all sizes)
+  brand?: string // User-selected brand ID (optional, AI detects if not provided)
   condition?: 'new' | 'used_like_new' | 'used_good' | 'used_fair'
   authenticity?: 'original' | 'replica'
 }
@@ -76,6 +77,7 @@ export const createProductWithAI: PayloadHandler = async (req) => {
       category,
       stock,
       stocks: rawStocks,
+      brand: userBrand,
       condition = 'new',
       authenticity,
     }: ProductCreationInput & { images: string[] } = body || {}
@@ -270,7 +272,8 @@ export const createProductWithAI: PayloadHandler = async (req) => {
       departmentId,
       collection,
       categoryId,
-      authenticity
+      authenticity,
+      userBrand
     )
 
     payload.logger.info(
@@ -621,18 +624,36 @@ async function createProductInDatabase(
   departmentId: string,
   collectionId: string,
   categoryId: string,
-  authenticity?: string
+  authenticity?: string,
+  userBrand?: string
 ) {
   // Step 1: Use user-provided category (no need to find/create)
   payload.logger.info(`[CreateProductAI] Using user-provided category: ${categoryId}`)
 
-  // Step 2: Find or create Brand
-  payload.logger.info(`[CreateProductAI] Looking for brand: "${structure.style.brand || 'Other'}"`)
-  const brandDoc = await findOrCreateBrand(payload, req, structure.style.brand || 'Other')
+  // Step 2: Resolve Brand - use user-provided brand ID if available, otherwise AI-detected
+  let brandDoc: any
+  if (userBrand) {
+    // User selected a brand manually - use it directly
+    payload.logger.info(`[CreateProductAI] Using user-provided brand ID: ${userBrand}`)
+    try {
+      brandDoc = await payload.findByID({
+        collection: 'brands',
+        id: userBrand,
+      })
+      payload.logger.info(`[CreateProductAI] Found user-provided brand: ${brandDoc.name} (ID: ${brandDoc.id})`)
+    } catch (error) {
+      payload.logger.warn(`[CreateProductAI] User-provided brand ID not found, falling back to AI detection`)
+      brandDoc = await findOrCreateBrand(payload, req, structure.style.brand || 'Other')
+    }
+  } else {
+    // No user-provided brand - use AI-detected brand
+    payload.logger.info(`[CreateProductAI] Looking for brand: "${structure.style.brand || 'Other'}"`)
+    brandDoc = await findOrCreateBrand(payload, req, structure.style.brand || 'Other')
+  }
   if (!brandDoc) {
     throw new Error(`Failed to find or create brand: ${structure.style.brand}`)
   }
-  payload.logger.info(`[CreateProductAI] Found/created brand: ${brandDoc.name} (ID: ${brandDoc.id})`)
+  payload.logger.info(`[CreateProductAI] Using brand: ${brandDoc.name} (ID: ${brandDoc.id})`)
 
   // Step 3: Find or create Material (if provided)
   let materialDoc = null

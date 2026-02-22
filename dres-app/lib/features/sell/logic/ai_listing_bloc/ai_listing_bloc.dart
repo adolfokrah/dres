@@ -20,6 +20,7 @@ class AIListingBloc extends Bloc<AIListingEvent, AIListingState> {
     on<AIListingCollectionUpdated>(_onCollectionUpdated);
     on<AIListingCategoryUpdated>(_onCategoryUpdated);
     on<AIListingStockUpdated>(_onStockUpdated);
+    on<AIListingBrandUpdated>(_onBrandUpdated);
     on<AIListingAuthenticityUpdated>(_onAuthenticityUpdated);
     on<AIListingSubmitted>(_onSubmitted);
     on<AIListingReset>(_onReset);
@@ -117,6 +118,16 @@ class AIListingBloc extends Bloc<AIListingEvent, AIListingState> {
     ));
   }
 
+  void _onBrandUpdated(
+    AIListingBrandUpdated event,
+    Emitter<AIListingState> emit,
+  ) {
+    emit(state.copyWith(
+      brand: event.brand,
+      status: AIListingStatus.editing,
+    ));
+  }
+
   void _onAuthenticityUpdated(
     AIListingAuthenticityUpdated event,
     Emitter<AIListingState> emit,
@@ -170,6 +181,7 @@ class AIListingBloc extends Bloc<AIListingEvent, AIListingState> {
         collection: state.collection!,
         category: state.category!,
         stocks: state.stocks,
+        brand: state.brand,
         authenticity: state.authenticity,
       );
 

@@ -22,6 +22,7 @@ class AIListingState extends Equatable {
   final String? collection;
   final String? category;
   final List<int?> stocks;
+  final String? brand;
   final String? authenticity;
   final String? createdStyleId;
   final String? errorMessage;
@@ -38,6 +39,7 @@ class AIListingState extends Equatable {
     this.collection,
     this.category,
     this.stocks = const [],
+    this.brand,
     this.authenticity,
     this.createdStyleId,
     this.errorMessage,
@@ -68,6 +70,7 @@ class AIListingState extends Equatable {
     String? collection,
     String? category,
     List<int?>? stocks,
+    String? brand,
     String? authenticity,
     String? createdStyleId,
     String? errorMessage,
@@ -84,6 +87,7 @@ class AIListingState extends Equatable {
       collection: collection ?? this.collection,
       category: category ?? this.category,
       stocks: stocks ?? this.stocks,
+      brand: brand ?? this.brand,
       authenticity: authenticity ?? this.authenticity,
       createdStyleId: createdStyleId ?? this.createdStyleId,
       errorMessage: errorMessage ?? this.errorMessage,
@@ -103,6 +107,7 @@ class AIListingState extends Equatable {
         collection,
         category,
         stocks,
+        brand,
         authenticity,
         createdStyleId,
         errorMessage,

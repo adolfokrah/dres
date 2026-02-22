@@ -12,6 +12,7 @@ import 'package:dres/features/sell/logic/ai_listing_bloc/ai_listing_bloc.dart';
 import 'package:dres/features/sell/logic/ai_listing_bloc/ai_listing_event.dart';
 import 'package:dres/features/sell/logic/ai_listing_bloc/ai_listing_state.dart';
 import 'package:dres/features/sell/logic/sell_bloc/sell_bloc.dart';
+import 'package:dres/features/sell/presentation/view/select_brand_screen.dart';
 import 'package:dres/features/sell/presentation/view/select_category_screen.dart';
 
 class AIListingCreateScreen extends StatefulWidget {
@@ -28,6 +29,7 @@ class _AIListingCreateScreenState extends State<AIListingCreateScreen> {
 
   String? _selectedAuthenticity; // 'original' or 'replica'
   SelectedCategoryData? _selectedCategory; // Department, collection and category selection
+  SelectedBrandData? _selectedBrand; // Brand selection
 
   @override
   void dispose() {
@@ -264,6 +266,12 @@ class _AIListingCreateScreenState extends State<AIListingCreateScreen> {
           _buildSectionTitle('Department / Collection / Category', required: true),
           const SizedBox(height: 12),
           _buildCategorySelector(context, state),
+          const SizedBox(height: 24),
+
+          // Brand (optional - AI detects if not provided)
+          _buildSectionTitle('Brand', required: false),
+          const SizedBox(height: 12),
+          _buildBrandSelector(context, state),
           const SizedBox(height: 24),
 
           // Sizes
@@ -550,6 +558,75 @@ class _AIListingCreateScreenState extends State<AIListingCreateScreen> {
               color: AppColors.textSecondary,
               size: 20,
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBrandSelector(BuildContext context, AIListingState state) {
+    return GestureDetector(
+      onTap: () async {
+        final bloc = context.read<AIListingBloc>();
+        final result = await context.push<SelectedBrandData>('/sell/select-brand');
+
+        if (result != null && mounted) {
+          setState(() {
+            _selectedBrand = result;
+          });
+
+          bloc.add(AIListingBrandUpdated(brand: result.brandId));
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          border: Border.all(
+            color: _selectedBrand != null ? AppColors.primary : AppColors.border,
+            width: _selectedBrand != null ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            PhosphorIcon(
+              PhosphorIconsRegular.tag,
+              color: _selectedBrand != null ? AppColors.primary : AppColors.textSecondary,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _selectedBrand?.brandName ?? 'AI will detect brand, or tap to select',
+                style: AppTypography.bodyM.copyWith(
+                  color: _selectedBrand != null
+                      ? AppColors.textPrimary
+                      : AppColors.textHint,
+                ),
+              ),
+            ),
+            if (_selectedBrand != null)
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedBrand = null;
+                  });
+                  context.read<AIListingBloc>().add(
+                    const AIListingBrandUpdated(brand: null),
+                  );
+                },
+                child: PhosphorIcon(
+                  PhosphorIconsRegular.x,
+                  color: AppColors.textSecondary,
+                  size: 18,
+                ),
+              )
+            else
+              Icon(
+                Icons.chevron_right,
+                color: AppColors.textSecondary,
+                size: 20,
+              ),
           ],
         ),
       ),

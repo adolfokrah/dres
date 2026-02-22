@@ -6,6 +6,8 @@ import 'package:dres/core/theme/app_colors.dart';
 import 'package:dres/core/theme/app_typography.dart';
 import 'package:dres/core/widgets/app_search_input.dart';
 import 'package:dres/core/widgets/unified_header.dart';
+import 'package:dres/core/di/injection.dart';
+import 'package:dres/features/sell/data/repositories/sell_repository.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_bloc.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_event.dart';
 import 'package:dres/features/shop/logic/brands_bloc/brands_state.dart';
@@ -30,6 +32,7 @@ class SelectBrandScreen extends StatefulWidget {
 class _SelectBrandScreenState extends State<SelectBrandScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _isCreating = false;
 
   @override
   void initState() {
@@ -110,11 +113,12 @@ class _SelectBrandScreenState extends State<SelectBrandScreen> {
                             .toList();
 
                   if (filteredBrands.isEmpty) {
+                    if (_searchQuery.isNotEmpty) {
+                      return _buildCreateBrandOption();
+                    }
                     return Center(
                       child: Text(
-                        _searchQuery.isEmpty
-                            ? 'No brands available'
-                            : 'No brands found',
+                        'No brands available',
                         style: AppTypography.bodyL,
                       ),
                     );
@@ -216,6 +220,98 @@ class _SelectBrandScreenState extends State<SelectBrandScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildCreateBrandOption() {
+    final trimmedName = _searchQuery.trim();
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Text(
+            'No brands found',
+            style: AppTypography.bodyL.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          InkWell(
+            onTap: _isCreating ? null : () => _createBrand(trimmedName),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  PhosphorIcon(
+                    PhosphorIconsRegular.plus,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _isCreating
+                        ? Row(
+                            children: [
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Creating "$trimmedName"...',
+                                style: AppTypography.bodyL.copyWith(
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Text(
+                            'Add "$trimmedName"',
+                            style: AppTypography.bodyL.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _createBrand(String name) async {
+    setState(() => _isCreating = true);
+    try {
+      final result = await getIt<SellRepository>().createBrand(name: name);
+      if (mounted) {
+        context.pop(SelectedBrandData(
+          brandId: result['id']!,
+          brandName: result['name']!,
+        ));
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isCreating = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to create brand: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildBrandItem(BrandModel brand) {

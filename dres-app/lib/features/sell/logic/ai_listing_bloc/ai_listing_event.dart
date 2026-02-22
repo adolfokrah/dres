@@ -98,6 +98,16 @@ class AIListingStockUpdated extends AIListingEvent {
   List<Object?> get props => [stocks];
 }
 
+/// Update brand
+class AIListingBrandUpdated extends AIListingEvent {
+  final String? brand;
+
+  const AIListingBrandUpdated({required this.brand});
+
+  @override
+  List<Object?> get props => [brand];
+}
+
 /// Update authenticity
 class AIListingAuthenticityUpdated extends AIListingEvent {
   final String? authenticity;
