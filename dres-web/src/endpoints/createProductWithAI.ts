@@ -5,11 +5,13 @@ import { resolveDepartmentId } from '../utilities/departmentUtils'
 interface ProductCreationInput {
   description?: string
   sizes: string[]
-  basePrice: number
+  basePrice?: number // Legacy: single price for all sizes
+  prices?: number[] // New: per-size prices (or single-element for all sizes)
   department: string
   collection: string
   category: string // Can be category ID or category name
-  stock?: number
+  stock?: number // Legacy: single stock for all sizes
+  stocks?: (number | null)[] // New: per-size stocks (or single-element for all sizes)
   condition?: 'new' | 'used_like_new' | 'used_good' | 'used_fair'
   authenticity?: 'original' | 'replica'
 }
@@ -68,10 +70,12 @@ export const createProductWithAI: PayloadHandler = async (req) => {
       description,
       sizes,
       basePrice,
+      prices: rawPrices,
       department,
       collection,
       category,
       stock,
+      stocks: rawStocks,
       condition = 'new',
       authenticity,
     }: ProductCreationInput & { images: string[] } = body || {}
@@ -89,10 +93,46 @@ export const createProductWithAI: PayloadHandler = async (req) => {
       }, { status: 400 })
     }
 
-    if (!basePrice || typeof basePrice !== 'number' || basePrice <= 0) {
+    // Resolve prices: support new `prices` array or legacy `basePrice` single value
+    let prices: number[]
+    if (rawPrices && Array.isArray(rawPrices) && rawPrices.length > 0) {
+      prices = rawPrices
+    } else if (basePrice && typeof basePrice === 'number' && basePrice > 0) {
+      prices = [basePrice]
+    } else {
       return Response.json({
-        errors: [{ message: 'Valid base price is required' }],
+        errors: [{ message: 'Valid price is required' }],
       }, { status: 400 })
+    }
+
+    // Validate all prices are positive
+    if (prices.some((p) => typeof p !== 'number' || p <= 0)) {
+      return Response.json({
+        errors: [{ message: 'All prices must be positive numbers' }],
+      }, { status: 400 })
+    }
+
+    // Validate prices count: must be 1 (apply to all) or match sizes count
+    if (prices.length !== 1 && prices.length !== sizes.length) {
+      return Response.json({
+        errors: [{ message: `Price count (${prices.length}) must be 1 or match sizes count (${sizes.length})` }],
+      }, { status: 400 })
+    }
+
+    // Resolve stocks: support new `stocks` array or legacy `stock` single value
+    let stocks: (number | undefined)[]
+    if (rawStocks && Array.isArray(rawStocks) && rawStocks.length > 0) {
+      stocks = rawStocks.map((s) => (s != null ? Number(s) : undefined))
+      // Validate stocks count
+      if (stocks.length !== 1 && stocks.length !== sizes.length) {
+        return Response.json({
+          errors: [{ message: `Stock count (${stocks.length}) must be 1 or match sizes count (${sizes.length})` }],
+        }, { status: 400 })
+      }
+    } else if (stock != null && typeof stock === 'number') {
+      stocks = [stock]
+    } else {
+      stocks = []
     }
 
     if (!department || typeof department !== 'string') {
@@ -223,8 +263,8 @@ export const createProductWithAI: PayloadHandler = async (req) => {
       productStructure,
       images,
       sizes,
-      basePrice,
-      stock,
+      prices,
+      stocks,
       condition,
       userId,
       departmentId,
@@ -574,8 +614,8 @@ async function createProductInDatabase(
   structure: AIProductStructure,
   imageIds: string[],
   sizes: string[],
-  basePrice: number,
-  stock: number | undefined,
+  prices: number[],
+  stocks: (number | undefined)[],
   condition: string,
   userId: string,
   departmentId: string,
@@ -688,8 +728,10 @@ async function createProductInDatabase(
     variationIds.push(variationDoc.id)
     payload.logger.info(`[CreateProductAI] Created variation: ${variationDoc.id} (${variation.color})`)
 
-    // Create SKUs for each size
-    for (const size of sizes) {
+    // Create SKUs for each size with per-size pricing/stock
+    const sizeAttributeId = await getSizeAttributeId(payload)
+    for (let i = 0; i < sizes.length; i++) {
+      const size = sizes[i]
       // Find or create size option
       const sizeOptionId = await findOrCreateSizeOption(payload, req, size)
       if (!sizeOptionId) {
@@ -697,15 +739,20 @@ async function createProductInDatabase(
         continue
       }
 
+      // Per-size price: if single price, use it for all; otherwise map by index
+      const skuPrice = prices.length === 1 ? prices[0] : prices[i]
+      // Per-size stock: if empty, undefined (unlimited); if single, use for all; otherwise map by index
+      const skuStock = stocks.length === 0 ? undefined : (stocks.length === 1 ? stocks[0] : stocks[i])
+
       const skuData: any = {
         variation: variationDoc.id,
-        price: basePrice,
-        stock: stock,
+        price: skuPrice,
+        stock: skuStock,
         isActive: true,
         status: 'active',
         skuOptions: [
           {
-            option: await getSizeAttributeId(payload),
+            option: sizeAttributeId,
             value: sizeOptionId,
           },
         ],
